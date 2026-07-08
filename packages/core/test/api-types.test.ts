@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import rr1010 from "../../../data/samples/rr1010.json" with { type: "json" };
 import showyear2013 from "../../../data/samples/showyear2013.json" with { type: "json" };
@@ -18,6 +19,26 @@ import {
 const setlists2025 = JSON.parse(
   readFileSync(new URL("../../../data/raw/setlists-2025.json", import.meta.url), "utf8"),
 ) as unknown[];
+
+/**
+ * data/census.json's `settype` field is intentionally KGLW-scoped
+ * (artist_id === 1 only, per 01-03-SUMMARY.md decisions) — it does not
+ * capture side-project settype variants ("DJ Set", "Act") that exist
+ * elsewhere in the committed multi-artist raw corpus. Since
+ * `rawSetlistRowLocked` validates every raw row BEFORE the artist_id
+ * filter runs (normalize.ts), its settype vocabulary must cover the FULL
+ * raw corpus across all artist_ids — scan it directly rather than trusting
+ * the KGLW-scoped census field for this one check.
+ */
+const dataRawDir = fileURLToPath(new URL("../../../data/raw", import.meta.url));
+const allRawSettypeValues = new Set<string>();
+for (const fileName of readdirSync(dataRawDir)) {
+  if (!fileName.startsWith("setlists-")) continue;
+  const rows = JSON.parse(readFileSync(`${dataRawDir}/${fileName}`, "utf8")) as Array<{
+    settype: string;
+  }>;
+  for (const row of rows) allRawSettypeValues.add(row.settype);
+}
 
 describe("apiEnvelope", () => {
   it("parses the rr1010 sample envelope", () => {
@@ -118,19 +139,20 @@ describe("rawSetlistRowLocked (stage 2 — census-locked enums, D-11)", () => {
     expect(() => rawSetlistRowCensus.parse(settypeRow)).not.toThrow();
   });
 
-  it("Test 6: every value in setnumberLocked and settypeLocked options appears in data/census.json (no invented vocabulary)", () => {
+  it("Test 6: every value in setnumberLocked appears in data/census.json; every settypeLocked value appears in the full raw corpus scan (no invented vocabulary)", () => {
     const censusSetnumberValues = new Set(
       (census.fields.setnumber as Array<{ value: string }>).map((f) => f.value),
-    );
-    const censusSettypeValues = new Set(
-      (census.fields.settype as Array<{ value: string }>).map((f) => f.value),
     );
 
     for (const value of setnumberLocked.options) {
       expect(censusSetnumberValues.has(value)).toBe(true);
     }
+    // settypeLocked deliberately covers side-project settype variants
+    // ("DJ Set", "Act") absent from census.json's KGLW-scoped settype
+    // field (see allRawSettypeValues comment above) — cross-check against
+    // the full raw-corpus scan instead.
     for (const value of settypeLocked.options) {
-      expect(censusSettypeValues.has(value)).toBe(true);
+      expect(allRawSettypeValues.has(value)).toBe(true);
     }
   });
 
