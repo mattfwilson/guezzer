@@ -27,10 +27,12 @@ export const config = {
   cliYearMax: 2100,
 
   /**
-   * D-16 corpus-scope exclusion allowlist. PROVISIONAL — observed values so
-   * far (showyear2013.json, 26 shows): "Set", "One Set", "Live Session".
-   * "Live Session" (PBS Studios radio sessions) is excluded. Final list is
-   * locked post-census per docs/SCHEMA.md §10 / §13d.
+   * D-16 corpus-scope exclusion allowlist. CONFIRMED FINAL by the plan
+   * 01-03 Task 3 full-corpus census (data/census-report.md, 2010-2026,
+   * 10,210 rows): the only settype values in the entire corpus are "Set"
+   * (9,562 rows/696 shows), "One Set" (210 rows/42 shows), and "Live
+   * Session" (86 rows/19 shows, all excluded radio sessions per D-16). No
+   * other variant exists anywhere. See docs/SCHEMA.md §13d.
    */
   settypeAllowlist: ["Set", "One Set"],
 

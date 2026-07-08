@@ -21,6 +21,7 @@ import { pathToFileURL } from "node:url";
 import { config } from "../config.ts";
 import { fetchCorpus } from "./fetch-corpus.ts";
 import { formatNormalizeSummary, runNormalizeCorpus } from "./normalize-corpus.ts";
+import { runCensusCli } from "./run-census.ts";
 
 export type RefreshMode = "all" | "year" | "current" | "normalize-only" | "census-only";
 
@@ -145,9 +146,11 @@ async function main(): Promise<void> {
     }
 
     if (options.mode === "census-only") {
-      // Wired in plan 01-03 Task 3 once packages/core/src/ingest/census.ts exists.
-      console.error("--census-only is not yet implemented (arriving later in plan 01-03).");
-      process.exitCode = 1;
+      const { census, filesRead } = await runCensusCli();
+      console.log(
+        `Census complete over ${filesRead.length} file(s). ${Object.keys(census.fields).length} fields censused, ` +
+          `${census.derived.distinctKglwSongCount} distinct KGLW songs, ${census.derived.contiguityViolations.length} contiguity violations.`,
+      );
       return;
     }
 
@@ -160,11 +163,18 @@ async function main(): Promise<void> {
       return;
     }
 
-    // Post-fetch census + normalize chaining is completed in plan 01-03 Task 3.
+    // D-05 routine refresh: fetch, then census, then normalize.
+    const { census, filesRead } = await runCensusCli();
     console.log(
-      "Fetch complete. Run --normalize-only to produce the normalized artifact " +
-        "(automatic census + normalize chaining after fetch arrives with Task 3's census wiring).",
+      `Census complete over ${filesRead.length} file(s). ${Object.keys(census.fields).length} fields censused, ` +
+        `${census.derived.distinctKglwSongCount} distinct KGLW songs, ${census.derived.contiguityViolations.length} contiguity violations.`,
     );
+
+    const normalizeResult = await runNormalizeCorpus({
+      inputDir: options.inputDir,
+      outPath: options.outPath,
+    });
+    console.log(formatNormalizeSummary(normalizeResult));
   } catch (err) {
     console.error((err as Error).message);
     process.exitCode = 1;

@@ -197,34 +197,34 @@ Observed `settype` values (by distinct show, showyear2013.json — 26 shows tota
 
 `shownotes`, `album_notes`, and `footnote(s)` are **untrusted editor-entered content** — `shownotes` on rr1010.json position 13 contains raw HTML anchor tags (`<a href="..." target="_blank" rel="noreferrer">`) and literal `\r\n` sequences embedded in the string. [source: rr1010.json — spot-verified] These fields must be carried verbatim through ingestion and normalization, and **never interpreted as HTML or rendered without escaping** in any future UI phase (React's default JSX escaping is sufficient; never use `dangerouslySetInnerHTML` on these fields).
 
-## 13. Open Unknowns (census will resolve)
+## 13. Open Unknowns — RESOLVED by the full-corpus census (plan 01-03 Task 3)
 
-These are explicitly deferred to the full-corpus census (plan 01-04) per D-10. Each has a placeholder `Resolution:` line to be filled in once the census report exists.
+These were deferred to the full-corpus census per D-10. `data/census-report.md` and `data/census.json` (generated from all 17 committed `data/raw/setlists-*.json` files, 2010–2026, 10,210 KGLW+side-project rows, zero network requests) now resolve every one of them.
 
 **(a) Does `setnumber: "3"` exist (three-set shows)?**
 What we know: `"1"`, `"2"`, `"e"` are all confirmed in the committed samples (§3, §7).
 What's unclear: whether any show in the full 2010–present corpus has a third regular set.
-Resolution:
+Resolution: **No.** The full-corpus census found exactly three `setnumber` values across all 10,210 rows: `"1"` (9,545 rows / 757 shows), `"2"` (286 rows / 22 shows), `"e"` (27 rows / 18 shows). No `"3"` (or any other value) exists anywhere in 2010–2026. The domain type's `setNumber: string` can safely narrow to a locked `"1" | "2" | "e"` union in plan 01-04.
 
 **(b) Full-corpus `transition_id` 4/5/6 distribution and reliability across eras**
 What we know: in the two samples, id 4 appears once (rr1010.json), id 5 appears 10 times and id 6 appears 3 times (showyear2013.json, all 149 rows); terminal-row reliability is poor even within 2013 alone (§4).
 What's unclear: whether id 4 is common in later eras, or specific to how editors notated the 2022 Red Rocks marathon.
-Resolution:
+Resolution: Full corpus: id 1 = 6,404 rows, id 2 = 2,467, id 3 = 377, id 4 = 29 (29 distinct shows, first seen 2016-03-04), id 5 = 292 (292 shows), id 6 = 289 (289 shows). **Terminal unreliability is confirmed across every era, not just 2013**: the census's per-year last-row distribution shows id 1 ("normal break") ending shows in every single year from 2010 through 2026 — e.g. 2014 alone has 53 shows ending in id 1 vs. 17 in id 5 and 9 in id 6. The Anti-Pattern-1 rule (never infer structure from `transition_id`) is validated at full-corpus scale, not just in the two planning samples.
 
 **(c) Tease notation string conventions**
 What we know: no tease row type or dedicated field exists in the schema; the only tease evidence observed is free-text prose inside `shownotes` (§8, §12).
 What's unclear: whether teases follow any consistent string convention across editors/eras that could be pattern-matched, or whether they are pure unstructured prose forever.
-Resolution:
+Resolution: **No exploitable convention exists.** A full-corpus `/tease/i` scan over `footnote`/`shownotes` returns 6,059 candidate rows, but the overwhelming majority are a single recurring KGLW.net staff disclaimer sentence — "...any additional setlist notations that require audio confirmation (segues, quotes or **teases**) may be incomplete." — not an actual tease call-out. There is no dedicated field, no consistent per-editor phrasing, and no way to mechanically separate genuine tease mentions from this boilerplate without manual review. D-15's decision (carry footnotes/shownotes verbatim, never structurally parse them, never feed them into a v1 signal) is the correct call; a v2 tease-awareness feature would need human-curated examples, not a regex.
 
 **(d) Full `settype` variant list across 15 years (2010–present)**
 What we know: `{"Set", "One Set", "Live Session"}` observed across 26 shows in 2013 alone (§10).
 What's unclear: whether "Soundcheck", festival-specific labels, or other non-standard-show variants appear in years/eras not covered by the committed samples.
-Resolution:
+Resolution: **Confirmed closed set — no new variants anywhere in 2010–2026.** Full corpus: `"Set"` (9,562 rows / 696 shows), `"One Set"` (210 rows / 42 shows), `"Live Session"` (86 rows / 19 shows). No "Soundcheck", festival, or other label ever appears. `config.settypeAllowlist = ["Set", "One Set"]` is confirmed final, not provisional — D-16's exclusion of `"Live Session"` (19 shows total, not just the 2 in the 2013 sample) is the only exclusion needed.
 
 **(e) Footnotes rows that fail `JSON.parse`**
 What we know: all 23 non-null `footnotes` values observed in showyear2013.json parse cleanly as single-element JSON string arrays (§8).
 What's unclear: whether any row across the full corpus has malformed/non-JSON `footnotes` content that would trip a naive `JSON.parse`.
-Resolution:
+Resolution: **Zero parse failures across the entire 2010–2026 corpus.** The guarded `parseFootnotesGuarded` (Pitfall 5) never had to fall back to its raw-string branch on real data — every non-null `footnotes` value in all 10,210 rows parses cleanly. The guard remains in place as defense-in-depth for future refreshes, but no historical malformed data exists.
 
 ---
 
