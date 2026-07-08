@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-08T17:09:27.245Z",
+  "phase": "01",
+  "phase_name": "corpus-ingestion-schema-foundation",
+  "phase_dir": ".planning/phases/01-corpus-ingestion-schema-foundation",
+  "plan": null,
+  "task": null,
+  "total_tasks": null,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": 1, "name": "Initialize /gsd-plan-phase 1 (init JSON loaded, phase validated against ROADMAP)", "status": "done"},
+    {"id": 2, "name": "Resolve MVP mode (true, from ROADMAP '**Mode:** mvp') and Walking Skeleton gate (true — Phase 1 of new project, zero prior summaries)", "status": "done"},
+    {"id": 3, "name": "Research decision — user chose 'Research first (Recommended)'", "status": "done"},
+    {"id": 4, "name": "Spawn gsd-phase-researcher for Phase 1", "status": "in_progress", "progress": "Researcher dispatched as background agent; 01-RESEARCH.md not yet on disk at pause time. Agent is session-bound and will NOT survive session exit."}
+  ],
+  "remaining_tasks": [
+    {"id": 5, "name": "Confirm/produce 01-RESEARCH.md (re-run research if agent died with session)", "status": "not_started"},
+    {"id": 6, "name": "Create validation strategy (VALIDATION.md) if RESEARCH.md has '## Validation Architecture' — nyquist_validation_enabled is true", "status": "not_started"},
+    {"id": 7, "name": "Security threat model gate (enabled — planner must include <threat_model> in each PLAN.md)", "status": "not_started"},
+    {"id": 8, "name": "UI design contract gate (likely no frontend indicators — Phase 1 is data ingestion) and schema push detection gate", "status": "not_started"},
+    {"id": 9, "name": "Spawn gsd-pattern-mapper (enabled; near-empty repo so likely thin output)", "status": "not_started"},
+    {"id": 10, "name": "Spawn gsd-planner with MVP_MODE=true and WALKING_SKELETON=true (must produce SKELETON.md alongside PLAN.md)", "status": "not_started"},
+    {"id": 11, "name": "gsd-plan-checker verification loop (max 3 iterations)", "status": "not_started"},
+    {"id": 12, "name": "Requirements coverage gate (DATA-01..DATA-04), decision coverage gate, state update, ROADMAP annotation, commit plans", "status": "not_started"}
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {"decision": "Research before planning Phase 1", "rationale": "Phase goal explicitly requires schema assumptions documented from real kglw.net endpoint samples; unfamiliar external API", "phase": "01"},
+    {"decision": "MVP mode active for Phase 1", "rationale": "ROADMAP.md sets '**Mode:** mvp' on Phase 1; planner must follow vertical-slice rules", "phase": "01"},
+    {"decision": "Walking Skeleton mode active", "rationale": "MVP mode + Phase 1 + zero prior phase summaries (new project); planner must emit SKELETON.md", "phase": "01"}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Run /gsd-resume-work, then check if .planning/phases/01-corpus-ingestion-schema-foundation/01-RESEARCH.md exists. If yes: commit it and re-run /gsd-plan-phase 1 (init will detect has_research=true and skip straight to planning). If no: re-run /gsd-plan-phase 1 and choose 'Research first' again.",
+  "context_notes": "Mid /gsd-plan-phase 1 for Guezzer (KGLW setlist predictor PWA). Session was paused right after dispatching the researcher agent — a clean checkpoint because the plan-phase workflow is fully resumable from init. Key config from init: research_enabled=true, plan_checker_enabled=true, nyquist_validation_enabled=true, commit_docs=true, all agent models 'inherit', TEXT_MODE=false, CHUNKED_MODE=false. Phase requirement IDs: DATA-01, DATA-02, DATA-03, DATA-04. CONTEXT.md exists at .planning/phases/01-corpus-ingestion-schema-foundation/01-CONTEXT.md and must be passed to all downstream agents. No git branch changes were made (plan-phase branch invariant)."
+}
