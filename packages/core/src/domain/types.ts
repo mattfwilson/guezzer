@@ -1,8 +1,7 @@
 /**
  * Clean domain model for normalized KGLW show data — the anti-corruption
- * boundary output. ZERO raw API field names appear here (no `showdate`,
- * `songname`, `setnumber`-as-a-verbatim-key-name-elsewhere, `venuename`,
- * etc.) — every field is renamed to a project-owned vocabulary so that
+ * boundary output. ZERO raw kglw.net API field names appear here as key
+ * names — every field is renamed to a project-owned vocabulary so that
  * downstream code (Phase 2 matrix builder, UI) never has to know the shape
  * of the kglw.net API. See docs/SCHEMA.md for the raw shape this is derived
  * from, and packages/core/src/ingest/normalize.ts for the derivation.
