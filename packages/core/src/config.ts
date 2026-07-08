@@ -70,7 +70,13 @@ export const config = {
   /** Owner-editable tuning-family tagging file (D-01..D-04). */
   tuningTagsPath: "data/tuning-tags.json",
 
-  // Microtonal album seed map for the tuning-tags generator — filled in
-  // plan 01-05 (DATA-04). Left as a placeholder here so config.ts remains
-  // the single file every later plan extends, never a second config module.
+  /**
+   * A1 seed (01-RESEARCH.md Assumption A1): the three microtonal-tuned
+   * studio albums — dedicated quarter-tone guitars, per PROJECT.md Context.
+   * Verified present verbatim in data/raw/albums.json's artist_id === 1
+   * rows. This is a starting default, not authoritative — the owner
+   * corrects any misclassification via tuning-tags.json's `needsReview`
+   * flow (D-02); `cs-standard` is never auto-assigned from this list.
+   */
+  microtonalAlbums: ["Flying Microtonal Banana", "K.G.", "L.W."],
 } as const;

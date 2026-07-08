@@ -21,3 +21,21 @@ export {
   type NormalizeResult,
   type NormalizeStats,
 } from "./ingest/normalize.ts";
+
+/**
+ * Tuning-family tagging (DATA-04, D-01..D-04). Phase 2's backoff tier
+ * consumes `TuningFamily`/`TuningTagEntry` values from data/tuning-tags.json.
+ */
+export {
+  deriveCatalogFromCorpus,
+  generateTuningTags,
+  mergeTuningTags,
+  tuningFamilyValues,
+  tuningTagEntrySchema,
+  tuningTagsFileSchema,
+  type CatalogSong,
+  type MergeTuningTagsResult,
+  type TuningFamily,
+  type TuningTagEntry,
+  type TuningTagsFile,
+} from "./ingest/tuning-tags.ts";
