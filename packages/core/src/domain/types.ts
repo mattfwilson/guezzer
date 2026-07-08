@@ -51,7 +51,8 @@ export interface Venue {
   venueId: number;
   name: string;
   city: string;
-  state: string;
+  /** Null for venues outside a state/province system (e.g. some international shows) — verified in the full corpus (plan 01-03 Task 2), not present in the Phase-1-planning samples. */
+  state: string | null;
   country: string;
 }
 

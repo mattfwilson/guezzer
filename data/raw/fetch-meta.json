@@ -1,0 +1,70 @@
+{
+  "albums.json": {
+    "fetchedAt": "2026-07-08T21:27:04.822Z",
+    "rowCount": 2750
+  },
+  "jamcharts.json": {
+    "fetchedAt": "2026-07-08T21:27:07.029Z",
+    "rowCount": 247
+  },
+  "setlists-2014.json": {
+    "fetchedAt": "2026-07-08T21:26:30.105Z",
+    "rowCount": 448
+  },
+  "setlists-2015.json": {
+    "fetchedAt": "2026-07-08T21:26:32.342Z",
+    "rowCount": 511
+  },
+  "setlists-2016.json": {
+    "fetchedAt": "2026-07-08T21:26:34.605Z",
+    "rowCount": 910
+  },
+  "setlists-2017.json": {
+    "fetchedAt": "2026-07-08T21:26:36.899Z",
+    "rowCount": 1370
+  },
+  "setlists-2018.json": {
+    "fetchedAt": "2026-07-08T21:26:39.295Z",
+    "rowCount": 1359
+  },
+  "setlists-2019.json": {
+    "fetchedAt": "2026-07-08T21:26:41.605Z",
+    "rowCount": 1004
+  },
+  "setlists-2020.json": {
+    "fetchedAt": "2026-07-08T21:26:43.786Z",
+    "rowCount": 99
+  },
+  "setlists-2021.json": {
+    "fetchedAt": "2026-07-08T21:26:46.065Z",
+    "rowCount": 274
+  },
+  "setlists-2022.json": {
+    "fetchedAt": "2026-07-08T21:26:48.470Z",
+    "rowCount": 1043
+  },
+  "setlists-2023.json": {
+    "fetchedAt": "2026-07-08T21:26:50.825Z",
+    "rowCount": 794
+  },
+  "setlists-2024.json": {
+    "fetchedAt": "2026-07-08T21:26:53.283Z",
+    "rowCount": 1077
+  },
+  "setlists-2025.json": {
+    "fetchedAt": "2026-07-08T21:26:55.638Z",
+    "rowCount": 988
+  },
+  "setlists-2026.json": {
+    "fetchedAt": "2026-07-08T21:26:57.806Z",
+    "rowCount": 15
+  },
+  "shows.json": {
+    "fetchedAt": "2026-07-08T21:27:00.090Z",
+    "rowCount": 1116
+  },
+  "songs.json": {
+    "fetchedAt": "2026-07-08T21:27:02.358Z",
+    "rowCount": 1067
+  }
+}

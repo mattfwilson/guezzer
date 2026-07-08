@@ -56,7 +56,11 @@ export const rawSetlistRowCensus = z.strictObject({
   original_artist: z.string(),
   venuename: z.string(),
   city: z.string(),
-  state: z.string(),
+  // Nullable per full-corpus fetch discovery (plan 01-03 Task 2): non-US/
+  // non-state venues (e.g. Montreal, Canada, show_id 1678650827, 2014-10-15)
+  // return state: null — not present in either committed sample. Structural
+  // correction only; D-11 enum-locking is unaffected.
+  state: z.string().nullable(),
   country: z.string(),
   timezone: z.unknown(), // never populated in samples — permissive (docs/SCHEMA.md §2)
   isreprise: z.number(), // 0/1 flag, not boolean — unreliable (docs/SCHEMA.md §5, D-14)
