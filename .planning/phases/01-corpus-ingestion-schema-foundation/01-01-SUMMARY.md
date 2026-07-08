@@ -154,3 +154,7 @@ None - no external service configuration required. (The kglw.net API is unauthen
 ---
 *Phase: 01-corpus-ingestion-schema-foundation*
 *Completed: 2026-07-08*
+
+## Self-Check: PASSED
+
+All 17 files claimed as created were verified present on disk. All 4 task commit hashes (`465132c`, `5764c4f`, `11ffeac`, `70f58db`) verified present in `git log --oneline --all`. Full test suite (`npx vitest run`) verified green (3 files, 12 tests) and `tsc --noEmit` verified zero typecheck errors, both re-confirmed after the self-check pass.
