@@ -12,8 +12,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Data Ingestion
 
 - [ ] **DATA-01** 🎯: Empirical schema documentation exists (from real endpoint samples) covering field names, song ordering, `transition_id` segue vocabulary, set/encore delimiting (`setnumber: "e"`), covers/teases, and multi-set representation — before any extraction code is written
-- [ ] **DATA-02** 🎯: One-command refresh script fetches the full historical corpus from kglw.net and writes a versioned static JSON artifact bundled with the app
-- [ ] **DATA-03** 🎯: Every ingestion path and the live poller filter to `artist_id === 1` (KGLW) and validate that filtered API responses actually match the requested filter (API silently ignores invalid filters)
+- [x] **DATA-02** 🎯: One-command refresh script fetches the full historical corpus from kglw.net and writes a versioned static JSON artifact bundled with the app
+- [x] **DATA-03** 🎯: Every ingestion path and the live poller filter to `artist_id === 1` (KGLW) and validate that filtered API responses actually match the requested filter (API silently ignores invalid filters)
 - [ ] **DATA-04** 🎯: Tuning-family tagging file (JSON/CSV) generated with album-derived defaults for the owner to hand-fill (~250 songs: standard / C# standard / microtonal)
 - [ ] **DATA-05** 🎯: Set-boundary and encore transitions are excluded from (or explicitly marked in) the transition matrix so they never poison within-set segue probabilities
 
@@ -147,8 +147,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DATA-01 | Phase 1 | Pending |
-| DATA-02 | Phase 1 | Pending |
-| DATA-03 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Complete |
+| DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Pending |
 | DATA-05 | Phase 2 | Pending |
 | MODL-01 | Phase 2 | Pending |
@@ -208,6 +208,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHAR-02 | Phase 6 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 60 total
 - Mapped to phases: 60
 - Unmapped: 0 ✓
