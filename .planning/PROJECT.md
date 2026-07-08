@@ -12,7 +12,9 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 
 ### Validated
 
-(None yet — ship to validate)
+**Data ingestion (Validated in Phase 1: Corpus Ingestion & Schema Foundation):**
+- [x] Empirical schema documentation FIRST: fetched samples from kglw.net endpoints and documented field names, song ordering, segue/transition notation, set/encore delimiting, covers/teases in `docs/SCHEMA.md` — written before any extraction code existed
+- [x] Fetch historical corpus ONCE at build time; bundled as static JSON artifact (`data/raw/`, `data/normalized/corpus.json` — 738 shows, 264 songs). One-command refresh script (`npm run refresh`) documented for pre-tour-leg rebuilds
 
 ### Active
 
@@ -42,8 +44,6 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 - [ ] Honest uncertainty: if free-choice top-5 accuracy < ~25%, surface it in the UI (wider confidence framing), don't imply false precision
 
 **Data ingestion:**
-- [ ] Empirical schema documentation FIRST: fetch a sample from each kglw.net endpoint and document field names, song ordering within sets, segue/transition notation, set/encore delimiting, covers/teases representation — before writing transition-extraction code
-- [ ] Fetch historical corpus ONCE at build time (or manual refresh action); bundle as static JSON artifact. One-command refresh script documented for pre-tour-leg rebuilds
 - [ ] Live polling limited to lightweight `latest` endpoint, ≤ once per 60s. Never hammer full `setlists` from client devices
 
 **Explore Mode (may ship after show #1; matrix must feed it from day one):**
@@ -89,11 +89,13 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 
 ### Open questions to resolve during planning (ask, don't assume)
 
-1. Exact schema of setlist/segue notation in the API — verify empirically first
-2. Whether tour boundaries are explicit in the shows data or need inferring from date gaps
-3. Decay half-life and rotation penalty defaults — propose values, justify from the backtest
-4. Constellation default-view scope: how many recent shows define "active rotation," and what edge threshold keeps the default graph readable — propose after seeing real data density
-5. Whether the `shows` endpoint provides stable show IDs suitable as the attendance-marking key for the Pokédex (it should — verify)
+1. Decay half-life and rotation penalty defaults — propose values, justify from the backtest
+2. Constellation default-view scope: how many recent shows define "active rotation," and what edge threshold keeps the default graph readable — propose after seeing real data density
+
+**Resolved in Phase 1** (`docs/SCHEMA.md`, `data/census-report.md`):
+- Setlist/segue notation schema — documented empirically from real endpoint samples
+- Tour boundaries — explicit `tour_id` field; `tour_id: 1` is a reserved "Not Part of a Tour" sentinel, not a real tour
+- `show_id` (10-digit integer) is a stable, permanent identifier — confirmed suitable as the Pokédex attendance-marking key
 
 ## Constraints
 
@@ -112,14 +114,14 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | PWA, not native | App Store/TestFlight are pure overhead for <10 users on a deadline; URL-shareable, home-screen installable | — Pending |
-| kglw.net JSON API exclusively, no scraping | Free public API exists; volunteer-run site deserves polite usage | — Pending |
+| kglw.net JSON API exclusively, no scraping | Free public API exists; volunteer-run site deserves polite usage | Validated Phase 1 — paced fetcher (2s delay, no retries, descriptive User-Agent) pulled the full 2010–2026 corpus |
 | Weighted Markov model, not black-box ML | Must be inspectable, deterministic, backtestable; fancier approaches must beat it in backtest to displace it | — Pending |
 | Tuning family replaces key signature | Key data unavailable/garbage for microtonal catalog; tuning is mechanically causal (instrument swaps) and hand-taggable | — Pending |
 | Tuning family only in backoff tier | Transition matrix already encodes tuning clustering implicitly for observed pairs | — Pending |
 | No force simulation in Show Mode | Tap targets must never move on their own in a live-venue context | — Pending |
 | Client-side model, no backend | ~900 shows / ~250 songs fits client-side; backend requires explicit justification during planning | — Pending |
 | Pokédex counts derived, never hand-tallied | Attendance marking is the single source of truth; sighting counts computed from it | — Pending |
-| Schema verification before extraction code | Segue notation/set delimiting must be documented empirically, not assumed | — Pending |
+| Schema verification before extraction code | Segue notation/set delimiting must be documented empirically, not assumed | Validated Phase 1 — `docs/SCHEMA.md` committed before any normalize/extraction code existed (git history confirms ordering) |
 | Show-#1 bar = MVP features 1–4 | Full Show Mode loop incl. live sync; Explore Mode may ship after show #1 but matrix feeds it from day one | — Pending |
 
 ## Evolution
@@ -140,4 +142,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-08 after initialization*
+*Last updated: 2026-07-08 after Phase 1: Corpus Ingestion & Schema Foundation*
