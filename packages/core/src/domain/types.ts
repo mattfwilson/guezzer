@@ -38,12 +38,17 @@ export interface Performance {
 }
 
 /**
- * setNumber typed as `string` this plan ("1" | "2" | "3" | "e" observed so
- * far) — tightened to a locked union after the full-corpus census resolves
- * the vocabulary (plan 01-04, D-11).
+ * Locked to the full-corpus census vocabulary (plan 01-04, D-11) — no
+ * other value exists anywhere in 2010-2026 (docs/SCHEMA.md §13a;
+ * packages/core/src/ingest/api-types.ts `setnumberLocked`). Hand-authored
+ * literal union (not zod-derived) to keep the domain layer free of
+ * ingest-layer schema imports — the same convention `TransitionKind` above
+ * already follows.
  */
+export type SetNumber = "1" | "2" | "e";
+
 export interface SetSection {
-  setNumber: string;
+  setNumber: SetNumber;
   performances: Performance[];
 }
 

@@ -7,18 +7,20 @@
  * is NEVER used to determine structure — it is mapped to a TransitionKind
  * for segue/terminal metadata only.
  */
+import { z } from "zod";
 import { config } from "../config.ts";
-import { rawSetlistRowCensus, type RawSetlistRow } from "./api-types.ts";
+import { formatRowError, rawSetlistRowLocked, type RawSetlistRowLocked, type TransitionIdLocked } from "./api-types.ts";
 import type {
   NormalizedCorpus,
   NormalizedShow,
   Performance,
+  SetNumber,
   SetSection,
   TransitionKind,
 } from "../domain/types.ts";
 
 export interface NormalizeStats {
-  /** Total rows validated against rawSetlistRowCensus, before any filtering. */
+  /** Total rows validated against the locked schema, before any filtering. */
   totalRowsValidated: number;
   /** Rows dropped because artist_id !== 1 (DATA-03 client-side artist filter). */
   nonKglwRowsExcluded: number;
@@ -39,15 +41,25 @@ export interface NormalizeResult {
 }
 
 /**
- * Maps the raw transition_id to a clean TransitionKind. 2/3 -> "segue";
- * 4/5/6 -> "terminal"; 1 -> "none"; any other (novel) value -> "none" this
- * plan (census-mode tolerance — the locked schema stage in plan 01-04 will
- * reject novel ids before they ever reach this function).
+ * Maps the locked transition_id to a clean TransitionKind. Exhaustive over
+ * TransitionIdLocked's full 1-6 domain (D-11): 1 -> "none"; 2/3 -> "segue";
+ * 4/5/6 -> "terminal". `rawSetlistRowLocked` guarantees no other value can
+ * reach this function — a novel id hard-fails at validation time, before
+ * normalization ever runs (plan 01-04 Task 2 removes the prior
+ * "any other value -> none" tolerance now that the id set is guaranteed).
  */
-function mapTransitionKind(transitionId: number): TransitionKind {
-  if (transitionId === 2 || transitionId === 3) return "segue";
-  if (transitionId === 4 || transitionId === 5 || transitionId === 6) return "terminal";
-  return "none";
+function mapTransitionKind(transitionId: TransitionIdLocked): TransitionKind {
+  switch (transitionId) {
+    case 1:
+      return "none";
+    case 2:
+    case 3:
+      return "segue";
+    case 4:
+    case 5:
+    case 6:
+      return "terminal";
+  }
 }
 
 /**
@@ -76,15 +88,29 @@ export function parseFootnotesGuarded(
 }
 
 export function normalizeCorpus(rows: unknown[], options: NormalizeOptions = {}): NormalizeResult {
-  // 1. Validate every row with rawSetlistRowCensus (locked schema swap happens in plan 01-04).
-  const validated: RawSetlistRow[] = rows.map((row) => rawSetlistRowCensus.parse(row));
+  // 1. Validate every row with rawSetlistRowLocked (D-11: normalization runs
+  // only on vocabulary-verified data — the census CLI keeps using its own
+  // enum-loose census-mode schema separately, in api-types.ts). A drift
+  // failure hard-fails naming the
+  // field, offending value (per-issue custom zod message), and an example
+  // show (formatRowError) — never a silent corruption of the matrix input.
+  const validated: RawSetlistRowLocked[] = rows.map((row) => {
+    try {
+      return rawSetlistRowLocked.parse(row);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        throw new Error(formatRowError(err, row));
+      }
+      throw err;
+    }
+  });
 
   // 2. Filter to artist_id === 1, counting exclusions (D-12/DATA-03).
   const kglwRows = validated.filter((row) => row.artist_id === 1);
   const nonKglwRowsExcluded = validated.length - kglwRows.length;
 
   // 3. Group rows by show_id.
-  const rowsByShow = new Map<number, RawSetlistRow[]>();
+  const rowsByShow = new Map<number, RawSetlistRowLocked[]>();
   for (const row of kglwRows) {
     const existing = rowsByShow.get(row.show_id);
     if (existing) {
@@ -139,8 +165,8 @@ export function normalizeCorpus(rows: unknown[], options: NormalizeOptions = {})
 
     // Group into SetSections by setnumber, in order of first appearance.
     // NEVER branch on transition_id for structure (Pitfall 1) — setnumber + position sort only.
-    const setNumberOrder: string[] = [];
-    const performancesBySet = new Map<string, Performance[]>();
+    const setNumberOrder: SetNumber[] = [];
+    const performancesBySet = new Map<SetNumber, Performance[]>();
 
     for (const row of sortedRows) {
       if (!performancesBySet.has(row.setnumber)) {

@@ -47,14 +47,24 @@ function extractRows(parsed: unknown, fileName: string): unknown[] {
 export async function runNormalizeCorpus(
   options: NormalizeCorpusCliOptions,
 ): Promise<NormalizeCorpusCliResult> {
+  // Only setlists-*.json carries normalizeCorpus's expected row shape.
+  // data/raw also holds sibling tables (shows.json, songs.json, albums.json,
+  // jamcharts.json, fetch-meta.json) with entirely different schemas that
+  // must never be fed into the setlist-row normalizer (Rule 3 fix, plan
+  // 01-04 Task 2 — this CLI had never actually been exercised against the
+  // full data/raw directory before this plan; the 25-show interim artifact
+  // was produced by pointing --input at data/samples instead).
   const entries = await readdir(options.inputDir, { withFileTypes: true });
   const jsonFileNames = entries
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+    .filter(
+      (entry) =>
+        entry.isFile() && entry.name.startsWith("setlists-") && entry.name.endsWith(".json"),
+    )
     .map((entry) => entry.name)
     .sort();
 
   if (jsonFileNames.length === 0) {
-    throw new Error(`No *.json files found in input directory: ${options.inputDir}`);
+    throw new Error(`No setlists-*.json files found in input directory: ${options.inputDir}`);
   }
 
   const allRows: unknown[] = [];

@@ -155,6 +155,9 @@ export const rawSetlistRowLocked = rawSetlistRowCensus.extend({
 
 export type RawSetlistRowLocked = z.infer<typeof rawSetlistRowLocked>;
 
+/** The locked transition_id domain: exactly 1-6 (docs/SCHEMA.md §13b). */
+export type TransitionIdLocked = z.infer<typeof transitionIdLocked>;
+
 /**
  * D-11 drift UX: appends show-identifying context (show_id / showdate) to
  * every issue message a locked-schema parse produced, so a future refresh
