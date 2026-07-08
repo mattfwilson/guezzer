@@ -13,7 +13,7 @@ Guezzer ships along a strict pipeline: verify the kglw.net schema empirically an
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Corpus Ingestion & Schema Foundation** - Verified schema docs, one-command corpus fetch, KGLW-only normalization, tuning-family tagging file
+- [x] **Phase 1: Corpus Ingestion & Schema Foundation** - Verified schema docs, one-command corpus fetch, KGLW-only normalization, tuning-family tagging file (completed 2026-07-08)
 - [ ] **Phase 2: Transition Matrix, Model & Backtest** - Versioned matrix artifact, all scoring signals, and the CLI backtest trust gate with ablation
 - [ ] **Phase 3: App Shell & PWA Foundation** - Installable offline-first shell with prompt-based updates and persistent IndexedDB storage
 - [ ] **Phase 4: Show Mode** - The full one-thumb live loop: orbit predictions, logging, trail, tally, crash-proof persistence, wake lock
@@ -37,7 +37,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. A tuning-family tagging file (JSON/CSV) exists with album-derived defaults for ~250 songs, ready for the owner to hand-fill
   5. Era-spanning fixture tests (2012/2017/2022/2025-style shows) pass against the normalizer, proving set structure, segues, and sandwiches parse correctly
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 
@@ -45,7 +45,7 @@ Plans:
 - [x] 01-02-PLAN.md — Walking Skeleton: normalizer + one-command CLI writes the versioned artifact from committed samples
 - [x] 01-03-PLAN.md — Paced fetcher, one-time full corpus pull committed to data/raw, full-corpus census report
 - [x] 01-04-PLAN.md — Enum lock from census evidence, SCHEMA.md unknowns resolved, final full-corpus artifact, era fixture tests
-- [ ] 01-05-PLAN.md — Tuning-family tagging file: album-derived defaults + append-only merge
+- [x] 01-05-PLAN.md — Tuning-family tagging file: album-derived defaults + append-only merge
 
 ### Phase 2: Transition Matrix, Model & Backtest
 
@@ -153,7 +153,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Corpus Ingestion & Schema Foundation | 4/5 | In Progress|  |
+| 1. Corpus Ingestion & Schema Foundation | 5/5 | Complete   | 2026-07-08 |
 | 2. Transition Matrix, Model & Backtest | 0/TBD | Not started | - |
 | 3. App Shell & PWA Foundation | 0/TBD | Not started | - |
 | 4. Show Mode | 0/TBD | Not started | - |
