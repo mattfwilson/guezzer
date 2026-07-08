@@ -12,7 +12,7 @@ import {
 function albumRow(
   overrides: Partial<AlbumRow> & Pick<AlbumRow, "album_title" | "song_url" | "song_name">,
 ): AlbumRow {
-  return { artist_id: 1, ...overrides };
+  return { artist_id: 1, islive: 0, ...overrides };
 }
 
 describe("generateTuningTags", () => {
@@ -54,9 +54,14 @@ describe("generateTuningTags", () => {
     const conflictingCatalog: CatalogSong[] = [
       { songId: 303, name: "Ambiguous Song", slug: "ambiguous-song", isCover: false },
     ];
-    // First-encountered album ("Nonagon Infinity") defaults to "standard";
-    // the second ("Flying Microtonal Banana" — config.microtonalAlbums[0])
-    // defaults to "microtonal". Conflicting, 1-vs-1 tie -> first wins.
+    // "Nonagon Infinity" defaults to "standard"; "Flying Microtonal Banana"
+    // (config.microtonalAlbums[0]) defaults to "microtonal" — a 1-vs-1
+    // count tie. This mirrors the real single-vs-parent-album shape found
+    // in the actual corpus (e.g. "Rattlesnake" matches both "Rattlesnake
+    // (Single)" and "Flying Microtonal Banana"): the tie is still flagged
+    // conflicting (needsReview: true, D-02), but resolves toward the more
+    // specific "microtonal" signal rather than the generic "standard"
+    // fallback (see resolveFamily's tie-break rationale).
     const conflictingAlbumRows: AlbumRow[] = [
       albumRow({
         album_title: "Nonagon Infinity",
@@ -70,7 +75,7 @@ describe("generateTuningTags", () => {
       }),
     ];
     const [conflictingEntry] = generateTuningTags(conflictingCatalog, conflictingAlbumRows);
-    expect(conflictingEntry.family).toBe("standard");
+    expect(conflictingEntry.family).toBe("microtonal");
     expect(conflictingEntry.needsReview).toBe(true);
 
     const agreeingCatalog: CatalogSong[] = [
@@ -109,6 +114,35 @@ describe("generateTuningTags", () => {
     const [entry] = generateTuningTags(catalog, albumRows);
 
     expect(entry.needsReview).toBe(true);
+  });
+
+  it("live-album releases (islive: 1) carry no tuning-family signal and are excluded from the join (real-corpus regression: 'Rattlesnake' otherwise matches 16 distinct live-album titles that swamp its one real album match)", () => {
+    const catalog: CatalogSong[] = [
+      { songId: 505, name: "Heavily Toured Song", slug: "heavily-toured-song", isCover: false },
+    ];
+    const albumRows: AlbumRow[] = [
+      albumRow({
+        album_title: config.microtonalAlbums[0],
+        song_url: "/song/heavily-toured-song",
+        song_name: "Heavily Toured Song",
+      }),
+      // Many distinct live-album matches, all defaulting to "standard" —
+      // without the islive filter these would outnumber/outvote the one
+      // real microtonal match.
+      ...Array.from({ length: 12 }, (_, i) =>
+        albumRow({
+          album_title: `Live In Some City '2${i} (Night ${i})`,
+          song_url: "/song/heavily-toured-song",
+          song_name: "Heavily Toured Song",
+          islive: 1,
+        }),
+      ),
+    ];
+
+    const [entry] = generateTuningTags(catalog, albumRows);
+
+    expect(entry.family).toBe("microtonal");
+    expect(entry.needsReview).toBe(false);
   });
 });
 

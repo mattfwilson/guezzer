@@ -88,6 +88,8 @@ export const albumRowSchema = z
     album_title: z.string(),
     song_url: z.string(),
     song_name: z.string(),
+    /** 0/1 flag, not boolean (matches ingest/api-types.ts convention for kglw.net flag fields). Used to exclude live-album releases from the tuning-family join — see findMatchedAlbumTitles. */
+    islive: z.number(),
   })
   .loose();
 
@@ -133,14 +135,25 @@ function extractSlugFromSongUrl(songUrl: string): string {
  * back to a case-insensitive song-name match when no slug matches (e.g. a
  * live-only song absent from any studio album row but present under a
  * differently-cased name — none observed in practice, kept as a safety net).
- * Returns the distinct album titles matched, in first-encountered order.
+ *
+ * Live-album releases (`islive === 1`) are excluded before matching: a
+ * heavily-played song accumulates one album row per official "Live In
+ * <city>" release (verified against the real corpus — "Rattlesnake" alone
+ * matches 16 distinct live-album titles, all defaulting to "standard" and
+ * completely swamping its one real "Flying Microtonal Banana" match). A
+ * live recording says nothing about which record/tuning a song was
+ * written for, so it carries no tuning-family signal.
+ *
+ * Returns the distinct non-live album titles matched, in first-encountered
+ * order.
  */
 function findMatchedAlbumTitles(song: CatalogSong, albumRows: readonly AlbumRow[]): string[] {
-  const bySlug = albumRows.filter((row) => extractSlugFromSongUrl(row.song_url) === song.slug);
+  const studioRows = albumRows.filter((row) => row.islive === 0);
+  const bySlug = studioRows.filter((row) => extractSlugFromSongUrl(row.song_url) === song.slug);
   const matches =
     bySlug.length > 0
       ? bySlug
-      : albumRows.filter((row) => row.song_name.toLowerCase() === song.name.toLowerCase());
+      : studioRows.filter((row) => row.song_name.toLowerCase() === song.name.toLowerCase());
 
   const seen = new Set<string>();
   const albumTitles: string[] = [];
@@ -175,8 +188,14 @@ interface ResolvedFamily {
  * D-02 needsReview rule: true when there's no album match, the matched
  * albums carry conflicting family defaults, or the song is a cover
  * (original-artist material — the owner judges the live tuning). On a
- * conflict, the majority default wins (ties broken by first-encountered
- * order) so the file still ships a plausible default alongside the flag.
+ * conflict, the majority default wins; ties are broken in favor of the
+ * more specific ("microtonal") signal over the generic "standard"
+ * fallback — a promotional single and its parent studio album are BOTH
+ * legitimate matches for the same song (verified in the real corpus: e.g.
+ * "Rattlesnake" matches both "Rattlesnake (Single)" and "Flying
+ * Microtonal Banana"), and "standard" there means "no seed-album
+ * evidence", not a competing positive claim. It must never silently
+ * outvote an explicit microtonal-seed match on a plain 1-vs-1 count tie.
  */
 function resolveFamily(matchedAlbumTitles: readonly string[], isCover: boolean): ResolvedFamily {
   if (matchedAlbumTitles.length === 0) {
@@ -190,15 +209,16 @@ function resolveFamily(matchedAlbumTitles: readonly string[], isCover: boolean):
     return { family: distinctDefaults[0], needsReview: isCover };
   }
 
-  // Conflicting defaults across matched albums: majority vote, ties broken
-  // by first-encountered order (D-02 ambiguity flag).
+  // Conflicting defaults across matched albums (D-02 ambiguity): majority
+  // vote by count, with ties (including a plain 1-vs-1 single-vs-album
+  // split) broken toward the non-"standard" value.
   const counts = new Map<string, number>();
   for (const value of defaults) counts.set(value, (counts.get(value) ?? 0) + 1);
-  let majority = defaults[0];
+  let majority = distinctDefaults[0];
   let majorityCount = counts.get(majority) ?? 0;
-  for (const value of defaults) {
+  for (const value of distinctDefaults) {
     const count = counts.get(value) ?? 0;
-    if (count > majorityCount) {
+    if (count > majorityCount || (count === majorityCount && value !== "standard")) {
       majority = value;
       majorityCount = count;
     }
