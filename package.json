@@ -6,7 +6,8 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "refresh": "node packages/core/src/cli/refresh.ts"
   },
   "devDependencies": {
     "typescript": "6.0.3",

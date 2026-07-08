@@ -1,0 +1,2825 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-08T21:12:13.056Z",
+  "latestShowDate": "2022-10-10",
+  "showCount": 25,
+  "songCount": 55,
+  "shows": [
+    {
+      "showId": 1678640961,
+      "date": "2013-01-24",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 234,
+        "name": "Corner Hotel",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 38,
+      "tourName": "2013 Australia",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 1,
+              "songName": "Unknown",
+              "slug": "_custom_",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": true,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 138,
+              "songName": "Muckraker",
+              "slug": "muckraker",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 32,
+              "songName": "Black Tooth",
+              "slug": "black-tooth",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 34,
+              "songName": "Bloody Ripper",
+              "slug": "bloody-ripper",
+              "position": 4,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 52,
+              "songName": "Danger $$$",
+              "slug": "danger-money",
+              "position": 5,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 49,
+              "songName": "Cut Throat Boogie",
+              "slug": "cut-throat-boogie",
+              "position": 6,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 266,
+              "songName": "I Gotta Rock 'n' Roll",
+              "slug": "i-gotta-rock-n-roll",
+              "position": 7,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": true,
+              "originalArtist": "The Reatards",
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first confirmed performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first confirmed performance"
+            },
+            {
+              "songId": 66,
+              "songName": "Elbow",
+              "slug": "elbow",
+              "position": 8,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678641046,
+      "date": "2013-01-25",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 501,
+        "name": "Paradiso at Sydney Town Hall",
+        "city": "Eora (Sydney)",
+        "state": "NSW",
+        "country": "Australia"
+      },
+      "tourId": 38,
+      "tourName": "2013 Australia",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 138,
+              "songName": "Muckraker",
+              "slug": "muckraker",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 34,
+              "songName": "Bloody Ripper",
+              "slug": "bloody-ripper",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 266,
+              "songName": "I Gotta Rock 'n' Roll",
+              "slug": "i-gotta-rock-n-roll",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": true,
+              "originalArtist": "The Reatards",
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 49,
+              "songName": "Cut Throat Boogie",
+              "slug": "cut-throat-boogie",
+              "position": 4,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 46,
+              "songName": "Crookedile",
+              "slug": "crookedile",
+              "position": 5,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 52,
+              "songName": "Danger $$$",
+              "slug": "danger-money",
+              "position": 6,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 268,
+              "songName": "Open My Eyes",
+              "slug": "open-my-eyes",
+              "position": 7,
+              "transitionKind": "terminal",
+              "transitionId": 5,
+              "isCover": true,
+              "originalArtist": "Nazz",
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first reported performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first reported performance"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678641144,
+      "date": "2013-02-23",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 234,
+        "name": "Corner Hotel",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 38,
+      "tourName": "2013 Australia",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 177,
+              "songName": "Sea of Trees",
+              "slug": "sea-of-trees",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 34,
+              "songName": "Bloody Ripper",
+              "slug": "bloody-ripper",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 32,
+              "songName": "Black Tooth",
+              "slug": "black-tooth",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 245,
+              "songName": "Willoughby's Beach",
+              "slug": "willoughbys-beach",
+              "position": 4,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 98,
+              "songName": "High Hopes Low",
+              "slug": "high-hopes-low",
+              "position": 5,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 46,
+              "songName": "Crookedile",
+              "slug": "crookedile",
+              "position": 6,
+              "transitionKind": "segue",
+              "transitionId": 3,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 267,
+              "songName": "I Wanna Be Your Dog",
+              "slug": "i-wanna-be-your-dog",
+              "position": 7,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": true,
+              "originalArtist": "The Stooges",
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 439,
+              "songName": "Jam",
+              "slug": "live-jam",
+              "position": 8,
+              "transitionKind": "terminal",
+              "transitionId": 5,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "Instrumental psych jam"
+              ],
+              "footnotesRaw": null,
+              "footnote": "Instrumental psych jam"
+            }
+          ]
+        },
+        {
+          "setNumber": "e",
+          "performances": [
+            {
+              "songId": 1,
+              "songName": "Unknown",
+              "slug": "_custom_",
+              "position": 9,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": true,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 1,
+              "songName": "Unknown",
+              "slug": "_custom_",
+              "position": 10,
+              "transitionKind": "terminal",
+              "transitionId": 6,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": true,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678641239,
+      "date": "2013-04-19",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 174,
+        "name": "Astor Theatre",
+        "city": "Perth",
+        "state": "W.A.",
+        "country": "Australia"
+      },
+      "tourId": 38,
+      "tourName": "2013 Australia",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 138,
+              "songName": "Muckraker",
+              "slug": "muckraker",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 1,
+              "songName": "Unknown",
+              "slug": "_custom_",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": true,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 69,
+              "songName": "Evil Man",
+              "slug": "evil-man",
+              "position": 4,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first reported performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first reported performance"
+            },
+            {
+              "songId": 98,
+              "songName": "High Hopes Low",
+              "slug": "high-hopes-low",
+              "position": 5,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 49,
+              "songName": "Cut Throat Boogie",
+              "slug": "cut-throat-boogie",
+              "position": 6,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 175,
+              "songName": "Sam Cherry's Last Shot",
+              "slug": "sam-cherrys-last-shot",
+              "position": 7,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 85,
+              "songName": "God Is Calling Me Back Home",
+              "slug": "god-is-calling-me-back-home",
+              "position": 8,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first reported performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first reported performance"
+            },
+            {
+              "songId": 177,
+              "songName": "Sea of Trees",
+              "slug": "sea-of-trees",
+              "position": 9,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 66,
+              "songName": "Elbow",
+              "slug": "elbow",
+              "position": 10,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 237,
+              "songName": "Uh Oh, I Called Mum",
+              "slug": "uh-oh-i-called-mum",
+              "position": 11,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678641256,
+      "date": "2013-04-20",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 531,
+        "name": "The Governor Hindmarsh Hotel",
+        "city": "Adelaide",
+        "state": "SA",
+        "country": "Australia"
+      },
+      "tourId": 38,
+      "tourName": "2013 Australia",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 142,
+              "songName": "Mystery Jack",
+              "slug": "mystery-jack",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first confirmed performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first confirmed performance"
+            },
+            {
+              "songId": 34,
+              "songName": "Bloody Ripper",
+              "slug": "bloody-ripper",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 49,
+              "songName": "Cut Throat Boogie",
+              "slug": "cut-throat-boogie",
+              "position": 3,
+              "transitionKind": "terminal",
+              "transitionId": 5,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678641289,
+      "date": "2013-04-26",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 277,
+        "name": "Forum Theatre",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 38,
+      "tourName": "2013 Australia",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 49,
+              "songName": "Cut Throat Boogie",
+              "slug": "cut-throat-boogie",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 138,
+              "songName": "Muckraker",
+              "slug": "muckraker",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 177,
+              "songName": "Sea of Trees",
+              "slug": "sea-of-trees",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678641324,
+      "date": "2013-04-27",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 500,
+        "name": "Sydney Opera House",
+        "city": "Warrane (Sydney)",
+        "state": "NSW",
+        "country": "Australia"
+      },
+      "tourId": 38,
+      "tourName": "2013 Australia",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 49,
+              "songName": "Cut Throat Boogie",
+              "slug": "cut-throat-boogie",
+              "position": 2,
+              "transitionKind": "terminal",
+              "transitionId": 5,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1711827402,
+      "date": "2013-05-18",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 779,
+        "name": "Waring Gardens",
+        "city": "Deniliquin",
+        "state": "NSW",
+        "country": "Australia"
+      },
+      "tourId": 1,
+      "tourName": "Not Part of a Tour",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 49,
+              "songName": "Cut Throat Boogie",
+              "slug": "cut-throat-boogie",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678641450,
+      "date": "2013-06-23",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 259,
+        "name": "Elsternwick Park",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 38,
+      "tourName": "2013 Australia",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 69,
+              "songName": "Evil Man",
+              "slug": "evil-man",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first confirmed performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first confirmed performance"
+            },
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 85,
+              "songName": "God Is Calling Me Back Home",
+              "slug": "god-is-calling-me-back-home",
+              "position": 3,
+              "transitionKind": "terminal",
+              "transitionId": 5,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first confirmed performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first confirmed performance"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678641532,
+      "date": "2013-08-21",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 183,
+        "name": "Bar Open",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 16,
+      "tourName": "2013 Float Along - Fill Your Lungs Preview Shows",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 269,
+              "songName": "I'm Not a Man Unless I Have a Woman",
+              "slug": "im-not-a-man-unless-i-have-a-woman",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first reported performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first reported performance"
+            },
+            {
+              "songId": 85,
+              "songName": "God Is Calling Me Back Home",
+              "slug": "god-is-calling-me-back-home",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 4,
+              "songName": "30 Past 7",
+              "slug": "30-past-7",
+              "position": 4,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first reported performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first reported performance"
+            },
+            {
+              "songId": 125,
+              "songName": "Let Me Mend the Past",
+              "slug": "let-me-mend-the-past",
+              "position": 5,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first reported performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first reported performance"
+            },
+            {
+              "songId": 142,
+              "songName": "Mystery Jack",
+              "slug": "mystery-jack",
+              "position": 6,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 164,
+              "songName": "Pop In My Step",
+              "slug": "pop-in-my-step",
+              "position": 7,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first reported performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first reported performance"
+            },
+            {
+              "songId": 75,
+              "songName": "Float Along – Fill Your Lungs",
+              "slug": "float-along-fill-your-lungs-2",
+              "position": 8,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first reported performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first reported performance"
+            },
+            {
+              "songId": 77,
+              "songName": "Footy Footy",
+              "slug": "footy-footy",
+              "position": 9,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 32,
+              "songName": "Black Tooth",
+              "slug": "black-tooth",
+              "position": 10,
+              "transitionKind": "terminal",
+              "transitionId": 6,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678641612,
+      "date": "2013-08-22",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 295,
+        "name": "Goodgod Small Club",
+        "city": "Sydney",
+        "state": "NSW",
+        "country": "Australia"
+      },
+      "tourId": 16,
+      "tourName": "2013 Float Along - Fill Your Lungs Preview Shows",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 269,
+              "songName": "I'm Not a Man Unless I Have a Woman",
+              "slug": "im-not-a-man-unless-i-have-a-woman",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first confirmed performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first confirmed performance"
+            },
+            {
+              "songId": 85,
+              "songName": "God Is Calling Me Back Home",
+              "slug": "god-is-calling-me-back-home",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 4,
+              "songName": "30 Past 7",
+              "slug": "30-past-7",
+              "position": 4,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first confirmed performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first confirmed performance"
+            },
+            {
+              "songId": 125,
+              "songName": "Let Me Mend the Past",
+              "slug": "let-me-mend-the-past",
+              "position": 5,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first confirmed performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first confirmed performance"
+            },
+            {
+              "songId": 142,
+              "songName": "Mystery Jack",
+              "slug": "mystery-jack",
+              "position": 6,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 164,
+              "songName": "Pop In My Step",
+              "slug": "pop-in-my-step",
+              "position": 7,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first confirmed performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first confirmed performance"
+            },
+            {
+              "songId": 75,
+              "songName": "Float Along – Fill Your Lungs",
+              "slug": "float-along-fill-your-lungs-2",
+              "position": 8,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first confirmed performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first confirmed performance"
+            },
+            {
+              "songId": 49,
+              "songName": "Cut Throat Boogie",
+              "slug": "cut-throat-boogie",
+              "position": 9,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 138,
+              "songName": "Muckraker",
+              "slug": "muckraker",
+              "position": 10,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 77,
+              "songName": "Footy Footy",
+              "slug": "footy-footy",
+              "position": 11,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 32,
+              "songName": "Black Tooth",
+              "slug": "black-tooth",
+              "position": 12,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 52,
+              "songName": "Danger $$$",
+              "slug": "danger-money",
+              "position": 13,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 177,
+              "songName": "Sea of Trees",
+              "slug": "sea-of-trees",
+              "position": 14,
+              "transitionKind": "terminal",
+              "transitionId": 5,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678642152,
+      "date": "2013-08-28",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 396,
+        "name": "Northcote Social Club",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 16,
+      "tourName": "2013 Float Along - Fill Your Lungs Preview Shows",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 269,
+              "songName": "I'm Not a Man Unless I Have a Woman",
+              "slug": "im-not-a-man-unless-i-have-a-woman",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 85,
+              "songName": "God Is Calling Me Back Home",
+              "slug": "god-is-calling-me-back-home",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 4,
+              "songName": "30 Past 7",
+              "slug": "30-past-7",
+              "position": 4,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 125,
+              "songName": "Let Me Mend the Past",
+              "slug": "let-me-mend-the-past",
+              "position": 5,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 142,
+              "songName": "Mystery Jack",
+              "slug": "mystery-jack",
+              "position": 6,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 164,
+              "songName": "Pop In My Step",
+              "slug": "pop-in-my-step",
+              "position": 7,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 75,
+              "songName": "Float Along – Fill Your Lungs",
+              "slug": "float-along-fill-your-lungs-2",
+              "position": 8,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 245,
+              "songName": "Willoughby's Beach",
+              "slug": "willoughbys-beach",
+              "position": 9,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 32,
+              "songName": "Black Tooth",
+              "slug": "black-tooth",
+              "position": 10,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 66,
+              "songName": "Elbow",
+              "slug": "elbow",
+              "position": 11,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 53,
+              "songName": "Dead-Beat",
+              "slug": "dead-beat",
+              "position": 12,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 77,
+              "songName": "Footy Footy",
+              "slug": "footy-footy",
+              "position": 13,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 138,
+              "songName": "Muckraker",
+              "slug": "muckraker",
+              "position": 14,
+              "transitionKind": "terminal",
+              "transitionId": 5,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678642235,
+      "date": "2013-08-29",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 396,
+        "name": "Northcote Social Club",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 16,
+      "tourName": "2013 Float Along - Fill Your Lungs Preview Shows",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 269,
+              "songName": "I'm Not a Man Unless I Have a Woman",
+              "slug": "im-not-a-man-unless-i-have-a-woman",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 85,
+              "songName": "God Is Calling Me Back Home",
+              "slug": "god-is-calling-me-back-home",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 4,
+              "songName": "30 Past 7",
+              "slug": "30-past-7",
+              "position": 4,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 125,
+              "songName": "Let Me Mend the Past",
+              "slug": "let-me-mend-the-past",
+              "position": 5,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 142,
+              "songName": "Mystery Jack",
+              "slug": "mystery-jack",
+              "position": 6,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 164,
+              "songName": "Pop In My Step",
+              "slug": "pop-in-my-step",
+              "position": 7,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 75,
+              "songName": "Float Along – Fill Your Lungs",
+              "slug": "float-along-fill-your-lungs-2",
+              "position": 8,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 66,
+              "songName": "Elbow",
+              "slug": "elbow",
+              "position": 9,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 138,
+              "songName": "Muckraker",
+              "slug": "muckraker",
+              "position": 10,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 53,
+              "songName": "Dead-Beat",
+              "slug": "dead-beat",
+              "position": 11,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1703538770,
+      "date": "2013-09-11",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 759,
+        "name": "House Party",
+        "city": "Brisbane",
+        "state": "QLD",
+        "country": "Australia"
+      },
+      "tourId": 38,
+      "tourName": "2013 Australia",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678642445,
+      "date": "2013-09-11",
+      "showOrder": 2,
+      "year": 2013,
+      "venue": {
+        "venueId": 258,
+        "name": "Electric Playground",
+        "city": "Brisbane",
+        "state": "QLD",
+        "country": "Australia"
+      },
+      "tourId": 38,
+      "tourName": "2013 Australia",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 125,
+              "songName": "Let Me Mend the Past",
+              "slug": "let-me-mend-the-past",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 75,
+              "songName": "Float Along – Fill Your Lungs",
+              "slug": "float-along-fill-your-lungs-2",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1694270241,
+      "date": "2013-10-09",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 691,
+        "name": "Revolt Art Space",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 1,
+      "tourName": "Not Part of a Tour",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 125,
+              "songName": "Let Me Mend the Past",
+              "slug": "let-me-mend-the-past",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678642562,
+      "date": "2013-10-16",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 665,
+        "name": "Red Bennies",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 15,
+      "tourName": "2013 Float Along - Fill Your Lungs",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 225,
+              "songName": "The Raid",
+              "slug": "the-raid",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "first confirmed performance"
+              ],
+              "footnotesRaw": null,
+              "footnote": "first confirmed performance"
+            },
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 2,
+              "transitionKind": "terminal",
+              "transitionId": 5,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678642598,
+      "date": "2013-10-19",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 234,
+        "name": "Corner Hotel",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 15,
+      "tourName": "2013 Float Along - Fill Your Lungs",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 225,
+              "songName": "The Raid",
+              "slug": "the-raid",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 85,
+              "songName": "God Is Calling Me Back Home",
+              "slug": "god-is-calling-me-back-home",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 4,
+              "songName": "30 Past 7",
+              "slug": "30-past-7",
+              "position": 4,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 125,
+              "songName": "Let Me Mend the Past",
+              "slug": "let-me-mend-the-past",
+              "position": 5,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 75,
+              "songName": "Float Along – Fill Your Lungs",
+              "slug": "float-along-fill-your-lungs-2",
+              "position": 6,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 177,
+              "songName": "Sea of Trees",
+              "slug": "sea-of-trees",
+              "position": 7,
+              "transitionKind": "terminal",
+              "transitionId": 5,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678642639,
+      "date": "2013-10-25",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 323,
+        "name": "Jive",
+        "city": "Adelaide",
+        "state": "SA",
+        "country": "Australia"
+      },
+      "tourId": 15,
+      "tourName": "2013 Float Along - Fill Your Lungs",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678642682,
+      "date": "2013-11-01",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 760,
+        "name": "Alhambra Lounge",
+        "city": "Fortitude Valley",
+        "state": "QLD",
+        "country": "Australia"
+      },
+      "tourId": 15,
+      "tourName": "2013 Float Along - Fill Your Lungs",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 4,
+              "songName": "30 Past 7",
+              "slug": "30-past-7",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678642710,
+      "date": "2013-11-02",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 567,
+        "name": "The Standard Hotel",
+        "city": "Eora (Sydney)",
+        "state": "NSW",
+        "country": "Australia"
+      },
+      "tourId": 15,
+      "tourName": "2013 Float Along - Fill Your Lungs",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 75,
+              "songName": "Float Along – Fill Your Lungs",
+              "slug": "float-along-fill-your-lungs-2",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 52,
+              "songName": "Danger $$$",
+              "slug": "danger-money",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 245,
+              "songName": "Willoughby's Beach",
+              "slug": "willoughbys-beach",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 4,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 4,
+              "songName": "30 Past 7",
+              "slug": "30-past-7",
+              "position": 5,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 125,
+              "songName": "Let Me Mend the Past",
+              "slug": "let-me-mend-the-past",
+              "position": 6,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 164,
+              "songName": "Pop In My Step",
+              "slug": "pop-in-my-step",
+              "position": 7,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 85,
+              "songName": "God Is Calling Me Back Home",
+              "slug": "god-is-calling-me-back-home",
+              "position": 8,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678642773,
+      "date": "2013-11-10",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 379,
+        "name": "Mojo's Bar",
+        "city": "Fremantle",
+        "state": "W.A.",
+        "country": "Australia"
+      },
+      "tourId": 15,
+      "tourName": "2013 Float Along - Fill Your Lungs",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678642836,
+      "date": "2013-11-19",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 557,
+        "name": "The Residence",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 15,
+      "tourName": "2013 Float Along - Fill Your Lungs",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 93,
+              "songName": "Head On/Pill",
+              "slug": "head-on-pill",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 85,
+              "songName": "God Is Calling Me Back Home",
+              "slug": "god-is-calling-me-back-home",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 75,
+              "songName": "Float Along – Fill Your Lungs",
+              "slug": "float-along-fill-your-lungs-2",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678642854,
+      "date": "2013-12-31",
+      "showOrder": 1,
+      "year": 2013,
+      "venue": {
+        "venueId": 246,
+        "name": "Ding Dong Lounge",
+        "city": "Naarm (Melbourne)",
+        "state": "VIC",
+        "country": "Australia"
+      },
+      "tourId": 15,
+      "tourName": "2013 Float Along - Fill Your Lungs",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 4,
+              "songName": "30 Past 7",
+              "slug": "30-past-7",
+              "position": 1,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 85,
+              "songName": "God Is Calling Me Back Home",
+              "slug": "god-is-calling-me-back-home",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 49,
+              "songName": "Cut Throat Boogie",
+              "slug": "cut-throat-boogie",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 75,
+              "songName": "Float Along – Fill Your Lungs",
+              "slug": "float-along-fill-your-lungs-2",
+              "position": 4,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "showId": 1678309429,
+      "date": "2022-10-10",
+      "showOrder": 1,
+      "year": 2022,
+      "venue": {
+        "venueId": 447,
+        "name": "Red Rocks Amphitheatre",
+        "city": "Morrison",
+        "state": "CO",
+        "country": "USA"
+      },
+      "tourId": 49,
+      "tourName": "2022 World Tour Fall",
+      "sets": [
+        {
+          "setNumber": "1",
+          "performances": [
+            {
+              "songId": 133,
+              "songName": "Mars For the Rich",
+              "slug": "mars-for-the-rich",
+              "position": 1,
+              "transitionKind": "segue",
+              "transitionId": 2,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 94,
+              "songName": "Hell",
+              "slug": "hell",
+              "position": 2,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 131,
+              "songName": "Magenta Mountain",
+              "slug": "magenta-mountain",
+              "position": 3,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 114,
+              "songName": "Inner Cell",
+              "slug": "inner-cell",
+              "position": 4,
+              "transitionKind": "segue",
+              "transitionId": 2,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 129,
+              "songName": "Loyalty",
+              "slug": "loyalty",
+              "position": 5,
+              "transitionKind": "segue",
+              "transitionId": 2,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 101,
+              "songName": "Horology",
+              "slug": "horology",
+              "position": 6,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 147,
+              "songName": "O.N.E.",
+              "slug": "o-n-e",
+              "position": 7,
+              "transitionKind": "segue",
+              "transitionId": 2,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 146,
+              "songName": "Nuclear Fusion",
+              "slug": "nuclear-fusion",
+              "position": 8,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 10,
+              "songName": "All Is Known",
+              "slug": "all-is-known",
+              "position": 9,
+              "transitionKind": "segue",
+              "transitionId": 2,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 197,
+              "songName": "Straws In The Wind",
+              "slug": "straws-in-the-wind",
+              "position": 10,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 216,
+              "songName": "The Garden Goblin",
+              "slug": "the-garden-goblin",
+              "position": 11,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 227,
+              "songName": "The River",
+              "slug": "the-river",
+              "position": 12,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 132,
+              "songName": "Magma",
+              "slug": "magma",
+              "position": 13,
+              "transitionKind": "terminal",
+              "transitionId": 4,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        },
+        {
+          "setNumber": "2",
+          "performances": [
+            {
+              "songId": 168,
+              "songName": "Rattlesnake",
+              "slug": "rattlesnake",
+              "position": 14,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 26,
+              "songName": "Automation",
+              "slug": "automation",
+              "position": 15,
+              "transitionKind": "segue",
+              "transitionId": 2,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 100,
+              "songName": "Honey",
+              "slug": "honey",
+              "position": 16,
+              "transitionKind": "segue",
+              "transitionId": 3,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 187,
+              "songName": "Sleep Drifter",
+              "slug": "sleep-drifter",
+              "position": 17,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 25,
+              "songName": "Ataraxia",
+              "slug": "ataraxia",
+              "position": 18,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 68,
+              "songName": "Evil Death Roll",
+              "slug": "evil-death-roll",
+              "position": 19,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 105,
+              "songName": "Ice V",
+              "slug": "ice-v",
+              "position": 20,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 226,
+              "songName": "The Reticent Raconteur",
+              "slug": "the-reticent-raconteur",
+              "position": 21,
+              "transitionKind": "segue",
+              "transitionId": 2,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "With Leah Senior narration"
+              ],
+              "footnotesRaw": null,
+              "footnote": "With Leah Senior narration"
+            },
+            {
+              "songId": 224,
+              "songName": "The Lord of Lightning",
+              "slug": "the-lord-of-lightning",
+              "position": 22,
+              "transitionKind": "segue",
+              "transitionId": 2,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "With Leah Senior narration"
+              ],
+              "footnotesRaw": null,
+              "footnote": "With Leah Senior narration"
+            },
+            {
+              "songId": 206,
+              "songName": "The Balrog",
+              "slug": "the-balrog",
+              "position": 23,
+              "transitionKind": "segue",
+              "transitionId": 3,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": [
+                "With Leah Senior narration"
+              ],
+              "footnotesRaw": null,
+              "footnote": "With Leah Senior narration"
+            },
+            {
+              "songId": 235,
+              "songName": "Trapdoor",
+              "slug": "trapdoor",
+              "position": 24,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 102,
+              "songName": "Hot Water",
+              "slug": "hot-water",
+              "position": 25,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 219,
+              "songName": "The Grim Reaper",
+              "slug": "the-grim-reaper",
+              "position": 26,
+              "transitionKind": "none",
+              "transitionId": 1,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            },
+            {
+              "songId": 160,
+              "songName": "Planet B",
+              "slug": "planet-b",
+              "position": 27,
+              "transitionKind": "terminal",
+              "transitionId": 6,
+              "isCover": false,
+              "originalArtist": null,
+              "isPlaceholder": false,
+              "footnotesParsed": null,
+              "footnotesRaw": null,
+              "footnote": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
