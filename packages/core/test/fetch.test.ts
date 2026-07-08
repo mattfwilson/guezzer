@@ -62,7 +62,7 @@ describe("fetchCorpus — pacing, sequencing, User-Agent (mocked fetch, zero rea
     await fetchCorpus({ years: [2012], outputDir: tempDir }, deps);
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
-    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const [, init] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
     const headers = init.headers as Record<string, string>;
     expect(headers["User-Agent"]).toBe("Guezzer setlist tool (matt.f.wilson@gmail.com)");
   });

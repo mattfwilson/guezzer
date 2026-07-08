@@ -1,86 +1,179 @@
 /**
  * THE one documented command (D-02/DATA-02): `npm run refresh -- [flags]`.
  *
- * This plan implements the `--normalize-only` skeleton path only — it
- * delegates to `normalize-corpus.ts`'s exported function directly (no
- * shelling out between CLI scripts). `--all` / `--year` / `--census-only`
- * / `--fetch-only` arrive in plan 01-03; they are listed in usage now,
- * marked "not yet implemented", so the command surface is stable from day
- * one and future plans only fill in behavior, never add new flags.
+ * `parseRefreshArgs` is a pure, unit-testable argument parser (security V5:
+ * `--year` is validated as a bounded integer BEFORE any URL/path
+ * interpolation happens anywhere downstream). `main()` is a thin
+ * orchestrator that delegates to `fetch-corpus.ts` and
+ * `normalize-corpus.ts` directly — no shelling out between CLI scripts.
+ *
+ * Flag semantics (D-05):
+ *   --all             full historical pull: years corpusYearStart..currentYear + all sibling tables
+ *   --year <YYYY>      (repeatable) only the named year(s); add --tables for sibling tables too
+ *   --fetch-only       fetch only, skip census/normalize
+ *   --census-only      run only the census report over committed raw data
+ *   --normalize-only   run only the normalize step over committed raw JSON
+ *   --input <dir>      input directory for --normalize-only (default: config.dataRawDir)
+ *   --out <path>       output path for the normalized artifact (default: config.corpusArtifactPath)
+ *   (no flags)         D-05 routine refresh: current year only, then census + normalize
  */
+import { pathToFileURL } from "node:url";
 import { config } from "../config.ts";
+import { fetchCorpus } from "./fetch-corpus.ts";
 import { formatNormalizeSummary, runNormalizeCorpus } from "./normalize-corpus.ts";
 
-const IMPLEMENTED_FLAGS = ["--normalize-only", "--input", "--out"];
-const NOT_YET_IMPLEMENTED_FLAGS = ["--all", "--year", "--census-only", "--fetch-only"];
-const FLAGS_TAKING_A_VALUE = new Set(["--input", "--out", "--year"]);
+export type RefreshMode = "all" | "year" | "current" | "normalize-only" | "census-only";
+
+export interface RefreshOptions {
+  mode: RefreshMode;
+  /** Years to fetch — populated for "all" | "year" | "current". */
+  years: number[];
+  /** Whether to also fetch shows/songs/albums/jamcharts — "all" always true; "year" only with --tables. */
+  includeTables: boolean;
+  /** Skip census + normalize after fetching. */
+  fetchOnly: boolean;
+  /** Input directory for --normalize-only. */
+  inputDir: string;
+  /** Output path for --normalize-only. */
+  outPath: string;
+}
+
+const KNOWN_FLAGS = [
+  "--all",
+  "--year",
+  "--fetch-only",
+  "--census-only",
+  "--normalize-only",
+  "--tables",
+  "--input",
+  "--out",
+];
+const FLAGS_TAKING_A_VALUE = new Set(["--year", "--input", "--out"]);
 
 function printUsage(): void {
   console.log(`Usage: node packages/core/src/cli/refresh.ts [flags]
 
-Flags (implemented this plan):
+Flags:
+  --all                   Fetch the full historical corpus (${config.corpusYearStart}..current year) + sibling tables
+  --year <YYYY>           Fetch/refresh a single year (repeatable). Add --tables for sibling tables too
+  --tables                With --year: also fetch shows/songs/albums/jamcharts
+  --fetch-only            Fetch only, skip census/normalize
+  --census-only           Run only the census report over committed raw data
   --normalize-only        Run only the normalize step over committed raw JSON
   --input <dir>           Input directory for --normalize-only (default: ${config.dataRawDir})
   --out <path>            Output path for the normalized artifact (default: ${config.corpusArtifactPath})
+  (no flags)              D-05 routine refresh: current year only, then census + normalize
 
-Flags (not yet implemented — arriving in plan 01-03):
-  --all                   Fetch the full historical corpus from kglw.net
-  --year <YYYY>           Fetch/refresh a single year
-  --census-only           Run the census report over committed raw data
-  --fetch-only            Fetch only, skip normalize
+Valid --year range: ${config.cliYearMin}-${config.cliYearMax}.
 `);
+}
+
+/**
+ * Validates a `--year` value as a bounded integer BEFORE it is ever
+ * interpolated into a URL path or filename (ASVS V5, T-01-08).
+ */
+function validateYearArg(rawValue: string | undefined): number {
+  const rangeMessage = `Valid --year range is ${config.cliYearMin}-${config.cliYearMax}.`;
+  if (rawValue === undefined || !/^-?\d+$/.test(rawValue)) {
+    throw new Error(`Invalid --year value ${JSON.stringify(rawValue)}: must be an integer. ${rangeMessage}`);
+  }
+  const year = Number.parseInt(rawValue, 10);
+  if (year < config.cliYearMin || year > config.cliYearMax) {
+    throw new Error(`--year ${year} is out of range. ${rangeMessage}`);
+  }
+  return year;
+}
+
+/** Pure argument parser — no I/O, fully unit-testable (fetch.test.ts Task 7). */
+export function parseRefreshArgs(argv: string[], currentYear: number): RefreshOptions {
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (!arg.startsWith("--")) continue; // a flag's value, already consumed below
+    if (!KNOWN_FLAGS.includes(arg)) {
+      throw new Error(`Unknown flag: ${arg}`);
+    }
+    if (FLAGS_TAKING_A_VALUE.has(arg)) i++; // skip the value
+  }
+
+  const years: number[] = [];
+  let inputDir: string = config.dataRawDir;
+  let outPath: string = config.corpusArtifactPath;
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--year") years.push(validateYearArg(argv[++i]));
+    else if (argv[i] === "--input") inputDir = argv[++i];
+    else if (argv[i] === "--out") outPath = argv[++i];
+  }
+
+  const fetchOnly = argv.includes("--fetch-only");
+
+  if (argv.includes("--normalize-only")) {
+    return { mode: "normalize-only", years: [], includeTables: false, fetchOnly: false, inputDir, outPath };
+  }
+  if (argv.includes("--census-only")) {
+    return { mode: "census-only", years: [], includeTables: false, fetchOnly: false, inputDir, outPath };
+  }
+  if (argv.includes("--all")) {
+    const allYears: number[] = [];
+    for (let y = config.corpusYearStart; y <= currentYear; y++) allYears.push(y);
+    return { mode: "all", years: allYears, includeTables: true, fetchOnly, inputDir, outPath };
+  }
+  if (years.length > 0) {
+    return { mode: "year", years, includeTables: argv.includes("--tables"), fetchOnly, inputDir, outPath };
+  }
+  // D-05 default: no flags -> current year only, no sibling tables.
+  return { mode: "current", years: [currentYear], includeTables: false, fetchOnly, inputDir, outPath };
 }
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
-  const allKnownFlags = [...IMPLEMENTED_FLAGS, ...NOT_YET_IMPLEMENTED_FLAGS];
 
-  if (argv.length === 0) {
+  let options: RefreshOptions;
+  try {
+    options = parseRefreshArgs(argv, new Date().getFullYear());
+  } catch (err) {
+    console.error((err as Error).message);
     printUsage();
     process.exitCode = 1;
     return;
-  }
-
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
-    if (!arg.startsWith("--")) continue; // a flag's value, already consumed by its flag below
-    if (!allKnownFlags.includes(arg)) {
-      printUsage();
-      process.exitCode = 1;
-      return;
-    }
-    if (FLAGS_TAKING_A_VALUE.has(arg)) {
-      i++; // skip the value
-    }
-  }
-
-  const requestedNotYetImplemented = NOT_YET_IMPLEMENTED_FLAGS.find((flag) => argv.includes(flag));
-  if (requestedNotYetImplemented !== undefined) {
-    console.error(`${requestedNotYetImplemented} is not yet implemented (arriving in plan 01-03).`);
-    process.exitCode = 1;
-    return;
-  }
-
-  if (!argv.includes("--normalize-only")) {
-    printUsage();
-    process.exitCode = 1;
-    return;
-  }
-
-  let inputDir: string = config.dataRawDir;
-  let outPath: string = config.corpusArtifactPath;
-  for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "--input") inputDir = argv[++i];
-    else if (argv[i] === "--out") outPath = argv[++i];
   }
 
   try {
-    const result = await runNormalizeCorpus({ inputDir, outPath });
-    console.log(formatNormalizeSummary(result));
+    if (options.mode === "normalize-only") {
+      const result = await runNormalizeCorpus({ inputDir: options.inputDir, outPath: options.outPath });
+      console.log(formatNormalizeSummary(result));
+      return;
+    }
+
+    if (options.mode === "census-only") {
+      // Wired in plan 01-03 Task 3 once packages/core/src/ingest/census.ts exists.
+      console.error("--census-only is not yet implemented (arriving later in plan 01-03).");
+      process.exitCode = 1;
+      return;
+    }
+
+    const fetchResult = await fetchCorpus({ years: options.years, includeTables: options.includeTables });
+    console.log(
+      `Fetched ${fetchResult.filesWritten.length} file(s): ${fetchResult.filesWritten.join(", ")}`,
+    );
+
+    if (options.fetchOnly) {
+      return;
+    }
+
+    // Post-fetch census + normalize chaining is completed in plan 01-03 Task 3.
+    console.log(
+      "Fetch complete. Run --normalize-only to produce the normalized artifact " +
+        "(automatic census + normalize chaining after fetch arrives with Task 3's census wiring).",
+    );
   } catch (err) {
     console.error((err as Error).message);
     process.exitCode = 1;
   }
 }
 
-await main();
+const isMain =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isMain) {
+  await main();
+}
