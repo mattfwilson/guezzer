@@ -153,7 +153,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Corpus Ingestion & Schema Foundation | 5/5 | Complete   | 2026-07-08 |
+| 1. Corpus Ingestion & Schema Foundation | 5/5 | Complete    | 2026-07-08 |
 | 2. Transition Matrix, Model & Backtest | 0/TBD | Not started | - |
 | 3. App Shell & PWA Foundation | 0/TBD | Not started | - |
 | 4. Show Mode | 0/TBD | Not started | - |
