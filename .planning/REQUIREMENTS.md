@@ -146,13 +146,72 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmap) | | |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Pending |
+| DATA-05 | Phase 2 | Pending |
+| MODL-01 | Phase 2 | Pending |
+| MODL-02 | Phase 2 | Pending |
+| MODL-03 | Phase 2 | Pending |
+| MODL-04 | Phase 2 | Pending |
+| MODL-05 | Phase 2 | Pending |
+| MODL-06 | Phase 2 | Pending |
+| MODL-07 | Phase 2 | Pending |
+| MODL-08 | Phase 2 | Pending |
+| MODL-09 | Phase 2 | Pending |
+| MODL-10 | Phase 2 | Pending |
+| MODL-11 | Phase 2 | Pending |
+| EVAL-01 | Phase 2 | Pending |
+| EVAL-02 | Phase 2 | Pending |
+| EVAL-03 | Phase 2 | Pending |
+| EVAL-04 | Phase 4 | Pending |
+| EVAL-05 | Phase 2 | Pending |
+| SHOW-01 | Phase 4 | Pending |
+| SHOW-02 | Phase 4 | Pending |
+| SHOW-03 | Phase 4 | Pending |
+| SHOW-04 | Phase 4 | Pending |
+| SHOW-05 | Phase 4 | Pending |
+| SHOW-06 | Phase 4 | Pending |
+| SHOW-07 | Phase 4 | Pending |
+| SHOW-08 | Phase 4 | Pending |
+| SHOW-09 | Phase 4 | Pending |
+| SHOW-10 | Phase 4 | Pending |
+| SHOW-11 | Phase 4 | Pending |
+| SHOW-12 | Phase 4 | Pending |
+| SHOW-13 | Phase 4 | Pending |
+| SHOW-14 | Phase 6 | Pending |
+| SYNC-01 | Phase 5 | Pending |
+| SYNC-02 | Phase 5 | Pending |
+| SYNC-03 | Phase 5 | Pending |
+| PWA-01 | Phase 3 | Pending |
+| PWA-02 | Phase 3 | Pending |
+| PWA-03 | Phase 3 | Pending |
+| PWA-04 | Phase 5 | Pending |
+| STAT-01 | Phase 6 | Pending |
+| STAT-02 | Phase 6 | Pending |
+| STAT-03 | Phase 6 | Pending |
+| STAT-04 | Phase 6 | Pending |
+| DEX-01 | Phase 4 | Pending |
+| DEX-02 | Phase 6 | Pending |
+| DEX-03 | Phase 6 | Pending |
+| DEX-04 | Phase 6 | Pending |
+| DEX-05 | Phase 7 | Pending |
+| EXPL-01 | Phase 7 | Pending |
+| EXPL-02 | Phase 7 | Pending |
+| EXPL-03 | Phase 7 | Pending |
+| EXPL-04 | Phase 7 | Pending |
+| EXPL-05 | Phase 7 | Pending |
+| EXPL-06 | Phase 7 | Pending |
+| HIST-01 | Phase 6 | Pending |
+| SHAR-01 | Phase 6 | Pending |
+| SHAR-02 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 52 total
-- Mapped to phases: 0
-- Unmapped: 52 ⚠️ (pending roadmap)
+- v1 requirements: 60 total
+- Mapped to phases: 60
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-08*
-*Last updated: 2026-07-08 after initial definition*
+*Last updated: 2026-07-08 after roadmap creation (traceability populated)*
