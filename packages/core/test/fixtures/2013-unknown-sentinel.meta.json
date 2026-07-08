@@ -1,0 +1,6 @@
+{
+  "sourceFile": "data/raw/setlists-2013.json",
+  "showId": 1678640961,
+  "showdate": "2013-01-24",
+  "why": "Real show whose first row (position 1) is the \"Unknown\" sentinel (song_id 1, slug _custom_) — proves it becomes a placeholder Performance occupying its position slot, excluded from the distinct-song count."
+}

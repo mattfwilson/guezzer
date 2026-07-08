@@ -1,0 +1,6 @@
+{
+  "sourceFile": "data/samples/rr1010.json",
+  "showId": 1678309429,
+  "showdate": "2022-10-10",
+  "why": "Red Rocks 2022-10-10 marathon show — 2 sets split exactly at position 13/14; transition_id 4 on the set-1 closer (position 13, \"Magma\") maps to \"terminal\" and is NOT used to derive the split (setnumber grouping is the only structure source)."
+}

@@ -3,6 +3,18 @@ import rr1010 from "../../../data/samples/rr1010.json" with { type: "json" };
 import showyear2013 from "../../../data/samples/showyear2013.json" with { type: "json" };
 import { normalizeCorpus, parseFootnotesGuarded } from "../src/ingest/normalize.ts";
 
+// Era-spanning real-show fixtures (phase success criterion 5) — see
+// packages/core/test/fixtures/*.meta.json for source file, show_id, and why
+// each was chosen.
+import fixture2012LooseTerminal from "./fixtures/2012-loose-terminal.json" with { type: "json" };
+import fixture2013LiveSession from "./fixtures/2013-live-session.json" with { type: "json" };
+import fixture2013Encore from "./fixtures/2013-encore.json" with { type: "json" };
+import fixture2013UnknownSentinel from "./fixtures/2013-unknown-sentinel.json" with { type: "json" };
+import fixture2022Rr1010Multiset from "./fixtures/2022-rr1010-multiset.json" with { type: "json" };
+import fixture2017Segues from "./fixtures/2017-segues.json" with { type: "json" };
+import fixture2025Sandwich from "./fixtures/2025-sandwich.json" with { type: "json" };
+import fixture2025SegueChain from "./fixtures/2025-segue-chain.json" with { type: "json" };
+
 /** A minimal, valid base row (real rr1010.json data[0] shape) for building synthetic edge-case rows. */
 const baseRow = { ...rr1010.data[0] };
 
@@ -153,5 +165,122 @@ describe("normalizeCorpus — synthetic edge cases", () => {
     expect(corpus.shows.some((s) => s.showId === 999003)).toBe(false);
     expect(corpus.shows.some((s) => s.showId === 999002)).toBe(true);
     expect(stats.nonKglwRowsExcluded).toBe(1);
+  });
+});
+
+describe("normalizeCorpus — era-spanning fixtures (phase success criterion 5)", () => {
+  it("Fixture A (2012-loose-terminal): a real 2012 show whose final row has transition_id 1 normalizes with no phantom breaks or truncation", () => {
+    const { corpus } = normalizeCorpus(fixture2012LooseTerminal);
+    expect(corpus.shows.length).toBe(1);
+    const show = corpus.shows[0];
+    expect(show.sets.length).toBe(1);
+    expect(show.sets[0].setNumber).toBe("1");
+    expect(show.sets[0].performances.length).toBe(12);
+    const last = show.sets[0].performances.at(-1)!;
+    expect(last.position).toBe(12);
+    expect(last.transitionId).toBe(1);
+    expect(last.transitionKind).toBe("none");
+  });
+
+  it("Fixture B (2013-live-session): the PBS Studios show is excluded by the allowlist with stats recording it (D-16)", () => {
+    const { corpus, stats } = normalizeCorpus(fixture2013LiveSession);
+    expect(corpus.shows.length).toBe(0);
+    expect(stats.showsExcludedBySettype.length).toBe(1);
+    expect(stats.showsExcludedBySettype[0].settype).toBe("Live Session");
+    expect(stats.showsExcludedBySettype[0].showId).toBe(1678641097);
+  });
+
+  it("Fixture C (2013-encore): a show with setnumber \"e\" yields a final SetSection with setNumber \"e\" after the numbered sets", () => {
+    const { corpus } = normalizeCorpus(fixture2013Encore);
+    expect(corpus.shows.length).toBe(1);
+    const show = corpus.shows[0];
+    expect(show.sets.map((s) => s.setNumber)).toEqual(["1", "e"]);
+    expect(show.sets[0].performances.length).toBe(8);
+    const encoreSet = show.sets.at(-1)!;
+    expect(encoreSet.setNumber).toBe("e");
+    expect(encoreSet.performances.map((p) => p.position)).toEqual([9, 10]);
+  });
+
+  it("Fixture D (2013-unknown-sentinel): song_id 1 row -> isPlaceholder true, excluded from songCount", () => {
+    const { corpus } = normalizeCorpus(fixture2013UnknownSentinel);
+    expect(corpus.shows.length).toBe(1);
+    const firstPerformance = corpus.shows[0].sets[0].performances[0];
+    expect(firstPerformance.songId).toBe(1);
+    expect(firstPerformance.slug).toBe("_custom_");
+    expect(firstPerformance.isPlaceholder).toBe(true);
+
+    const distinctSongIds = new Set<number>();
+    for (const set of corpus.shows[0].sets) {
+      for (const p of set.performances) {
+        if (!p.isPlaceholder) distinctSongIds.add(p.songId);
+      }
+    }
+    expect(distinctSongIds.has(1)).toBe(false);
+    expect(corpus.songCount).toBe(distinctSongIds.size);
+  });
+
+  it("Fixture E (2022-rr1010-multiset): 2 sets split exactly at position 13/14; transition_id 4 on the set-1 closer maps to \"terminal\" and is NOT used for the split", () => {
+    const { corpus } = normalizeCorpus(fixture2022Rr1010Multiset);
+    expect(corpus.shows.length).toBe(1);
+    const show = corpus.shows[0];
+    expect(show.sets.map((s) => s.setNumber)).toEqual(["1", "2"]);
+    expect(show.sets[0].performances.length).toBe(13);
+    expect(show.sets[1].performances.length).toBe(14);
+
+    const closer = show.sets[0].performances.at(-1)!;
+    expect(closer.position).toBe(13);
+    expect(closer.transitionId).toBe(4);
+    expect(closer.transitionKind).toBe("terminal");
+    expect(show.sets[1].performances[0].position).toBe(14);
+  });
+
+  it("Fixture F (2017-segues): a mid-era (2017) show with >= 2 segues normalizes clean", () => {
+    const { corpus } = normalizeCorpus(fixture2017Segues);
+    expect(corpus.shows.length).toBe(1);
+    const performances = corpus.shows[0].sets[0].performances;
+    expect(performances.length).toBe(8);
+    const segueCount = performances.filter((p) => p.transitionKind === "segue").length;
+    expect(segueCount).toBeGreaterThanOrEqual(2);
+    expect(performances.find((p) => p.position === 1)?.transitionKind).toBe("segue");
+    expect(performances.find((p) => p.position === 3)?.transitionKind).toBe("segue");
+  });
+
+  it("Fixture G (2025-sandwich): the real 2025-12-13 Motor Spirit > Gila Monster > Motor Spirit sequence yields TWO distinct Performance entries for the sandwiched song, no reprise linking (D-14)", () => {
+    const { corpus } = normalizeCorpus(fixture2025Sandwich);
+    expect(corpus.shows.length).toBe(1);
+    const performances = corpus.shows[0].sets[0].performances;
+
+    const motorSpiritOccurrences = performances.filter((p) => p.songId === 324);
+    expect(motorSpiritOccurrences.length).toBe(2);
+    expect(motorSpiritOccurrences.map((p) => p.position)).toEqual([19, 21]);
+
+    const gilaMonster = performances.find((p) => p.position === 20);
+    expect(gilaMonster?.songId).toBe(251);
+
+    // No reprise-linkage fields anywhere on Performance — every occurrence
+    // is an ordinary positional entry (D-14: isreprise is never read).
+    for (const p of motorSpiritOccurrences) {
+      expect(Object.keys(p)).not.toContain("repriseOf");
+      expect(Object.keys(p)).not.toContain("isReprise");
+    }
+
+    // Duplicate songId detectable within the show (what MODL-10 needs).
+    const songIdCounts = new Map<number, number>();
+    for (const p of performances) {
+      songIdCounts.set(p.songId, (songIdCounts.get(p.songId) ?? 0) + 1);
+    }
+    expect(songIdCounts.get(324)).toBe(2);
+  });
+
+  it("Fixture H (2025-segue-chain): consecutive transition_id 2/3 rows all map to transitionKind \"segue\" in position order", () => {
+    const { corpus } = normalizeCorpus(fixture2025SegueChain);
+    expect(corpus.shows.length).toBe(1);
+    const performances = corpus.shows[0].sets[0].performances;
+
+    const chain = performances.filter((p) => p.position >= 11 && p.position <= 13);
+    expect(chain.map((p) => p.position)).toEqual([11, 12, 13]);
+    for (const p of chain) {
+      expect(p.transitionKind).toBe("segue");
+    }
   });
 });

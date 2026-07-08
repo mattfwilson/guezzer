@@ -1,0 +1,6 @@
+{
+  "sourceFile": "data/raw/setlists-2013.json",
+  "showId": 1678641097,
+  "showdate": "2013-02-08",
+  "why": "Real PBS Studios radio session (settype \"Live Session\") — the D-16 corpus-scope exclusion case. Must be dropped by the normalizer's settypeAllowlist and counted in stats.showsExcludedBySettype."
+}

@@ -1,0 +1,6 @@
+{
+  "sourceFile": "data/raw/setlists-2013.json",
+  "showId": 1678641144,
+  "showdate": "2013-02-23",
+  "why": "Real show with an encore: 8 rows of setnumber \"1\" followed by 2 rows of setnumber \"e\" (positions 9-10) — proves the encore becomes its own trailing SetSection after the numbered sets, in position order."
+}

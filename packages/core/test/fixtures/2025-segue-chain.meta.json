@@ -1,0 +1,6 @@
+{
+  "sourceFile": "data/raw/setlists-2025.json",
+  "showId": 1718035722,
+  "showdate": "2025-05-18",
+  "why": "Real show with 3 consecutive segue rows (transition_id 3 at positions 11, 12, 13) immediately preceding the show-terminal row (position 14, transition_id 6) — proves consecutive transition_id 2/3 rows all map to transitionKind \"segue\" in position order."
+}

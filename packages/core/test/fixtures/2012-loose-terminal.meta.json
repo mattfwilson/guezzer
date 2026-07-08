@@ -1,0 +1,6 @@
+{
+  "sourceFile": "data/raw/setlists-2012.json",
+  "showId": 1678593481,
+  "showdate": "2012-05-10",
+  "why": "Real early-era show whose final row (position 12) has transition_id 1 (\"normal break\", a loose/unreliable terminal) rather than 4/5/6 — proves the normalizer never truncates or phantom-breaks a set based on transition_id (Pitfall 1)."
+}
