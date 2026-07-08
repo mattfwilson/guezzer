@@ -149,6 +149,10 @@ None — no external service configuration required. This plan touches only comm
 - No blockers. All acceptance criteria for all 3 tasks verified: 15/15 locked-schema tests, full-corpus regeneration with 3/3 cross-checks passing, 8/8 era fixtures with explicit assertions, full suite 52/52 green, `tsc --noEmit` clean on both the census-mode and locked-mode schema layers.
 - Plan 01-05 (tuning-tags generator, DATA-04) can proceed independently — it does not depend on anything this plan changed beyond the now-finalized `data/normalized/corpus.json` shape.
 
+## Self-Check: PASSED
+
+All 10 claimed files verified present on disk (api-types.ts, normalize.ts, domain/types.ts, normalize-corpus.ts, docs/SCHEMA.md, data/normalized/corpus.json, api-types.test.ts, normalize.test.ts, fixtures/2025-sandwich.json, this SUMMARY.md). All 6 claimed commit hashes verified present in git log (aabb77f, 9df758d, 21f09ff, 26bbe64, df25e81, abac88e).
+
 ---
 *Phase: 01-corpus-ingestion-schema-foundation*
 *Completed: 2026-07-08*
