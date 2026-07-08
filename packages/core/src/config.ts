@@ -44,6 +44,9 @@ export const config = {
   /** Pitfall 3: a fetched year with more rows than this is almost certainly a silent-filter-ignore poisoning (Pitfall 3 / docs/SCHEMA.md §9). */
   maxRowsPerYearSanity: 5000,
 
+  /** ARCHITECTURE.md Part 1.9 / docs/SCHEMA.md §11: tour_id 1 = "Not Part of a Tour" sentinel — one-off shows, never a real tour to group by. Used by the census's tour_id sentinel-usage bucketing. */
+  tourIdSentinel: 1,
+
   /** Committed raw per-year API snapshots (D-05/D-06). */
   dataRawDir: "data/raw",
 
