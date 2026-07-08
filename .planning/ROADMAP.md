@@ -37,12 +37,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. A tuning-family tagging file (JSON/CSV) exists with album-derived defaults for ~250 songs, ready for the owner to hand-fill
   5. Era-spanning fixture tests (2012/2017/2022/2025-style shows) pass against the normalizer, proving set structure, segues, and sandwiches parse correctly
 
-**Plans:** 1/5 plans executed
+**Plans:** 2/5 plans executed
 
 Plans:
 
 - [x] 01-01-PLAN.md — Workspace scaffold, SCHEMA.md v1 (before extraction code), census-mode zod schemas + filter assertion
-- [ ] 01-02-PLAN.md — Walking Skeleton: normalizer + one-command CLI writes the versioned artifact from committed samples
+- [x] 01-02-PLAN.md — Walking Skeleton: normalizer + one-command CLI writes the versioned artifact from committed samples
 - [ ] 01-03-PLAN.md — Paced fetcher, one-time full corpus pull committed to data/raw, full-corpus census report
 - [ ] 01-04-PLAN.md — Enum lock from census evidence, SCHEMA.md unknowns resolved, final full-corpus artifact, era fixture tests
 - [ ] 01-05-PLAN.md — Tuning-family tagging file: album-derived defaults + append-only merge
@@ -153,7 +153,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Corpus Ingestion & Schema Foundation | 1/5 | In Progress|  |
+| 1. Corpus Ingestion & Schema Foundation | 2/5 | In Progress|  |
 | 2. Transition Matrix, Model & Backtest | 0/TBD | Not started | - |
 | 3. App Shell & PWA Foundation | 0/TBD | Not started | - |
 | 4. Show Mode | 0/TBD | Not started | - |
