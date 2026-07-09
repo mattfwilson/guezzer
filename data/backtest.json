@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-08T21:48:06.479Z",
+  "holdoutTourId": 65,
+  "holdoutTourName": "2025 Phantom Island Australia Tour",
+  "holdoutShowCount": 9,
+  "evalTransitionCount": 154,
+  "overall": {
+    "n": 154,
+    "top1": 84,
+    "top5": 103,
+    "top10": 114
+  },
+  "hardSegue": {
+    "n": 36,
+    "top1": 19,
+    "top5": 22,
+    "top10": 23
+  },
+  "freeChoice": {
+    "n": 118,
+    "top1": 65,
+    "top5": 81,
+    "top10": 91
+  },
+  "ablation": [
+    {
+      "signal": "decay",
+      "overall": {
+        "n": 154,
+        "top1": 67,
+        "top5": 99,
+        "top10": 116
+      },
+      "hardSegue": {
+        "n": 36,
+        "top1": 16,
+        "top5": 23,
+        "top10": 24
+      },
+      "freeChoice": {
+        "n": 118,
+        "top1": 51,
+        "top5": 76,
+        "top10": 92
+      },
+      "deltaVsFull": {
+        "top1": -0.11038961038961037,
+        "top5": -0.02597402597402587,
+        "top10": 0.012987012987012991
+      }
+    },
+    {
+      "signal": "rotation",
+      "overall": {
+        "n": 154,
+        "top1": 88,
+        "top5": 101,
+        "top10": 114
+      },
+      "hardSegue": {
+        "n": 36,
+        "top1": 19,
+        "top5": 21,
+        "top10": 23
+      },
+      "freeChoice": {
+        "n": 118,
+        "top1": 69,
+        "top5": 80,
+        "top10": 91
+      },
+      "deltaVsFull": {
+        "top1": 0.025974025974025983,
+        "top5": -0.01298701298701288,
+        "top10": 0
+      }
+    },
+    {
+      "signal": "alreadyPlayed",
+      "overall": {
+        "n": 154,
+        "top1": 85,
+        "top5": 104,
+        "top10": 116
+      },
+      "hardSegue": {
+        "n": 36,
+        "top1": 20,
+        "top5": 24,
+        "top10": 25
+      },
+      "freeChoice": {
+        "n": 118,
+        "top1": 65,
+        "top5": 80,
+        "top10": 91
+      },
+      "deltaVsFull": {
+        "top1": 0.006493506493506551,
+        "top5": 0.006493506493506551,
+        "top10": 0.012987012987012991
+      }
+    },
+    {
+      "signal": "eraPrior",
+      "overall": {
+        "n": 154,
+        "top1": 82,
+        "top5": 103,
+        "top10": 114
+      },
+      "hardSegue": {
+        "n": 36,
+        "top1": 19,
+        "top5": 22,
+        "top10": 23
+      },
+      "freeChoice": {
+        "n": 118,
+        "top1": 63,
+        "top5": 81,
+        "top10": 91
+      },
+      "deltaVsFull": {
+        "top1": -0.012987012987012991,
+        "top5": 0,
+        "top10": 0
+      }
+    },
+    {
+      "signal": "hardSegue",
+      "overall": {
+        "n": 154,
+        "top1": 89,
+        "top5": 104,
+        "top10": 112
+      },
+      "hardSegue": {
+        "n": 36,
+        "top1": 18,
+        "top5": 22,
+        "top10": 23
+      },
+      "freeChoice": {
+        "n": 118,
+        "top1": 71,
+        "top5": 82,
+        "top10": 89
+      },
+      "deltaVsFull": {
+        "top1": 0.032467532467532534,
+        "top5": 0.006493506493506551,
+        "top10": -0.012987012987012991
+      }
+    },
+    {
+      "signal": "tuning",
+      "overall": {
+        "n": 154,
+        "top1": 84,
+        "top5": 105,
+        "top10": 115
+      },
+      "hardSegue": {
+        "n": 36,
+        "top1": 19,
+        "top5": 22,
+        "top10": 23
+      },
+      "freeChoice": {
+        "n": 118,
+        "top1": 65,
+        "top5": 83,
+        "top10": 92
+      },
+      "deltaVsFull": {
+        "top1": 0,
+        "top5": 0.012987012987012991,
+        "top10": 0.00649350649350644
+      }
+    },
+    {
+      "signal": "albumEra",
+      "overall": {
+        "n": 154,
+        "top1": 84,
+        "top5": 104,
+        "top10": 114
+      },
+      "hardSegue": {
+        "n": 36,
+        "top1": 19,
+        "top5": 22,
+        "top10": 23
+      },
+      "freeChoice": {
+        "n": 118,
+        "top1": 65,
+        "top5": 82,
+        "top10": 91
+      },
+      "deltaVsFull": {
+        "top1": 0,
+        "top5": 0.006493506493506551,
+        "top10": 0
+      }
+    }
+  ]
+}
