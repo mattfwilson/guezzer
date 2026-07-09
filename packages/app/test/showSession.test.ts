@@ -11,6 +11,7 @@ import {
   undoLast,
   type TrackedEntry,
 } from "../src/db/db.ts";
+import { classifyOutcome } from "../src/show/scoring.ts";
 
 /**
  * Helper: a minimal hit entry for a real catalog song. logSong stamps
@@ -164,6 +165,60 @@ describe("showSession: Dexie version(2) tracked-show lifecycle", () => {
       .equals(sessionId)
       .sortBy("position");
     expect(remaining.map((e) => e.songName)).toEqual(["Rattlesnake", "Honey"]);
+  });
+
+  it("restore: end-to-end resume rebuilds the exact active session from the same DB path (SHOW-11)", async () => {
+    // Seed an active show + a trail, then simulate force-quit → relaunch by
+    // re-querying via the SAME path useShowSession uses (getActiveShow →
+    // entries by sessionId sorted by position). Exact resume, no loss (D-03).
+    const { sessionId, date } = await startShow();
+    await logSong(sessionId, hit(101, "Rattlesnake"));
+    await logSong(sessionId, hit(102, "Honey", [102]));
+
+    const active = await getActiveShow();
+    expect(active?.sessionId).toBe(sessionId);
+    expect(active?.date).toBe(date);
+    expect(active?.status).toBe("active");
+
+    const entries = active
+      ? await db.trackedEntries
+          .where("sessionId")
+          .equals(active.sessionId)
+          .sortBy("position")
+      : [];
+    expect(entries.map((e) => e.songName)).toEqual(["Rattlesnake", "Honey"]);
+    expect(entries.map((e) => e.position)).toEqual([1, 2]);
+  });
+
+  it("write-through: a tapped orb logs outcome 'hit' at the next position (SHOW-03/D-06)", async () => {
+    // Simulate ShowView.handleTapOrb: with a seeded current song and a shown
+    // fan, tapping an orb in the fan classifies as a hit and write-throughs at
+    // the next contiguous position (the recenter the live query then reflects).
+    const { sessionId } = await startShow();
+    await logSong(sessionId, hit(101, "Rattlesnake")); // the seeded current song
+
+    const shownFanSongIds = [102, 103, 104, 105, 106];
+    const tappedId = 103;
+    const outcome = classifyOutcome(tappedId, shownFanSongIds);
+    expect(outcome).toBe("hit");
+
+    await logSong(sessionId, {
+      songId: tappedId,
+      songName: "Honey",
+      outcome,
+      shownFanSongIds,
+      isPlaceholder: false,
+      loggedAt: Date.now(),
+    });
+
+    const entries = await db.trackedEntries
+      .where("sessionId")
+      .equals(sessionId)
+      .sortBy("position");
+    expect(entries).toHaveLength(2);
+    expect(entries[1].position).toBe(2);
+    expect(entries[1].songId).toBe(tappedId);
+    expect(entries[1].outcome).toBe("hit");
   });
 
   it("rename: patches a '???' placeholder to a real song (D-14/D-15)", async () => {

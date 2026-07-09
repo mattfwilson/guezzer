@@ -6,6 +6,7 @@ import { PlaceholderView } from "./components/PlaceholderView";
 import { UpdateToast } from "./components/UpdateToast";
 import { requestPersistenceOnce } from "./pwa/persist.ts";
 import { useHashRoute } from "./routing/useHashRoute";
+import { ShowView } from "./show/ShowView.tsx";
 
 export function App() {
   const route = useHashRoute();
@@ -35,8 +36,18 @@ export function App() {
 
   return (
     <>
-      <AppShell onMenuClick={() => setMenuOpen(true)}>
-        <PlaceholderView route={route} />
+      {/* Show Mode owns a full-height non-scrolling orbit (SHOW-13, Pitfall 5),
+          so `#/show` disables AppShell's `<main>` scroll. Explore/Dex keep the
+          scrolling placeholder until Phases 6/7. */}
+      <AppShell
+        onMenuClick={() => setMenuOpen(true)}
+        scroll={route !== "show"}
+      >
+        {route === "show" ? (
+          <ShowView />
+        ) : (
+          <PlaceholderView route={route} />
+        )}
       </AppShell>
 
       <InstallBanner />
