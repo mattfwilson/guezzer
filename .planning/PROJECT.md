@@ -16,6 +16,17 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 - [x] Empirical schema documentation FIRST: fetched samples from kglw.net endpoints and documented field names, song ordering, segue/transition notation, set/encore delimiting, covers/teases in `docs/SCHEMA.md` — written before any extraction code existed
 - [x] Fetch historical corpus ONCE at build time; bundled as static JSON artifact (`data/raw/`, `data/normalized/corpus.json` — 738 shows, 264 songs). One-command refresh script (`npm run refresh`) documented for pre-tour-leg rebuilds
 
+**Prediction model (Validated in Phase 2: Transition Matrix, Model & Backtest):**
+- [x] Weighted Markov transition model — inspectable, deterministic, backtestable; recomputes on new data ingestion (no online training, no neural nets)
+- [x] Signal 1: first-order transition frequency P(next | current) from historical setlists
+- [x] Signal 2: recency/era exponential decay (tunable half-life); current + previous tour dominate
+- [x] Signal 3: hard segue pairs from segue notation (`>` / `->`) and jamcharts — override base model at very high confidence
+- [x] Signal 4: rotation suppression — songs played in the last 1–3 shows of the current tour heavily downweighted
+- [x] Signal 5: base play probability in current era as smoothing prior
+- [x] Signal 6: tuning-family affinity — hand-tagged via `data/tuning-tags.json`; used only in the sparse-data backoff tier, not as a top-level multiplier
+- [x] Sparse-data backoff: transition model → same-tuning-family affinity → same-album/era affinity → base play probability. Never a hard zero for a plausible song; never 100% except a notated hard segue
+- [x] Backtest: hold out most recent complete tour, train on prior; reports top-1/top-5/top-10 hit rate, overall and split by hard-segue vs. free-choice; per-feature ablation (report-only, no go/no-go gate); paired `.md`/`.json` CLI report (`data/backtest-report.md`, `data/backtest.json`)
+
 ### Active
 
 **Show Mode (must work at show #1 — hard deadline):**
@@ -30,18 +41,9 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 - [ ] Live sync from kglw.net: poll `latest` every 60s during an active show, offer to auto-fill editor-logged songs; manual entry is primary; fully offline once loaded, syncs when signal returns
 - [ ] Dark theme, fat-thumb-friendly, optimized for a dark crowded venue and a possibly slightly drunk operator
 
-**Prediction model (backtest is a non-negotiable trust gate before show #1):**
-- [ ] Weighted Markov transition model — inspectable, deterministic, backtestable; recomputes on new data ingestion (no online training, no neural nets)
-- [ ] Signal 1: first-order transition frequency P(next | current) from historical setlists
-- [ ] Signal 2: recency/era exponential decay (tunable half-life); current + previous tour dominate
-- [ ] Signal 3: hard segue pairs from segue notation (`>` / `->`) and jamcharts — override base model at very high confidence
-- [ ] Signal 4: rotation suppression — songs played in the last 1–3 shows of the current tour heavily downweighted (top-3 signal for consecutive-night attendance)
-- [ ] Signal 5: base play probability in current era as smoothing prior
-- [ ] Signal 6: tuning-family affinity (standard / C# standard / microtonal) — hand-tagged via a simple JSON/CSV file the owner fills in (~250 songs, mostly derivable from album membership); used ONLY in the sparse-data backoff tier, not as a top-level multiplier
-- [ ] Signal 7 (nice-to-have): set-position awareness (opener/closer/encore distributions) if the data supports it cleanly
-- [ ] Sparse-data backoff: transition model → same-tuning-family affinity → same-album/era affinity → base play probability. Never a hard zero for a plausible song; never 100% except a notated hard segue
-- [ ] Backtest: hold out most recent complete tour, train on prior; report top-1/top-5/top-10 hit rate, overall and split by hard-segue vs. free-choice; per-feature ablation so any signal that doesn't earn its place gets deleted; CLI report and/or debug screen
-- [ ] Honest uncertainty: if free-choice top-5 accuracy < ~25%, surface it in the UI (wider confidence framing), don't imply false precision
+**Prediction model (core scoring validated in Phase 2; UI surfacing is Show Mode's job):**
+- [ ] Signal 7 (nice-to-have): set-position awareness (opener/closer/encore distributions) if the data supports it cleanly — not attempted in Phase 2, still open
+- [ ] Honest uncertainty: if free-choice top-5 accuracy < ~25%, surface it in the UI (wider confidence framing), don't imply false precision — Phase 2 backtest measured free-choice top-5 at 68.6% (well above the floor), but the UI surfacing itself is unbuilt
 
 **Data ingestion:**
 - [ ] Live polling limited to lightweight `latest` endpoint, ≤ once per 60s. Never hammer full `setlists` from client devices
@@ -115,9 +117,9 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 |----------|-----------|---------|
 | PWA, not native | App Store/TestFlight are pure overhead for <10 users on a deadline; URL-shareable, home-screen installable | — Pending |
 | kglw.net JSON API exclusively, no scraping | Free public API exists; volunteer-run site deserves polite usage | Validated Phase 1 — paced fetcher (2s delay, no retries, descriptive User-Agent) pulled the full 2010–2026 corpus |
-| Weighted Markov model, not black-box ML | Must be inspectable, deterministic, backtestable; fancier approaches must beat it in backtest to displace it | — Pending |
-| Tuning family replaces key signature | Key data unavailable/garbage for microtonal catalog; tuning is mechanically causal (instrument swaps) and hand-taggable | — Pending |
-| Tuning family only in backoff tier | Transition matrix already encodes tuning clustering implicitly for observed pairs | — Pending |
+| Weighted Markov model, not black-box ML | Must be inspectable, deterministic, backtestable; fancier approaches must beat it in backtest to displace it | Validated Phase 2 — `buildMatrix`/`predict` are pure, deterministic, config-driven; backtest top-5 66.9% overall / 68.6% free-choice on the held-out tour |
+| Tuning family replaces key signature | Key data unavailable/garbage for microtonal catalog; tuning is mechanically causal (instrument swaps) and hand-taggable | Validated Phase 2 — `tuningAffinity` backoff tier consumes `MatrixNode.tuningFamily` baked at build time |
+| Tuning family only in backoff tier | Transition matrix already encodes tuning clustering implicitly for observed pairs | Validated Phase 2 — `predict.ts` reads `tuningFamily` only inside the sparse-data backoff blend, never as a top-level multiplier |
 | No force simulation in Show Mode | Tap targets must never move on their own in a live-venue context | — Pending |
 | Client-side model, no backend | ~900 shows / ~250 songs fits client-side; backend requires explicit justification during planning | — Pending |
 | Pokédex counts derived, never hand-tallied | Attendance marking is the single source of truth; sighting counts computed from it | — Pending |
@@ -142,4 +144,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-08 after Phase 1: Corpus Ingestion & Schema Foundation*
+*Last updated: 2026-07-09 after Phase 2: Transition Matrix, Model & Backtest*
