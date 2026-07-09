@@ -61,11 +61,11 @@ Plans:
   4. A per-feature ablation report shows accuracy with each signal toggled off, so any signal that doesn't earn its place gets deleted
   5. All model constants live in a single config file, and unit tests on fixture setlists with known expected outputs pass for the scoring pipeline
 
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
 
-- [ ] 02-01-PLAN.md — Config + type contracts + matrix builder + build-model CLI (frozen TransitionMatrix artifact)
+- [x] 02-01-PLAN.md — Config + type contracts + matrix builder + build-model CLI (frozen TransitionMatrix artifact)
 - [ ] 02-02-PLAN.md — Predictor core: interpolated backoff base + ranked prediction with rich breakdown
 - [ ] 02-03-PLAN.md — Scoring signals: decay toggle, rotation, already-played, era prior, hard-segue override
 - [ ] 02-04-PLAN.md — Backtest: holdout tour + walk-forward top-1/5/10 metrics with hard-segue/free-choice split
@@ -162,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Corpus Ingestion & Schema Foundation | 5/5 | Complete    | 2026-07-08 |
-| 2. Transition Matrix, Model & Backtest | 0/5 | Not started | - |
+| 2. Transition Matrix, Model & Backtest | 1/5 | In Progress|  |
 | 3. App Shell & PWA Foundation | 0/TBD | Not started | - |
 | 4. Show Mode | 0/TBD | Not started | - |
 | 5. Live Sync & Data Safety | 0/TBD | Not started | - |
