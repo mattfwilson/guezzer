@@ -6,10 +6,12 @@ import { buildMatrixIndex, type MatrixIndex } from "../../src/model/index-build.
 import { decayedWeight } from "../../src/model/decay.ts";
 import {
   alreadyPlayedFactor,
+  applyOverride,
   baseFactor,
   basePlayRate,
   defaultSignalToggles,
   eraPrior,
+  hardSegueOverride,
   predict,
   rotationSuppression,
   scoreCandidate,
@@ -314,7 +316,9 @@ describe("predict — candidate breakdown (D-06)", () => {
       expect(candidate.factors.eraPrior).toBeGreaterThanOrEqual(config.eraPriorFloor);
       expect(candidate.factors.eraPrior).toBeLessThanOrEqual(config.eraPriorCeil);
       expect(["transition", "tuning", "albumEra", "basePlayRate"]).toContain(candidate.factors.backoffTier);
-      expect(candidate.factors.hardSegueFlag).toBe(false); // stub this task (Task 2 fills hardSegueOverride)
+      // Neither observed A-edge (A->B segueRate 0.5, A->C not a segue) clears
+      // the consistency gate (threshold 0.7, minSupport 3) -- boosted, never pinned.
+      expect(candidate.factors.hardSegueFlag).toBe(false);
       expect(candidate.reason.length).toBeGreaterThan(0);
     }
 
@@ -444,5 +448,233 @@ describe("predict — decay toggle (MODL-04)", () => {
     // SHOW_1 (A->B) is older than SHOW_2 (A->C, same date as AS_OF) -- decay
     // must break the tie the raw counts couldn't.
     expect(probAB_decay).not.toBeCloseTo(probAC_decay, 6);
+  });
+});
+
+// --- Plan 02-03 Task 2: consistency-gated hard-segue override (D-04/MODL-05) ---
+
+const SONG_P = 700010; // consistent hard-segue source (P -segue-> Q, 4/4)
+const SONG_Q = 700011;
+const SONG_R = 700012; // one-off/insufficient-support segue source (R -segue-> S, 1/1)
+const SONG_S = 700013;
+const SONG_O = 700014; // direction-test: O -none-> P2 -segue-> P3
+const SONG_P2 = 700015;
+const SONG_P3 = 700016;
+
+/** P -segue-> Q, 4 independent shows, every instance notated as a segue -- clears both the consistency-rate and min-support gate (4/4 >= 0.70, 4 >= 3). */
+function buildPinnedSegueMatrix() {
+  const rows = [1, 2, 3, 4].map((n) => [
+    makeRow({
+      show_id: 920000000 + n * 10 + 1,
+      showdate: `2024-0${n}-01`,
+      showyear: 2024,
+      showorder: 1,
+      tour_id: 920,
+      tourname: "Synthetic Segue Tour",
+      setnumber: "1",
+      settype: "Set",
+      position: 1,
+      song_id: SONG_P,
+      songname: "Synth P",
+      slug: "synth-p",
+      transition_id: 2, // segue P -> Q
+    }),
+    makeRow({
+      show_id: 920000000 + n * 10 + 1,
+      showdate: `2024-0${n}-01`,
+      showyear: 2024,
+      showorder: 1,
+      tour_id: 920,
+      tourname: "Synthetic Segue Tour",
+      setnumber: "1",
+      settype: "Set",
+      position: 2,
+      song_id: SONG_Q,
+      songname: "Synth Q",
+      slug: "synth-q",
+      transition_id: 6,
+    }),
+  ]).flat();
+  const { corpus } = normalizeCorpus(rows);
+  const asOf: AsOfBound = { date: "2024-04-01", showOrder: 1, inclusive: true };
+  return buildMatrix(corpus, asOf, config, { generatedAt: "2026-01-01T00:00:00.000Z" });
+}
+
+/** R -segue-> S, a single show/instance -- 100% consistent but fails min-support (1 < hardSegueMinSupport=3), so the gate must reject it despite the perfect rate (RESEARCH M4: "prevents a single 1/1 from pinning false certainty"). */
+function buildOneOffSegueMatrix() {
+  const rows = [
+    makeRow({
+      show_id: 930001001,
+      showdate: "2024-02-01",
+      showyear: 2024,
+      showorder: 1,
+      tour_id: 930,
+      tourname: "Synthetic One-off Segue Tour",
+      setnumber: "1",
+      settype: "Set",
+      position: 1,
+      song_id: SONG_R,
+      songname: "Synth R",
+      slug: "synth-r",
+      transition_id: 2, // segue R -> S
+    }),
+    makeRow({
+      show_id: 930001001,
+      showdate: "2024-02-01",
+      showyear: 2024,
+      showorder: 1,
+      tour_id: 930,
+      tourname: "Synthetic One-off Segue Tour",
+      setnumber: "1",
+      settype: "Set",
+      position: 2,
+      song_id: SONG_S,
+      songname: "Synth S",
+      slug: "synth-s",
+      transition_id: 6,
+    }),
+  ];
+  const { corpus } = normalizeCorpus(rows);
+  const asOf: AsOfBound = { date: "2024-03-01", showOrder: 1, inclusive: true };
+  return buildMatrix(corpus, asOf, config, { generatedAt: "2026-01-01T00:00:00.000Z" });
+}
+
+/** O -none-> P2 -segue-> P3: the segue notation lives on P2's row (its OUT-transition into P3), never on O's edge into P2 -- proves segue direction keys on A's transitionKind, never B's (RESEARCH Pitfall 1). */
+function buildDirectionSegueMatrix() {
+  const rows = [
+    makeRow({
+      show_id: 940001001,
+      showdate: "2024-02-01",
+      showyear: 2024,
+      showorder: 1,
+      tour_id: 940,
+      tourname: "Synthetic Direction Tour",
+      setnumber: "1",
+      settype: "Set",
+      position: 1,
+      song_id: SONG_O,
+      songname: "Synth O",
+      slug: "synth-o",
+      transition_id: 1, // O -> P2 is NOT a segue
+    }),
+    makeRow({
+      show_id: 940001001,
+      showdate: "2024-02-01",
+      showyear: 2024,
+      showorder: 1,
+      tour_id: 940,
+      tourname: "Synthetic Direction Tour",
+      setnumber: "1",
+      settype: "Set",
+      position: 2,
+      song_id: SONG_P2,
+      songname: "Synth P2",
+      slug: "synth-p2",
+      transition_id: 2, // P2 -> P3 IS a segue (P2's own out-transition)
+    }),
+    makeRow({
+      show_id: 940001001,
+      showdate: "2024-02-01",
+      showyear: 2024,
+      showorder: 1,
+      tour_id: 940,
+      tourname: "Synthetic Direction Tour",
+      setnumber: "1",
+      settype: "Set",
+      position: 3,
+      song_id: SONG_P3,
+      songname: "Synth P3",
+      slug: "synth-p3",
+      transition_id: 6,
+    }),
+  ];
+  const { corpus } = normalizeCorpus(rows);
+  const asOf: AsOfBound = { date: "2024-03-01", showOrder: 1, inclusive: true };
+  return buildMatrix(corpus, asOf, config, { generatedAt: "2026-01-01T00:00:00.000Z" });
+}
+
+const NO_CONTEXT = (currentSongId: number): ShowContext => ({ currentSongId, trail: [], recentShowSongSets: [] });
+
+describe("predict — hard segue override (D-04/MODL-05)", () => {
+  it("Test 12: a consistent, sufficiently-supported segue (4/4 >= threshold, exits >= minSupport) pins the score to hardSegueOverrideCeiling and sets hardSegueFlag", () => {
+    const matrix = buildPinnedSegueMatrix();
+    const index = buildMatrixIndex(matrix);
+
+    const override = hardSegueOverride(SONG_P, SONG_Q, index, config);
+    expect(override).toEqual({ kind: "pin", value: config.hardSegueOverrideCeiling });
+
+    const scored = scoreCandidate(SONG_P, SONG_Q, index, config, defaultSignalToggles, NO_CONTEXT(SONG_P));
+    expect(scored.score).toBeCloseTo(config.hardSegueOverrideCeiling, 6);
+    expect(scored.factors.hardSegueFlag).toBe(true);
+  });
+});
+
+describe("predict — inconsistent segue boost (D-04)", () => {
+  it("Test 13: a one-off segue (1/1, below minSupport) is NOT pinned -- instead boosted by hardSegueBoost, and hardSegueFlag stays false", () => {
+    const matrix = buildOneOffSegueMatrix();
+    const index = buildMatrixIndex(matrix);
+
+    const override = hardSegueOverride(SONG_R, SONG_S, index, config);
+    expect(override).toEqual({ kind: "boost", value: config.hardSegueBoost });
+
+    const baseScore = baseFactor(SONG_R, SONG_S, index, config, defaultSignalToggles);
+    const scored = scoreCandidate(SONG_R, SONG_S, index, config, defaultSignalToggles, NO_CONTEXT(SONG_R));
+    // The boost multiplies the base score (not a fixed assignment like
+    // `pin`) -- verify against the actual formula, including the shared
+    // ceiling cap that keeps even a saturating boost from claiming literal
+    // 100% (applyOverride's job, not a separate code path here).
+    const multiplied = baseScore * scored.factors.rotation * scored.factors.alreadyPlayed * scored.factors.eraPrior;
+    expect(scored.score).toBeCloseTo(applyOverride(multiplied, override, config), 6);
+    // Structurally distinct from `pin`: reached by multiplication + cap,
+    // never a forced ceiling assignment -- the flag is the load-bearing
+    // distinction, not the raw score (a large boost can coincidentally
+    // saturate the same cap).
+    expect(scored.factors.hardSegueFlag).toBe(false);
+    expect(scored.score).toBeLessThan(1); // never literally 100%, even when the boost saturates the shared ceiling
+  });
+});
+
+describe("predict — segue direction (RESEARCH Pitfall 1)", () => {
+  it("Test 14: the override keys on A's transitionKind (the edge's FROM side), never B's -- O->P2 (P2's segue notation describes its own out-transition) is not a segue, but P2->P3 is", () => {
+    const matrix = buildDirectionSegueMatrix();
+    const index = buildMatrixIndex(matrix);
+
+    const edgeOtoP2 = matrix.edges.find((e) => e.from === SONG_O && e.to === SONG_P2);
+    expect(edgeOtoP2?.segueCount).toBe(0);
+    expect(hardSegueOverride(SONG_O, SONG_P2, index, config)).toBeNull();
+
+    const edgeP2toP3 = matrix.edges.find((e) => e.from === SONG_P2 && e.to === SONG_P3);
+    expect(edgeP2toP3?.segueCount).toBe(1);
+    expect(hardSegueOverride(SONG_P2, SONG_P3, index, config)).not.toBeNull();
+  });
+});
+
+describe("predict — no false 100% (D-04)", () => {
+  it("Test 15: a free-choice (non-segue) candidate never reaches score 1.0; only a gated hard segue reaches the (sub-1.0) override ceiling", () => {
+    const matrix = buildSyntheticMatrix();
+    const context: ShowContext = { currentSongId: SONG_A, trail: [], recentShowSongSets: [] };
+    const candidates = predict(matrix, context);
+    for (const c of candidates) {
+      expect(c.score).toBeLessThan(1);
+    }
+
+    // The dedicated pinned fixture proves the *only* way to approach 1.0 is
+    // the 0.97 ceiling -- never literally 1.0.
+    const pinnedIndex = buildMatrixIndex(buildPinnedSegueMatrix());
+    const pinnedCandidate = scoreCandidate(SONG_P, SONG_Q, pinnedIndex, config, defaultSignalToggles, NO_CONTEXT(SONG_P));
+    expect(pinnedCandidate.score).toBeCloseTo(config.hardSegueOverrideCeiling, 6);
+    expect(pinnedCandidate.score).toBeLessThan(1);
+    expect(config.hardSegueOverrideCeiling).toBeLessThan(1);
+  });
+});
+
+describe("predict — segue reason string (D-06)", () => {
+  it("Test 16: a gated candidate's reason reads 'notated segue N/M times since YYYY' using the stored segueCount/totalExits/firstDate", () => {
+    const matrix = buildPinnedSegueMatrix();
+    const index = buildMatrixIndex(matrix);
+
+    const scored = scoreCandidate(SONG_P, SONG_Q, index, config, defaultSignalToggles, NO_CONTEXT(SONG_P));
+    expect(scored.reason).toBe("notated segue 4/4 times since 2024");
+    expect(scored.reason).toMatch(/^notated segue \d+\/\d+ times since \d{4}$/);
   });
 });

@@ -9,12 +9,11 @@
  * Plan 02-02 delivered the D-02 interpolated backoff base (four normalized
  * tiers blended Jelinek-Mercer style) and the D-01 multiplicative pipeline
  * skeleton + `predict` entrypoint. Plan 02-03 (this plan) fills in the real
- * bodies of every downstream modifier. Task 1 (this commit) fills rotation
- * suppression (MODL-06), already-played conditioning (D-05/MODL-10), era
- * prior (MODL-07), and confirms the decay-toggle path in `transitionProb`.
- * Task 2 fills the consistency-gated hard-segue override/boost (D-04/
- * MODL-05) without touching the call-site structure, so per-signal
- * ablation (D-14) stays a pure flag-flip.
+ * bodies of every downstream modifier — rotation suppression (MODL-06),
+ * already-played conditioning (D-05/MODL-10), era prior (MODL-07), and the
+ * consistency-gated hard-segue override/boost (D-04/MODL-05) — without
+ * touching the call-site structure, so per-signal ablation (D-14) stays a
+ * pure flag-flip.
  */
 import { config } from "../config.ts";
 import type {
@@ -228,14 +227,12 @@ export function baseFactor(
   );
 }
 
-// --- Downstream multiplier pipeline (D-01) ---
-// Task 1 (this commit) replaces the Plan 02 neutral stubs for rotation,
-// already-played, and era-prior with real bodies. hardSegueOverride stays a
-// stub (Task 2 fills it) so the toggle-gated call sites in `scoreCandidate`
-// below are unchanged from Plan 02 — a pure body-fill, never a pipeline
-// restructure.
+// --- Downstream multiplier pipeline (D-01) — real bodies (Plan 03) ---
+// Every downstream fn below replaces the Plan 02 neutral stub; the
+// toggle-gated call sites in `scoreCandidate` are unchanged from Plan 02
+// (a pure body-fill, never a pipeline restructure).
 
-/** Clamp `value` into `[min, max]` — used by eraPrior's [floor, ceil] result. */
+/** Clamp `value` into `[min, max]` — shared by eraPrior (M8) and applyOverride's pin ceiling. */
 function clamp(value: number, min: number, max: number): number {
   if (value < min) return min;
   if (value > max) return max;
@@ -290,14 +287,68 @@ export function eraPrior(B: number, index: MatrixIndex, cfg: ScoringConfig): num
   return clamp(ratio, cfg.eraPriorFloor, cfg.eraPriorCeil);
 }
 
-/** [STUB — Task 2 fills D-04 hard-segue consistency-gated override/boost] */
-function hardSegueOverride(
-  _A: number,
-  _B: number,
-  _index: MatrixIndex,
-  _cfg: ScoringConfig,
-): number | null {
-  return null;
+/** `totalExits(A)` (M4/D-04): sum of the RAW `count` (never `weightedCount`) over every edge out of `A` — the denominator of `segueRate`. A swappable helper per the plan's "keep the denominator a swappable helper" note. */
+function totalExits(A: number, index: MatrixIndex): number {
+  const edges = index.edgesFrom.get(A) ?? [];
+  return edges.reduce((sum, edge) => sum + edge.count, 0);
+}
+
+/** D-04: the hard-segue override descriptor — `pin` forces the near-1.0 ceiling (only when consistency-gated), `boost` strongly multiplies an inconsistent/one-off segue without pinning it. */
+export interface SegueOverride {
+  kind: "pin" | "boost";
+  value: number;
+}
+
+/**
+ * MODL-05/D-04 (M4): consistency-gated hard-segue override. Segue direction
+ * is CORRECTNESS-CRITICAL (RESEARCH Pitfall 1) but already resolved at
+ * matrix-build time — `edge.segueCount` only ever accumulates from `A`'s OUT
+ * transition (`A.transitionKind === "segue"`, matrix.ts), so this function
+ * never re-reads `B`'s kind, only the stored edge. `segueRate(A→B) =
+ * segueCount(A→B) / totalExits(A)`; the gate requires BOTH a high rate AND
+ * enough support (`hardSegueMinSupport`) to avoid a single 1/1 pinning false
+ * certainty (T-02-06 guards `totalExits === 0` structurally: a nonzero
+ * `segueCount` implies `totalExits >= segueCount >= 1`, so this never
+ * divides by zero).
+ */
+export function hardSegueOverride(
+  A: number,
+  B: number,
+  index: MatrixIndex,
+  cfg: ScoringConfig,
+): SegueOverride | null {
+  const edges = index.edgesFrom.get(A) ?? [];
+  const edge = edges.find((e) => e.to === B);
+  if (!edge || edge.segueCount <= 0) return null;
+
+  const exits = totalExits(A, index);
+  const segueRate = exits > 0 ? edge.segueCount / exits : 0;
+
+  if (segueRate >= cfg.hardSegueConsistencyThreshold && exits >= cfg.hardSegueMinSupport) {
+    return { kind: "pin", value: cfg.hardSegueOverrideCeiling };
+  }
+  return { kind: "boost", value: cfg.hardSegueBoost };
+}
+
+/**
+ * D-04: applies the `hardSegueOverride` descriptor on top of the
+ * multiplicative `score`. `pin` forces the near-1.0 ceiling — the ONLY path
+ * that represents a genuinely gated, consistency-verified hard segue
+ * (`factors.hardSegueFlag`). `boost` multiplies the existing score and
+ * `null` passes it through unchanged; BOTH are still capped at
+ * `cfg.hardSegueOverrideCeiling` (reusing the existing config constant,
+ * never a new magic number, CLAUDE.md single-config-file constraint) so
+ * nothing except a gated hard segue can ever reach the near-1.0 ceiling.
+ * Without this cap the multiplicative pipeline isn't bound to `[0,1]` —
+ * `eraPrior` alone can reach `eraPriorCeil` (2.0) and `hardSegueBoost` is
+ * 3.0×, either of which can otherwise push an un-gated candidate's score
+ * past 1.0, violating "never 100% except a notated hard segue" (CONTEXT
+ * D-02).
+ */
+export function applyOverride(score: number, override: SegueOverride | null, cfg: ScoringConfig): number {
+  if (override?.kind === "pin") return Math.min(override.value, cfg.hardSegueOverrideCeiling);
+  const raw = override?.kind === "boost" ? score * override.value : score;
+  return Math.min(raw, cfg.hardSegueOverrideCeiling);
 }
 
 /** Informational only — reports how much recency decay shaped an observed edge's weight (`weightedCount / count`); never itself multiplied into `score` (decay is already baked into `transitionProb` via `edgeWeight`'s toggle). Neutral 1.0 when the toggle is off or no edge is observed. */
@@ -335,15 +386,27 @@ function dominantBackoffTier(
 }
 
 /**
- * D-06: concrete, count-backed reason string. An observed edge reads like
- * "seen 8× since 2024" (from the edge's own stored `count`/`firstDate`);
- * an unobserved pair reads as which backoff tier carried it, e.g. "backoff:
- * base play rate". Never a vague label — always traceable to a stored
- * number (powers the future Show Mode per-orb "why", SHOW-10).
+ * D-06: concrete, count-backed reason string. A gated (`pin`) hard segue
+ * reads like "notated segue 14/15 times since 2024" (M4/D-06, using the
+ * edge's own `segueCount`/`totalExits(A)`/`firstDate` — never a vague
+ * label). An observed non-gated edge reads like "seen 8× since 2024"; an
+ * unobserved pair reads as which backoff tier carried it, e.g. "backoff:
+ * base play rate" (powers the future Show Mode per-orb "why", SHOW-10).
  */
-function buildReason(A: number, B: number, index: MatrixIndex, tier: BackoffTier): string {
+function buildReason(
+  A: number,
+  B: number,
+  index: MatrixIndex,
+  tier: BackoffTier,
+  segueOverride: SegueOverride | null,
+): string {
   const edges = index.edgesFrom.get(A) ?? [];
   const edge = edges.find((e) => e.to === B);
+  if (segueOverride?.kind === "pin" && edge) {
+    const exits = totalExits(A, index);
+    const year = edge.firstDate.slice(0, 4);
+    return `notated segue ${edge.segueCount}/${exits} times since ${year}`;
+  }
   if (edge && edge.count > 0) {
     const year = edge.firstDate.slice(0, 4);
     return `seen ${edge.count}× since ${year}`;
@@ -362,11 +425,10 @@ function buildReason(A: number, B: number, index: MatrixIndex, tier: BackoffTier
 
 /**
  * D-01 (Pattern 2): the multiplicative pipeline for one `A→B` candidate —
- * `base * rotation * alreadyPlayed * eraPrior`, then a hard-segue
- * override/boost applied on top (still a stub this commit — Task 2 fills
- * `hardSegueOverride`/`applyOverride`). Every downstream stage is
- * independently toggle-gated (D-14) so per-signal ablation stays a pure
- * flag-flip.
+ * `base * rotation * alreadyPlayed * eraPrior`, then a consistency-gated
+ * hard-segue override/boost (`applyOverride`) applied on top. Every
+ * downstream stage is independently toggle-gated (D-14) so per-signal
+ * ablation stays a pure flag-flip.
  */
 export function scoreCandidate(
   A: number,
@@ -383,7 +445,7 @@ export function scoreCandidate(
   const segueOverride = toggles.hardSegue ? hardSegueOverride(A, B, index, cfg) : null;
 
   const multiplied = base * rotationFactor * alreadyPlayedFactorValue * eraPriorFactor;
-  const score = segueOverride ?? multiplied;
+  const score = applyOverride(multiplied, segueOverride, cfg);
 
   const tier = dominantBackoffTier(A, B, index, cfg, toggles);
   const node = index.nodeById.get(B);
@@ -395,7 +457,9 @@ export function scoreCandidate(
     alreadyPlayed: alreadyPlayedFactorValue,
     eraPrior: eraPriorFactor,
     backoffTier: tier,
-    hardSegueFlag: segueOverride !== null,
+    // D-04: only a GATED (pin) override counts as "hard segue" — a boosted
+    // one-off/inconsistent segue is a strong multiplier, not the flag.
+    hardSegueFlag: segueOverride?.kind === "pin",
   };
 
   return {
@@ -403,7 +467,7 @@ export function scoreCandidate(
     songName: node?.songName ?? "",
     score,
     factors,
-    reason: buildReason(A, B, index, tier),
+    reason: buildReason(A, B, index, tier, segueOverride),
   };
 }
 
