@@ -2,8 +2,8 @@
  * The persistent Show-Mode action bar (04-UI-SPEC §Layout region 4, D-13). Two
  * rows per the user-endorsed mockup:
  *
- *   [🔍 Search] [??? Unknown]        ← primary row (this plan, 04-05)
- *   [Set break] [Encore] [↶ Undo]    ← secondary row (wired in 04-06)
+ *   [🔍 Search] [??? Unknown]        ← primary row (04-05)
+ *   [Set break] [Encore] [↶ Undo]    ← secondary row (wired here, 04-06)
  *
  * Mirrors the BottomTabBar idiom (fixed-bar tokens, `env(safe-area-inset-bottom)`,
  * ≥44px tap floor via `min-h-11 min-w-11`, lucide icons at the Label typography).
@@ -26,17 +26,32 @@ interface ActionBarProps {
   onSearch: () => void;
   /** Log an instant "???" placeholder miss + recenter, no confirm (D-14/SHOW-05). */
   onUnknown: () => void;
+  /** Mark a set break → subsequent entries snapshot "2"; never ends the show (D-04/SHOW-06). */
+  onSetBreak: () => void;
+  /** Mark the encore → subsequent entries snapshot "e"; never ends the show (D-04/SHOW-06). */
+  onEncore: () => void;
+  /** Remove the most recent entry in one tap, NO confirm (D-15/SHOW-07). */
+  onUndo: () => void;
 }
 
-/** Secondary-row controls — present now so the two-row layout is final; handlers land in 04-06. */
-const SECONDARY = [
-  { key: "setBreak", label: config.copy.show.setBreakCta, Icon: SkipForward },
-  { key: "encore", label: config.copy.show.encoreCta, Icon: Star },
-  { key: "undo", label: config.copy.show.undoCta, Icon: Undo2 },
-] as const;
-
-export function ActionBar({ onSearch, onUnknown }: ActionBarProps) {
+export function ActionBar({
+  onSearch,
+  onUnknown,
+  onSetBreak,
+  onEncore,
+  onUndo,
+}: ActionBarProps) {
   const copy = config.copy.show;
+
+  // Secondary-row controls, now live (04-06). Set break/Encore only shift the
+  // snapshotted set number (never end the show, D-04); Undo removes the most
+  // recent entry with no dialog (the common "oops", D-15). None are accent —
+  // gold stays reserved for Start Show / focus ring (04-UI-SPEC §Color).
+  const secondary = [
+    { key: "setBreak", label: copy.setBreakCta, Icon: SkipForward, onClick: onSetBreak },
+    { key: "encore", label: copy.encoreCta, Icon: Star, onClick: onEncore },
+    { key: "undo", label: copy.undoCta, Icon: Undo2, onClick: onUndo },
+  ] as const;
 
   return (
     <nav
@@ -74,16 +89,16 @@ export function ActionBar({ onSearch, onUnknown }: ActionBarProps) {
         </button>
       </div>
 
-      {/* Secondary row — disabled placeholders; Set break / Encore / Undo are
-          wired in 04-06. Rendered now so the D-13 two-row layout is final. */}
+      {/* Secondary row — set structure + one-tap undo (D-13/SHOW-06/SHOW-07).
+          Set break/Encore only move the snapshotted set number (never end the
+          show, D-04); Undo removes the most recent entry with no dialog (D-15). */}
       <div className="mt-2 flex gap-2">
-        {SECONDARY.map(({ key, label, Icon }) => (
+        {secondary.map(({ key, label, Icon, onClick }) => (
           <button
             key={key}
             type="button"
-            disabled
-            aria-disabled="true"
-            className="flex min-h-11 min-w-11 flex-1 items-center justify-center gap-2 rounded-md border border-hairline py-2 text-text-muted opacity-50 touch-manipulation"
+            onClick={onClick}
+            className="flex min-h-11 min-w-11 flex-1 items-center justify-center gap-2 rounded-md border border-hairline py-2 text-text-primary touch-manipulation"
           >
             <Icon size={18} />
             <span className="text-[14px] font-semibold leading-tight">

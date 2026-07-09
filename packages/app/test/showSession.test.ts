@@ -152,6 +152,31 @@ describe("showSession: Dexie version(2) tracked-show lifecycle", () => {
     expect(active?.status).toBe("active");
   });
 
+  it("set-structure: the ActionBar Set break→Encore flow snapshots setNumber onto later logs and never ends the show (04-06 wiring, D-04)", async () => {
+    // Mirrors ShowView.handleSetBreak/handleEncore: the secondary-row taps only
+    // shift the show's snapshotted set number — the very next logSong stamps it,
+    // and the show stays active throughout (no auto-end, D-04).
+    const { sessionId } = await startShow();
+
+    await logSong(sessionId, hit(101, "Rattlesnake")); // set 1
+    await markSetBreak(sessionId); // ActionBar Set break tap
+    await logSong(sessionId, hit(102, "Honey")); // now snapshots "2"
+    await markEncore(sessionId); // ActionBar Encore tap
+    await logSong(sessionId, hit(103, "The River")); // now snapshots "e"
+
+    const afterActions = await getActiveShow();
+    expect(afterActions?.status).toBe("active"); // neither tap ended the show
+
+    const entries = await db.trackedEntries
+      .where("sessionId")
+      .equals(sessionId)
+      .sortBy("position");
+    // An entry logged AFTER each action carries the expected set number.
+    expect(entries.map((e) => e.setNumber)).toEqual(["1", "2", "e"]);
+    const encoreEntry = entries.at(-1);
+    expect(encoreEntry?.setNumber).toBe("e");
+  });
+
   it("undo: removes the max-position entry in one call (SHOW-07/D-15)", async () => {
     const { sessionId } = await startShow();
     await logSong(sessionId, hit(101, "Rattlesnake"));
@@ -165,6 +190,27 @@ describe("showSession: Dexie version(2) tracked-show lifecycle", () => {
       .equals(sessionId)
       .sortBy("position");
     expect(remaining.map((e) => e.songName)).toEqual(["Rattlesnake", "Honey"]);
+  });
+
+  it("undo: the ActionBar Undo flow removes ONLY the most recent entry and leaves the show active (04-06 wiring, D-15)", async () => {
+    // Mirrors ShowView.handleUndo: a single undoLast tap pops the newest entry
+    // (the common "oops") — earlier entries and the show itself are untouched,
+    // so the derived tally recomputes off the shortened trail.
+    const { sessionId } = await startShow();
+    await logSong(sessionId, hit(101, "Rattlesnake"));
+    await logSong(sessionId, hit(102, "Honey"));
+
+    await undoLast(sessionId); // ActionBar Undo tap — no dialog
+
+    const remaining = await db.trackedEntries
+      .where("sessionId")
+      .equals(sessionId)
+      .sortBy("position");
+    expect(remaining.map((e) => e.songName)).toEqual(["Rattlesnake"]);
+    expect(remaining.map((e) => e.position)).toEqual([1]);
+
+    const active = await getActiveShow();
+    expect(active?.status).toBe("active"); // undo never ends the show
   });
 
   it("restore: end-to-end resume rebuilds the exact active session from the same DB path (SHOW-11)", async () => {

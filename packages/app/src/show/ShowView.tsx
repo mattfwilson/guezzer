@@ -27,7 +27,7 @@
  */
 import { useState } from "react";
 import { config } from "../config.ts";
-import { logSong } from "../db/db.ts";
+import { logSong, markEncore, markSetBreak, undoLast } from "../db/db.ts";
 import { classifyOutcome } from "./scoring.ts";
 import { ActionBar } from "./ActionBar.tsx";
 import { OrbitStage } from "./OrbitStage.tsx";
@@ -114,6 +114,14 @@ export function ShowView() {
     setSearchOpen(false);
   };
 
+  // Secondary-row wiring (04-06). Set break/Encore only shift the show's
+  // snapshotted set number (subsequent logs stamp "2"/"e", SHOW-06) — neither
+  // ends the show (D-04). Undo removes the most recent entry in one tap with NO
+  // dialog (the common "oops", D-15); the write-through recenters via useLiveQuery.
+  const handleSetBreak = () => void markSetBreak(sessionId);
+  const handleEncore = () => void markEncore(sessionId);
+  const handleUndo = () => void undoLast(sessionId);
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       {/* Region 3 — the orbit stage. Pre-opener (currentSongId === null): the
@@ -132,6 +140,9 @@ export function ShowView() {
       <ActionBar
         onSearch={() => setSearchOpen(true)}
         onUnknown={handleUnknown}
+        onSetBreak={handleSetBreak}
+        onEncore={handleEncore}
+        onUndo={handleUndo}
       />
 
       {/* Fuzzy catalog search over core searchCatalog — opener-seed + mid-show
