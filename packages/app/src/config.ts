@@ -41,6 +41,12 @@ export const config = {
     WEAK_FAN_THRESHOLD: 0.15,
     /** Visual minimum orb diameter in px; hit area stays ≥44px regardless (SHOW-02). */
     ORB_MIN_DIAMETER: 56,
+    /** Visual maximum orb diameter in px — the top-score orb; scales down to ORB_MIN_DIAMETER by rank (SHOW-01). */
+    ORB_MAX_DIAMETER: 88,
+    /** Outer radial inset in px keeping orbs clear of notches/safe-area edges (SHOW-02, no orb under an inset). */
+    RING_INSET_PX: 24,
+    /** Inner-radius ratio (fraction of the outer radius) that clears the centre node before the nearest orb (SHOW-01). */
+    ORB_INNER_RADIUS_RATIO: 0.42,
     /** Number of recent trail nodes shown diminishing before compression (SHOW-08). */
     TRAIL_VISIBLE_RECENT: 4,
     /** Set length that triggers the "+N" trail compression chip (SHOW-08). */
