@@ -87,3 +87,11 @@ export {
   tuningAffinity,
   type ScoringConfig,
 } from "./model/predict.ts";
+
+/**
+ * D-12 walk-forward backtest holdout identification (Phase 2 plan 02-04).
+ * `findHoldoutShows` identifies the most-recent complete tour (never
+ * `max(tourId)` -- Pitfall 3). `runBacktest` (Task 2, same plan) is added
+ * to this barrel once `eval/backtest.ts` exists.
+ */
+export { findHoldoutShows } from "./eval/holdout.ts";
