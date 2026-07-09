@@ -101,3 +101,7 @@ None - no external service configuration required.
 ---
 *Phase: 02-transition-matrix-model-backtest*
 *Completed: 2026-07-09*
+
+## Self-Check: PASSED
+
+All created/modified files verified present on disk (`packages/core/src/eval/backtest.ts`, `packages/core/src/cli/run-backtest.ts`, `packages/core/src/index.ts`, `packages/core/test/eval/backtest.test.ts`, `data/backtest-report.md`, `data/backtest.json`, this summary); all task/metadata commit hashes (`0baf1a1`, `7609726`, `f8e1d55`) verified present in git log.
