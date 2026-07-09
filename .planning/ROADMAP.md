@@ -109,15 +109,30 @@ Plans:
   5. The whole loop is usable one-handed in a dark venue (dark theme, fat targets, gesture suppression), confidence framing honestly reflects the backtest's free-choice accuracy, and the live-tracked show automatically counts as attended
 
 **Plans:** 7 plans
-
 Plans:
+**Wave 1**
 
 - [ ] 04-01-PLAN.md — Dexie v2 persistence + write helpers + config.show + hit/miss + tally substrate (SHOW-11/06/07/09/03, DEX-01)
 - [ ] 04-02-PLAN.md — Core fuzzy searchCatalog wrapping fuse.js (SHOW-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 04-03-PLAN.md — Orbit render: layoutOrbs + confidence + matrix loader + OrbitStage/orb/why (SHOW-01/02/10, EVAL-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 04-04-PLAN.md — Slice 1 loop: useShowSession + ShowView + Start Show + tap→log→recenter→restore (SHOW-03/11, DEX-01)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 04-05-PLAN.md — Slice 2 miss paths: ActionBar + SearchSheet + ??? (SHOW-04/05)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 04-06-PLAN.md — Set structure + comet trail + tally + undo/edit (SHOW-06/07/08/09)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 04-07-PLAN.md — Wake lock + gesture suppression + weak-fan softening + End Show + device spike (SHOW-12/13, EVAL-04)
 
 **UI hint**: yes
