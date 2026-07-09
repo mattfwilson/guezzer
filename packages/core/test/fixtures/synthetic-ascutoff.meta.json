@@ -1,0 +1,6 @@
+{
+  "sourceFile": "hand-authored synthetic fixture (no kglw.net source row)",
+  "showId": [900001001, 900001002, 900001003],
+  "showdate": ["2020-01-01 (showOrder 1)", "2020-01-01 (showOrder 2)", "2020-06-01 (showOrder 1)"],
+  "why": "Hand-authored for as-of leak-safety (MODL-02, D-09 refined by 02-RESEARCH.md M5): two shows share the exact same date disambiguated only by showOrder, plus one later-dated show. Each show contributes exactly one within-set edge: show 1 -> edge 900101->900102 (Song A->B), show 2 -> edge 900103->900104 (Song C->D), show 3 -> edge 900105->900106 (Song E->F). An exclusive (date, showOrder) cutoff of {date: 2020-01-01, showOrder: 2, inclusive: false} must include ONLY the edge from show 1 (900101->900102) -- excluding show 2 (same date, showOrder 2, exclusive) and show 3 (future date). A date-only cutoff (date <= 2020-01-01) would incorrectly leak show 2's edge into the matrix. With inclusive: true at the same (date, showOrder), show 2's edge becomes included, proving the inclusive flag controls exactly the boundary show."
+}
