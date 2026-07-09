@@ -231,6 +231,16 @@ export async function markEncore(sessionId: string): Promise<void> {
   await db.trackedShows.update(sessionId, { currentSetNumber: "e" });
 }
 
+/**
+ * Delete a single entry by id — the confirm-gated older-trail-node delete
+ * (D-15). Distinct from `undoLast` (bounded to the most-recent entry, no
+ * dialog): this removes any entry the UI has confirmed via the destructive
+ * dialog. Deletion may leave a position gap (acceptable; export re-derives).
+ */
+export async function deleteEntry(id: number): Promise<void> {
+  await db.trackedEntries.delete(id);
+}
+
 /** Rename a "???" placeholder to a real song (D-14/D-15); clears isPlaceholder. */
 export async function renameEntry(
   id: number,

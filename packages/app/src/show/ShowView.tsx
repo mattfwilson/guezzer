@@ -27,12 +27,19 @@
  */
 import { useState } from "react";
 import { config } from "../config.ts";
-import { logSong, markEncore, markSetBreak, undoLast } from "../db/db.ts";
+import {
+  logSong,
+  markEncore,
+  markSetBreak,
+  undoLast,
+  type TrackedEntry,
+} from "../db/db.ts";
 import { classifyOutcome } from "./scoring.ts";
 import { ActionBar } from "./ActionBar.tsx";
 import { CometTrail } from "./CometTrail.tsx";
 import { OrbitStage } from "./OrbitStage.tsx";
 import { TallyReadout } from "./TallyReadout.tsx";
+import { TrailNodeSheet } from "./TrailNodeSheet.tsx";
 import { PreShowLauncher } from "./PreShowLauncher.tsx";
 import { SearchSheet, type SearchSelection } from "./SearchSheet.tsx";
 import { WhyDetail } from "./WhyDetail.tsx";
@@ -43,6 +50,7 @@ export function ShowView() {
   const session = useShowSession();
   const [whyCandidate, setWhyCandidate] = useState<OrbitCandidate | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [trailNode, setTrailNode] = useState<TrackedEntry | null>(null);
   const copy = config.copy.show;
 
   // No active show → the pre-show launcher (D-01/D-03).
@@ -140,8 +148,8 @@ export function ShowView() {
 
       {/* Region 2 — the comet trail (SHOW-08): last ~4 diminishing hit/miss-ringed
           nodes, +N compression at 30. Reactive over the live entries; returns
-          null pre-opener. Node taps open the TrailNodeSheet (04-06 Task 3). */}
-      <CometTrail entries={session.entries} onNodeTap={() => {}} />
+          null pre-opener. Node taps open the TrailNodeSheet for edit/delete/rename. */}
+      <CometTrail entries={session.entries} onNodeTap={setTrailNode} />
 
       {/* Region 3 — the orbit stage. Pre-opener (currentSongId === null): the
           CenterNode shows the "Tap the opener" prompt and NO fan is passed, so
@@ -175,6 +183,10 @@ export function ShowView() {
           setSearchOpen(false);
         }}
       />
+
+      {/* Older-entry edit / delete (confirm) / rename-??? from a trail tap
+          (SHOW-07/D-15). Deleting recomputes the tally via useLiveQuery. */}
+      <TrailNodeSheet entry={trailNode} onClose={() => setTrailNode(null)} />
 
       <WhyDetail candidate={whyCandidate} onClose={() => setWhyCandidate(null)} />
     </div>

@@ -128,6 +128,8 @@ export const config = {
       weakFanBody: "Wide-open moment — the model isn't sure.",
       /** Persistent tally zero-state (SHOW-09). */
       tallyZeroState: "0/0 · —",
+      /** Edit an existing trail entry — re-pick the song via search (D-15). */
+      editCta: "Edit",
       /** Rename-??? sheet (D-15). */
       renameHeading: "Name this song",
       renameSkip: "Skip",
