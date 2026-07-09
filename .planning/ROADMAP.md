@@ -14,7 +14,7 @@ Guezzer ships along a strict pipeline: verify the kglw.net schema empirically an
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Corpus Ingestion & Schema Foundation** - Verified schema docs, one-command corpus fetch, KGLW-only normalization, tuning-family tagging file (completed 2026-07-08)
-- [ ] **Phase 2: Transition Matrix, Model & Backtest** - Versioned matrix artifact, all scoring signals, and the CLI backtest trust gate with ablation
+- [x] **Phase 2: Transition Matrix, Model & Backtest** - Versioned matrix artifact, all scoring signals, and the CLI backtest trust gate with ablation (completed 2026-07-09)
 - [ ] **Phase 3: App Shell & PWA Foundation** - Installable offline-first shell with prompt-based updates and persistent IndexedDB storage
 - [ ] **Phase 4: Show Mode** - The full one-thumb live loop: orbit predictions, logging, trail, tally, crash-proof persistence, wake lock
 - [ ] **Phase 5: Live Sync & Data Safety** - Polite 60s `latest` polling with suggest-only auto-fill, and prominent JSON export/import
@@ -61,7 +61,7 @@ Plans:
   4. A per-feature ablation report shows accuracy with each signal toggled off, so any signal that doesn't earn its place gets deleted
   5. All model constants live in a single config file, and unit tests on fixture setlists with known expected outputs pass for the scoring pipeline
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 
@@ -69,7 +69,7 @@ Plans:
 - [x] 02-02-PLAN.md — Predictor core: interpolated backoff base + ranked prediction with rich breakdown
 - [x] 02-03-PLAN.md — Scoring signals: decay toggle, rotation, already-played, era prior, hard-segue override
 - [x] 02-04-PLAN.md — Backtest: holdout tour + walk-forward top-1/5/10 metrics with hard-segue/free-choice split
-- [ ] 02-05-PLAN.md — Leave-one-signal-out ablation + paired .md/.json backtest report CLI
+- [x] 02-05-PLAN.md — Leave-one-signal-out ablation + paired .md/.json backtest report CLI
 
 ### Phase 3: App Shell & PWA Foundation
 
@@ -162,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Corpus Ingestion & Schema Foundation | 5/5 | Complete    | 2026-07-08 |
-| 2. Transition Matrix, Model & Backtest | 4/5 | In Progress|  |
+| 2. Transition Matrix, Model & Backtest | 5/5 | Complete   | 2026-07-09 |
 | 3. App Shell & PWA Foundation | 0/TBD | Not started | - |
 | 4. Show Mode | 0/TBD | Not started | - |
 | 5. Live Sync & Data Safety | 0/TBD | Not started | - |
