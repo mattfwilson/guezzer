@@ -16,6 +16,11 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 - [x] Empirical schema documentation FIRST: fetched samples from kglw.net endpoints and documented field names, song ordering, segue/transition notation, set/encore delimiting, covers/teases in `docs/SCHEMA.md` — written before any extraction code existed
 - [x] Fetch historical corpus ONCE at build time; bundled as static JSON artifact (`data/raw/`, `data/normalized/corpus.json` — 738 shows, 264 songs). One-command refresh script (`npm run refresh`) documented for pre-tour-leg rebuilds
 
+**App shell & PWA foundation (Validated in Phase 3: App Shell & PWA Foundation):**
+- [x] PWA: installable to home screen on iOS (confirmed live on real iPhone Safari) and Android (code-level: `beforeinstallprompt` capture + unit-tested detection; live device confirmation deferred, no Android device available), offline-capable via service worker (confirmed live: real-device airplane-mode reload)
+- [x] Prompt-based update flow: waiting service worker surfaces a non-blocking toast; the running version only swaps on an explicit user tap, never automatically (confirmed live: two sequential builds, Refresh/Later both verified)
+- [x] IndexedDB persistence foundation (Dexie v1 schema) with `navigator.storage.persist()` requested silently on first interaction; a real write survives force-quit/relaunch (confirmed live on installed iPhone PWA). JSON export/import and the attended-show list UI itself are Phase 5+ scope, not yet built
+
 **Prediction model (Validated in Phase 2: Transition Matrix, Model & Backtest):**
 - [x] Weighted Markov transition model — inspectable, deterministic, backtestable; recomputes on new data ingestion (no online training, no neural nets)
 - [x] Signal 1: first-order transition frequency P(next | current) from historical setlists
@@ -65,8 +70,8 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 - [ ] Dex sharing (no backend): JSON export/import + shareable summary card (image or text) for friend-group comparison
 
 **Persistence & platform:**
-- [ ] PWA: installable to home screen on iOS and Android, shareable via URL, offline-capable via service worker
-- [ ] Attended-show list and live-tracked setlists in IndexedDB; JSON export/import as backup/transfer; export surfaced prominently (losing a phone must not mean losing a dex; iOS Safari eviction risk makes this extra important)
+- [x] PWA installable, offline-capable — validated in Phase 3 (see Validated section above); shareable via URL still open (no sharing UI built yet)
+- [ ] Attended-show list and live-tracked setlists in IndexedDB (persistence mechanism validated in Phase 3); JSON export/import as backup/transfer; export surfaced prominently (losing a phone must not mean losing a dex; iOS Safari eviction risk makes this extra important)
 
 ### Out of Scope
 
@@ -144,4 +149,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-09 after Phase 2: Transition Matrix, Model & Backtest*
+*Last updated: 2026-07-09 after Phase 3: App Shell & PWA Foundation*
