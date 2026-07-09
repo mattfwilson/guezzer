@@ -45,7 +45,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SHOW-02** 🎯: Radial layout is deterministic (no force simulation); tap targets never move on their own; ~44px minimum orb size regardless of probability
 - [x] **SHOW-03** 🎯: Tapping a predicted orb recenters on it, appends the old song to the trail, and recomputes predictions
 - [x] **SHOW-04** 🎯: An always-visible search button opens fuzzy search over the full catalog; selecting a song recenters on it — misses as fast as hits
-- [ ] **SHOW-05** 🎯: An always-visible "unknown song" button logs a ??? placeholder (renamable later) so tracking never stalls
+- [x] **SHOW-05** 🎯: An always-visible "unknown song" button logs a ??? placeholder (renamable later) so tracking never stalls
 - [x] **SHOW-06** 🎯: User can mark set breaks and the encore, and the tracked show serializes set structure (round-trips with kglw.net data)
 - [x] **SHOW-07** 🎯: User can undo/edit a wrongly-logged song mid-show with one tap
 - [ ] **SHOW-08** 🎯: Comet trail shows the last ~4 songs as diminishing nodes with older history compressed into a tappable "+N"; each node wears a hit/miss ring; scales to 30+ song sets without crowding the prediction fan
@@ -171,7 +171,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHOW-02 | Phase 4 | Complete |
 | SHOW-03 | Phase 4 | Complete |
 | SHOW-04 | Phase 4 | Complete |
-| SHOW-05 | Phase 4 | Pending |
+| SHOW-05 | Phase 4 | Complete |
 | SHOW-06 | Phase 4 | Complete |
 | SHOW-07 | Phase 4 | Complete |
 | SHOW-08 | Phase 4 | Pending |

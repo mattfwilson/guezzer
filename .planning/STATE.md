@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-07-09T12:41:25.048Z"
+last_updated: "2026-07-09T12:52:06.127Z"
 last_activity: 2026-07-09 -- Phase 04 execution started
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 21
-  completed_plans: 18
+  completed_plans: 19
   percent: 43
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-08)
 ## Current Position
 
 Phase: 04 (show-mode) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Last activity: 2026-07-09 -- Phase 04 execution started
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P02 | 8min | 1 tasks | 5 files |
 | Phase 04 P03 | 10min | 3 tasks | 15 files |
 | Phase 04 P04 | 8min | 2 tasks | 6 files |
+| Phase 04 P05 | 6min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 4: matrix bundle-imported via @matrix Vite alias + ambient declare module; schemaVersion===1 guard returns a handled error sentinel, never an unguarded crash
 - [Phase ?]: Phase 4: useShowSession is the app's first useLiveQuery — Dexie is the single source of truth (no useState mirror of trail/tally); predictFan gated on currentSongId !== null so null never reaches the frozen core ShowContext
 - [Phase ?]: Phase 4: resolved the OrbitStage/AppShell no-scroll seam (Pitfall 5) via an AppShell scroll prop — #/show passes scroll=false for a non-scrolling full-height flex column
+- [Phase 04]: ActionBar rendered in-flow (not fixed) to stack above the app BottomTabBar without overlap (04-05)
 
 ### Pending Todos
 
@@ -97,6 +99,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-09T12:41:06.921Z
+Last session: 2026-07-09T12:51:37.684Z
 Stopped at: Completed 04-03-PLAN.md
 Resume file: None

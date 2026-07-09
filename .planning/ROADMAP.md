@@ -108,7 +108,7 @@ Plans:
   4. Force-quitting the app mid-show and relaunching restores the exact session state (every confirmed song write-through to IndexedDB), and the screen wake lock is held and reacquired on visibility change with fallback messaging
   5. The whole loop is usable one-handed in a dark venue (dark theme, fat targets, gesture suppression), confidence framing honestly reflects the backtest's free-choice accuracy, and the live-tracked show automatically counts as attended
 
-**Plans:** 4/7 plans executed
+**Plans:** 5/7 plans executed
 Plans:
 **Wave 1**
 
@@ -125,7 +125,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 04-05-PLAN.md — Slice 2 miss paths: ActionBar + SearchSheet + ??? (SHOW-04/05)
+- [x] 04-05-PLAN.md — Slice 2 miss paths: ActionBar + SearchSheet + ??? (SHOW-04/05)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -198,7 +198,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Corpus Ingestion & Schema Foundation | 5/5 | Complete    | 2026-07-08 |
 | 2. Transition Matrix, Model & Backtest | 5/5 | Complete    | 2026-07-09 |
 | 3. App Shell & PWA Foundation | 4/4 | Complete    | 2026-07-09 |
-| 4. Show Mode | 4/7 | In Progress|  |
+| 4. Show Mode | 5/7 | In Progress|  |
 | 5. Live Sync & Data Safety | 0/TBD | Not started | - |
 | 6. Pokédex, History & Stats | 0/TBD | Not started | - |
 | 7. Explore Mode Constellation | 0/TBD | Not started | - |
