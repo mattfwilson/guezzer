@@ -48,7 +48,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SHOW-05** 🎯: An always-visible "unknown song" button logs a ??? placeholder (renamable later) so tracking never stalls
 - [x] **SHOW-06** 🎯: User can mark set breaks and the encore, and the tracked show serializes set structure (round-trips with kglw.net data)
 - [x] **SHOW-07** 🎯: User can undo/edit a wrongly-logged song mid-show with one tap
-- [ ] **SHOW-08** 🎯: Comet trail shows the last ~4 songs as diminishing nodes with older history compressed into a tappable "+N"; each node wears a hit/miss ring; scales to 30+ song sets without crowding the prediction fan
+- [x] **SHOW-08** 🎯: Comet trail shows the last ~4 songs as diminishing nodes with older history compressed into a tappable "+N"; each node wears a hit/miss ring; scales to 30+ song sets without crowding the prediction fan
 - [x] **SHOW-09** 🎯: Running hit/miss tally for the night is persistently visible
 - [x] **SHOW-10** 🎯: Each orb carries a one-line "why" explanation, with a tappable detail view
 - [x] **SHOW-11** 🎯: Every confirmed song is written through to IndexedDB immediately; an interrupted session restores exactly on relaunch (iOS discards PWA state on app switch)
@@ -174,7 +174,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHOW-05 | Phase 4 | Complete |
 | SHOW-06 | Phase 4 | Complete |
 | SHOW-07 | Phase 4 | Complete |
-| SHOW-08 | Phase 4 | Pending |
+| SHOW-08 | Phase 4 | Complete |
 | SHOW-09 | Phase 4 | Complete |
 | SHOW-10 | Phase 4 | Complete |
 | SHOW-11 | Phase 4 | Complete |
