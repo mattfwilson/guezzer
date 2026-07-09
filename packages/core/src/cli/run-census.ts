@@ -55,6 +55,17 @@ async function loadRowsByFile(inputDir: string, filePrefix: string): Promise<Map
   return rowsByFile;
 }
 
+/**
+ * Escape editor-entered prose (shownotes/footnote excerpts) before embedding it in the
+ * markdown report. These fields are untrusted (SCHEMA.md §12) and have been observed
+ * containing raw HTML (e.g. "<b>KGLW.net Staff Notes: </b>") — markdown viewers such as
+ * GitHub or VS Code's preview render embedded HTML by default, so this report is a
+ * rendering surface even though it's a build artifact, not just plain text (T-01-03/F1).
+ */
+function escapeMarkdownExcerpt(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function formatFieldTable(values: CensusFieldValue[]): string {
   const lines = ["| Value | Row Count | Show Count | Example Shows |", "|---|---|---|---|"];
   for (const v of values) {
@@ -161,7 +172,7 @@ This report answers docs/SCHEMA.md §13's Open Unknowns with full-corpus evidenc
           ? "None found."
           : census.derived.teaseCandidates
               .slice(0, 50)
-              .map((t) => `- Show ${t.showId} (${t.showdate}), \`${t.field}\`: "${t.excerpt}"`)
+              .map((t) => `- Show ${t.showId} (${t.showdate}), \`${t.field}\`: "${escapeMarkdownExcerpt(t.excerpt)}"`)
               .join("\n") +
             (census.derived.teaseCandidates.length > 50
               ? `\n\n...and ${census.derived.teaseCandidates.length - 50} more (see census.json for the full list).`
