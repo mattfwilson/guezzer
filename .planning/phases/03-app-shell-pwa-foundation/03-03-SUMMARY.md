@@ -107,3 +107,7 @@ None - no external service configuration required.
 ---
 *Phase: 03-app-shell-pwa-foundation*
 *Completed: 2026-07-09*
+
+## Self-Check: PASSED
+
+All 4 created files (`useRegisterSW.ts`, `UpdateToast.tsx`, `VersionStamp.tsx`, `version.test.tsx`) and this SUMMARY.md verified present on disk; both task commit hashes (`58e97fa`, `a437181`) and the metadata commit hash (`d189c34`) verified present in git log.
