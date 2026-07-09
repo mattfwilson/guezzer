@@ -1,10 +1,11 @@
 ---
 phase: 4
 slug: show-mode
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-09
+reviewed_at: 2026-07-09
 ---
 
 # Phase 4 — UI Design Contract
