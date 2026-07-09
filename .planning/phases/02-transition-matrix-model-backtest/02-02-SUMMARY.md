@@ -103,3 +103,7 @@ None - no external service configuration required.
 ---
 *Phase: 02-transition-matrix-model-backtest*
 *Completed: 2026-07-09*
+
+## Self-Check: PASSED
+
+All created files (`packages/core/src/model/predict.ts`, `packages/core/test/model/predict.test.ts`, this SUMMARY.md) verified present on disk; all 3 commits (`15c84d5`, `1837620`, `41de965`) verified present in git history.
