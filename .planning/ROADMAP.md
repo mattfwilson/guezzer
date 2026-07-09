@@ -108,7 +108,18 @@ Plans:
   4. Force-quitting the app mid-show and relaunching restores the exact session state (every confirmed song write-through to IndexedDB), and the screen wake lock is held and reacquired on visibility change with fallback messaging
   5. The whole loop is usable one-handed in a dark venue (dark theme, fat targets, gesture suppression), confidence framing honestly reflects the backtest's free-choice accuracy, and the live-tracked show automatically counts as attended
 
-**Plans**: TBD
+**Plans:** 7 plans
+
+Plans:
+
+- [ ] 04-01-PLAN.md — Dexie v2 persistence + write helpers + config.show + hit/miss + tally substrate (SHOW-11/06/07/09/03, DEX-01)
+- [ ] 04-02-PLAN.md — Core fuzzy searchCatalog wrapping fuse.js (SHOW-04)
+- [ ] 04-03-PLAN.md — Orbit render: layoutOrbs + confidence + matrix loader + OrbitStage/orb/why (SHOW-01/02/10, EVAL-04)
+- [ ] 04-04-PLAN.md — Slice 1 loop: useShowSession + ShowView + Start Show + tap→log→recenter→restore (SHOW-03/11, DEX-01)
+- [ ] 04-05-PLAN.md — Slice 2 miss paths: ActionBar + SearchSheet + ??? (SHOW-04/05)
+- [ ] 04-06-PLAN.md — Set structure + comet trail + tally + undo/edit (SHOW-06/07/08/09)
+- [ ] 04-07-PLAN.md — Wake lock + gesture suppression + weak-fan softening + End Show + device spike (SHOW-12/13, EVAL-04)
+
 **UI hint**: yes
 
 ### Phase 5: Live Sync & Data Safety
@@ -172,7 +183,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Corpus Ingestion & Schema Foundation | 5/5 | Complete    | 2026-07-08 |
 | 2. Transition Matrix, Model & Backtest | 5/5 | Complete    | 2026-07-09 |
 | 3. App Shell & PWA Foundation | 4/4 | Complete    | 2026-07-09 |
-| 4. Show Mode | 0/TBD | Not started | - |
+| 4. Show Mode | 0/7 | Not started | - |
 | 5. Live Sync & Data Safety | 0/TBD | Not started | - |
 | 6. Pokédex, History & Stats | 0/TBD | Not started | - |
 | 7. Explore Mode Constellation | 0/TBD | Not started | - |
@@ -182,3 +193,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 *Phase 1 planned: 2026-07-08 (5 plans)*
 *Phase 2 planned: 2026-07-08 (5 plans)*
 *Phase 3 planned: 2026-07-09 (4 plans)*
+*Phase 4 planned: 2026-07-09 (7 plans)*
