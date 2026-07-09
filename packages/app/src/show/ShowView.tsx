@@ -32,6 +32,7 @@ import { classifyOutcome } from "./scoring.ts";
 import { ActionBar } from "./ActionBar.tsx";
 import { OrbitStage } from "./OrbitStage.tsx";
 import { PreShowLauncher } from "./PreShowLauncher.tsx";
+import { SearchSheet, type SearchSelection } from "./SearchSheet.tsx";
 import { WhyDetail } from "./WhyDetail.tsx";
 import { useShowSession } from "./useShowSession.ts";
 import type { OrbitCandidate } from "./PredictionOrb.tsx";
@@ -39,6 +40,7 @@ import type { OrbitCandidate } from "./PredictionOrb.tsx";
 export function ShowView() {
   const session = useShowSession();
   const [whyCandidate, setWhyCandidate] = useState<OrbitCandidate | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const copy = config.copy.show;
 
   // No active show → the pre-show launcher (D-01/D-03).
@@ -95,6 +97,23 @@ export function ShowView() {
     });
   };
 
+  // Search-select → a MISS (a search log is never a hit, D-06/D-08) that ALSO
+  // seeds the opener from the pre-opener state: pre-opener `shownFanSongIds` is
+  // empty (nothing predicted it → honest miss) and this real songId becomes the
+  // new currentSongId, so useShowSession renders the first prediction fan —
+  // closing the slice-1 live loop. No confirm; as fast as a hit tap (SHOW-04).
+  const handleSearchSelect = (selection: SearchSelection) => {
+    void logSong(sessionId, {
+      songId: selection.songId,
+      songName: selection.songName,
+      outcome: "miss",
+      shownFanSongIds: session.shownFanSongIds,
+      isPlaceholder: false,
+      loggedAt: Date.now(),
+    });
+    setSearchOpen(false);
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       {/* Region 3 — the orbit stage. Pre-opener (currentSongId === null): the
@@ -109,9 +128,23 @@ export function ShowView() {
 
       {/* Region 4 — the persistent D-13 action bar, mounted in BOTH the
           pre-opener and active-fan states (the opener is always enterable via
-          Search). The Search route + CometTrail (SHOW-08) slot land next
-          (SearchSheet wiring below) and in 04-06. */}
-      <ActionBar onSearch={() => {}} onUnknown={handleUnknown} />
+          Search). The CometTrail (SHOW-08) slot lands in 04-06. */}
+      <ActionBar
+        onSearch={() => setSearchOpen(true)}
+        onUnknown={handleUnknown}
+      />
+
+      {/* Fuzzy catalog search over core searchCatalog — opener-seed + mid-show
+          miss (SHOW-04); no-match offers ??? inline. */}
+      <SearchSheet
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onSelect={handleSearchSelect}
+        onUnknown={() => {
+          handleUnknown();
+          setSearchOpen(false);
+        }}
+      />
 
       <WhyDetail candidate={whyCandidate} onClose={() => setWhyCandidate(null)} />
     </div>
