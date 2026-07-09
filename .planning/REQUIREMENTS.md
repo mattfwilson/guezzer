@@ -64,9 +64,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### PWA & Persistence
 
-- [ ] **PWA-01** 🎯: App is installable to the home screen on iOS and Android, with install onboarding (including manual iOS instructions, since `beforeinstallprompt` never fires there)
-- [ ] **PWA-02** 🎯: Service worker provides offline capability with a prompt-based update flow — the app never swaps versions mid-show
-- [ ] **PWA-03** 🎯: Personal data (attended shows, tracked setlists, dex) persists in IndexedDB with `navigator.storage.persist()` requested
+- [x] **PWA-01** 🎯: App is installable to the home screen on iOS and Android, with install onboarding (including manual iOS instructions, since `beforeinstallprompt` never fires there)
+- [x] **PWA-02** 🎯: Service worker provides offline capability with a prompt-based update flow — the app never swaps versions mid-show
+- [x] **PWA-03** 🎯: Personal data (attended shows, tracked setlists, dex) persists in IndexedDB with `navigator.storage.persist()` requested
 - [ ] **PWA-04** 🎯: All personal data exports/imports as JSON, surfaced prominently — losing a phone must not mean losing a dex
 
 ### Stats
@@ -184,9 +184,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SYNC-01 | Phase 5 | Pending |
 | SYNC-02 | Phase 5 | Pending |
 | SYNC-03 | Phase 5 | Pending |
-| PWA-01 | Phase 3 | Pending |
-| PWA-02 | Phase 3 | Pending |
-| PWA-03 | Phase 3 | Pending |
+| PWA-01 | Phase 3 | Complete |
+| PWA-02 | Phase 3 | Complete |
+| PWA-03 | Phase 3 | Complete |
 | PWA-04 | Phase 5 | Pending |
 | STAT-01 | Phase 6 | Pending |
 | STAT-02 | Phase 6 | Pending |
