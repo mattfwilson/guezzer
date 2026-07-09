@@ -575,20 +575,26 @@ const tally = `${hits}/${entries.length} · ${entries.length ? Math.round(100*hi
 | A5 | Deleting an entry may leave a `position` gap; export re-numbers per group | Pattern 5 | Non-contiguous positions; low risk — kglw.net round-trip groups by `setNumber` and re-derives order (SCHEMA §3) |
 | A6 | Long-press vs info-dot for the "why" (D-11) — 04-UI-SPEC specifies an `Info` dot | Pattern/UI | Minor UX; UI-SPEC is authoritative (info dot, not long-press) |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> All three were resolved during Phase 4 planning; resolutions are inline below.
+
 
 1. **Which friend devices run pre-iOS-18.4?**
    - What we know: Wake Lock silently fails on installed PWAs before 18.4.
    - What's unclear: the actual oldest-iOS in the <10-person friend group.
    - Recommendation: gather device/iOS list before the phase; run the STATE.md real-iPhone spike on the oldest. Ship the fallback message regardless.
+   - **RESOLVED (planning):** The `WakeLockNotice` fallback ships UNCONDITIONALLY (plan 04-07 Task 1), so correctness does not depend on knowing the device mix; the oldest-device installed-PWA spike is the blocking human checkpoint in 04-07 Task 3 (discharges the STATE.md iOS-lifecycle blocker).
 
 2. **Multi-night rotation suppression scope — same-tour matching by date?**
    - What we know: prior finalized tracked shows can feed `recentShowSongSets`.
    - What's unclear: how to decide "same tour" offline (no tour metadata for 2026 shows).
    - Recommendation: for the slice, feed the last N finalized tracked shows by date proximity (e.g. within ~2 weeks), config-gated. Additive; night 1 works with `[]`.
+   - **RESOLVED (planning):** Explicitly DEFERRED as additive. Plan 04-03 Task 2 keeps `recentFinalizedShowSongSets` an accepted param defaulting to `[]`; night 1 is correct with `[]` and multi-night suppression can be enabled later with no model change.
 
 3. **AppShell layout parametrization for the non-scrolling stage (Pitfall 5).**
    - Recommendation: decide during planning — either add a prop to `AppShell` to disable `<main>` scroll for `#/show`, or have `ShowView` own a full-height fixed layout.
+   - **RESOLVED (planning):** Resolved in plan 04-04 Task 2 (the AppShell↔stage seam / Pitfall 5): ShowView owns a full-height non-scrolling flex layout OR AppShell disables `<main>` scroll for `#/show`; the executor records the choice. Gesture-suppression CSS finalized in 04-07 Task 2.
 
 ## Environment Availability
 
