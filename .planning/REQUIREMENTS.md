@@ -44,7 +44,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **SHOW-01** 🎯: Current song sits at center; top 5–8 predicted next songs orbit as tappable orbs — size and distance scale with probability, colored by tuning family, percentage on the orb
 - [ ] **SHOW-02** 🎯: Radial layout is deterministic (no force simulation); tap targets never move on their own; ~44px minimum orb size regardless of probability
 - [x] **SHOW-03** 🎯: Tapping a predicted orb recenters on it, appends the old song to the trail, and recomputes predictions
-- [ ] **SHOW-04** 🎯: An always-visible search button opens fuzzy search over the full catalog; selecting a song recenters on it — misses as fast as hits
+- [x] **SHOW-04** 🎯: An always-visible search button opens fuzzy search over the full catalog; selecting a song recenters on it — misses as fast as hits
 - [ ] **SHOW-05** 🎯: An always-visible "unknown song" button logs a ??? placeholder (renamable later) so tracking never stalls
 - [x] **SHOW-06** 🎯: User can mark set breaks and the encore, and the tracked show serializes set structure (round-trips with kglw.net data)
 - [x] **SHOW-07** 🎯: User can undo/edit a wrongly-logged song mid-show with one tap
@@ -170,7 +170,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHOW-01 | Phase 4 | Pending |
 | SHOW-02 | Phase 4 | Pending |
 | SHOW-03 | Phase 4 | Complete |
-| SHOW-04 | Phase 4 | Pending |
+| SHOW-04 | Phase 4 | Complete |
 | SHOW-05 | Phase 4 | Pending |
 | SHOW-06 | Phase 4 | Complete |
 | SHOW-07 | Phase 4 | Complete |
