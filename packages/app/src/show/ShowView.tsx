@@ -25,7 +25,7 @@
  * `flex-1` child that never overflows. The ActionBar + CometTrail slots land in
  * 04-05/04-06.
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { config } from "../config.ts";
 import {
   logSong,
@@ -34,6 +34,7 @@ import {
   undoLast,
   type TrackedEntry,
 } from "../db/db.ts";
+import { acquireWakeLock, releaseWakeLock } from "../wakeLock.ts";
 import { classifyOutcome } from "./scoring.ts";
 import { ActionBar } from "./ActionBar.tsx";
 import { CometTrail } from "./CometTrail.tsx";
@@ -42,6 +43,7 @@ import { TallyReadout } from "./TallyReadout.tsx";
 import { TrailNodeSheet } from "./TrailNodeSheet.tsx";
 import { PreShowLauncher } from "./PreShowLauncher.tsx";
 import { SearchSheet, type SearchSelection } from "./SearchSheet.tsx";
+import { WakeLockNotice } from "./WakeLockNotice.tsx";
 import { WhyDetail } from "./WhyDetail.tsx";
 import { useShowSession } from "./useShowSession.ts";
 import type { OrbitCandidate } from "./PredictionOrb.tsx";
@@ -51,7 +53,26 @@ export function ShowView() {
   const [whyCandidate, setWhyCandidate] = useState<OrbitCandidate | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [trailNode, setTrailNode] = useState<TrackedEntry | null>(null);
+  const [wakeNoticeVisible, setWakeNoticeVisible] = useState(false);
+  const wakeDismissedRef = useRef(false);
   const copy = config.copy.show;
+
+  // Hold a screen wake lock while a show is active (SHOW-12); reacquire on
+  // return-to-visible is handled inside wakeLock.ts. The effect runs before the
+  // early returns below (hooks must be unconditional), keyed off whether a show
+  // is active — finalizing (End Show) flips it false and the cleanup releases.
+  // onUnsupported shows the calm once-per-show notice (Pitfall 1: installed iOS
+  // PWA < 18.4 resolves a false-positive lock that never holds).
+  const isActive = Boolean(session.active);
+  useEffect(() => {
+    if (!isActive) return;
+    void acquireWakeLock(() => {
+      if (!wakeDismissedRef.current) setWakeNoticeVisible(true);
+    });
+    return () => {
+      void releaseWakeLock();
+    };
+  }, [isActive]);
 
   // No active show → the pre-show launcher (D-01/D-03).
   if (!session.active) {
@@ -145,6 +166,16 @@ export function ShowView() {
         </span>
         <TallyReadout tally={session.tally} />
       </div>
+
+      {/* SHOW-12 fallback: shown once per show only when the wake lock is
+          unsupported/false-positive. The reacquire path is silent (no copy). */}
+      <WakeLockNotice
+        visible={wakeNoticeVisible}
+        onDismiss={() => {
+          wakeDismissedRef.current = true;
+          setWakeNoticeVisible(false);
+        }}
+      />
 
       {/* Region 2 — the comet trail (SHOW-08): last ~4 diminishing hit/miss-ringed
           nodes, +N compression at 30. Reactive over the live entries; returns
