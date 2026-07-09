@@ -79,4 +79,77 @@ export const config = {
    * flow (D-02); `cs-standard` is never auto-assigned from this list.
    */
   microtonalAlbums: ["Flying Microtonal Banana", "K.G.", "L.W."],
+
+  // --- Phase 2: transition matrix, model & backtest (D-16 / MODL-11) ---
+  // Every constant below is [ASSUMED] — a starting default seeded from
+  // 02-RESEARCH.md M1-M8, not authoritative. The backtest (run-backtest CLI,
+  // later plans in this phase) is the mechanism that justifies or overrides
+  // each value; nothing here is a claim of optimality.
+
+  /** D-08: the frozen TransitionMatrix artifact — Phase 2's primary output, sibling of corpusArtifactPath. */
+  matrixArtifactPath: "data/normalized/transition-matrix.json",
+
+  /** D-15: human-readable backtest report, mirrors censusReportPath. */
+  backtestReportPath: "data/backtest-report.md",
+
+  /** D-15: machine-readable backtest output, paired with backtestReportPath, mirrors censusJsonPath. */
+  backtestJsonPath: "data/backtest.json",
+
+  /**
+   * [ASSUMED] M2/A2 (02-RESEARCH.md): exponential recency-decay half-life in
+   * days, measured relative to the matrix's own as-of cutoff (never
+   * wall-clock now, D-10). 365 days makes a transition exactly one year
+   * before cutoff contribute weight 0.5 — current + previous tour dominate
+   * (MODL-04) while the deep catalog keeps a faint nonzero voice. Tunable
+   * via backtest.
+   */
+  decayHalfLifeDays: 365,
+
+  /** [ASSUMED] M1 (02-RESEARCH.md): additive Lidstone/add-alpha floor inside backoff tier t1 (transitionProb numerator). 0.0 — interpolation (D-02) already supplies the nonzero floor via t4; exposed as a backtest knob. */
+  transitionAddAlpha: 0.0,
+
+  /**
+   * [ASSUMED] M1/A1 (02-RESEARCH.md), D-02: Jelinek-Mercer interpolation
+   * weights for the 4-tier backoff blend (transitionProb, tuningAffinity,
+   * albumEraAffinity, basePlayRate). Must sum to 1.0 — verified by a config
+   * test. When a tier is ablated off (D-14), remaining weights are
+   * re-normalized to sum to 1 at scoring time.
+   */
+  backoffWeights: { w1: 0.6, w2: 0.2, w3: 0.15, w4: 0.05 },
+
+  /** [ASSUMED] M3/A4 (02-RESEARCH.md), MODL-06: number of most-recent shows in the current tour that feed rotation suppression. */
+  rotationWindowShows: 3,
+
+  /** [ASSUMED] M3/A4 (02-RESEARCH.md), MODL-06: per-show multiplicative penalty applied for each of the last rotationWindowShows shows a candidate was played in — e.g. played all 3 recent nights scores this value cubed. Never a hard zero. */
+  rotationPenaltyPerShow: 0.5,
+
+  /** [ASSUMED] M3/A3 (02-RESEARCH.md), D-05: near-zero (not zero) multiplier applied once per candidate already present in the in-progress show's trail — sandwich/reprise-aware (MODL-10). */
+  alreadyPlayedFactor: 0.02,
+
+  /** [ASSUMED] M4/A5 (02-RESEARCH.md), D-04: minimum segueRate(A→B) = segueCount/totalExits(A) required to qualify a pair for the hard-segue override gate. */
+  hardSegueConsistencyThreshold: 0.7,
+
+  /** [ASSUMED] M4/A5 (02-RESEARCH.md), D-04: minimum totalExits(A) required alongside hardSegueConsistencyThreshold — prevents a single 1/1 instance from pinning false certainty. */
+  hardSegueMinSupport: 3,
+
+  /** [ASSUMED] M4/A5 (02-RESEARCH.md), D-04: near-1.0 (never literally 1.0) score ceiling applied when a pair passes the hard-segue consistency gate — only notated hard segues approach 100%. */
+  hardSegueOverrideCeiling: 0.97,
+
+  /** [ASSUMED] M4/A5 (02-RESEARCH.md), D-04: multiplicative boost (not an override) applied to inconsistent/one-off segue pairs that fail the consistency gate. */
+  hardSegueBoost: 3.0,
+
+  /** [ASSUMED] M8/A6 (02-RESEARCH.md), MODL-07: trailing window (in shows, before the as-of cutoff) defining "current era" for the eraPrior relative-marginal multiplier. */
+  eraWindowShows: 40,
+
+  /** [ASSUMED] M8/A6 (02-RESEARCH.md), MODL-07: additive smoothing constant for the era-rate / all-time-rate ratio underlying eraPrior, avoiding divide-by-near-zero on sparse songs. */
+  eraPriorSmoothingK: 1,
+
+  /** [ASSUMED] M8/A6 (02-RESEARCH.md), MODL-07: lower clamp bound for the eraPrior relative multiplier (retired-song floor). */
+  eraPriorFloor: 0.3,
+
+  /** [ASSUMED] M8/A6 (02-RESEARCH.md), MODL-07: upper clamp bound for the eraPrior relative multiplier (current-rotation ceiling). */
+  eraPriorCeil: 2.0,
+
+  /** [ASSUMED] M7/A7 (02-RESEARCH.md): number of ranked candidates the predictor returns. Must be >= 10 for the backtest's top-10 metric (EVAL-01); Phase 4 UI shows only the top 5-8. */
+  candidateListSize: 15,
 } as const;
