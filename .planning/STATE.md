@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 04 UI-SPEC approved
-last_updated: "2026-07-09T11:58:21.517Z"
-last_activity: 2026-07-09 -- Phase 04 planning complete
+last_updated: "2026-07-09T12:11:25.111Z"
+last_activity: 2026-07-09 -- Phase 04 execution started
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 21
+  completed_plans: 15
   percent: 43
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-08)
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
+Phase: 04 (show-mode) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-07-09 -- Phase 04 planning complete
+Last activity: 2026-07-09 -- Phase 04 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 04 P01 | 5 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,8 @@ Recent decisions affecting current work:
 - Roadmap: DATA-05 (set-boundary exclusion) mapped to Phase 2 with the matrix builder, not Phase 1 ingestion — the exclusion decision lives where edges are emitted
 - Roadmap: EVAL-04 (honest confidence framing) mapped to Phase 4 — it is a Show Mode UI behavior conditioned on Phase 2's backtest output
 - Research: as-of-date must be a matrix-construction parameter from day one (Phase 2); set-structure capture and two-source trail design front-loaded into Phase 4 — all three are unretrofittable
+- [Phase ?]: Phase 4: logSong snapshots setNumber from the show's currentSetNumber (not caller-supplied) for true set-structure snapshot semantics (SHOW-06)
+- [Phase ?]: Phase 4: the trackedShows row itself IS the provisional dex-attendance record (D-02/DEX-01) — no separate table; showId reconciliation deferred to Phase 5/6
 
 ### Pending Todos
 
@@ -85,6 +88,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-09T05:51:23.591Z
+Last session: 2026-07-09T12:10:46.292Z
 Stopped at: Phase 04 UI-SPEC approved
 Resume file: .planning/phases/04-show-mode/04-UI-SPEC.md

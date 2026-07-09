@@ -43,15 +43,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **SHOW-01** 🎯: Current song sits at center; top 5–8 predicted next songs orbit as tappable orbs — size and distance scale with probability, colored by tuning family, percentage on the orb
 - [ ] **SHOW-02** 🎯: Radial layout is deterministic (no force simulation); tap targets never move on their own; ~44px minimum orb size regardless of probability
-- [ ] **SHOW-03** 🎯: Tapping a predicted orb recenters on it, appends the old song to the trail, and recomputes predictions
+- [x] **SHOW-03** 🎯: Tapping a predicted orb recenters on it, appends the old song to the trail, and recomputes predictions
 - [ ] **SHOW-04** 🎯: An always-visible search button opens fuzzy search over the full catalog; selecting a song recenters on it — misses as fast as hits
 - [ ] **SHOW-05** 🎯: An always-visible "unknown song" button logs a ??? placeholder (renamable later) so tracking never stalls
-- [ ] **SHOW-06** 🎯: User can mark set breaks and the encore, and the tracked show serializes set structure (round-trips with kglw.net data)
-- [ ] **SHOW-07** 🎯: User can undo/edit a wrongly-logged song mid-show with one tap
+- [x] **SHOW-06** 🎯: User can mark set breaks and the encore, and the tracked show serializes set structure (round-trips with kglw.net data)
+- [x] **SHOW-07** 🎯: User can undo/edit a wrongly-logged song mid-show with one tap
 - [ ] **SHOW-08** 🎯: Comet trail shows the last ~4 songs as diminishing nodes with older history compressed into a tappable "+N"; each node wears a hit/miss ring; scales to 30+ song sets without crowding the prediction fan
-- [ ] **SHOW-09** 🎯: Running hit/miss tally for the night is persistently visible
+- [x] **SHOW-09** 🎯: Running hit/miss tally for the night is persistently visible
 - [ ] **SHOW-10** 🎯: Each orb carries a one-line "why" explanation, with a tappable detail view
-- [ ] **SHOW-11** 🎯: Every confirmed song is written through to IndexedDB immediately; an interrupted session restores exactly on relaunch (iOS discards PWA state on app switch)
+- [x] **SHOW-11** 🎯: Every confirmed song is written through to IndexedDB immediately; an interrupted session restores exactly on relaunch (iOS discards PWA state on app switch)
 - [ ] **SHOW-12** 🎯: Screen wake lock is held during an active show, reacquired on visibility change, with feature-detection fallback messaging
 - [ ] **SHOW-13** 🎯: Dark theme, fat-thumb tap targets, accidental-gesture suppression — usable one-handed in a dark crowded venue by a possibly slightly drunk operator
 - [ ] **SHOW-14**: Post-show recap view: hit/miss tally, final setlist with set structure, and show rarity score
@@ -78,7 +78,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Pokédex
 
-- [ ] **DEX-01** 🎯: Live-tracked shows automatically count as attended (show #1's dex credit must not be lost)
+- [x] **DEX-01** 🎯: Live-tracked shows automatically count as attended (show #1's dex credit must not be lost)
 - [ ] **DEX-02**: User can retroactively mark attended shows from the full kglw.net archive, searchable by date/venue, keyed by stable show ID
 - [ ] **DEX-03**: Per-song sighting counts are derived from attended shows — never hand-tallied
 - [ ] **DEX-04**: Pokédex UI shows collection completion %, per-song sighting counts, rarest catch (lowest base-rate song seen), and never-seen list
@@ -169,15 +169,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EVAL-05 | Phase 2 | Complete |
 | SHOW-01 | Phase 4 | Pending |
 | SHOW-02 | Phase 4 | Pending |
-| SHOW-03 | Phase 4 | Pending |
+| SHOW-03 | Phase 4 | Complete |
 | SHOW-04 | Phase 4 | Pending |
 | SHOW-05 | Phase 4 | Pending |
-| SHOW-06 | Phase 4 | Pending |
-| SHOW-07 | Phase 4 | Pending |
+| SHOW-06 | Phase 4 | Complete |
+| SHOW-07 | Phase 4 | Complete |
 | SHOW-08 | Phase 4 | Pending |
-| SHOW-09 | Phase 4 | Pending |
+| SHOW-09 | Phase 4 | Complete |
 | SHOW-10 | Phase 4 | Pending |
-| SHOW-11 | Phase 4 | Pending |
+| SHOW-11 | Phase 4 | Complete |
 | SHOW-12 | Phase 4 | Pending |
 | SHOW-13 | Phase 4 | Pending |
 | SHOW-14 | Phase 6 | Pending |
@@ -192,7 +192,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STAT-02 | Phase 6 | Pending |
 | STAT-03 | Phase 6 | Pending |
 | STAT-04 | Phase 6 | Pending |
-| DEX-01 | Phase 4 | Pending |
+| DEX-01 | Phase 4 | Complete |
 | DEX-02 | Phase 6 | Pending |
 | DEX-03 | Phase 6 | Pending |
 | DEX-04 | Phase 6 | Pending |

@@ -108,11 +108,11 @@ Plans:
   4. Force-quitting the app mid-show and relaunching restores the exact session state (every confirmed song write-through to IndexedDB), and the screen wake lock is held and reacquired on visibility change with fallback messaging
   5. The whole loop is usable one-handed in a dark venue (dark theme, fat targets, gesture suppression), confidence framing honestly reflects the backtest's free-choice accuracy, and the live-tracked show automatically counts as attended
 
-**Plans:** 7 plans
+**Plans:** 1/7 plans executed
 Plans:
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Dexie v2 persistence + write helpers + config.show + hit/miss + tally substrate (SHOW-11/06/07/09/03, DEX-01)
+- [x] 04-01-PLAN.md — Dexie v2 persistence + write helpers + config.show + hit/miss + tally substrate (SHOW-11/06/07/09/03, DEX-01)
 - [ ] 04-02-PLAN.md — Core fuzzy searchCatalog wrapping fuse.js (SHOW-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -198,7 +198,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Corpus Ingestion & Schema Foundation | 5/5 | Complete    | 2026-07-08 |
 | 2. Transition Matrix, Model & Backtest | 5/5 | Complete    | 2026-07-09 |
 | 3. App Shell & PWA Foundation | 4/4 | Complete    | 2026-07-09 |
-| 4. Show Mode | 0/7 | Not started | - |
+| 4. Show Mode | 1/7 | In Progress|  |
 | 5. Live Sync & Data Safety | 0/TBD | Not started | - |
 | 6. Pokédex, History & Stats | 0/TBD | Not started | - |
 | 7. Explore Mode Constellation | 0/TBD | Not started | - |
