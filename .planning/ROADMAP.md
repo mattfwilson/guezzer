@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Corpus Ingestion & Schema Foundation** - Verified schema docs, one-command corpus fetch, KGLW-only normalization, tuning-family tagging file (completed 2026-07-08)
 - [x] **Phase 2: Transition Matrix, Model & Backtest** - Versioned matrix artifact, all scoring signals, and the CLI backtest trust gate with ablation (completed 2026-07-09)
-- [ ] **Phase 3: App Shell & PWA Foundation** - Installable offline-first shell with prompt-based updates and persistent IndexedDB storage
+- [x] **Phase 3: App Shell & PWA Foundation** - Installable offline-first shell with prompt-based updates and persistent IndexedDB storage (completed 2026-07-09)
 - [ ] **Phase 4: Show Mode** - The full one-thumb live loop: orbit predictions, logging, trail, tally, crash-proof persistence, wake lock
 - [ ] **Phase 5: Live Sync & Data Safety** - Polite 60s `latest` polling with suggest-only auto-fill, and prominent JSON export/import
 - [ ] **Phase 6: Pokédex, History & Stats** - Derived dex, retroactive attendance, gap/rarity stats, post-show recap, dex sharing
@@ -83,13 +83,13 @@ Plans:
   2. After first load, the app works fully offline; updates arrive only via a user-confirmed prompt with a visible version stamp — never an automatic mid-session swap
   3. Personal data written to IndexedDB persists across relaunches, with `navigator.storage.persist()` requested
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 
 - [x] 03-01-PLAN.md — Scaffold + installable/offline/navigable shell + Vitest harness (PWA-01/02)
 - [x] 03-02-PLAN.md — Install onboarding: banner + iOS illustrated instructions + permanent menu entry (PWA-01)
-- [ ] 03-03-PLAN.md — Prompt-based update toast + build-time version stamp (PWA-02)
+- [x] 03-03-PLAN.md — Prompt-based update toast + build-time version stamp (PWA-02)
 - [x] 03-04-PLAN.md — Dexie v1 persistence + navigator.storage.persist() (PWA-03)
 
 **UI hint**: yes
@@ -171,7 +171,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 |-------|----------------|--------|-----------|
 | 1. Corpus Ingestion & Schema Foundation | 5/5 | Complete    | 2026-07-08 |
 | 2. Transition Matrix, Model & Backtest | 5/5 | Complete    | 2026-07-09 |
-| 3. App Shell & PWA Foundation | 3/4 | In Progress|  |
+| 3. App Shell & PWA Foundation | 4/4 | Complete   | 2026-07-09 |
 | 4. Show Mode | 0/TBD | Not started | - |
 | 5. Live Sync & Data Safety | 0/TBD | Not started | - |
 | 6. Pokédex, History & Stats | 0/TBD | Not started | - |
