@@ -61,7 +61,7 @@ export function OrbitStage({
   return (
     <div
       ref={stageRef}
-      className="relative flex-1 touch-none select-none overflow-hidden bg-surface"
+      className="orbit-stage relative flex-1 touch-none select-none overflow-hidden bg-surface"
       style={{ overscrollBehavior: "none" }}
     >
       {/* Centre node — absolutely centred over the stage. */}

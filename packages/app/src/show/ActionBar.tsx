@@ -56,7 +56,7 @@ export function ActionBar({
   return (
     <nav
       aria-label="Show controls"
-      className="shrink-0 select-none border-t border-hairline bg-elevated px-4 pt-2"
+      className="action-bar shrink-0 select-none border-t border-hairline bg-elevated px-4 pt-2"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       {/* Primary row — the fastest miss paths (D-13/D-14/SHOW-04). */}

@@ -26,6 +26,7 @@
  * 04-05/04-06.
  */
 import { useEffect, useRef, useState } from "react";
+import { CircleStop } from "lucide-react";
 import { config } from "../config.ts";
 import {
   logSong,
@@ -38,6 +39,7 @@ import { acquireWakeLock, releaseWakeLock } from "../wakeLock.ts";
 import { classifyOutcome } from "./scoring.ts";
 import { ActionBar } from "./ActionBar.tsx";
 import { CometTrail } from "./CometTrail.tsx";
+import { EndShowDialog } from "./EndShowDialog.tsx";
 import { OrbitStage } from "./OrbitStage.tsx";
 import { TallyReadout } from "./TallyReadout.tsx";
 import { TrailNodeSheet } from "./TrailNodeSheet.tsx";
@@ -53,6 +55,7 @@ export function ShowView() {
   const [whyCandidate, setWhyCandidate] = useState<OrbitCandidate | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [trailNode, setTrailNode] = useState<TrackedEntry | null>(null);
+  const [endOpen, setEndOpen] = useState(false);
   const [wakeNoticeVisible, setWakeNoticeVisible] = useState(false);
   const wakeDismissedRef = useRef(false);
   const copy = config.copy.show;
@@ -164,7 +167,20 @@ export function ShowView() {
         <span className="tabular-nums text-[14px] leading-tight text-text-muted">
           {session.active.date}
         </span>
-        <TallyReadout tally={session.tally} />
+        <div className="flex items-center gap-3">
+          <TallyReadout tally={session.tally} />
+          {/* End Show finalize control (D-04) — opens a destructive confirm; it
+              never ends the show on this tap. Required before the next night can
+              start (D-03/D-04). Never accent (gold is Start Show only). */}
+          <button
+            type="button"
+            onClick={() => setEndOpen(true)}
+            className="flex min-h-11 items-center gap-1 rounded-md border border-hairline px-2 text-[14px] font-semibold text-text-primary touch-manipulation"
+          >
+            <CircleStop size={18} />
+            {copy.endCta}
+          </button>
+        </div>
       </div>
 
       {/* SHOW-12 fallback: shown once per show only when the wake lock is
@@ -218,6 +234,14 @@ export function ShowView() {
       {/* Older-entry edit / delete (confirm) / rename-??? from a trail tap
           (SHOW-07/D-15). Deleting recomputes the tally via useLiveQuery. */}
       <TrailNodeSheet entry={trailNode} onClose={() => setTrailNode(null)} />
+
+      {/* End Show finalize confirm (D-04) — on confirm calls endShow(sessionId),
+          flipping the show read-only so a new night can start (D-03). */}
+      <EndShowDialog
+        open={endOpen}
+        sessionId={sessionId}
+        onClose={() => setEndOpen(false)}
+      />
 
       <WhyDetail candidate={whyCandidate} onClose={() => setWhyCandidate(null)} />
     </div>
