@@ -13,8 +13,17 @@
  * stub returning the neutral value this plan — Plan 03 fills in the real
  * bodies.
  */
-import type { MatrixEdge, SignalToggles } from "../domain/types.ts";
-import type { MatrixIndex } from "./index-build.ts";
+import { config } from "../config.ts";
+import type {
+  BackoffTier,
+  MatrixEdge,
+  PredictionCandidate,
+  PredictionFactors,
+  ShowContext,
+  SignalToggles,
+  TransitionMatrix,
+} from "../domain/types.ts";
+import { buildMatrixIndex, type MatrixIndex } from "./index-build.ts";
 
 /**
  * The subset of `config`'s model constants the predictor reads, widened to
@@ -214,4 +223,173 @@ export function baseFactor(
     weights.w3 * albumEraAffinity(A, B, index) +
     weights.w4 * basePlayRate(B, index)
   );
+}
+
+// --- Downstream multiplier pipeline (D-01) — STUBBED this plan (02-02) ---
+// Every stub returns the neutral 1.0 (or null for the hard-segue override)
+// regardless of its inputs. Plan 03 replaces each body with the real
+// MODL-05/06/07/10 signal; the toggle-gated call sites in `scoreCandidate`
+// below are already final so that swap is a pure body-fill, never a
+// pipeline restructure.
+
+/** [STUB — Plan 03 fills MODL-06 rotation suppression] */
+function rotationSuppression(_B: number, _ctx: ShowContext, _cfg: ScoringConfig): number {
+  return 1;
+}
+
+/** [STUB — Plan 03 fills D-05/MODL-10 already-played conditioning] */
+function alreadyPlayedFactor(_B: number, _ctx: ShowContext, _cfg: ScoringConfig): number {
+  return 1;
+}
+
+/** [STUB — Plan 03 fills MODL-07 era-prior relative marginal boost] */
+function eraPrior(_B: number, _index: MatrixIndex, _cfg: ScoringConfig): number {
+  return 1;
+}
+
+/** [STUB — Plan 03 fills D-04 hard-segue consistency-gated override/boost] */
+function hardSegueOverride(
+  _A: number,
+  _B: number,
+  _index: MatrixIndex,
+  _cfg: ScoringConfig,
+): number | null {
+  return null;
+}
+
+/** Informational only — reports how much recency decay shaped an observed edge's weight (`weightedCount / count`); never itself multiplied into `score` (decay is already baked into `transitionProb` via `edgeWeight`'s toggle). Neutral 1.0 when the toggle is off or no edge is observed. */
+function decayInfoFactor(A: number, B: number, index: MatrixIndex, toggles: SignalToggles): number {
+  if (!toggles.decay) return 1;
+  const edges = index.edgesFrom.get(A) ?? [];
+  const edge = edges.find((e) => e.to === B);
+  if (!edge || edge.count <= 0) return 1;
+  return edge.weightedCount / edge.count;
+}
+
+/** Fixed evaluation-priority order for the tie-break inside `dominantBackoffTier` — first strict-max wins so the choice is deterministic even when multiple tiers land on the exact same contribution (e.g. all-zero). */
+const BACKOFF_TIER_PRIORITY: BackoffTier[] = ["transition", "tuning", "albumEra", "basePlayRate"];
+
+/** D-06/D-02: which tier contributed the most weighted mass to `baseFactor(A,B)` — part of the rich per-candidate breakdown and the input to `buildReason`'s backoff-tier label. */
+function dominantBackoffTier(
+  A: number,
+  B: number,
+  index: MatrixIndex,
+  cfg: ScoringConfig,
+  toggles: SignalToggles,
+): BackoffTier {
+  const weights = effectiveBackoffWeights(cfg, toggles);
+  const contributions: Record<BackoffTier, number> = {
+    transition: weights.w1 * transitionProb(A, B, index, cfg, toggles),
+    tuning: weights.w2 * tuningAffinity(A, B, index, toggles),
+    albumEra: weights.w3 * albumEraAffinity(A, B, index),
+    basePlayRate: weights.w4 * basePlayRate(B, index),
+  };
+  let best = BACKOFF_TIER_PRIORITY[0];
+  for (const tier of BACKOFF_TIER_PRIORITY.slice(1)) {
+    if (contributions[tier] > contributions[best]) best = tier;
+  }
+  return best;
+}
+
+/**
+ * D-06: concrete, count-backed reason string. An observed edge reads like
+ * "seen 8× since 2024" (from the edge's own stored `count`/`firstDate`);
+ * an unobserved pair reads as which backoff tier carried it, e.g. "backoff:
+ * base play rate". Never a vague label — always traceable to a stored
+ * number (powers the future Show Mode per-orb "why", SHOW-10).
+ */
+function buildReason(A: number, B: number, index: MatrixIndex, tier: BackoffTier): string {
+  const edges = index.edgesFrom.get(A) ?? [];
+  const edge = edges.find((e) => e.to === B);
+  if (edge && edge.count > 0) {
+    const year = edge.firstDate.slice(0, 4);
+    return `seen ${edge.count}× since ${year}`;
+  }
+  switch (tier) {
+    case "transition":
+      return "backoff: transition frequency";
+    case "tuning":
+      return "backoff: tuning-family affinity";
+    case "albumEra":
+      return "backoff: era affinity";
+    case "basePlayRate":
+      return "backoff: base play rate";
+  }
+}
+
+/**
+ * D-01 (Pattern 2): the multiplicative pipeline SKELETON for one `A→B`
+ * candidate — `base * rotation * alreadyPlayed * eraPrior`, then a
+ * hard-segue override/boost applied on top. This plan (02-02) wires every
+ * downstream stage to its toggle but every downstream fn is a neutral stub
+ * (see above); Plan 03 fills the bodies without touching this structure, so
+ * per-signal ablation (D-14) stays a pure flag-flip.
+ */
+export function scoreCandidate(
+  A: number,
+  B: number,
+  index: MatrixIndex,
+  cfg: ScoringConfig,
+  toggles: SignalToggles,
+  ctx: ShowContext,
+): PredictionCandidate {
+  const base = baseFactor(A, B, index, cfg, toggles);
+  const rotationFactor = toggles.rotation ? rotationSuppression(B, ctx, cfg) : 1;
+  const alreadyPlayedFactorValue = toggles.alreadyPlayed ? alreadyPlayedFactor(B, ctx, cfg) : 1;
+  const eraPriorFactor = toggles.eraPrior ? eraPrior(B, index, cfg) : 1;
+  const segueOverride = toggles.hardSegue ? hardSegueOverride(A, B, index, cfg) : null;
+
+  const multiplied = base * rotationFactor * alreadyPlayedFactorValue * eraPriorFactor;
+  const score = segueOverride ?? multiplied;
+
+  const tier = dominantBackoffTier(A, B, index, cfg, toggles);
+  const node = index.nodeById.get(B);
+
+  const factors: PredictionFactors = {
+    transitionProb: transitionProb(A, B, index, cfg, toggles),
+    decay: decayInfoFactor(A, B, index, toggles),
+    rotation: rotationFactor,
+    alreadyPlayed: alreadyPlayedFactorValue,
+    eraPrior: eraPriorFactor,
+    backoffTier: tier,
+    hardSegueFlag: segueOverride !== null,
+  };
+
+  return {
+    songId: B,
+    songName: node?.songName ?? "",
+    score,
+    factors,
+    reason: buildReason(A, B, index, tier),
+  };
+}
+
+/**
+ * `predict(matrix, context, cfg, toggles) -> PredictionCandidate[]` — the
+ * entrypoint. Scores every song in the candidate universe `C` (all
+ * non-placeholder `MatrixNode`s the frozen matrix already carries — 264
+ * songs is trivial to rank fully, M7), sorts by `score` desc with a
+ * deterministic tie-break (`playCount` desc, then `songId` asc — Pitfall
+ * 2), and returns the top `cfg.candidateListSize`.
+ */
+export function predict(
+  matrix: TransitionMatrix,
+  context: ShowContext,
+  cfg: ScoringConfig = config,
+  toggles: SignalToggles = defaultSignalToggles,
+): PredictionCandidate[] {
+  const index = buildMatrixIndex(matrix);
+  const candidates = [...index.nodeById.values()].map((node) =>
+    scoreCandidate(context.currentSongId, node.songId, index, cfg, toggles, context),
+  );
+
+  candidates.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    const playA = index.nodeById.get(a.songId)?.playCount ?? 0;
+    const playB = index.nodeById.get(b.songId)?.playCount ?? 0;
+    if (playB !== playA) return playB - playA;
+    return a.songId - b.songId;
+  });
+
+  return candidates.slice(0, cfg.candidateListSize);
 }

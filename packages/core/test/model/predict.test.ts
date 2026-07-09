@@ -8,11 +8,13 @@ import {
   baseFactor,
   basePlayRate,
   defaultSignalToggles,
+  predict,
+  scoreCandidate,
   transitionProb,
   tuningAffinity,
   type ScoringConfig,
 } from "../../src/model/predict.ts";
-import type { AsOfBound } from "../../src/domain/types.ts";
+import type { AsOfBound, ShowContext } from "../../src/domain/types.ts";
 
 // Fixture-normalize convention (normalize.test.ts:1-16 / matrix.test.ts:7-19):
 // raw kglw.net-shaped rows normalize through normalizeCorpus first.
@@ -244,5 +246,85 @@ describe("predict — tier normalization (Pitfall 4)", () => {
     expect(sumTransition).toBeCloseTo(1, 6);
     expect(sumTuning).toBeCloseTo(1, 6);
     expect(sumBasePlayRate).toBeCloseTo(1, 6);
+  });
+});
+
+describe("predict — ranked prediction (MODL-03 end-to-end)", () => {
+  it("Test 5: predict returns >= min(candidateListSize, |C|) candidates sorted by score desc, with an observed successor of A ranked above the unobserved D", () => {
+    const matrix = buildSyntheticMatrix();
+    const context: ShowContext = { currentSongId: SONG_A, trail: [], recentShowSongSets: [] };
+    const candidates = predict(matrix, context);
+
+    const expectedCount = Math.min(config.candidateListSize, matrix.nodes.length);
+    expect(candidates.length).toBe(expectedCount);
+
+    // Sorted by score desc.
+    for (let i = 1; i < candidates.length; i++) {
+      expect(candidates[i - 1].score).toBeGreaterThanOrEqual(candidates[i].score);
+    }
+
+    const rankOf = (songId: number) => candidates.findIndex((c) => c.songId === songId);
+    const bestObservedRank = Math.min(rankOf(SONG_B), rankOf(SONG_C));
+    expect(bestObservedRank).toBeLessThan(rankOf(SONG_D));
+  });
+});
+
+describe("predict — deterministic ranking (Pitfall 2)", () => {
+  it("Test 6: repeated calls to predict produce byte-identical output; equal scores tie-break by playCount desc then songId asc", () => {
+    const matrix = buildSyntheticMatrix();
+    const context: ShowContext = { currentSongId: SONG_A, trail: [], recentShowSongSets: [] };
+
+    const first = predict(matrix, context);
+    const second = predict(matrix, context);
+    expect(JSON.stringify(first)).toBe(JSON.stringify(second));
+
+    // Every candidate not B/C has zero transitionProb/tuningAffinity mass
+    // from A and shares the same albumEraAffinity fallback -- their score
+    // ordering among themselves must come down to playCount desc, songId asc.
+    const indexed = buildMatrixIndex(matrix);
+    const untouched = first.filter((c) => c.songId !== SONG_B && c.songId !== SONG_C);
+    for (let i = 1; i < untouched.length; i++) {
+      const prev = untouched[i - 1];
+      const cur = untouched[i];
+      if (prev.score === cur.score) {
+        const prevPlay = indexed.nodeById.get(prev.songId)?.playCount ?? 0;
+        const curPlay = indexed.nodeById.get(cur.songId)?.playCount ?? 0;
+        expect(prevPlay >= curPlay).toBe(true);
+        if (prevPlay === curPlay) expect(prev.songId).toBeLessThan(cur.songId);
+      }
+    }
+  });
+});
+
+describe("predict — candidate breakdown (D-06)", () => {
+  it("Test 7: every returned PredictionCandidate has a populated factors object and a non-empty reason string", () => {
+    const matrix = buildSyntheticMatrix();
+    const context: ShowContext = { currentSongId: SONG_A, trail: [], recentShowSongSets: [] };
+    const candidates = predict(matrix, context);
+
+    expect(candidates.length).toBeGreaterThan(0);
+    for (const candidate of candidates) {
+      expect(candidate.factors.transitionProb).toBeGreaterThanOrEqual(0);
+      expect(candidate.factors.decay).toBeGreaterThan(0);
+      expect(candidate.factors.rotation).toBe(1); // stub this plan
+      expect(candidate.factors.alreadyPlayed).toBe(1); // stub this plan
+      expect(candidate.factors.eraPrior).toBe(1); // stub this plan
+      expect(["transition", "tuning", "albumEra", "basePlayRate"]).toContain(candidate.factors.backoffTier);
+      expect(candidate.factors.hardSegueFlag).toBe(false); // stub this plan (hardSegueOverride always null)
+      expect(candidate.reason.length).toBeGreaterThan(0);
+    }
+
+    // The observed A->B edge (segue) must produce a concrete count-backed
+    // reason, not a backoff label.
+    const bCandidate = candidates.find((c) => c.songId === SONG_B)!;
+    expect(bCandidate.reason).toMatch(/^seen \d+× since \d{4}$/);
+
+    // D-03: no top-level tuning multiplier field exists anywhere in the
+    // per-candidate breakdown -- tuning only ever enters via the baseFactor
+    // blend (see the "tuning backoff only" describe block above).
+    const direct = scoreCandidate(SONG_A, SONG_B, buildMatrixIndex(matrix), config, defaultSignalToggles, context);
+    expect(Object.keys(direct.factors).sort()).toEqual(
+      ["alreadyPlayed", "backoffTier", "decay", "eraPrior", "hardSegueFlag", "rotation", "transitionProb"].sort(),
+    );
   });
 });

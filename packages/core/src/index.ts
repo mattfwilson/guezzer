@@ -69,3 +69,21 @@ export {
 export { buildMatrix, type BuildMatrixOptions } from "./model/matrix.ts";
 export { decayedWeight } from "./model/decay.ts";
 export { buildMatrixIndex, type MatrixIndex } from "./model/index-build.ts";
+
+/**
+ * D-02/D-01/D-06 predictor (Phase 2 plan 02-02). `scoreCandidate` and the
+ * individual backoff-tier fns are exported for ablation/debugging (Plan 03
+ * backtest, Explore Mode debugger EXPL-02 later) — `predict` is the primary
+ * entrypoint downstream consumers use.
+ */
+export {
+  albumEraAffinity,
+  baseFactor,
+  basePlayRate,
+  defaultSignalToggles,
+  predict,
+  scoreCandidate,
+  transitionProb,
+  tuningAffinity,
+  type ScoringConfig,
+} from "./model/predict.ts";
