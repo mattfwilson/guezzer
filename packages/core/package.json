@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "fuse.js": "7.4.2",
     "zod": "4.4.3"
   },
   "devDependencies": {

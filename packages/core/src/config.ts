@@ -155,4 +155,25 @@ export const config = {
 
   /** [ASSUMED] M7/A7 (02-RESEARCH.md): number of ranked candidates the predictor returns. Must be >= 10 for the backtest's top-10 metric (EVAL-01); Phase 4 UI shows only the top 5-8. */
   candidateListSize: 15,
+
+  // --- Phase 4: Show Mode catalog search (SHOW-04) ---
+  // Tunables for the fuse.js-backed searchCatalog (search/search-catalog.ts).
+  // A1 (04-RESEARCH.md): starting defaults for drunk-thumb typo tolerance over
+  // the 264-song catalog — swappable/tunable per CLAUDE.md, never a hard claim.
+  search: {
+    /**
+     * [ASSUMED] A1 (04-RESEARCH.md): fuse.js fuzzy-match threshold. 0.0 = exact
+     * only, 1.0 = match anything. 0.4 tolerates a one-character typo for
+     * one-thumb-in-the-dark entry without dumping the whole catalog on a
+     * near-miss. Tune if real-world match quality disappoints.
+     */
+    threshold: 0.4,
+
+    /**
+     * [ASSUMED] A1 (04-RESEARCH.md): fuse.js `distance` — how far into a string
+     * a match may drift before scoring degrades. Paired with `ignoreLocation`
+     * at the call site so position within the song name is not penalized.
+     */
+    distance: 100,
+  },
 } as const;

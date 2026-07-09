@@ -97,3 +97,17 @@ export {
  */
 export { findHoldoutShows } from "./eval/holdout.ts";
 export { runBacktest } from "./eval/backtest.ts";
+
+/**
+ * SHOW-04 catalog fuzzy search (Phase 4 plan 04-02). `toCatalog` projects the
+ * matrix nodes to the searchable `{ songId, songName }` shape; `makeCatalogSearcher`
+ * returns a memoizable `(query) => SearchResult[]` fuse.js searcher. Lives in
+ * core (not the app) so the miss path is Node-testable and the fuse.js wrapper
+ * stays swappable per CLAUDE.md.
+ */
+export {
+  makeCatalogSearcher,
+  toCatalog,
+  type CatalogEntry,
+  type SearchResult,
+} from "./search/search-catalog.ts";
