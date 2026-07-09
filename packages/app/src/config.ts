@@ -51,6 +51,10 @@ export const config = {
     TRAIL_VISIBLE_RECENT: 4,
     /** Set length that triggers the "+N" trail compression chip (SHOW-08). */
     TRAIL_COMPRESS_AT: 30,
+    /** Smallest (oldest) comet-trail node circle diameter in px — the hit area stays ≥44px regardless (SHOW-08). */
+    TRAIL_NODE_MIN_DIAMETER: 24,
+    /** Largest (most-recent) comet-trail node circle diameter in px — nodes diminish from this toward MIN by age (SHOW-08). */
+    TRAIL_NODE_MAX_DIAMETER: 40,
   },
 
   /** UI-SPEC §Copywriting Contract. */

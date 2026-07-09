@@ -30,7 +30,9 @@ import { config } from "../config.ts";
 import { logSong, markEncore, markSetBreak, undoLast } from "../db/db.ts";
 import { classifyOutcome } from "./scoring.ts";
 import { ActionBar } from "./ActionBar.tsx";
+import { CometTrail } from "./CometTrail.tsx";
 import { OrbitStage } from "./OrbitStage.tsx";
+import { TallyReadout } from "./TallyReadout.tsx";
 import { PreShowLauncher } from "./PreShowLauncher.tsx";
 import { SearchSheet, type SearchSelection } from "./SearchSheet.tsx";
 import { WhyDetail } from "./WhyDetail.tsx";
@@ -124,6 +126,23 @@ export function ShowView() {
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
+      {/* Region 1 — Show-Mode header slot extending the AppShell chrome: the
+          auto-stamped date (D-01) left, the persistent hit/miss tally right
+          (SHOW-09, always visible incl. the 0/0 · — zero-state). text-primary,
+          never accent. AppShell owns the app-global header; ShowView owns this
+          show-specific sub-header row. */}
+      <div className="flex shrink-0 items-center justify-between border-b border-hairline bg-elevated px-4 py-2">
+        <span className="tabular-nums text-[14px] leading-tight text-text-muted">
+          {session.active.date}
+        </span>
+        <TallyReadout tally={session.tally} />
+      </div>
+
+      {/* Region 2 — the comet trail (SHOW-08): last ~4 diminishing hit/miss-ringed
+          nodes, +N compression at 30. Reactive over the live entries; returns
+          null pre-opener. Node taps open the TrailNodeSheet (04-06 Task 3). */}
+      <CometTrail entries={session.entries} onNodeTap={() => {}} />
+
       {/* Region 3 — the orbit stage. Pre-opener (currentSongId === null): the
           CenterNode shows the "Tap the opener" prompt and NO fan is passed, so
           predict() is never exercised without a real current song (04-05). */}
