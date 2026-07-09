@@ -36,13 +36,13 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **EVAL-01** 🎯: Backtest holds out the most recent complete tour, trains on everything prior, and reports top-1/top-5/top-10 next-song hit rates, overall and split by hard-segue vs. free-choice
 - [x] **EVAL-02** 🎯: Per-feature ablation report (accuracy with each signal toggled off) so any signal that doesn't earn its place gets deleted
 - [x] **EVAL-03** 🎯: Backtest report runs from Node CLI with zero browser dependencies
-- [ ] **EVAL-04** 🎯: If free-choice top-5 accuracy < ~25%, the UI surfaces wider confidence framing rather than implying false precision
+- [x] **EVAL-04** 🎯: If free-choice top-5 accuracy < ~25%, the UI surfaces wider confidence framing rather than implying false precision
 - [x] **EVAL-05** 🎯: Unit tests cover the scoring pipeline and dex derivation using small fixture setlists with known expected outputs
 
 ### Show Mode
 
-- [ ] **SHOW-01** 🎯: Current song sits at center; top 5–8 predicted next songs orbit as tappable orbs — size and distance scale with probability, colored by tuning family, percentage on the orb
-- [ ] **SHOW-02** 🎯: Radial layout is deterministic (no force simulation); tap targets never move on their own; ~44px minimum orb size regardless of probability
+- [x] **SHOW-01** 🎯: Current song sits at center; top 5–8 predicted next songs orbit as tappable orbs — size and distance scale with probability, colored by tuning family, percentage on the orb
+- [x] **SHOW-02** 🎯: Radial layout is deterministic (no force simulation); tap targets never move on their own; ~44px minimum orb size regardless of probability
 - [x] **SHOW-03** 🎯: Tapping a predicted orb recenters on it, appends the old song to the trail, and recomputes predictions
 - [x] **SHOW-04** 🎯: An always-visible search button opens fuzzy search over the full catalog; selecting a song recenters on it — misses as fast as hits
 - [ ] **SHOW-05** 🎯: An always-visible "unknown song" button logs a ??? placeholder (renamable later) so tracking never stalls
@@ -50,7 +50,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SHOW-07** 🎯: User can undo/edit a wrongly-logged song mid-show with one tap
 - [ ] **SHOW-08** 🎯: Comet trail shows the last ~4 songs as diminishing nodes with older history compressed into a tappable "+N"; each node wears a hit/miss ring; scales to 30+ song sets without crowding the prediction fan
 - [x] **SHOW-09** 🎯: Running hit/miss tally for the night is persistently visible
-- [ ] **SHOW-10** 🎯: Each orb carries a one-line "why" explanation, with a tappable detail view
+- [x] **SHOW-10** 🎯: Each orb carries a one-line "why" explanation, with a tappable detail view
 - [x] **SHOW-11** 🎯: Every confirmed song is written through to IndexedDB immediately; an interrupted session restores exactly on relaunch (iOS discards PWA state on app switch)
 - [ ] **SHOW-12** 🎯: Screen wake lock is held during an active show, reacquired on visibility change, with feature-detection fallback messaging
 - [ ] **SHOW-13** 🎯: Dark theme, fat-thumb tap targets, accidental-gesture suppression — usable one-handed in a dark crowded venue by a possibly slightly drunk operator
@@ -165,10 +165,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EVAL-01 | Phase 2 | Complete |
 | EVAL-02 | Phase 2 | Complete |
 | EVAL-03 | Phase 2 | Complete |
-| EVAL-04 | Phase 4 | Pending |
+| EVAL-04 | Phase 4 | Complete |
 | EVAL-05 | Phase 2 | Complete |
-| SHOW-01 | Phase 4 | Pending |
-| SHOW-02 | Phase 4 | Pending |
+| SHOW-01 | Phase 4 | Complete |
+| SHOW-02 | Phase 4 | Complete |
 | SHOW-03 | Phase 4 | Complete |
 | SHOW-04 | Phase 4 | Complete |
 | SHOW-05 | Phase 4 | Pending |
@@ -176,7 +176,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHOW-07 | Phase 4 | Complete |
 | SHOW-08 | Phase 4 | Pending |
 | SHOW-09 | Phase 4 | Complete |
-| SHOW-10 | Phase 4 | Pending |
+| SHOW-10 | Phase 4 | Complete |
 | SHOW-11 | Phase 4 | Complete |
 | SHOW-12 | Phase 4 | Pending |
 | SHOW-13 | Phase 4 | Pending |
