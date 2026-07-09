@@ -15,27 +15,27 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DATA-02** 🎯: One-command refresh script fetches the full historical corpus from kglw.net and writes a versioned static JSON artifact bundled with the app
 - [x] **DATA-03** 🎯: Every ingestion path and the live poller filter to `artist_id === 1` (KGLW) and validate that filtered API responses actually match the requested filter (API silently ignores invalid filters)
 - [x] **DATA-04** 🎯: Tuning-family tagging file (JSON/CSV) generated with album-derived defaults for the owner to hand-fill (~250 songs: standard / C# standard / microtonal)
-- [ ] **DATA-05** 🎯: Set-boundary and encore transitions are excluded from (or explicitly marked in) the transition matrix so they never poison within-set segue probabilities
+- [x] **DATA-05** 🎯: Set-boundary and encore transitions are excluded from (or explicitly marked in) the transition matrix so they never poison within-set segue probabilities
 
 ### Prediction Model
 
-- [ ] **MODL-01** 🎯: Transition matrix is a serializable plain-JSON artifact with a frozen schema, consumed by predictor, backtest, and constellation alike
-- [ ] **MODL-02** 🎯: Matrix construction takes an as-of-date cutoff parameter (backtest leakage prevention built in, not bolted on)
-- [ ] **MODL-03** 🎯: Scoring uses first-order transition frequency P(next | current) as the core signal
+- [x] **MODL-01** 🎯: Transition matrix is a serializable plain-JSON artifact with a frozen schema, consumed by predictor, backtest, and constellation alike
+- [x] **MODL-02** 🎯: Matrix construction takes an as-of-date cutoff parameter (backtest leakage prevention built in, not bolted on)
+- [x] **MODL-03** 🎯: Scoring uses first-order transition frequency P(next | current) as the core signal
 - [x] **MODL-04** 🎯: Old shows decay exponentially with a tunable half-life; current + previous tour dominate
 - [x] **MODL-05** 🎯: Notated hard segue pairs (`transition_id` 2/3, jamcharts) override the base model at very high confidence
 - [x] **MODL-06** 🎯: Rotation suppression downweights songs played in the last 1–3 shows of the current tour, approaching hard exclusion within a same-venue/city multi-night run
 - [x] **MODL-07** 🎯: Base play probability in the current era acts as a smoothing prior
-- [ ] **MODL-08** 🎯: Sparse-data backoff chain: transition model → same-tuning-family affinity → same-album/era affinity → base play probability; never a hard zero for a plausible song, never 100% except a notated hard segue
-- [ ] **MODL-09** 🎯: Tuning-family affinity is used ONLY in the backoff tier, never as a top-level multiplier
+- [x] **MODL-08** 🎯: Sparse-data backoff chain: transition model → same-tuning-family affinity → same-album/era affinity → base play probability; never a hard zero for a plausible song, never 100% except a notated hard segue
+- [x] **MODL-09** 🎯: Tuning-family affinity is used ONLY in the backoff tier, never as a top-level multiplier
 - [x] **MODL-10** 🎯: Predictions condition on the current show: already-played songs drop to near zero (sandwich/reprise-aware — repeats do occur)
-- [ ] **MODL-11** 🎯: All model constants (decay half-life, rotation penalty, backoff weights, thresholds) live in a single config file
+- [x] **MODL-11** 🎯: All model constants (decay half-life, rotation penalty, backoff weights, thresholds) live in a single config file
 
 ### Evaluation
 
-- [ ] **EVAL-01** 🎯: Backtest holds out the most recent complete tour, trains on everything prior, and reports top-1/top-5/top-10 next-song hit rates, overall and split by hard-segue vs. free-choice
-- [ ] **EVAL-02** 🎯: Per-feature ablation report (accuracy with each signal toggled off) so any signal that doesn't earn its place gets deleted
-- [ ] **EVAL-03** 🎯: Backtest report runs from Node CLI with zero browser dependencies
+- [x] **EVAL-01** 🎯: Backtest holds out the most recent complete tour, trains on everything prior, and reports top-1/top-5/top-10 next-song hit rates, overall and split by hard-segue vs. free-choice
+- [x] **EVAL-02** 🎯: Per-feature ablation report (accuracy with each signal toggled off) so any signal that doesn't earn its place gets deleted
+- [x] **EVAL-03** 🎯: Backtest report runs from Node CLI with zero browser dependencies
 - [ ] **EVAL-04** 🎯: If free-choice top-5 accuracy < ~25%, the UI surfaces wider confidence framing rather than implying false precision
 - [x] **EVAL-05** 🎯: Unit tests cover the scoring pipeline and dex derivation using small fixture setlists with known expected outputs
 
@@ -150,21 +150,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Complete |
-| DATA-05 | Phase 2 | Pending |
-| MODL-01 | Phase 2 | Pending |
-| MODL-02 | Phase 2 | Pending |
-| MODL-03 | Phase 2 | Pending |
+| DATA-05 | Phase 2 | Complete |
+| MODL-01 | Phase 2 | Complete |
+| MODL-02 | Phase 2 | Complete |
+| MODL-03 | Phase 2 | Complete |
 | MODL-04 | Phase 2 | Complete |
 | MODL-05 | Phase 2 | Complete |
 | MODL-06 | Phase 2 | Complete |
 | MODL-07 | Phase 2 | Complete |
-| MODL-08 | Phase 2 | Pending |
-| MODL-09 | Phase 2 | Pending |
+| MODL-08 | Phase 2 | Complete |
+| MODL-09 | Phase 2 | Complete |
 | MODL-10 | Phase 2 | Complete |
-| MODL-11 | Phase 2 | Pending |
-| EVAL-01 | Phase 2 | Pending |
-| EVAL-02 | Phase 2 | Pending |
-| EVAL-03 | Phase 2 | Pending |
+| MODL-11 | Phase 2 | Complete |
+| EVAL-01 | Phase 2 | Complete |
+| EVAL-02 | Phase 2 | Complete |
+| EVAL-03 | Phase 2 | Complete |
 | EVAL-04 | Phase 4 | Pending |
 | EVAL-05 | Phase 2 | Complete |
 | SHOW-01 | Phase 4 | Pending |
