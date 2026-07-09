@@ -25,6 +25,28 @@ export const config = {
    */
   versionStampFormat: "v{version} · {sha} · built {date}",
 
+  /**
+   * Show Mode tunables (04-UI-SPEC §Config surface). Single-config-file ethos
+   * (CLAUDE.md) — no scattered magic numbers. Defaults are Claude's-discretion
+   * starting points; D-10/D-12 are explicitly config-tunable.
+   */
+  show: {
+    /** Adaptive fan lower bound — always ≥5 orbs (D-12). */
+    ORB_COUNT_MIN: 5,
+    /** Adaptive fan upper bound — up to 8 orbs (D-12). */
+    ORB_COUNT_MAX: 8,
+    /** Drop orbs below this absolute score before enforcing ORB_COUNT_MIN (D-12). */
+    ORB_DROP_SCORE: 0.02,
+    /** Top-orb score below which the whole fan softens visually (D-10 / SHOW-08 / EVAL-04). */
+    WEAK_FAN_THRESHOLD: 0.15,
+    /** Visual minimum orb diameter in px; hit area stays ≥44px regardless (SHOW-02). */
+    ORB_MIN_DIAMETER: 56,
+    /** Number of recent trail nodes shown diminishing before compression (SHOW-08). */
+    TRAIL_VISIBLE_RECENT: 4,
+    /** Set length that triggers the "+N" trail compression chip (SHOW-08). */
+    TRAIL_COMPRESS_AT: 30,
+  },
+
   /** UI-SPEC §Copywriting Contract. */
   copy: {
     installBanner: {
@@ -61,6 +83,59 @@ export const config = {
         heading: "Your Pokédex",
         body: "Your caught-live collection lands in Phase 6.",
       },
+    },
+
+    /**
+     * Show Mode copy (04-UI-SPEC §Copywriting Contract) — verbatim. No
+     * component under packages/app/src may hardcode a Show-Mode string; they
+     * READ these keys.
+     */
+    show: {
+      /** Pre-show launcher (D-01/D-02). */
+      startCta: "Start Show",
+      preShowHeading: "Ready when you are",
+      preShowBody:
+        "Tap Start Show when the first song kicks in. Everything logs offline — no signal needed.",
+      /** Finalize control (D-04). */
+      endCta: "End Show",
+      /** Center node prompt before the opener is seeded. */
+      centerPrompt: "Tap the opener",
+      /** Fuzzy search sheet (SHOW-04). */
+      searchPlaceholder: "Search the catalog",
+      searchNoMatchHeading: "No match.",
+      searchNoMatchBody: "Log it as ??? and rename it later.",
+      /** Unknown-song control (D-14). */
+      unknownCta: "???",
+      unknownSublabel: "Unknown",
+      /** Set-structure controls (SHOW-06). */
+      setBreakCta: "Set break",
+      encoreCta: "Encore",
+      /** Undo control (SHOW-07/D-15). */
+      undoCta: "Undo",
+      /** Weak-fan softening hint (D-10). */
+      weakFanHeading: "Low confidence",
+      weakFanBody: "Wide-open moment — the model isn't sure.",
+      /** Persistent tally zero-state (SHOW-09). */
+      tallyZeroState: "0/0 · —",
+      /** Rename-??? sheet (D-15). */
+      renameHeading: "Name this song",
+      renameSkip: "Skip",
+      /** Delete-a-trail-node confirm (D-15). */
+      deleteHeading: "Delete this song?",
+      deleteBody: "This removes it from the setlist and recomputes the tally.",
+      deleteConfirm: "Delete",
+      deleteCancel: "Cancel",
+      /** End-show confirm (D-04). */
+      endHeading: "End show?",
+      endBody: "You won't be able to add more songs after this.",
+      endConfirm: "End show",
+      endCancel: "Keep tracking",
+      /** Wake-lock unsupported fallback (SHOW-12). */
+      wakeLockFallback:
+        "Keep your screen on manually — auto screen-wake isn't supported on this device.",
+      /** Matrix artifact load failure (full-stage state). */
+      modelLoadFailureHeading: "Couldn't load the prediction model.",
+      modelLoadFailureBody: "Reopen Guezzer to try again.",
     },
   },
 } as const;
