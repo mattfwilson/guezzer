@@ -29,6 +29,7 @@ import { useState } from "react";
 import { config } from "../config.ts";
 import { logSong } from "../db/db.ts";
 import { classifyOutcome } from "./scoring.ts";
+import { ActionBar } from "./ActionBar.tsx";
 import { OrbitStage } from "./OrbitStage.tsx";
 import { PreShowLauncher } from "./PreShowLauncher.tsx";
 import { WhyDetail } from "./WhyDetail.tsx";
@@ -79,6 +80,21 @@ export function ShowView() {
     });
   };
 
+  // ??? → an instant placeholder MISS with NO confirm (D-14/SHOW-05). songId is
+  // null and isPlaceholder true (renamable later from the trail, D-15); the
+  // shown fan at log time is the honest hit denominator (empty pre-opener, D-08).
+  // The write-through recenters via useLiveQuery.
+  const handleUnknown = () => {
+    void logSong(sessionId, {
+      songId: null,
+      songName: copy.unknownCta,
+      outcome: "miss",
+      shownFanSongIds: session.shownFanSongIds,
+      isPlaceholder: true,
+      loggedAt: Date.now(),
+    });
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       {/* Region 3 — the orbit stage. Pre-opener (currentSongId === null): the
@@ -91,8 +107,11 @@ export function ShowView() {
         onWhy={setWhyCandidate}
       />
 
-      {/* Placeholder slots for the ActionBar (D-13) + CometTrail (SHOW-08) land
-          in 04-05/04-06. */}
+      {/* Region 4 — the persistent D-13 action bar, mounted in BOTH the
+          pre-opener and active-fan states (the opener is always enterable via
+          Search). The Search route + CometTrail (SHOW-08) slot land next
+          (SearchSheet wiring below) and in 04-06. */}
+      <ActionBar onSearch={() => {}} onUnknown={handleUnknown} />
 
       <WhyDetail candidate={whyCandidate} onClose={() => setWhyCandidate(null)} />
     </div>

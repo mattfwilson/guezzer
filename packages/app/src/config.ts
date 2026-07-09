@@ -107,6 +107,7 @@ export const config = {
       /** Center node prompt before the opener is seeded. */
       centerPrompt: "Tap the opener",
       /** Fuzzy search sheet (SHOW-04). */
+      searchCta: "Search",
       searchPlaceholder: "Search the catalog",
       searchNoMatchHeading: "No match.",
       searchNoMatchBody: "Log it as ??? and rename it later.",
