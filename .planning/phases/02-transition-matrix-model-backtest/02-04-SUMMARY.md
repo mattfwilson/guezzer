@@ -104,3 +104,7 @@ None - no external service configuration required.
 ---
 *Phase: 02-transition-matrix-model-backtest*
 *Completed: 2026-07-09*
+
+## Self-Check: PASSED
+
+All created files verified present on disk; all task/metadata commit hashes (3176c66, 9f69df3, e6751da) verified present in git log.
