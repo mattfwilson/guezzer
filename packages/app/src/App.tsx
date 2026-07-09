@@ -3,6 +3,7 @@ import { AppMenu } from "./components/AppMenu";
 import { AppShell } from "./components/AppShell";
 import { InstallBanner } from "./components/InstallBanner";
 import { PlaceholderView } from "./components/PlaceholderView";
+import { UpdateToast } from "./components/UpdateToast";
 import { requestPersistenceOnce } from "./pwa/persist.ts";
 import { useHashRoute } from "./routing/useHashRoute";
 
@@ -36,12 +37,10 @@ export function App() {
     <>
       <AppShell onMenuClick={() => setMenuOpen(true)}>
         <PlaceholderView route={route} />
-
-        {/* Mount seam for a later Phase 3 plan — do not remove:
-            - Plan 03: <UpdateToast /> (waiting-service-worker prompt) */}
       </AppShell>
 
       <InstallBanner />
+      <UpdateToast />
       <AppMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );

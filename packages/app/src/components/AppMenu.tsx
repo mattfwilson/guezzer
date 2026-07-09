@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { config } from "../config";
 import { useInstallState } from "../pwa/install/useInstallState";
 import { IosInstallInstructions } from "./IosInstallInstructions";
+import { VersionStamp } from "./VersionStamp";
 
 interface AppMenuProps {
   open: boolean;
@@ -75,8 +76,9 @@ export function AppMenu({ open, onClose }: AppMenuProps) {
           </p>
         )}
 
-        {/* Version stamp slot — wired in Plan 03 (D-07):
-            v{__APP_VERSION__} · {__GIT_SHA__} · built {__BUILD_DATE__} */}
+        <div className="mt-3 border-t border-hairline pt-3">
+          <VersionStamp />
+        </div>
       </div>
     </div>
   );
