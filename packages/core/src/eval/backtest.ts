@@ -18,6 +18,7 @@
  */
 import { config } from "../config.ts";
 import type {
+  AblationEntry,
   AsOfBound,
   BacktestResult,
   BacktestSplit,
@@ -122,29 +123,32 @@ function evalTransitions(
   return results;
 }
 
+/** The full-model result plus every per-signal ablation split, without the header fields -- shared by `runBacktest`'s full run and each ablation-variant run (D-14/M6, single scoring code path). */
+interface WalkForwardMetrics {
+  evalTransitionCount: number;
+  overall: BacktestSplit;
+  hardSegue: BacktestSplit;
+  freeChoice: BacktestSplit;
+}
+
 /**
- * `runBacktest(corpus, cfg, toggles) -> BacktestResult` (D-12/D-13). The
- * `ablation` array is always empty here -- populated by Plan 05's
- * leave-one-signal-out sweep, which re-invokes this same function once per
- * signal with `toggles` cloned and one flag flipped (D-14, single scoring
- * code path).
+ * The walk-forward loop itself (D-12/M5), factored out of `runBacktest` so
+ * both the full model and every leave-one-signal-out ablation variant
+ * (Plan 05) drive it through the exact same code path -- `toggles` is the
+ * only thing that ever differs between calls, never a forked
+ * implementation. `sortedHoldoutShows` is precomputed once by the caller
+ * (holdout identification/order does not depend on `toggles`).
  */
-export function runBacktest(
+function walkForward(
+  sortedHoldoutShows: NormalizedShow[],
   corpus: NormalizedCorpus,
-  cfg: typeof config = config,
-  toggles: SignalToggles = defaultSignalToggles,
-): BacktestResult {
-  const holdoutShows = findHoldoutShows(corpus, cfg.tourIdSentinel);
-
-  // Deterministic (date, showOrder) walk-forward order (Pitfall 2).
-  const sorted = [...holdoutShows].sort((a, b) =>
-    a.date !== b.date ? (a.date < b.date ? -1 : 1) : a.showOrder - b.showOrder,
-  );
-
+  cfg: typeof config,
+  toggles: SignalToggles,
+): WalkForwardMetrics {
   const allResults: EvalTransitionResult[] = [];
   const processedSongSets: number[][] = [];
 
-  for (const show of sorted) {
+  for (const show of sortedHoldoutShows) {
     // Exclusive (date, showOrder) tuple bound (D-12/M5, Pitfall 3): train =
     // everything strictly prior to S, including this tour's earlier
     // nights, but never S itself.
@@ -157,9 +161,72 @@ export function runBacktest(
     processedSongSets.push(showSongSet(show));
   }
 
-  const overall = aggregateSplit(allResults);
-  const hardSegue = aggregateSplit(allResults.filter((r) => r.hardSegue));
-  const freeChoice = aggregateSplit(allResults.filter((r) => !r.hardSegue));
+  return {
+    evalTransitionCount: allResults.length,
+    overall: aggregateSplit(allResults),
+    hardSegue: aggregateSplit(allResults.filter((r) => r.hardSegue)),
+    freeChoice: aggregateSplit(allResults.filter((r) => !r.hardSegue)),
+  };
+}
+
+/** D-14/M6: every toggleable signal, ablated one at a time -- fixed order so `BacktestResult.ablation` is deterministic/diffable (Pitfall 2). Mirrors `SignalToggles`'s field order (`domain/types.ts`). */
+const ABLATION_SIGNALS: (keyof SignalToggles)[] = [
+  "decay",
+  "rotation",
+  "alreadyPlayed",
+  "eraPrior",
+  "hardSegue",
+  "tuning",
+  "albumEra",
+];
+
+/** `hitRate` (D-14): a `BacktestSplit`'s top-`k` count expressed as a fraction of `n`, 0 when `n === 0` (no eval transitions -- avoids a NaN in `deltaVsFull`). */
+function hitRate(split: BacktestSplit, key: "top1" | "top5" | "top10"): number {
+  return split.n > 0 ? split[key] / split.n : 0;
+}
+
+/**
+ * `runBacktest(corpus, cfg, toggles) -> BacktestResult` (D-12/D-13/D-14).
+ * Runs the full model once via `walkForward`, then re-runs the identical
+ * walk-forward loop once per signal in `ABLATION_SIGNALS` with `toggles`
+ * cloned and exactly that one field flipped `false` -- every variant shares
+ * the same `predict`/`scoreCandidate` code path (M6); a backoff-tier
+ * ablation (`tuning`/`albumEra`) re-normalizes the remaining weights inside
+ * `predict.ts`'s `effectiveBackoffWeights`, never forked here.
+ * `deltaVsFull` is the variant's overall hit RATE (top-k / n) minus the full
+ * model's -- report-only, D-14: this function never throws or returns a
+ * pass/fail flag based on the numbers.
+ */
+export function runBacktest(
+  corpus: NormalizedCorpus,
+  cfg: typeof config = config,
+  toggles: SignalToggles = defaultSignalToggles,
+): BacktestResult {
+  const holdoutShows = findHoldoutShows(corpus, cfg.tourIdSentinel);
+
+  // Deterministic (date, showOrder) walk-forward order (Pitfall 2) --
+  // computed once; holdout identification/order never depends on toggles.
+  const sorted = [...holdoutShows].sort((a, b) =>
+    a.date !== b.date ? (a.date < b.date ? -1 : 1) : a.showOrder - b.showOrder,
+  );
+
+  const full = walkForward(sorted, corpus, cfg, toggles);
+
+  const ablation: AblationEntry[] = ABLATION_SIGNALS.map((signal) => {
+    const variantToggles: SignalToggles = { ...toggles, [signal]: false };
+    const variant = walkForward(sorted, corpus, cfg, variantToggles);
+    return {
+      signal,
+      overall: variant.overall,
+      hardSegue: variant.hardSegue,
+      freeChoice: variant.freeChoice,
+      deltaVsFull: {
+        top1: hitRate(variant.overall, "top1") - hitRate(full.overall, "top1"),
+        top5: hitRate(variant.overall, "top5") - hitRate(full.overall, "top5"),
+        top10: hitRate(variant.overall, "top10") - hitRate(full.overall, "top10"),
+      },
+    };
+  });
 
   const first = sorted[0];
 
@@ -174,10 +241,10 @@ export function runBacktest(
     holdoutTourId: first.tourId,
     holdoutTourName: first.tourName,
     holdoutShowCount: sorted.length,
-    evalTransitionCount: allResults.length,
-    overall,
-    hardSegue,
-    freeChoice,
-    ablation: [],
+    evalTransitionCount: full.evalTransitionCount,
+    overall: full.overall,
+    hardSegue: full.hardSegue,
+    freeChoice: full.freeChoice,
+    ablation,
   };
 }

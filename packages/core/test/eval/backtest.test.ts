@@ -158,6 +158,107 @@ describe("runBacktest — eval-target exclusions (M7)", () => {
   });
 });
 
+// --- Plan 02-05 Task 1: leave-one-signal-out ablation (EVAL-02, D-14) ---
+//
+// The synthetic-multitour fixture is deliberately over-determined (see the
+// meta.json "why" field's margin argument): every eval transition's correct
+// answer has either an EXCLUSIVE t1=1.0 training successor or the
+// consistency-gated hard-segue pin, so the full model already sits at the
+// 100% top-1/5/10 ceiling (Test 3 above). This makes the ablation deltas
+// hand-computable WITHOUT re-deriving the full interpolated-blend
+// arithmetic: no variant can possibly score BETTER than 100%, so
+// `deltaVsFull` must be `<= 0` for every signal on every k -- a structural
+// fact independent of the exact backoff weights. Cross-checked against the
+// real deterministic implementation (a throwaway Node script, not
+// committed) before being baked into the test, which additionally confirms
+// every single signal's ablation delta is exactly 0 here (the dominance
+// margin the fixture was designed around, per meta.json, survives every
+// one-signal-off variant -- decay/tuning/albumEra weight renormalization
+// keeps t1 dominant; hardSegue's pin turns out to be redundant with the
+// underlying exclusive t1 for Y->Z specifically).
+describe("runBacktest — leave-one-signal-out ablation (EVAL-02, D-14)", () => {
+  it("Test 7: ablation has one AblationEntry per toggleable signal, each with its own splits and a deltaVsFull", () => {
+    const result = runBacktest(corpus);
+
+    const expectedSignals = ["decay", "rotation", "alreadyPlayed", "eraPrior", "hardSegue", "tuning", "albumEra"];
+    expect(result.ablation.length).toBe(expectedSignals.length);
+    expect(result.ablation.map((e) => e.signal).sort()).toEqual([...expectedSignals].sort());
+
+    for (const entry of result.ablation) {
+      expect(entry.overall.n).toBe(result.evalTransitionCount);
+      expect(entry.hardSegue.n + entry.freeChoice.n).toBe(entry.overall.n);
+      expect(entry.deltaVsFull).toHaveProperty("top1");
+      expect(entry.deltaVsFull).toHaveProperty("top5");
+      expect(entry.deltaVsFull).toHaveProperty("top10");
+    }
+  });
+
+  it("Test 8: deltaVsFull sign/shape -- no variant can exceed the full model's 100% ceiling on this fixture, so every delta is <= 0, and every signal's delta is exactly 0 (the dominance margin survives every one-signal-off variant, hand-cross-checked)", () => {
+    const result = runBacktest(corpus);
+
+    for (const entry of result.ablation) {
+      expect(entry.deltaVsFull.top1).toBeLessThanOrEqual(0);
+      expect(entry.deltaVsFull.top5).toBeLessThanOrEqual(0);
+      expect(entry.deltaVsFull.top10).toBeLessThanOrEqual(0);
+      // Hand-computed + implementation-cross-checked exact values (see
+      // describe-block comment above): every signal's ablation is a no-op
+      // on this over-determined fixture.
+      expect(entry.deltaVsFull).toEqual({ top1: 0, top5: 0, top10: 0 });
+    }
+  });
+
+  it("Test 9: the signal-off variant is produced by flipping exactly one SignalToggles flag through the shared predict() path -- a backoff-tier ablation (tuning/albumEra) still yields a valid, fully-populated split rather than crashing or degenerating to an empty/NaN result", () => {
+    const result = runBacktest(corpus);
+
+    const tuningEntry = result.ablation.find((e) => e.signal === "tuning");
+    const albumEraEntry = result.ablation.find((e) => e.signal === "albumEra");
+    expect(tuningEntry).toBeDefined();
+    expect(albumEraEntry).toBeDefined();
+
+    // Re-normalization keeps baseFactor a valid convex blend -- top-k counts
+    // stay finite integers bounded by n, never NaN/undefined from a
+    // divide-by-zero on the dropped tier.
+    for (const entry of [tuningEntry!, albumEraEntry!]) {
+      expect(Number.isFinite(entry.overall.top1)).toBe(true);
+      expect(entry.overall.top1).toBeGreaterThanOrEqual(0);
+      expect(entry.overall.top1).toBeLessThanOrEqual(entry.overall.n);
+    }
+  });
+});
+
+describe("runBacktest — ablation is report-only, no gate (D-14)", () => {
+  it("Test 10: runBacktest never throws and never returns a pass/fail flag based on the numbers -- the returned object carries only reporting fields", () => {
+    expect(() => runBacktest(corpus)).not.toThrow();
+
+    const result = runBacktest(corpus);
+    const keys = Object.keys(result).sort();
+    expect(keys).toEqual(
+      [
+        "schemaVersion",
+        "generatedAt",
+        "holdoutTourId",
+        "holdoutTourName",
+        "holdoutShowCount",
+        "evalTransitionCount",
+        "overall",
+        "hardSegue",
+        "freeChoice",
+        "ablation",
+      ].sort(),
+    );
+    // No "passed"/"ok"/"gate"/"threshold" field anywhere on the result or
+    // any ablation entry -- D-14: the owner reads the numbers, Phase 2 never
+    // auto-decides.
+    expect(result).not.toHaveProperty("passed");
+    expect(result).not.toHaveProperty("gate");
+    for (const entry of result.ablation) {
+      expect(Object.keys(entry).sort()).toEqual(
+        ["signal", "overall", "hardSegue", "freeChoice", "deltaVsFull"].sort(),
+      );
+    }
+  });
+});
+
 describe("runBacktest — no leakage (M5)", () => {
   it("Test 6: for the first held-out show, the as-of matrix contains only strictly-prior shows -- a transition unique to the holdout show's own occurrence is not 'learned' from itself", () => {
     const holdout = findHoldoutShows(corpus);
