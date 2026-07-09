@@ -89,9 +89,11 @@ export {
 } from "./model/predict.ts";
 
 /**
- * D-12 walk-forward backtest holdout identification (Phase 2 plan 02-04).
- * `findHoldoutShows` identifies the most-recent complete tour (never
- * `max(tourId)` -- Pitfall 3). `runBacktest` (Task 2, same plan) is added
- * to this barrel once `eval/backtest.ts` exists.
+ * D-12/D-13 walk-forward backtest (Phase 2 plan 02-04). `findHoldoutShows`
+ * identifies the most-recent complete tour (never `max(tourId)` -- Pitfall
+ * 3); `runBacktest` rebuilds a leak-free matrix as-of each held-out show
+ * and reports top-1/5/10 hit rates overall and split by hard-segue vs
+ * free-choice.
  */
 export { findHoldoutShows } from "./eval/holdout.ts";
+export { runBacktest } from "./eval/backtest.ts";
