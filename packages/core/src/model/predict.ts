@@ -6,12 +6,15 @@
  * `ingest/tuning-tags.ts`'s staged-helper decomposition: several small named
  * pure fns compose into one entrypoint.
  *
- * This plan (02-02) delivers the D-02 interpolated backoff base (four
- * normalized tiers blended Jelinek-Mercer style) in Task 1, then the D-01
- * multiplicative pipeline SKELETON + `predict` entrypoint in Task 2. Every
- * downstream modifier (rotation, alreadyPlayed, eraPrior, hardSegue) is a
- * stub returning the neutral value this plan — Plan 03 fills in the real
- * bodies.
+ * Plan 02-02 delivered the D-02 interpolated backoff base (four normalized
+ * tiers blended Jelinek-Mercer style) and the D-01 multiplicative pipeline
+ * skeleton + `predict` entrypoint. Plan 02-03 (this plan) fills in the real
+ * bodies of every downstream modifier. Task 1 (this commit) fills rotation
+ * suppression (MODL-06), already-played conditioning (D-05/MODL-10), era
+ * prior (MODL-07), and confirms the decay-toggle path in `transitionProb`.
+ * Task 2 fills the consistency-gated hard-segue override/boost (D-04/
+ * MODL-05) without touching the call-site structure, so per-signal
+ * ablation (D-14) stays a pure flag-flip.
  */
 import { config } from "../config.ts";
 import type {
@@ -225,29 +228,69 @@ export function baseFactor(
   );
 }
 
-// --- Downstream multiplier pipeline (D-01) — STUBBED this plan (02-02) ---
-// Every stub returns the neutral 1.0 (or null for the hard-segue override)
-// regardless of its inputs. Plan 03 replaces each body with the real
-// MODL-05/06/07/10 signal; the toggle-gated call sites in `scoreCandidate`
-// below are already final so that swap is a pure body-fill, never a
-// pipeline restructure.
+// --- Downstream multiplier pipeline (D-01) ---
+// Task 1 (this commit) replaces the Plan 02 neutral stubs for rotation,
+// already-played, and era-prior with real bodies. hardSegueOverride stays a
+// stub (Task 2 fills it) so the toggle-gated call sites in `scoreCandidate`
+// below are unchanged from Plan 02 — a pure body-fill, never a pipeline
+// restructure.
 
-/** [STUB — Plan 03 fills MODL-06 rotation suppression] */
-function rotationSuppression(_B: number, _ctx: ShowContext, _cfg: ScoringConfig): number {
-  return 1;
+/** Clamp `value` into `[min, max]` — used by eraPrior's [floor, ceil] result. */
+function clamp(value: number, min: number, max: number): number {
+  if (value < min) return min;
+  if (value > max) return max;
+  return value;
 }
 
-/** [STUB — Plan 03 fills D-05/MODL-10 already-played conditioning] */
-function alreadyPlayedFactor(_B: number, _ctx: ShowContext, _cfg: ScoringConfig): number {
-  return 1;
+/**
+ * MODL-06 (M3, D-01): conditions on the RECENT PRIOR TOUR shows in
+ * `ctx.recentShowSongSets` — distinct from `alreadyPlayedFactor`'s
+ * in-progress-show trail. `rotationPenaltyPerShow ^ n`, where `n` is how
+ * many of the last `cfg.rotationWindowShows` recent shows played `B` — a
+ * song played every recent night approaches hard exclusion
+ * (`0.5^3 = 0.125`) without ever hitting exactly 0 (no hard-zeros, RESEARCH
+ * Pitfall "Hard-zeros anywhere").
+ */
+export function rotationSuppression(B: number, ctx: ShowContext, cfg: ScoringConfig): number {
+  const window = ctx.recentShowSongSets.slice(-cfg.rotationWindowShows);
+  const timesPlayed = window.filter((songSet) => songSet.includes(B)).length;
+  return Math.pow(cfg.rotationPenaltyPerShow, timesPlayed);
 }
 
-/** [STUB — Plan 03 fills MODL-07 era-prior relative marginal boost] */
-function eraPrior(_B: number, _index: MatrixIndex, _cfg: ScoringConfig): number {
-  return 1;
+/**
+ * D-05/MODL-10: conditions on the IN-PROGRESS current show's trail
+ * (`ctx.trail`) — distinct from rotation suppression (M3). A boolean
+ * membership check (once per candidate, not per prior occurrence): if `B`
+ * has already appeared this show, apply the near-zero (never hard-zero)
+ * `cfg.alreadyPlayedFactor` so a sandwich/reprise stays scoreable.
+ */
+export function alreadyPlayedFactor(B: number, ctx: ShowContext, cfg: ScoringConfig): number {
+  return ctx.trail.includes(B) ? cfg.alreadyPlayedFactor : 1;
 }
 
-/** [STUB — Plan 03 fills D-04 hard-segue consistency-gated override/boost] */
+/**
+ * MODL-07 (M8, Pitfall 5 — avoid double-counting with t3 `albumEraAffinity`):
+ * a RELATIVE "is B hot right now vs its career" multiplier centered near 1.
+ * `eraRate(B) = eraPlayCount / cfg.eraWindowShows` (recent per-window
+ * activity) vs `allTimeRate(B) = basePlayRate(B, index)` — t4's own
+ * all-time marginal (M8: "allTimeRate(B) = t4's marginal"), reused rather
+ * than re-derived so this stays orthogonal to t3's pairwise A–B affinity.
+ * Additive smoothing (`cfg.eraPriorSmoothingK`) on both sides of the ratio
+ * guarantees a finite, gently-centered result even when `allTimeRate` is
+ * near zero (T-02-07), and the result is clamped to
+ * `[eraPriorFloor, eraPriorCeil]`.
+ */
+export function eraPrior(B: number, index: MatrixIndex, cfg: ScoringConfig): number {
+  const node = index.nodeById.get(B);
+  if (!node) return 1;
+  const k = cfg.eraPriorSmoothingK;
+  const eraRate = node.eraPlayCount / cfg.eraWindowShows;
+  const allTimeRate = basePlayRate(B, index);
+  const ratio = (eraRate + k) / (allTimeRate + k);
+  return clamp(ratio, cfg.eraPriorFloor, cfg.eraPriorCeil);
+}
+
+/** [STUB — Task 2 fills D-04 hard-segue consistency-gated override/boost] */
 function hardSegueOverride(
   _A: number,
   _B: number,
@@ -318,12 +361,12 @@ function buildReason(A: number, B: number, index: MatrixIndex, tier: BackoffTier
 }
 
 /**
- * D-01 (Pattern 2): the multiplicative pipeline SKELETON for one `A→B`
- * candidate — `base * rotation * alreadyPlayed * eraPrior`, then a
- * hard-segue override/boost applied on top. This plan (02-02) wires every
- * downstream stage to its toggle but every downstream fn is a neutral stub
- * (see above); Plan 03 fills the bodies without touching this structure, so
- * per-signal ablation (D-14) stays a pure flag-flip.
+ * D-01 (Pattern 2): the multiplicative pipeline for one `A→B` candidate —
+ * `base * rotation * alreadyPlayed * eraPrior`, then a hard-segue
+ * override/boost applied on top (still a stub this commit — Task 2 fills
+ * `hardSegueOverride`/`applyOverride`). Every downstream stage is
+ * independently toggle-gated (D-14) so per-signal ablation stays a pure
+ * flag-flip.
  */
 export function scoreCandidate(
   A: number,
