@@ -1,10 +1,11 @@
 ---
 phase: 3
 slug: app-shell-pwa-foundation
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-08
+reviewed_at: 2026-07-08
 ---
 
 # Phase 3 — UI Design Contract
