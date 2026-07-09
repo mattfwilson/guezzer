@@ -486,9 +486,11 @@ export function predict(
   toggles: SignalToggles = defaultSignalToggles,
 ): PredictionCandidate[] {
   const index = buildMatrixIndex(matrix);
-  const candidates = [...index.nodeById.values()].map((node) =>
-    scoreCandidate(context.currentSongId, node.songId, index, cfg, toggles, context),
-  );
+  const candidates = [...index.nodeById.values()]
+    .filter((node) => node.songId !== context.currentSongId)
+    .map((node) =>
+      scoreCandidate(context.currentSongId, node.songId, index, cfg, toggles, context),
+    );
 
   candidates.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;

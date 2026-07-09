@@ -105,6 +105,9 @@ export const config = {
    */
   decayHalfLifeDays: 365,
 
+  /** Round weightedCount to a fixed precision before serialization — float-summation-order determinism (RESEARCH Pitfall 2). */
+  weightedCountPrecision: 1e9,
+
   /** [ASSUMED] M1 (02-RESEARCH.md): additive Lidstone/add-alpha floor inside backoff tier t1 (transitionProb numerator). 0.0 — interpolation (D-02) already supplies the nonzero floor via t4; exposed as a backtest knob. */
   transitionAddAlpha: 0.0,
 

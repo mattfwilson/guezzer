@@ -260,7 +260,7 @@ describe("predict — ranked prediction (MODL-03 end-to-end)", () => {
     const context: ShowContext = { currentSongId: SONG_A, trail: [], recentShowSongSets: [] };
     const candidates = predict(matrix, context);
 
-    const expectedCount = Math.min(config.candidateListSize, matrix.nodes.length);
+    const expectedCount = Math.min(config.candidateListSize, matrix.nodes.length - 1);
     expect(candidates.length).toBe(expectedCount);
 
     // Sorted by score desc.
@@ -676,5 +676,15 @@ describe("predict — segue reason string (D-06)", () => {
     const scored = scoreCandidate(SONG_P, SONG_Q, index, config, defaultSignalToggles, NO_CONTEXT(SONG_P));
     expect(scored.reason).toBe("notated segue 4/4 times since 2024");
     expect(scored.reason).toMatch(/^notated segue \d+\/\d+ times since \d{4}$/);
+  });
+});
+
+describe("predict — self-exclusion (code review CR-01)", () => {
+  it("Test 17: the currently-playing song never appears in its own candidate list, on the real corpus or the synthetic fixture", () => {
+    const matrix = buildSyntheticMatrix();
+    const context: ShowContext = { currentSongId: SONG_A, trail: [], recentShowSongSets: [] };
+    const candidates = predict(matrix, context);
+
+    expect(candidates.some((c) => c.songId === SONG_A)).toBe(false);
   });
 });

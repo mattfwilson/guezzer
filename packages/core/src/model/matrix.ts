@@ -18,10 +18,8 @@ import type {
 import { decayedWeight } from "./decay.ts";
 
 /** Round weightedCount to a fixed precision before serialization — float-summation-order determinism (RESEARCH Pitfall 2). */
-const WEIGHTED_COUNT_PRECISION = 1e9;
-
-function roundWeighted(value: number): number {
-  return Math.round(value * WEIGHTED_COUNT_PRECISION) / WEIGHTED_COUNT_PRECISION;
+function roundWeighted(value: number, precision: number): number {
+  return Math.round(value * precision) / precision;
 }
 
 /**
@@ -173,7 +171,7 @@ export function buildMatrix(
         from: edge.from,
         to: edge.to,
         count: edge.count,
-        weightedCount: roundWeighted(edge.weightedCount),
+        weightedCount: roundWeighted(edge.weightedCount, cfg.weightedCountPrecision),
         segueCount: edge.segueCount,
         firstDate: edge.firstDate,
         lastDate: edge.lastDate,
