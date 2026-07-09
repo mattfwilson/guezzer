@@ -1,5 +1,6 @@
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -23,6 +24,18 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(pkg.version),
     __GIT_SHA__: JSON.stringify(gitSha),
     __BUILD_DATE__: JSON.stringify(buildDate),
+  },
+  resolve: {
+    alias: {
+      // Bundle-import the build-frozen transition matrix (RESEARCH Pitfall 4).
+      // Repo-root artifact lives outside packages/app; aliasing avoids an ugly
+      // "../../../data/..." import and Vite fs.allow friction. It rides the JS
+      // bundle, so the existing `**/*.js` Workbox glob precaches it — NO `json`
+      // glob edit is needed (offline-complete on first load).
+      "@matrix": fileURLToPath(
+        new URL("../../data/normalized/transition-matrix.json", import.meta.url),
+      ),
+    },
   },
   plugins: [
     react(),
