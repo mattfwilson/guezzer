@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: All 04 plans executed; SHOW-12/13 on-device checks deferred to end-of-phase gate
-stopped_at: Completed 04-07-PLAN.md (Phase 04 all 7 plans executed; on-device SHOW-12/13 deferred to end-of-phase gate)
-last_updated: "2026-07-13T18:43:28.897Z"
+status: Phase 04 complete — SHOW-12/13 on-device gate PASSED on iPhone 16 Pro, iOS 26.3.1
+stopped_at: Phase 04 device gate cleared (all six on-device SHOW-12/13 checks passed); ready for Phase 05
+last_updated: "2026-07-13T20:15:00.000Z"
 last_activity: 2026-07-13
 progress:
   total_phases: 7
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-08)
 
 Phase: 5
 Plan: Not started
-Status: All 04 plans executed; SHOW-12/13 on-device checks deferred to end-of-phase gate
+Status: Phase 04 complete — SHOW-12/13 on-device gate passed (iPhone 16 Pro, iOS 26.3.1)
 Last activity: 2026-07-13
 
 Progress: [██████████] 100% (7/7 plans executed)
@@ -95,7 +95,7 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 1] Open schema items to instrument during full corpus ingest: multi-set `setnumber` representation, `transition_id: 4` meaning, tease notation location, silent filter-ignore gotcha
-- [Phase 4] iOS PWA lifecycle spike — DEFERRED to end-of-phase device human-verify gate (user approval 2026-07-13). Wake lock + gesture suppression code landed in 04-07 (verify-held guard defeats the iOS <18.4 installed-PWA false-positive; calm WakeLockNotice fallback). The six on-device SHOW-12/SHOW-13 perceptual checks (installed-PWA wake-lock hold + silent reacquire + pre-18.4 fallback + gesture suppression + weak-fan softening + End Show finalize) must be run on the oldest iOS device in the friend group before show #1; record tested iOS/device versions then — that resolves this blocker. See 04-07-SUMMARY.md "Deferred Human Verification".
+- [Phase 4] iOS PWA lifecycle spike — RESOLVED 2026-07-13. All six on-device SHOW-12/SHOW-13 checks (wake-lock hold + silent reacquire + gesture suppression + weak-fan softening + force-quit restore + End Show finalize) PASSED on iPhone 16 Pro, iOS 26.3.1. See 04-HUMAN-UAT.md (status: resolved) and 04-VERIFICATION.md (status: passed). Residual non-blocking gap: the iOS <18.4 wake-lock false-positive fallback path was not exercised (test device is 26.3.1); logic is unit-covered — close out opportunistically if a pre-18.4 device becomes available.
 - [Phase 7] Canvas label rendering quality at ~250 nodes on small screens needs a spike
 
 ## Deferred Items

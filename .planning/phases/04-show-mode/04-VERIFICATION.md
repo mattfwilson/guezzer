@@ -1,9 +1,13 @@
 ---
 phase: 04-show-mode
 verified: 2026-07-13T00:00:00Z
-status: human_needed
-score: 35/35 code-level truths verified (2 requirements — SHOW-12/SHOW-13 — pending on-device human confirmation)
+status: passed
+score: 35/35 code-level truths verified; SHOW-12/SHOW-13 on-device human confirmation completed 2026-07-13 on iPhone 16 Pro, iOS 26.3.1 (04-HUMAN-UAT.md)
 overrides_applied: 0
+human_verification_result:
+  completed: 2026-07-13
+  device: iPhone 16 Pro, iOS 26.3.1
+  outcome: "All six on-device steps passed (04-HUMAN-UAT.md). Residual gap: iOS <18.4 Wake Lock false-positive fallback path not exercised (test device is 26.3.1) — non-blocking, unit-covered."
 re_verification:
   previous_status: none
   note: "Initial verification. A prior code review (04-REVIEW.md) found 1 Critical + 3 Warnings, all fixed (b20cdaa, ff477d8, a852795, 4442e26) and re-confirmed present in this verification."
@@ -32,7 +36,7 @@ human_verification:
 
 **Phase Goal:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the entire setlist without the app ever stalling, moving a tap target, or losing state.
 **Verified:** 2026-07-13
-**Status:** human_needed
+**Status:** passed (on-device human confirmation completed 2026-07-13 on iPhone 16 Pro, iOS 26.3.1)
 **Re-verification:** No — initial verification (prior code review 04-REVIEW.md fixes re-confirmed present)
 
 ## Goal Achievement
@@ -76,12 +80,12 @@ The four code-review findings (1 Critical + 3 Warnings) are all fixed and confir
 | 29 | Undo one tap; older node opens edit/delete/rename (04-06, SHOW-07/D-15) | ✓ VERIFIED | ActionBar Undo → undoLast; TrailNodeSheet edit/delete/rename |
 | 30 | Comet trail last ~4 diminishing nodes + hit/miss rings + +N at 30 (04-06, SHOW-08) | ✓ VERIFIED | `CometTrail.tsx` config.show.TRAIL_VISIBLE_RECENT/COMPRESS_AT; B2 hexes |
 | 31 | Persistent hit/miss tally recomputes after any edit (04-06, SHOW-09) | ✓ VERIFIED | `TallyReadout.tsx` tabular-nums; useLiveQuery reactive |
-| 32 | Wake lock held + reacquired on visibilitychange; calm fallback when unsupported (04-07, SHOW-12) | ✓ VERIFIED (code) / ⏳ device | `wakeLock.ts` verify-held (sentinel released check) + visibilitychange reacquire + onUnsupported; device gate pending |
-| 33 | Stage/action bar suppress pull-to-refresh, bounce, double-tap zoom, text select (04-07, SHOW-13) | ✓ VERIFIED (code) / ⏳ device | `styles.css` touch-action/overscroll-behavior/user-select/touch-callout; device gate pending |
+| 32 | Wake lock held + reacquired on visibilitychange; calm fallback when unsupported (04-07, SHOW-12) | ✓ VERIFIED (code + device) | `wakeLock.ts` verify-held (sentinel released check) + visibilitychange reacquire + onUnsupported; device-confirmed 2026-07-13 (iPhone 16 Pro, iOS 26.3.1): screen held + silent reacquire. Residual: pre-18.4 fallback path not exercised (see Human Verification) |
+| 33 | Stage/action bar suppress pull-to-refresh, bounce, double-tap zoom, text select (04-07, SHOW-13) | ✓ VERIFIED (code + device) | `styles.css` touch-action/overscroll-behavior/user-select/touch-callout; device-confirmed 2026-07-13 (iPhone 16 Pro, iOS 26.3.1): no gesture fired, stage did not scroll/rubber-band |
 | 34 | Weak-fan softening applied live when top < 0.15 (04-07, EVAL-04/D-10) | ✓ VERIFIED | OrbitStage `isWeakFan` live; honest % still renders |
 | 35 | End Show finalizes to read-only via confirm; required before next night (04-07, D-04) | ✓ VERIFIED | `EndShowDialog.tsx` → endShow(sessionId) after confirm |
 
-**Score:** 35/35 code-level truths verified. SHOW-12 and SHOW-13 (truths 32, 33) carry a deferred on-device human confirmation per the end-of-phase device gate.
+**Score:** 35/35 code-level truths verified. SHOW-12 and SHOW-13 (truths 32, 33) on-device human confirmation was completed 2026-07-13 on iPhone 16 Pro, iOS 26.3.1 (all six steps passed; see 04-HUMAN-UAT.md).
 
 ### Required Artifacts
 
@@ -152,8 +156,8 @@ The four code-review findings (1 Critical + 3 Warnings) are all fixed and confir
 | SHOW-09 | 04-01/04-06 | ✓ SATISFIED | deriveTally + persistent TallyReadout |
 | SHOW-10 | 04-03 | ✓ SATISFIED | separate Info dot → WhyDetail verbatim reason |
 | SHOW-11 | 04-01/04-04 | ✓ SATISFIED | write-through + restore test green |
-| SHOW-12 | 04-07 | ⏳ HUMAN | wakeLock verify-held + reacquire + fallback code complete; device gate deferred (user-approved) |
-| SHOW-13 | 04-07 | ⏳ HUMAN | gesture-suppression CSS on non-scrolling stage; device gate deferred (user-approved) |
+| SHOW-12 | 04-07 | ✓ SATISFIED | wakeLock verify-held + reacquire + fallback; device-confirmed 2026-07-13 (iPhone 16 Pro, iOS 26.3.1): screen held + silent reacquire (pre-18.4 fallback path not exercised — residual gap, unit-covered) |
+| SHOW-13 | 04-07 | ✓ SATISFIED | gesture-suppression CSS on non-scrolling stage; device-confirmed 2026-07-13: no gesture fired, no scroll/rubber-band; End Show finalize + return to launcher confirmed |
 | EVAL-04 | 04-03/04-07 | ✓ SATISFIED | weak-fan softening live, honest % retained |
 | DEX-01 | 04-01/04-04 | ✓ SATISFIED | startShow writes provisional attendance row |
 
@@ -176,13 +180,22 @@ The `return []`/`= []` patterns present (e.g. pre-opener `fan: []`, `candidates:
 | WR-02 | Info control unnested from orb button (siblings) | a852795 | ✓ PredictionOrb.tsx `<div>` + two sibling `<button>` |
 | WR-03 | Wake notice resets per-show not per-session | 4442e26 | ✓ ShowView.tsx:77-80 effect keyed on activeSessionId |
 
-### Human Verification Required
+### Human Verification Required — COMPLETED 2026-07-13
 
-Six on-device steps on the oldest installed-PWA device in the friend group (SHOW-12/SHOW-13 device gate, plus perceptual SHOW-11/EVAL-04 confirmations) — see frontmatter `human_verification`. These were explicitly deferred by the user on 2026-07-13 (`human_verify_mode: end-of-phase`); their code-level implementation is present, sound, and unit-covered by the 181-test suite.
+All six on-device steps (SHOW-12/SHOW-13 device gate, plus perceptual SHOW-11/EVAL-04 confirmations) were run on **iPhone 16 Pro, iOS 26.3.1** and **passed** — see `04-HUMAN-UAT.md` (status: resolved). Summary:
+
+1. Wake Lock holds — PASS (screen stayed awake, iOS ≥18.4 holds path)
+2. Silent reacquire on return — PASS
+3. Gesture suppression on stage — PASS (no gesture fired, no scroll/rubber-band)
+4. Weak-fan softening — PASS (multiple orbs <10%, orbs softened, honest % retained)
+5. Force-quit / relaunch exact restore — PASS
+6. End Show finalize + return to launcher — PASS (finished show persisted; viewing scoped to Phase 6)
+
+**Residual gap (non-blocking):** the iOS <18.4 Wake Lock false-positive fallback path was not exercised because the test device is 26.3.1. The fallback logic is unit-covered (`wakeLock.test.ts` API-absent case) and the verify-held guard is sound; close out opportunistically if a pre-18.4 device becomes available.
 
 ### Gaps Summary
 
-No code-level gaps. The Critical + 3 Warnings from the code review are all fixed and re-confirmed present. Tests (181/181), both typechecks, and the production build (offline-complete matrix bundle) all pass. Core purity holds. The phase goal is achieved in code; only the intentionally-deferred device-only confirmations for SHOW-12/SHOW-13 (and the perceptual SHOW-11/EVAL-04 checks) remain, routing this to `human_needed` rather than `passed`.
+No code-level gaps. The Critical + 3 Warnings from the code review are all fixed and re-confirmed present. Tests (181/181), both typechecks, and the production build (offline-complete matrix bundle) all pass. Core purity holds. The phase goal is achieved in code, and the six deferred on-device confirmations for SHOW-12/SHOW-13 (and the perceptual SHOW-11/EVAL-04 checks) were completed on-device 2026-07-13 (iPhone 16 Pro, iOS 26.3.1) — status advanced from `human_needed` to `passed`. The only residual item is the pre-18.4 Wake Lock fallback path (non-blocking, unit-covered).
 
 ---
 
