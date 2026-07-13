@@ -410,20 +410,22 @@ export async function bindShow(
 /**
  * Commit a fully-merged import snapshot in ONE rw transaction (D-12/Pitfall 5).
  * The caller (Plan 05-05) validates + merges entirely in memory first and passes
- * the finished snapshot here. `meta`/`attendedShows`/`trackedShows` have stable,
- * non-volatile primary keys (key / show_id / sessionId) so they commit via
- * `bulkPut` (upsert by primary key).
+ * the finished snapshot here. `meta`/`attendedShows` have stable, non-volatile
+ * primary keys (key / show_id) and are never reduced by the merge (union only,
+ * D-10), so they commit via `bulkPut` (upsert by primary key).
  *
- * `trackedEntries` is DIFFERENT (CR-01 / T-05-07): its primary key is the
- * volatile per-device Dexie `++id`, and the merged snapshot already carries
- * the full union of local + incoming rows with `id` stripped (see
- * `merge.ts`). Upserting id-less/colliding rows by primary key would silently
- * collapse a mix of local and incoming entries. Instead this commits by
- * LOGICAL identity: `clear()` the table, then `bulkAdd(...)` the id-less
- * merged rows so Dexie assigns fresh local ids for every surviving row. Both
- * calls stay inside the SAME rw transaction as the other three tables' `bulkPut`s
- * — that is the atomicity control: a mid-write throw rolls back the clear too,
- * so a failed import can never leave the dex half-wiped (no partial state).
+ * `trackedShows` and `trackedEntries` are DIFFERENT: the merge's D-11 same-show
+ * dedupe can legitimately DROP a `sessionId` that already exists locally (the
+ * losing duplicate of a collapsed night), and `trackedEntries`' primary key is
+ * the volatile per-device Dexie `++id` (CR-01 / T-05-07) — a plain `bulkPut`
+ * upsert never deletes rows absent from the merged set, so a dedupe-dropped
+ * local show would survive as an orphaned, zero-entry duplicate. Both tables
+ * instead commit by full-replace: `clear()` the table, then re-add the merged
+ * snapshot's rows (`bulkPut` for `trackedShows`, whose `sessionId` key is
+ * stable; `bulkAdd` for `trackedEntries`, whose id-less rows need Dexie to
+ * assign fresh local ids). All five calls stay inside the SAME rw transaction
+ * — that is the atomicity control: a mid-write throw rolls back every clear
+ * too, so a failed import can never leave the dex half-wiped (no partial state).
  */
 export async function importSnapshot(snapshot: DbSnapshot): Promise<void> {
   await db.transaction(
@@ -435,6 +437,7 @@ export async function importSnapshot(snapshot: DbSnapshot): Promise<void> {
     async () => {
       await db.meta.bulkPut(snapshot.meta);
       await db.attendedShows.bulkPut(snapshot.attendedShows);
+      await db.trackedShows.clear();
       await db.trackedShows.bulkPut(snapshot.trackedShows);
       await db.trackedEntries.clear();
       await db.trackedEntries.bulkAdd(snapshot.trackedEntries);

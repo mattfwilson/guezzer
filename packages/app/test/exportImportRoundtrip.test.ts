@@ -313,4 +313,113 @@ describe("import into a populated DB with overlapping ids preserves every local 
     expect(await db.trackedShows.get("session-incoming")).toBeDefined();
     expect(await db.trackedShows.count()).toBe(2);
   });
+
+  it("a same-show dedupe collapse removes the dropped local trackedShow instead of leaving an orphaned duplicate (D-11)", async () => {
+    // Seed a LOCAL show already bound to a show_id, with only 1 entry — the
+    // "partially tracked, then a friend sends a richer backup for the same
+    // night" scenario D-11 exists to collapse into ONE attendance record.
+    const localThinShow: TrackedShow = {
+      sessionId: "session-local-thin",
+      date: "2026-08-20",
+      status: "finalized",
+      currentSetNumber: "e",
+      startedAt: 1_700_200_000_000,
+      showId: 999,
+      venueId: 5,
+      venueName: "Red Rocks",
+      city: "Morrison",
+    };
+    const localThinEntry: TrackedEntry = {
+      id: 1,
+      sessionId: "session-local-thin",
+      position: 1,
+      songId: 1,
+      songName: "ThinOne",
+      setNumber: "1",
+      outcome: "hit",
+      shownFanSongIds: [1],
+      isPlaceholder: false,
+      source: "manual",
+      loggedAt: 1_700_200_000_100,
+    };
+    await db.trackedShows.put(localThinShow);
+    await db.trackedEntries.put(localThinEntry);
+
+    // Incoming backup: a DIFFERENT sessionId bound to the SAME show_id, with
+    // MORE entries — same attendance group (D-11), strictly richer, so it wins
+    // the dedupe and the local session is the dropped duplicate.
+    const incomingRichShow: TrackedShow = {
+      sessionId: "session-incoming-rich",
+      date: "2026-08-20",
+      status: "finalized",
+      currentSetNumber: "e",
+      startedAt: 1_700_200_100_000,
+      showId: 999,
+      venueId: 5,
+      venueName: "Red Rocks",
+      city: "Morrison",
+    };
+    const incomingRichEntry1: TrackedEntry = {
+      id: 1,
+      sessionId: "session-incoming-rich",
+      position: 1,
+      songId: 1,
+      songName: "RichOne",
+      setNumber: "1",
+      outcome: "hit",
+      shownFanSongIds: [1],
+      isPlaceholder: false,
+      source: "manual",
+      loggedAt: 1_700_200_100_100,
+    };
+    const incomingRichEntry2: TrackedEntry = {
+      id: 2,
+      sessionId: "session-incoming-rich",
+      position: 2,
+      songId: 2,
+      songName: "RichTwo",
+      setNumber: "1",
+      outcome: "hit",
+      shownFanSongIds: [2],
+      isPlaceholder: false,
+      source: "manual",
+      loggedAt: 1_700_200_100_200,
+    };
+    const envelope = serializeExport(
+      {
+        meta: [],
+        attendedShows: [],
+        trackedShows: [incomingRichShow],
+        trackedEntries: [incomingRichEntry1, incomingRichEntry2],
+      },
+      config.dataSafety.SCHEMA_VERSION,
+    );
+    const file = new File([JSON.stringify(envelope)], "friend-rich-backup.json", {
+      type: "application/json",
+    });
+
+    // Import WITHOUT wiping — the populated-DB case.
+    const result = await pickAndImport(file);
+    expect(result.ok).toBe(true);
+
+    // The dedupe collapses both sessions into ONE canonical attendance — the
+    // richer incoming show. The dropped local session must be REMOVED from
+    // trackedShows, not left behind as an orphaned zero-entry duplicate.
+    expect(await db.trackedShows.count()).toBe(1);
+    expect(await db.trackedShows.get("session-local-thin")).toBeUndefined();
+    expect(await db.trackedShows.get("session-incoming-rich")).toBeDefined();
+
+    // Only the surviving canonical show's entries remain.
+    expect(await db.trackedEntries.count()).toBe(2);
+    const survivingEntries = await db.trackedEntries
+      .where("sessionId")
+      .equals("session-incoming-rich")
+      .toArray();
+    expect(survivingEntries).toHaveLength(2);
+    const droppedEntries = await db.trackedEntries
+      .where("sessionId")
+      .equals("session-local-thin")
+      .toArray();
+    expect(droppedEntries).toHaveLength(0);
+  });
 });
