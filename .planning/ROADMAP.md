@@ -150,7 +150,7 @@ Plans:
   3. With airplane mode on, the app remains fully functional; polling resumes silently when signal returns
   4. All personal data (attended shows, tracked setlists, dex) round-trips through prominently surfaced JSON export/import
 
-**Plans:** 2/5 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 
@@ -161,8 +161,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 05-02-PLAN.md — Data-safety core: versioned export envelope + serializeExport + parseAndMergeImport union-merge/dedupe (PWA-04)
-- [ ] 05-04-PLAN.md — Live-sync UI slice: useLatestPoll/useOnlineStatus + SuggestionStrip + SyncDot + adopt/bind wiring (SYNC-01/02/03)
+- [x] 05-02-PLAN.md — Data-safety core: versioned export envelope + serializeExport + parseAndMergeImport union-merge/dedupe (PWA-04)
+- [x] 05-04-PLAN.md — Live-sync UI slice: useLatestPoll/useOnlineStatus + SuggestionStrip + SyncDot + adopt/bind wiring (SYNC-01/02/03)
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -217,7 +217,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Transition Matrix, Model & Backtest | 5/5 | Complete    | 2026-07-09 |
 | 3. App Shell & PWA Foundation | 4/4 | Complete    | 2026-07-09 |
 | 4. Show Mode | 7/7 | Complete    | 2026-07-13 |
-| 5. Live Sync & Data Safety | 2/5 | In Progress|  |
+| 5. Live Sync & Data Safety | 4/5 | In Progress|  |
 | 6. Pokédex, History & Stats | 0/TBD | Not started | - |
 | 7. Explore Mode Constellation | 0/TBD | Not started | - |
 
