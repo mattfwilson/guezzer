@@ -10,6 +10,15 @@ export const config = {
   /** kglw.net API v2 base URL. No auth. Source: PROJECT.md Context / ARCHITECTURE.md Part 1. */
   apiBase: "https://kglw.net/api/v2",
 
+  /**
+   * SYNC-01 / D-06 (Phase 5): the ONLY endpoint the live poller touches. The
+   * lightweight `latest` endpoint returns the single most-recent show's rows,
+   * updated live by editors — never poll the bulk `setlists` table from a
+   * client device (API etiquette, CLAUDE.md). The ≤1/60s cadence + active-show
+   * gate is enforced by the app hook (plan 05-04), not here.
+   */
+  latestPath: "/latest.json",
+
   /** D-07: strictly sequential fetch pacing — courtesy delay between requests. */
   fetchDelayMs: 2000,
 
