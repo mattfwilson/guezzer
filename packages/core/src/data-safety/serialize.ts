@@ -33,9 +33,12 @@ export interface ExportSnapshot {
 }
 
 /**
- * Assemble the D-09 export envelope. Pure: the four arrays pass through
- * verbatim; only `schemaVersion` (caller-supplied) and `exportedAt` (now) are
- * added. Output keys are exactly the six D-09 keys — nothing more.
+ * Assemble the D-09 export envelope. Pure: `meta`/`attendedShows`/
+ * `trackedShows` pass through verbatim; `trackedEntries` is mapped to strip
+ * the volatile device-local `id` (CR-01 / T-05-07) so a new backup never
+ * carries a per-device Dexie `++id` that could collide on a future merge.
+ * `schemaVersion` (caller-supplied) and `exportedAt` (now) are added. Output
+ * keys are exactly the six D-09 keys — nothing more.
  */
 export function serializeExport(
   snapshot: ExportSnapshot,
@@ -47,6 +50,6 @@ export function serializeExport(
     meta: snapshot.meta,
     attendedShows: snapshot.attendedShows,
     trackedShows: snapshot.trackedShows,
-    trackedEntries: snapshot.trackedEntries,
+    trackedEntries: snapshot.trackedEntries.map(({ id: _id, ...rest }) => rest),
   };
 }
