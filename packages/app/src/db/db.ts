@@ -410,10 +410,20 @@ export async function bindShow(
 /**
  * Commit a fully-merged import snapshot in ONE rw transaction (D-12/Pitfall 5).
  * The caller (Plan 05-05) validates + merges entirely in memory first and passes
- * the finished snapshot here; every table is `bulkPut` inside a single
- * transaction so a mid-write throw rolls the WHOLE import back — a rejected
- * import never leaves partial state (T-05-09). `bulkPut` is an upsert by primary
- * key: the union-merge dedupe is the caller's job, not this atomic-write seam's.
+ * the finished snapshot here. `meta`/`attendedShows`/`trackedShows` have stable,
+ * non-volatile primary keys (key / show_id / sessionId) so they commit via
+ * `bulkPut` (upsert by primary key).
+ *
+ * `trackedEntries` is DIFFERENT (CR-01 / T-05-07): its primary key is the
+ * volatile per-device Dexie `++id`, and the merged snapshot already carries
+ * the full union of local + incoming rows with `id` stripped (see
+ * `merge.ts`). Upserting id-less/colliding rows by primary key would silently
+ * collapse a mix of local and incoming entries. Instead this commits by
+ * LOGICAL identity: `clear()` the table, then `bulkAdd(...)` the id-less
+ * merged rows so Dexie assigns fresh local ids for every surviving row. Both
+ * calls stay inside the SAME rw transaction as the other three tables' `bulkPut`s
+ * — that is the atomicity control: a mid-write throw rolls back the clear too,
+ * so a failed import can never leave the dex half-wiped (no partial state).
  */
 export async function importSnapshot(snapshot: DbSnapshot): Promise<void> {
   await db.transaction(
@@ -426,7 +436,8 @@ export async function importSnapshot(snapshot: DbSnapshot): Promise<void> {
       await db.meta.bulkPut(snapshot.meta);
       await db.attendedShows.bulkPut(snapshot.attendedShows);
       await db.trackedShows.bulkPut(snapshot.trackedShows);
-      await db.trackedEntries.bulkPut(snapshot.trackedEntries);
+      await db.trackedEntries.clear();
+      await db.trackedEntries.bulkAdd(snapshot.trackedEntries);
     },
   );
 }

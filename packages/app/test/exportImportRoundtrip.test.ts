@@ -129,7 +129,20 @@ describe("export/import round-trip (PWA-04 lose-a-phone guarantee)", () => {
     expect(await db.meta.get("persistStatus")).toEqual(seededMeta);
     expect(await db.attendedShows.get(1234567890)).toEqual(seededAttended);
     expect(await db.trackedShows.get("session-abc")).toEqual(seededShow);
-    expect(await db.trackedEntries.get(1)).toEqual(seededEntry);
+    // trackedEntries now commits by logical identity (clear + bulkAdd), not by
+    // the volatile ++id (CR-01 / T-05-07): clear() does not reset Dexie's id
+    // generator, and seedAll()'s put({id:1,...}) already advanced it, so the
+    // re-imported row lands at a fresh id (>= 2), not id 1. Resolve by
+    // (sessionId, position) — the logical survival key — and compare fields
+    // excluding the volatile id.
+    const reimported = await db.trackedEntries
+      .where("[sessionId+position]")
+      .equals([seededEntry.sessionId, seededEntry.position])
+      .first();
+    const { id: _seededId, ...seededEntryWithoutId } = seededEntry;
+    expect(reimported).toBeDefined();
+    const { id: _reimportedId, ...reimportedWithoutId } = reimported!;
+    expect(reimportedWithoutId).toEqual(seededEntryWithoutId);
   });
 
   it("rejects a malformed file with ok:false and mutates nothing (D-12)", async () => {
