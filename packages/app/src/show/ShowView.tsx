@@ -67,6 +67,19 @@ export function ShowView() {
   // onUnsupported shows the calm once-per-show notice (Pitfall 1: installed iOS
   // PWA < 18.4 resolves a false-positive lock that never holds).
   const isActive = Boolean(session.active);
+
+  // Reset the once-per-show wake-lock notice whenever a NEW active show begins
+  // (WR-03/SHOW-12/D-09). ShowView stays mounted across the
+  // end-show → pre-show → start-show transition (App.tsx keeps #/show mounted;
+  // session.active merely toggles), so without this reset the dismissed-flag
+  // would leak from night 1 into night 2 — degrading the intended once-per-show
+  // signal to once-per-app-session and silently letting the screen dim mid-set.
+  const activeSessionId = session.active?.sessionId;
+  useEffect(() => {
+    wakeDismissedRef.current = false;
+    setWakeNoticeVisible(false);
+  }, [activeSessionId]);
+
   useEffect(() => {
     if (!isActive) return;
     void acquireWakeLock(() => {
