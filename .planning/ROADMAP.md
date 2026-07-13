@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Transition Matrix, Model & Backtest** - Versioned matrix artifact, all scoring signals, and the CLI backtest trust gate with ablation (completed 2026-07-09)
 - [x] **Phase 3: App Shell & PWA Foundation** - Installable offline-first shell with prompt-based updates and persistent IndexedDB storage (completed 2026-07-09)
 - [x] **Phase 4: Show Mode** - The full one-thumb live loop: orbit predictions, logging, trail, tally, crash-proof persistence, wake lock (completed 2026-07-13)
-- [x] **Phase 5: Live Sync & Data Safety** - Polite 60s `latest` polling with suggest-only auto-fill, and prominent JSON export/import (completed 2026-07-13)
+- [ ] **Phase 5: Live Sync & Data Safety** - Polite 60s `latest` polling with suggest-only auto-fill, and prominent JSON export/import (plans complete; verification gaps_found 2026-07-13 — PWA-04 import-into-populated-DB data loss)
 - [ ] **Phase 6: Pokédex, History & Stats** - Derived dex, retroactive attendance, gap/rarity stats, post-show recap, dex sharing
 - [ ] **Phase 7: Explore Mode Constellation** - Force-directed transition graph fed from the same matrix artifact, with dex overlay
 
