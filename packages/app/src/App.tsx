@@ -6,6 +6,7 @@ import { PlaceholderView } from "./components/PlaceholderView";
 import { UpdateToast } from "./components/UpdateToast";
 import { requestPersistenceOnce } from "./pwa/persist.ts";
 import { useHashRoute } from "./routing/useHashRoute";
+import { SettingsView } from "./settings/SettingsView.tsx";
 import { ShowView } from "./show/ShowView.tsx";
 
 export function App() {
@@ -45,6 +46,8 @@ export function App() {
       >
         {route === "show" ? (
           <ShowView />
+        ) : route === "settings" ? (
+          <SettingsView />
         ) : (
           <PlaceholderView route={route} />
         )}

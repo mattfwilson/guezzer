@@ -1,6 +1,7 @@
-import { X } from "lucide-react";
+import { Settings, X } from "lucide-react";
 import { config } from "../config";
 import { useInstallState } from "../pwa/install/useInstallState";
+import { navigate } from "../routing/useHashRoute";
 import { IosInstallInstructions } from "./IosInstallInstructions";
 import { VersionStamp } from "./VersionStamp";
 
@@ -27,6 +28,13 @@ export function AppMenu({ open, onClose }: AppMenuProps) {
     // iOS: the illustrated steps are rendered inline below (D-04). For
     // anything ambiguous (not installable, not iOS) the fallback copy below
     // covers it — the row intentionally stays a no-op tap in that case.
+  };
+
+  // D-14: the always-available Settings entry point — no 4th bottom tab. The
+  // hash route is the only route-selection surface (validated allow-list).
+  const handleSettingsClick = () => {
+    navigate("settings");
+    onClose();
   };
 
   return (
@@ -62,6 +70,17 @@ export function AppMenu({ open, onClose }: AppMenuProps) {
           className="mt-3 flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-4 text-[14px] font-semibold text-surface"
         >
           {config.copy.installCta}
+        </button>
+
+        {/* D-14: Settings entry (gear icon) → #/settings. Neutral row styling
+            (min-h-11), never accent — the one gold CTA stays Export in-view. */}
+        <button
+          type="button"
+          onClick={handleSettingsClick}
+          className="mt-3 flex min-h-11 w-full items-center gap-3 rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary"
+        >
+          <Settings size={20} />
+          {config.copy.settings.menuLabel}
         </button>
 
         {isIos && (
