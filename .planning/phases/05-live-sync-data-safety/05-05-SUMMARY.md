@@ -144,3 +144,8 @@ None - no external service configuration required.
 - PWA-04 satisfied: export/import round-trips all personal data; End-Show auto-backup surfaces the backstop.
 - Manual device gates (installed-iOS-PWA auto-download; export→loss→import restore) remain deferred per 05-VALIDATION §Manual-Only.
 - Phase 6 (Dex) and 7 (Explore) can rely on the stable `#/settings` route and the export/import seam for data portability.
+
+## Self-Check: PASSED
+- All 4 created files present on disk; SUMMARY present.
+- All task commits (`d052706`, `6e5164f`, `62060ec`) + SUMMARY commit (`62f12c2`) exist in history.
+- Working tree clean; `tsc --noEmit` clean; full suite 265/265 green.
