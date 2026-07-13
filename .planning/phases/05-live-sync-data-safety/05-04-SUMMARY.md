@@ -118,6 +118,10 @@ None - no external service configuration required. (Real-device poll cadence + a
 - Plan 05-05 (export/import data safety) can build on the same ShowView/Dexie surface; `importSnapshot` and the Settings copy are already in place from Plan 05-03.
 - Manual device verification (installed iOS PWA poll ≤1/60s, offline dot + silent resume) remains for the end-of-phase human gate.
 
+## Self-Check: PASSED
+
+All 6 created files + the modified ShowView + SUMMARY.md verified present on disk; all task commits (`66f5c10`, `5017437`, `b114445`) and the docs commit (`72ee247`) verified in git history. App suite 101/101, core suite 136/136, `tsc --noEmit` clean.
+
 ---
 *Phase: 05-live-sync-data-safety*
 *Completed: 2026-07-13*
