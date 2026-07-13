@@ -25,6 +25,7 @@ function entry(
     outcome,
     shownFanSongIds: [],
     isPlaceholder: false,
+    source: "manual",
     loggedAt: 0,
   };
 }

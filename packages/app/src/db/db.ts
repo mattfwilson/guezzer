@@ -8,6 +8,7 @@
  */
 import Dexie, { type Table } from "dexie";
 import { config } from "../config.ts";
+import { classifyOutcome } from "../show/scoring.ts";
 
 /** Generic key/value settings row. Value type is validated at the call site. */
 export interface MetaRow {
@@ -46,6 +47,15 @@ export type SetNumber = "1" | "2" | "e";
 export type EntryOutcome = "hit" | "miss";
 
 /**
+ * Provenance of a tracked entry (D-03). `"manual"` = the user logged it via the
+ * orbit/search/??? path (all Phase-4 writes, backfilled on the v3 upgrade);
+ * `"editor"` = adopted from a kglw.net editor suggestion in Phase 5. Kept so the
+ * running tally stays honest and decomposable — an editor-adopted hit must be
+ * distinguishable from a manually-caught one.
+ */
+export type EntrySource = "manual" | "editor";
+
+/**
  * A live-tracked show. This row IS the provisional attendance record
  * (DEX-01/D-02): its mere existence, keyed by a local `sessionId` + `date`,
  * credits dex attendance immediately and offline — never lost even on a
@@ -66,8 +76,14 @@ export interface TrackedShow {
   currentSetNumber: SetNumber;
   /** Date.now() at Start. */
   startedAt: number;
-  /** Reconciliation seam for Phase 5/6 (D-05) — always null in Phase 4. */
+  /** Reconciliation seam for Phase 5/6 (D-05) — null until `bindShow` reconciles it. */
   showId: number | null;
+  /** kglw.net venue id, written by `bindShow` on reconciliation (D-07); null pre-bind. */
+  venueId: number | null;
+  /** kglw.net venue name, written by `bindShow` on reconciliation (D-07); null pre-bind. */
+  venueName: string | null;
+  /** kglw.net venue city, written by `bindShow` on reconciliation (D-07); null pre-bind. */
+  city: string | null;
 }
 
 /**
@@ -95,7 +111,37 @@ export interface TrackedEntry {
   shownFanSongIds: number[];
   /** true for a "???" placeholder (D-14). */
   isPlaceholder: boolean;
+  /** Provenance (D-03): `"manual"` for Phase-4 writes (backfilled on v3), `"editor"` for adopted suggestions. */
+  source: EntrySource;
   loggedAt: number;
+}
+
+/** Binding written onto a provisional show by `bindShow` on kglw.net reconciliation (D-07). */
+export interface ShowBinding {
+  showId: number;
+  venueId: number;
+  venueName: string;
+  city: string;
+}
+
+/** The three fan-facing fields an editor suggestion carries when adopted (D-03). */
+export interface AdoptedEntry {
+  songId: number;
+  songName: string;
+  /** The orbs on screen when adopted — the honest hit/miss denominator (D-06). */
+  shownFanSongIds: number[];
+}
+
+/**
+ * A full serializable DB snapshot — the shape `importSnapshot` commits and the
+ * export/import layer (Plan 05-05) parses/merges. All four tables in one object
+ * so the merged import is written atomically (D-12/Pitfall 5).
+ */
+export interface DbSnapshot {
+  meta: MetaRow[];
+  attendedShows: AttendedShow[];
+  trackedShows: TrackedShow[];
+  trackedEntries: TrackedEntry[];
 }
 
 export class GuezzerDB extends Dexie {
@@ -121,6 +167,36 @@ export class GuezzerDB extends Dexie {
       trackedShows: "&sessionId, status, date",
       trackedEntries: "++id, sessionId, [sessionId+position]",
     });
+
+    // Version 3 (Phase 5 live sync + data safety): ADDITIVE only — v1/v2 above
+    // are untouched, so no destructive schema rewrite and no data loss (D-03,
+    // T-05-08). New indexes: `showId` on trackedShows for date/id reconciliation
+    // (D-07); `source` on trackedEntries for provenance filtering. The binding
+    // columns (venueId/venueName/city) are stored but NOT indexed — Phase 6 reads
+    // them per-row. The upgrade backfills every pre-existing entry's `source` to
+    // "manual" (so no entry has an undefined source) and defaults the new
+    // trackedShows binding columns to null.
+    this.version(3)
+      .stores({
+        trackedShows: "&sessionId, status, date, showId",
+        trackedEntries: "++id, sessionId, [sessionId+position], source",
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table("trackedEntries")
+          .toCollection()
+          .modify((e) => {
+            if (e.source === undefined) e.source = "manual"; // backfill (D-03)
+          });
+        await tx
+          .table("trackedShows")
+          .toCollection()
+          .modify((s) => {
+            if (s.venueId === undefined) s.venueId = null;
+            if (s.venueName === undefined) s.venueName = null;
+            if (s.city === undefined) s.city = null;
+          });
+      });
   }
 }
 
@@ -173,6 +249,9 @@ export async function startShow(): Promise<TrackedShow> {
       currentSetNumber: "1",
       startedAt: Date.now(),
       showId: null,
+      venueId: null,
+      venueName: null,
+      city: null,
     };
     await db.trackedShows.add(show);
     return show;
@@ -191,7 +270,10 @@ export async function getActiveShow(): Promise<TrackedShow | undefined> {
  */
 export async function logSong(
   sessionId: string,
-  entry: Omit<TrackedEntry, "id" | "sessionId" | "position" | "setNumber">,
+  entry: Omit<
+    TrackedEntry,
+    "id" | "sessionId" | "position" | "setNumber" | "source"
+  >,
 ): Promise<number> {
   return db.transaction("rw", db.trackedShows, db.trackedEntries, async () => {
     const show = await db.trackedShows.get(sessionId);
@@ -211,6 +293,7 @@ export async function logSong(
       sessionId,
       position: nextPosition,
       setNumber: show.currentSetNumber,
+      source: "manual", // the default write path is always a manual log (D-03)
     });
   });
 }
@@ -271,4 +354,79 @@ export async function renameEntry(
 /** Finalize a show read-only (D-04) — required before the next night can start (D-03). */
 export async function endShow(sessionId: string): Promise<void> {
   await db.trackedShows.update(sessionId, { status: "finalized" });
+}
+
+// ── Phase 5 write helpers (live sync + data safety) ──────────────────────────
+
+/**
+ * Adopt a kglw.net editor suggestion into the trail (D-03). A `logSong` variant
+ * for the "Add" path: it stamps `source: "editor"` provenance, clears
+ * `isPlaceholder`, and classifies hit/miss with the SAME Phase-4 rule
+ * (`classifyOutcome` against the orbs on screen) so an editor-adopted hit is
+ * indistinguishable in the tally math from a manually-caught one — the tally
+ * stays honest and decomposable (T-05-10). `position`/`setNumber` are stamped by
+ * the same monotonic rule as `logSong`. Returns the new entry's id.
+ */
+export async function adoptSuggestion(
+  sessionId: string,
+  entry: AdoptedEntry,
+): Promise<number> {
+  return db.transaction("rw", db.trackedShows, db.trackedEntries, async () => {
+    const show = await db.trackedShows.get(sessionId);
+    if (!show) throw new Error(`No tracked show for sessionId ${sessionId}.`);
+    const existing = await db.trackedEntries
+      .where("sessionId")
+      .equals(sessionId)
+      .sortBy("position");
+    const nextPosition = (existing.at(-1)?.position ?? 0) + 1;
+    return db.trackedEntries.add({
+      sessionId,
+      position: nextPosition,
+      songId: entry.songId,
+      songName: entry.songName,
+      setNumber: show.currentSetNumber,
+      outcome: classifyOutcome(entry.songId, entry.shownFanSongIds),
+      shownFanSongIds: entry.shownFanSongIds,
+      isPlaceholder: false,
+      source: "editor",
+      loggedAt: Date.now(),
+    });
+  });
+}
+
+/**
+ * Write the kglw.net binding onto a provisional show (D-07) — the reconciliation
+ * seam. Sets showId/venueId/venueName/city ONLY; status/date/currentSetNumber
+ * are untouched, so binding is silent and non-destructive (a bind never changes
+ * what the user tracked). Mirrors the `markSetBreak` `update` idiom.
+ */
+export async function bindShow(
+  sessionId: string,
+  binding: ShowBinding,
+): Promise<void> {
+  await db.trackedShows.update(sessionId, binding);
+}
+
+/**
+ * Commit a fully-merged import snapshot in ONE rw transaction (D-12/Pitfall 5).
+ * The caller (Plan 05-05) validates + merges entirely in memory first and passes
+ * the finished snapshot here; every table is `bulkPut` inside a single
+ * transaction so a mid-write throw rolls the WHOLE import back — a rejected
+ * import never leaves partial state (T-05-09). `bulkPut` is an upsert by primary
+ * key: the union-merge dedupe is the caller's job, not this atomic-write seam's.
+ */
+export async function importSnapshot(snapshot: DbSnapshot): Promise<void> {
+  await db.transaction(
+    "rw",
+    db.meta,
+    db.attendedShows,
+    db.trackedShows,
+    db.trackedEntries,
+    async () => {
+      await db.meta.bulkPut(snapshot.meta);
+      await db.attendedShows.bulkPut(snapshot.attendedShows);
+      await db.trackedShows.bulkPut(snapshot.trackedShows);
+      await db.trackedEntries.bulkPut(snapshot.trackedEntries);
+    },
+  );
 }

@@ -23,7 +23,7 @@ function hit(
   songId: number,
   songName: string,
   shownFanSongIds: number[] = [songId],
-): Omit<TrackedEntry, "id" | "sessionId" | "position" | "setNumber"> {
+): Omit<TrackedEntry, "id" | "sessionId" | "position" | "setNumber" | "source"> {
   return {
     songId,
     songName,

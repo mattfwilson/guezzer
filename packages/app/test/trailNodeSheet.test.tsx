@@ -54,6 +54,7 @@ function normalEntry(): TrackedEntry {
     outcome: "hit",
     shownFanSongIds: [101],
     isPlaceholder: false,
+    source: "manual",
     loggedAt: 0,
   };
 }
@@ -69,6 +70,7 @@ function placeholderEntry(): TrackedEntry {
     outcome: "miss",
     shownFanSongIds: [],
     isPlaceholder: true,
+    source: "manual",
     loggedAt: 0,
   };
 }
