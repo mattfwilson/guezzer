@@ -196,14 +196,20 @@ export async function logSong(
   return db.transaction("rw", db.trackedShows, db.trackedEntries, async () => {
     const show = await db.trackedShows.get(sessionId);
     if (!show) throw new Error(`No tracked show for sessionId ${sessionId}.`);
-    const count = await db.trackedEntries
+    // Derive the next position from the CURRENT maximum position, not the row
+    // count (CR-01). deleteEntry (D-15) removes an arbitrary mid-trail entry and
+    // leaves a position gap by design, so `count + 1` would reuse an
+    // already-occupied position and silently corrupt ordering + the derived
+    // current song. Max-position + 1 is monotonic across deletes; 0 entries → 1.
+    const existing = await db.trackedEntries
       .where("sessionId")
       .equals(sessionId)
-      .count();
+      .sortBy("position");
+    const nextPosition = (existing.at(-1)?.position ?? 0) + 1;
     return db.trackedEntries.add({
       ...entry,
       sessionId,
-      position: count + 1,
+      position: nextPosition,
       setNumber: show.currentSetNumber,
     });
   });

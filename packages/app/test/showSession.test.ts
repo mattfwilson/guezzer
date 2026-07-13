@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   db,
+  deleteEntry,
   endShow,
   getActiveShow,
   logSong,
@@ -82,6 +83,49 @@ describe("showSession: Dexie version(2) tracked-show lifecycle", () => {
       await db.trackedEntries.where("sessionId").equals(sessionId).sortBy("position")
     ).map((e) => e.position);
     expect(positions).toEqual([1, 2, 3]);
+  });
+
+  it("write-through: next position is derived from max position, not count — survives a mid-trail delete (CR-01)", async () => {
+    // Regression for CR-01: logSong must derive the next position from the
+    // CURRENT maximum position, never the row count. Deleting a non-last entry
+    // (D-15) leaves a gap, so a count-based position would collide with an
+    // existing one — corrupting ordering and the derived current song.
+    const { sessionId } = await startShow();
+    await logSong(sessionId, hit(101, "Rattlesnake")); // pos 1
+    await logSong(sessionId, hit(102, "Honey")); // pos 2
+    await logSong(sessionId, hit(103, "Robot Stop")); // pos 3
+    await logSong(sessionId, hit(104, "The River")); // pos 4
+    await logSong(sessionId, hit(105, "Nonagon")); // pos 5
+
+    // Delete a NON-last entry (position 2). Remaining positions: [1,3,4,5].
+    const before = await db.trackedEntries
+      .where("sessionId")
+      .equals(sessionId)
+      .sortBy("position");
+    const second = before.find((e) => e.position === 2);
+    await deleteEntry(second?.id as number);
+
+    // The next log must NOT reuse position 5 (count is now 4). It must be 6.
+    await logSong(sessionId, hit(106, "Sense")); // must be pos 6, not 5
+
+    const entries = await db.trackedEntries
+      .where("sessionId")
+      .equals(sessionId)
+      .sortBy("position");
+    const positions = entries.map((e) => e.position);
+
+    // Positions are strictly increasing and unique (no collision).
+    expect(positions).toEqual([1, 3, 4, 5, 6]);
+    expect(new Set(positions).size).toBe(positions.length);
+    for (let i = 1; i < positions.length; i++) {
+      expect(positions[i]).toBeGreaterThan(positions[i - 1]);
+    }
+
+    // The derived "current song" (last real entry, useShowSession idiom) is the
+    // TRUE last-logged song, not a mis-ordered collision.
+    const currentSong = entries.filter((e) => e.songId != null).at(-1);
+    expect(currentSong?.songName).toBe("Sense");
+    expect(currentSong?.position).toBe(6);
   });
 
   it("restore: getActiveShow resumes exactly the one active show", async () => {
