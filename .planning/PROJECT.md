@@ -32,19 +32,21 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 - [x] Sparse-data backoff: transition model → same-tuning-family affinity → same-album/era affinity → base play probability. Never a hard zero for a plausible song; never 100% except a notated hard segue
 - [x] Backtest: hold out most recent complete tour, train on prior; reports top-1/top-5/top-10 hit rate, overall and split by hard-segue vs. free-choice; per-feature ablation (report-only, no go/no-go gate); paired `.md`/`.json` CLI report (`data/backtest-report.md`, `data/backtest.json`)
 
+**Show Mode (Validated in Phase 4: Show Mode — code-complete, 181 tests green; on-device device gate `04-HUMAN-UAT.md` pending before show #1):**
+- [x] Orbit view: center current song, adaptive 5–8 tappable prediction orbs (radial layout scaled by probability, tuning-family color, honest % on orb); tap a played prediction to recenter and repredict (deterministic `layoutOrbs`, ≥56px targets)
+- [x] Deterministic radial layout — no force simulation; tap targets never move on their own
+- [x] Miss path is one persistent tap: always-visible fuzzy search (core `searchCatalog`/fuse.js) over the full 264-song catalog; selecting recenters. Always-visible ??? button logs a renamable placeholder miss with zero confirmation friction
+- [x] Prediction explanations: tappable per-orb "why" detail (Info control never logs)
+- [x] Live show tracker with crash-proof persistence: confirmed songs append to the setlist trail via Dexie v2 write-through; within-show rotation drops already-played songs; force-quit/relaunch restores the exact active session (code-level; live-device confirm deferred to `04-HUMAN-UAT.md`)
+- [x] Comet trail: last ~4 diminishing nodes with hit/miss rings, "+N" compression at 30+ songs; persistent running hit/miss tally; trail-node edit/delete/rename (edit re-classifies hit/miss honestly)
+- [x] Dark-venue survivability: Wake Lock (verify-held + reacquire on visibilitychange + calm pre-iOS-18.4 fallback), gesture suppression on the stage, weak-fan softening on low-confidence moments, End Show finalize (device-perceptual confirmation deferred to `04-HUMAN-UAT.md`)
+- [x] Provisional dex attendance recorded at Start Show (the tracked-show row itself)
+
 ### Active
 
-**Show Mode (must work at show #1 — hard deadline):**
-- [ ] Orbit view: current song at center, top 5–8 predicted next songs as tappable orbs (size/orbit distance scale with probability, colored by tuning family, percentage on orb); tap a played prediction to recenter and repredict
-- [ ] Deterministic radial layout — no force simulation in Show Mode; tap targets never move on their own; ~44px minimum orb size regardless of probability
-- [ ] Miss path is one persistent tap: always-visible fuzzy search over the full catalog; selecting recenters. Misses as fast as hits
-- [ ] Always-visible "unknown song" button logs a ??? placeholder (renamable later) so tracking never stalls
-- [ ] Prediction explanations: one-line "why" on each orb / tappable detail (e.g., "notated segue 14/15 times since 2024")
-- [ ] Live show tracker: confirmed songs append to the setlist trail; predictions condition on within-show rotation (already-played songs drop to near zero)
-- [ ] Comet trail: last ~4 songs as diminishing nodes flowing into current song, older history compressed into tappable "+N"; each node wears a hit/miss ring; must scale to 30+ song sets
-- [ ] Running hit/miss tally for the night shown persistently (live backtest metric)
-- [ ] Live sync from kglw.net: poll `latest` every 60s during an active show, offer to auto-fill editor-logged songs; manual entry is primary; fully offline once loaded, syncs when signal returns
-- [ ] Dark theme, fat-thumb-friendly, optimized for a dark crowded venue and a possibly slightly drunk operator
+**Show Mode (core loop validated in Phase 4 — see Validated; remaining open items):**
+- [ ] Live sync from kglw.net: poll `latest` every 60s during an active show, offer to auto-fill editor-logged songs; manual entry is primary; fully offline once loaded, syncs when signal returns (Phase 5)
+- [ ] On-device confirmation of the dark-venue survivability layer (Wake Lock hold/fallback, silent reacquire, gesture suppression, force-quit restore, End Show) on the oldest installed-PWA iOS device — tracked in `04-HUMAN-UAT.md`, run before show #1
 
 **Prediction model (core scoring validated in Phase 2; UI surfacing is Show Mode's job):**
 - [ ] Signal 7 (nice-to-have): set-position awareness (opener/closer/encore distributions) if the data supports it cleanly — not attempted in Phase 2, still open
@@ -149,4 +151,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-09 after Phase 3: App Shell & PWA Foundation*
+*Last updated: 2026-07-13 after Phase 4: Show Mode*
