@@ -111,3 +111,12 @@ export {
   type CatalogEntry,
   type SearchResult,
 } from "./search/search-catalog.ts";
+
+/**
+ * Phase 5 live-sync core (plan 05-01). Pure, DOM-free, dependency-injected —
+ * the app tier (plan 05-04) owns only the poll lifecycle/timing. `pollLatest`
+ * is the tolerant `latest` poller (SYNC-01/D-06); `latestSetlistRow` is its
+ * dedicated schema; the suggest/bind functions are pure decision fns.
+ */
+export { pollLatest, type PollDeps } from "./live/poll-latest.ts";
+export { latestSetlistRow, type LatestSetlistRow } from "./ingest/latest-types.ts";
