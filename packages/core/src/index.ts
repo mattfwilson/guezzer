@@ -143,3 +143,4 @@ export {
  */
 export { exportEnvelope, type ExportEnvelope } from "./data-safety/export-schema.ts";
 export { serializeExport, type ExportSnapshot } from "./data-safety/serialize.ts";
+export { parseAndMergeImport, type ImportResult } from "./data-safety/merge.ts";
