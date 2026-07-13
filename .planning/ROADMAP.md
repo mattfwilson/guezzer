@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Corpus Ingestion & Schema Foundation** - Verified schema docs, one-command corpus fetch, KGLW-only normalization, tuning-family tagging file (completed 2026-07-08)
 - [x] **Phase 2: Transition Matrix, Model & Backtest** - Versioned matrix artifact, all scoring signals, and the CLI backtest trust gate with ablation (completed 2026-07-09)
 - [x] **Phase 3: App Shell & PWA Foundation** - Installable offline-first shell with prompt-based updates and persistent IndexedDB storage (completed 2026-07-09)
-- [ ] **Phase 4: Show Mode** - The full one-thumb live loop: orbit predictions, logging, trail, tally, crash-proof persistence, wake lock
+- [x] **Phase 4: Show Mode** - The full one-thumb live loop: orbit predictions, logging, trail, tally, crash-proof persistence, wake lock (completed 2026-07-13)
 - [ ] **Phase 5: Live Sync & Data Safety** - Polite 60s `latest` polling with suggest-only auto-fill, and prominent JSON export/import
 - [ ] **Phase 6: Pokédex, History & Stats** - Derived dex, retroactive attendance, gap/rarity stats, post-show recap, dex sharing
 - [ ] **Phase 7: Explore Mode Constellation** - Force-directed transition graph fed from the same matrix artifact, with dex overlay
@@ -108,7 +108,7 @@ Plans:
   4. Force-quitting the app mid-show and relaunching restores the exact session state (every confirmed song write-through to IndexedDB), and the screen wake lock is held and reacquired on visibility change with fallback messaging
   5. The whole loop is usable one-handed in a dark venue (dark theme, fat targets, gesture suppression), confidence framing honestly reflects the backtest's free-choice accuracy, and the live-tracked show automatically counts as attended
 
-**Plans:** 7/7 plans executed (on-device SHOW-12/13 checks deferred to end-of-phase device human-verify gate)
+**Plans:** 7/7 plans complete
 Plans:
 **Wave 1**
 
@@ -198,7 +198,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Corpus Ingestion & Schema Foundation | 5/5 | Complete    | 2026-07-08 |
 | 2. Transition Matrix, Model & Backtest | 5/5 | Complete    | 2026-07-09 |
 | 3. App Shell & PWA Foundation | 4/4 | Complete    | 2026-07-09 |
-| 4. Show Mode | 6/7 | In Progress|  |
+| 4. Show Mode | 7/7 | Complete    | 2026-07-13 |
 | 5. Live Sync & Data Safety | 0/TBD | Not started | - |
 | 6. Pokédex, History & Stats | 0/TBD | Not started | - |
 | 7. Explore Mode Constellation | 0/TBD | Not started | - |
