@@ -395,19 +395,22 @@ Note: only add an index for a column you actually query on (`showId` for date/id
 
 **These `[ASSUMED]` items — especially A1 — should be confirmed with a single real `latest.json` sample before the poller schema is finalized.** Everything else in this research is verified against committed code or documented schema.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact `latest.json` field set.**
    - What we know: SCHEMA §11 documents 5 keys that are *absent* vs. corpus rows; §9 confirms side-project shows can appear.
    - What's unclear: the full positive key list and whether `position`/`setnumber` are always present.
    - Recommendation: Plan a first task that captures one committed `data/samples/latest.sample.json` via a single manual polite fetch, then author `latestSetlistRow` against it (mirrors how the corpus schema was locked against real samples).
+   - **(RESOLVED)** — Plan 05-01 Task 1 captures a committed `data/samples/latest.sample.json` from one real polite fetch and locks `latestSetlistRow` against the observed shape before any consumer is built. The recommendation is now the plan's first task.
 
 2. **Settings surface: 4th bottom tab vs. header gear (D-14, Claude's discretion).**
    - What we know: `BottomTabBar` has 3 tabs; `AppShell` has an unwired header "Menu" button.
    - Recommendation: Prefer wiring the existing header Menu/gear button to `navigate("settings")` — adds prominence without crowding the 3-tab bar or the one-thumb reach zone. Defer final call to `/gsd-ui-phase`.
+   - **(RESOLVED)** — The approved 05-UI-SPEC fixes the Settings surface (AppMenu `Settings` gear entry → `#/settings`), so the header-gear route is the locked choice consumed by Plan 05-05.
 
 3. **Merge tiebreak when two files disagree on the same show's entries (Claude's discretion, D-10).**
    - Recommendation: "richer set wins" = keep the tracked show with more `trackedEntries` for that `show_id`/`date`; never delete local-only entries. Encode as a pure, tested rule.
+   - **(RESOLVED)** — Plan 05-02 Task 2 encodes "richer set wins" as the same-show dedupe rule (keep the show with more `trackedEntries` as canonical, never drop a local-only row), tested with a two-device fixture.
 
 ## Environment Availability
 
