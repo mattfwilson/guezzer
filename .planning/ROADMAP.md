@@ -150,7 +150,25 @@ Plans:
   3. With airplane mode on, the app remains fully functional; polling resumes silently when signal returns
   4. All personal data (attended shows, tracked setlists, dex) round-trips through prominently surfaced JSON export/import
 
-**Plans**: TBD
+**Plans:** 5 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — Live-sync core: latest.sample fixture + latestSetlistRow schema + tolerant pollLatest + suggest/bind pure fns (SYNC-01/02)
+- [ ] 05-03-PLAN.md — Dexie version(3) additive migration (source + venue/show_id binding) + adopt/bind/import helpers + Phase-5 config (SYNC-01/02, PWA-04)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 05-02-PLAN.md — Data-safety core: versioned export envelope + serializeExport + parseAndMergeImport union-merge/dedupe (PWA-04)
+- [ ] 05-04-PLAN.md — Live-sync UI slice: useLatestPoll/useOnlineStatus + SuggestionStrip + SyncDot + adopt/bind wiring (SYNC-01/02/03)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 05-05-PLAN.md — Data-safety UI slice: Settings surface + export/import + End-Show auto-backup (PWA-04)
+
+**UI hint**: yes
 
 ### Phase 6: Pokédex, History & Stats
 

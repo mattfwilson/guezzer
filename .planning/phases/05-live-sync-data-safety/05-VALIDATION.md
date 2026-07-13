@@ -1,8 +1,8 @@
 ---
 phase: 5
 slug: live-sync-data-safety
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-13
 ---
@@ -99,4 +99,4 @@ created: 2026-07-13
 - [ ] Feedback latency < 20s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** planned 2026-07-13 — all tasks carry an <automated> verify; Wave-0 test files + the latest.sample.json fixture are created inline within their plans (05-01..05-05).
