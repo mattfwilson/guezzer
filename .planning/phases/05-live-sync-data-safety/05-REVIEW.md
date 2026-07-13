@@ -1,242 +1,209 @@
 ---
 phase: 05-live-sync-data-safety
-reviewed: 2026-07-13T00:00:00Z
+reviewed: 2026-07-13T23:35:25Z
 depth: standard
-files_reviewed: 20
+files_reviewed: 6
 files_reviewed_list:
-  - packages/core/src/live/poll-latest.ts
-  - packages/core/src/live/suggest.ts
-  - packages/core/src/live/bind-show.ts
-  - packages/core/src/ingest/latest-types.ts
   - packages/core/src/data-safety/merge.ts
   - packages/core/src/data-safety/serialize.ts
-  - packages/core/src/data-safety/export-schema.ts
+  - packages/core/test/merge.test.ts
+  - packages/core/test/serialize.test.ts
   - packages/app/src/db/db.ts
-  - packages/app/src/live/useLatestPoll.ts
-  - packages/app/src/live/useOnlineStatus.ts
-  - packages/app/src/live/SuggestionStrip.tsx
-  - packages/app/src/live/SyncDot.tsx
-  - packages/app/src/show/ShowView.tsx
-  - packages/app/src/show/EndShowDialog.tsx
-  - packages/app/src/settings/SettingsView.tsx
-  - packages/app/src/settings/exportDownload.ts
-  - packages/app/src/settings/importPicker.ts
-  - packages/app/src/routing/useHashRoute.ts
-  - packages/app/src/components/AppMenu.tsx
-  - packages/app/src/App.tsx
+  - packages/app/test/exportImportRoundtrip.test.ts
 findings:
-  critical: 1
-  warning: 4
-  info: 4
-  total: 9
-status: issues_found
+  critical: 0
+  warning: 0
+  info: 1
+  total: 1
+status: clean
 ---
 
-# Phase 5: Code Review Report
+# Phase 05: Code Review Report (scoped re-review — gap-closure plan 05-06)
 
-**Reviewed:** 2026-07-13T00:00:00Z
+**Reviewed:** 2026-07-13T23:35:25Z
 **Depth:** standard
-**Files Reviewed:** 20
+**Files Reviewed:** 6
 **Status:** issues_found
+
+## Post-review fix (2026-07-13, same session)
+
+CR-01 below (orphaned duplicate `trackedShows` row on a D-11 dedupe
+collapse) has been **fixed**: `importSnapshot` (`packages/app/src/db/db.ts`)
+now does `trackedShows.clear()` + `bulkPut()` (full-replace), mirroring the
+`trackedEntries` treatment, inside the same rw transaction. A new regression
+test in `exportImportRoundtrip.test.ts` ("a same-show dedupe collapse removes
+the dropped local trackedShow instead of leaving an orphaned duplicate")
+seeds a local show sharing a `show_id` with a richer incoming show and
+asserts the dropped local session is removed, not left behind — verified to
+fail against the pre-fix `bulkPut`-only code. Full suite (271 tests) and
+`tsc --noEmit` pass. `findings.critical` above has been updated to 0 to
+reflect this; the WARNING (missing DB-level dedupe-collapse test coverage)
+is resolved by the same new test. The remaining open item is the INFO
+NUL-byte note, which is optional/non-blocking and pre-existing from plan
+05-02.
+
+## Scope note
+
+This is a scoped re-review covering ONLY the 6 files touched by gap-closure
+plan 05-06 (fixing the original CR-01 id-collision data-loss bug and WR-01
+same-show tie-break bug from the prior full Phase-5 review). It supersedes
+the CR-01 and WR-01 entries in that prior review — both are confirmed FIXED
+below. The remaining findings from the original full review (WR-02, WR-03,
+WR-04, IN-01 through IN-04), which concern files outside this file list
+(`suggest.ts`, `ShowView.tsx`, `EndShowDialog.tsx`, `SuggestionStrip.tsx`,
+`useLatestPoll.ts`, `useOnlineStatus.ts`, `importPicker.ts`), were **not**
+re-assessed in this pass and should be treated as still open until a review
+covering those files says otherwise.
 
 ## Summary
 
-Phase 5 wires live `latest` polling, editor-suggestion advisories, guarded auto-bind,
-and the export/import backup path. The poll-lifecycle work (`useLatestPoll`) is careful
-and well-tested: single self-scheduling timer, correct active/online/visible gating,
-unmount cleanup, and error tolerance all hold up. The core "never-throw" poller
-(`pollLatest`) and the pure decision fns (`diffLatestAgainstTrail`, `resolvePlaceholders`,
-`bindShowFromLatest`) are sound. The strict-schema import gate correctly rejects bad
-files before any DB touch.
+The CR-01 fix is correct and well tested: `merge.ts` now keys
+`trackedEntries` identity purely on `(sessionId, position)` via `entryKey`,
+strips the volatile `id` from both sides of the union before it ever reaches
+the caller, `serialize.ts` mirrors the same stripping on export, and
+`db.ts`'s `importSnapshot` commits `trackedEntries` via `clear()` +
+`bulkAdd()` inside the same `rw` transaction as the other three tables'
+`bulkPut`s, preserving the D-12 no-partial-merge guarantee. The WR-01
+tie-break in `merge.ts` is also correct: tracing the pairwise comparison
+across a bucket confirms a genuine entry-count tie always resolves to a
+local session as canonical, regardless of `Map` iteration/insertion order.
+Both are backed by tests that would have failed against the pre-fix code
+(`merge.test.ts`'s CR-01 and WR-01 blocks, `serialize.test.ts`'s id-omission
+tests, and the new populated-DB describe block in
+`exportImportRoundtrip.test.ts`).
 
-However, the **import/merge → commit path has a critical data-loss defect**: merged
-`trackedEntries` are committed by their device-local `++id` auto-increment key, which is
-NOT globally unique across devices. A friend-import (the entire reason this phase exists)
-collapses colliding ids in `bulkPut`, silently dropping both local and incoming rows.
-The round-trip test misses this because it always imports into a wiped database. This
-directly violates the phase's stated invariant that the merge path must never drop local
-data, and must be fixed before this ships. Four warnings concern merge tie-break /
-dedupe correctness, a re-nagging one-time warning, and position-aligned fill hints.
+However, while fixing CR-01 the plan surfaced — but did not fix — a sibling
+defect in the same function: the D-11 same-show dedupe that WR-01 lives
+inside of can drop a `trackedShows` row that already exists locally, but
+`importSnapshot` commits `trackedShows` via plain `bulkPut` (upsert-only),
+which never deletes it. That produces an orphaned, zero-entry duplicate
+attendance record after exactly the "friend sends a richer backup for a
+night I already partially tracked" scenario this feature exists to handle.
+See CR-01 below (new numbering, this report). No test in the reviewed suite
+exercises the full merge+persist path for a dedupe-collapsing import against
+a non-empty local DB, so this gap was not caught (see WR-01 below).
 
 ## Critical Issues
 
-### CR-01: Import merge drops entries via colliding device-local `++id` keys (silent data loss)
+### CR-01: Same-show dedupe drops a duplicate `trackedShow` from the merged snapshot, but `importSnapshot` never deletes the pre-existing local row — orphaned duplicate attendance
 
-**File:** `packages/app/src/db/db.ts:418-432` (with `packages/core/src/data-safety/merge.ts:131-135` and `export-schema.ts:63`)
+**File:** `packages/app/src/db/db.ts:428-443` (in conjunction with `packages/core/src/data-safety/merge.ts:174-200`)
 
-**Issue:** `trackedEntries` are unioned by the logical key `(sessionId, position)` in core
-(`entryKey`, merge.ts:51-53), so two entries from different devices correctly coexist in
-the merged snapshot. But each entry still carries its original `id` — the Dexie `++id`
-auto-increment key, which every device assigns independently starting at 1. `importSnapshot`
-commits via `db.trackedEntries.bulkPut(snapshot.trackedEntries)`, and `bulkPut` is an
-upsert **by primary key (`id`)**. When the merged array contains multiple rows with the
-same `id` (local `id:1` for session A, incoming `id:1` for session B), `bulkPut`
-silently overwrites — last-write-wins — dropping the earlier row, and also clobbering any
-pre-existing local row that happened to hold that id.
+**Issue:**
+`parseAndMergeImport`'s D-11 same-show dedupe (`merge.ts:174-194`)
+intentionally excludes the losing show's `sessionId` from `finalShows` and
+its entries from `finalEntries` when two `trackedShows` rows collapse into
+one canonical attendance. That in-memory computation is correct.
 
-Concrete failure: local has entries `id 1,2,3`; a friend's genuinely-distinct show is
-imported with entries `id 1,2,3`. The union keeps all 6 rows (6 distinct `(sessionId,
-position)` keys), but `bulkPut` sees ids `[1,2,3,1,2,3]` and persists only 3 — a mix of
-local and incoming rows is destroyed. This breaks the D-10 / T-05-07 "never drop a local
-row" guarantee that is the entire point of the union merge.
-
-The `exportImportRoundtrip.test.ts` suite does not catch this because it always wipes the
-DB before importing (`wipeAll()` then import into an empty table), so ids never collide
-across sources — the real friend-merge scenario is untested.
-
-**Fix:** Do not carry the device-local `++id` across a merge. Reconcile ids against the
-existing local rows by the logical `(sessionId, position)` key, or strip `id` from every
-merged entry so Dexie assigns fresh keys, committing by the logical identity instead of
-the auto-increment key. For example, drop `id` in the merge output and make
-`importSnapshot` replace `trackedEntries` by clearing + re-adding, or reassign ids before
-`bulkPut`:
+But `importSnapshot` commits `trackedShows` with a plain `bulkPut`:
 
 ```ts
-// In merge.ts, key entries only by (sessionId, position) and strip the volatile id:
-const finalEntries = unionEntries
-  .filter((e) => !droppedSessionIds.has(e.sessionId))
-  .map(({ id: _id, ...rest }) => rest); // let Dexie assign fresh ids on commit
+// db.ts:436-440
+await db.meta.bulkPut(snapshot.meta);
+await db.attendedShows.bulkPut(snapshot.attendedShows);
+await db.trackedShows.bulkPut(snapshot.trackedShows);
+await db.trackedEntries.clear();
+await db.trackedEntries.bulkAdd(snapshot.trackedEntries);
 ```
 
-…and change `importSnapshot` to replace the `trackedEntries` table wholesale (clear then
-`bulkAdd` the id-less merged rows) inside the same transaction, so the logical
-`(sessionId, position)` identity — not a per-device counter — determines row survival.
-Add a regression test that imports into a NON-empty DB whose ids overlap the incoming file.
+`bulkPut` is an upsert by primary key: it only writes the rows present in
+`snapshot.trackedShows`. It does **not** delete a `sessionId` that already
+exists in the table but is absent from the merged array. `trackedEntries`
+was correctly changed to `clear()` first (full-replace semantics) as part of
+this same gap-closure plan, but `trackedShows` was left as upsert-only —
+even though the D-11 dedupe can, and routinely will in exactly the scenario
+this plan targets, drop a `sessionId` that pre-exists in the local DB.
+
+Concretely: the local device already tracked a show (`sessionId: "dev-a"`,
+`showId: 999`, 1 entry). It imports a friend's richer backup for the same
+show (`sessionId: "dev-b"`, `showId: 999`, 2 entries). The merge correctly
+computes `finalShows = [dev-b]` and `finalEntries` containing only `dev-b`'s
+songs. `importSnapshot` then:
+- `trackedEntries.clear()` + `bulkAdd([dev-b's 2 entries])` — `dev-a`'s
+  entries are gone, as intended.
+- `trackedShows.bulkPut([dev-b])` — `dev-b` is written, but `dev-a`'s
+  pre-existing row is **never touched or removed**.
+
+Result: the DB ends up with TWO `trackedShows` rows for the same night
+(`dev-a`, now with zero surviving entries, and `dev-b` with 2) — the exact
+outcome D-11 exists to prevent ("collapses a night tracked on two devices…
+into ONE attendance", `merge.ts:15-16`). Since a `TrackedShow` row's mere
+existence credits dex attendance (`db.ts:63-64`, "DEX-01/D-02"), the user's
+Pokédex/dex would show a phantom duplicate attended night with an empty
+setlist after every import that dedupes away a locally-tracked show. This
+isn't limited to the WR-01 tie case — it fires whenever the incoming copy
+is *strictly richer* too, which is the common real case this whole plan is
+built for.
+
+**Fix:** Give `trackedShows` the same full-replace treatment as
+`trackedEntries`. Unlike `trackedEntries`, `trackedShows`' primary key
+(`sessionId`) is stable across devices, so there's no need to strip/
+regenerate it — `clear()` + `bulkPut` (not `bulkAdd`) is sufficient and
+keeps the commit shape simple:
+
+```ts
+await db.meta.bulkPut(snapshot.meta);
+await db.attendedShows.bulkPut(snapshot.attendedShows);
+await db.trackedShows.clear();
+await db.trackedShows.bulkPut(snapshot.trackedShows);
+await db.trackedEntries.clear();
+await db.trackedEntries.bulkAdd(snapshot.trackedEntries);
+```
+
+(Equivalently, have `parseAndMergeImport` return `droppedSessionIds` in
+`ImportResult` and have the caller `bulkDelete` them before the
+`trackedShows.bulkPut` — more surgical, but `clear()`+`bulkPut` is simpler
+and keeps `importSnapshot` self-contained since `merged.trackedShows` is
+already the full authoritative replacement set.)
 
 ## Warnings
 
-### WR-01: Same-show dedupe tie-break drops the LOCAL setlist in favor of incoming
+### WR-01: No test exercises the D-11 dedupe-collapse path through the real DB (`importSnapshot`/`pickAndImport`), only through the pure `parseAndMergeImport` function
 
-**File:** `packages/core/src/data-safety/merge.ts:159-180`
+**File:** `packages/app/test/exportImportRoundtrip.test.ts` (whole file); compare `packages/core/test/merge.test.ts:181-276`
 
-**Issue:** In the same-show collapse, the canonical (surviving) show is chosen by entry
-count, but on a tie the loop keeps `bucket[0]`. The bucket is built from
-`[...showsBySession.values()]` where incoming rows are inserted first (merge.ts:126-129),
-so `bucket[0]` is the **incoming** show. When local and incoming both logged the same
-number of entries for the same night, the tie resolves to incoming and every LOCAL entry
-for that night is dropped (`finalEntries` filters out `droppedSessionIds`, merge.ts:178-180).
-Since the two devices may have caught different songs, local-unique catches vanish — the
-opposite of the D-10 "local always survives" priority.
+**Issue:** `merge.test.ts` thoroughly covers the WR-01 tie-break and D-11
+same-show collapse at the pure-function level (`parseAndMergeImport`'s
+return value), and those tests are good — they would fail against the
+pre-fix tie-break. But `exportImportRoundtrip.test.ts`'s new describe block
+("import into a populated DB with overlapping ids preserves every local +
+incoming row") only exercises the *non-colliding-identity* union case (two
+distinct shows, two distinct dates/`showId`s — no dedupe triggered). No test
+in the reviewed files seeds a real local `trackedShow` in the DB, imports a
+backup that dedupe-collapses against it, and asserts on the resulting
+`db.trackedShows` table contents/count. That gap is precisely why CR-01
+above was not caught by the test suite despite the merge logic itself being
+correct.
 
-**Fix:** Break ties toward the local session. Track which sessionIds came from `local`
-and prefer them when entry counts are equal:
-
-```ts
-const localSessions = new Set(local.trackedShows.map((s) => s.sessionId));
-// ...on a tie, prefer a local sessionId as canonical over an incoming one.
-```
-
-### WR-02: Dedupe fails to collapse a night when one copy is bound and the other is not
-
-**File:** `packages/core/src/data-safety/merge.ts:45-48, 149-155`
-
-**Issue:** `attendanceGroupKey` returns `id:${showId}` for a bound show and `date:${date}`
-for an unbound one. If the same physical night was auto-bound on one device (online during
-the show) but stayed provisional on the other (offline all night — a realistic split for a
-venue), the two copies get different group keys and are never collapsed. The result is two
-attendance records for one night (double-counted dex/tally), defeating D-11. This is not
-data loss, but it is a correctness gap in the dedupe the phase promises.
-
-**Fix:** When grouping, treat a bound and an unbound copy sharing the same `date` as the
-same night — e.g. group primarily by `date`, then reconcile `showId` within the date
-bucket, rather than letting the presence of a binding change the grouping key.
-
-### WR-03: One-time persist-denied warning re-shows on every EndShow reopen within a session
-
-**File:** `packages/app/src/show/EndShowDialog.tsx:44-69, 110`
-
-**Issue:** `showPersistWarning` is component state that is set `true` the first time the
-sheet opens with persistence denied, and the meta flag `persistWarningShown` is written so
-it "never nags again." But EndShowDialog stays mounted across open/close toggles
-(`open` prop, not remount). On a subsequent open the effect reads `alreadyShown === true`
-and early-returns **without resetting `showPersistWarning`**, so the state remains `true`
-and the warning renders again on every reopen for the rest of the app session. The
-"one-time" contract only holds across full app restarts, not within a session.
-
-**Fix:** Reset the flag at the start of the effect and let the async check turn it back on:
-
-```ts
-useEffect(() => {
-  if (!open) return;
-  setShowPersistWarning(false); // default hidden; the async check re-enables once
-  let cancelled = false;
-  void (async () => { /* ...unchanged... */ })();
-  return () => { cancelled = true; };
-}, [open]);
-```
-
-### WR-04: `resolvePlaceholders` aligns editor GLOBAL position to local TRAIL position
-
-**File:** `packages/core/src/live/suggest.ts:96-113` (consumed at `ShowView.tsx:260-267`)
-
-**Issue:** A FillHint is emitted when a placeholder trail entry's `position` equals a
-latest row's `position` (`row.position === entry.position`). But the trail `position` is a
-device-local contiguous 1..N sort key (`db.ts:100`), while the latest row `position` is
-the kglw editor's global setlist position. These align only when the user logged every
-song in lockstep with the editor. Any divergence — a late start, a skipped song, a `???`
-inserted out of band — offsets them, so the fill hint can name the WRONG song for a
-placeholder. It is advisory and user-gated (Pencil tap), which caps the blast radius, but
-it can actively mislead the fill.
-
-**Fix:** Match placeholders on a more robust signal than raw positional equality — e.g.
-align by relative order within the set, or only offer a fill when the surrounding
-non-placeholder entries corroborate the position mapping. At minimum, document the
-alignment assumption at the call site so the fragility is explicit.
+**Fix:** Add a test to `exportImportRoundtrip.test.ts` per the scenario
+described in CR-01's fix section — seed a local show sharing a `showId` (or
+date) with an incoming, richer show, import via `pickAndImport`, and assert
+`db.trackedShows.count() === 1` and that the dropped local `sessionId` is
+absent from the table (not merely that the merged in-memory result is
+correct).
 
 ## Info
 
-### IN-01: Dead fallback branch in `handleFill`
+### IN-01: `entryKey` embeds a literal NUL byte (U+0000) as its field separator instead of a visible delimiter
 
-**File:** `packages/app/src/show/ShowView.tsx:263-265`
+**File:** `packages/core/src/data-safety/merge.ts:51-53`
 
-**Issue:** `entry.shownFanSongIds ? classifyOutcome(...) : entry.outcome` — `shownFanSongIds`
-is a required `number[]` and is always truthy (even when empty `[]`), so the `: entry.outcome`
-branch is unreachable dead code.
+**Issue:** `` `${e.sessionId} ${e.position}` `` — confirmed via byte
+inspection that the character between the two interpolations is `0x00`
+(NUL), not a printable space/pipe/colon. This works correctly today (the
+full test suite passes, and a NUL byte is exceedingly unlikely to appear
+inside a `crypto.randomUUID()`-derived `sessionId`), and per the review
+brief this is a pre-existing quirk from plan 05-02, not a regression
+introduced by 05-06 — noted here only because it was independently spotted
+while tracing `entryKey`'s role in the CR-01 fix.
 
-**Fix:** Drop the ternary and call `classifyOutcome(hint.songId, entry.shownFanSongIds)`
-directly.
-
-### IN-02: Advisory dismissal keyed by `songId` only, ignoring fill-hint identity
-
-**File:** `packages/app/src/show/ShowView.tsx:252-273`, `packages/app/src/live/SuggestionStrip.tsx:107,146-158`
-
-**Issue:** `dismissedIds` is a `Set<number>` of song ids, and both `visibleSuggestions` and
-`visibleFillHints` filter by `songId`. A fill hint carries a distinct `entryPosition`
-(its React key is `f-${songId}-${entryPosition}`), but dismiss only receives `songId`.
-Dismissing a suggestion also hides any fill hint with the same song id, and vice-versa —
-and two fill hints for the same song at different placeholder positions cannot be
-dismissed independently. Low likelihood, but the dedupe key is weaker than the render key.
-
-**Fix:** Key dismissals by the same compound identity the rows are keyed by (song id +
-kind + entryPosition), or track dismissed suggestions and fill hints in separate sets.
-
-### IN-03: File-picker `<input>` never attached/removed; may misbehave and leaks
-
-**File:** `packages/app/src/settings/importPicker.ts:65-78`
-
-**Issue:** `openBackupFilePicker` creates a detached `<input type="file">`, calls `.click()`
-without appending it to the DOM, and never removes it. Unlike the export anchor (which is
-appended and removed), the input is never cleaned up, and click-without-DOM-attachment is
-unreliable on some mobile browsers (the primary target). Minor, but inconsistent with the
-export path's handling.
-
-**Fix:** Append the input to `document.body` before `.click()` and remove it after the
-change/cancel resolves, mirroring `exportDownload.ts`.
-
-### IN-04: Duplicate `useOnlineStatus` subscription
-
-**File:** `packages/app/src/show/ShowView.tsx:84` and `packages/app/src/live/useLatestPoll.ts:51`
-
-**Issue:** `ShowView` calls `useOnlineStatus()` for the SyncDot/offline line, and
-`useLatestPoll` independently calls `useOnlineStatus()` again. Two `useSyncExternalStore`
-subscriptions to the same `online`/`offline` events. Harmless (both return identical
-state) but redundant.
-
-**Fix:** Pass the already-computed `online` into `useLatestPoll` if a single subscription
-is preferred; otherwise leave as-is (cost is negligible).
+**Fix (optional, non-blocking):** Replace the NUL byte with an explicit
+visible separator (e.g. `` `${e.sessionId}::${e.position}` ``) for
+readability and defensive clarity; behavior is unchanged since `sessionId`
+values can't currently contain the separator either way.
 
 ---
 
-_Reviewed: 2026-07-13T00:00:00Z_
+_Reviewed: 2026-07-13T23:35:25Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
