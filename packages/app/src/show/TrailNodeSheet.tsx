@@ -21,6 +21,7 @@ import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { config } from "../config.ts";
 import { deleteEntry, renameEntry, type TrackedEntry } from "../db/db.ts";
+import { classifyOutcome } from "./scoring.ts";
 import { SearchSheet, type SearchSelection } from "./SearchSheet.tsx";
 
 interface TrailNodeSheetProps {
@@ -43,10 +44,19 @@ export function TrailNodeSheet({ entry, onClose }: TrailNodeSheetProps) {
   };
 
   // Edit + rename share this path: re-pick a real song and write via
-  // renameEntry, which also clears isPlaceholder (D-14/D-15).
+  // renameEntry, which also clears isPlaceholder (D-14/D-15). The outcome is
+  // re-classified against THIS entry's stored fan snapshot — the same
+  // shownFanSongIds the trail rings read — so correcting a mis-logged song
+  // honestly flips hit↔miss instead of preserving a stale hit (WR-01, SHOW-09).
+  // A "???" placeholder's fan is empty (D-08), so its recomputed outcome stays a
+  // miss. Fallback: if an entry somehow has no stored fan snapshot we can't
+  // reclassify, so preserve its current outcome.
   const handlePick = (selection: SearchSelection) => {
     if (entry.id != null) {
-      void renameEntry(entry.id, selection.songId, selection.songName);
+      const outcome = entry.shownFanSongIds
+        ? classifyOutcome(selection.songId, entry.shownFanSongIds)
+        : entry.outcome;
+      void renameEntry(entry.id, selection.songId, selection.songName, outcome);
     }
     close();
   };

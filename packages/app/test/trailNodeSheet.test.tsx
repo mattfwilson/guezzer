@@ -36,6 +36,9 @@ vi.mock("../src/show/SearchSheet.tsx", () => ({
     ) : null,
 }));
 
+// scoring.ts is NOT mocked — the sheet must run the real classifyOutcome so the
+// edit path honestly re-derives hit/miss against the entry's stored fan (WR-01).
+
 const { TrailNodeSheet } = await import("../src/show/TrailNodeSheet.tsx");
 const { config } = await import("../src/config.ts");
 const copy = config.copy.show;
@@ -106,7 +109,45 @@ describe("TrailNodeSheet edit/delete/rename (SHOW-07/D-15)", () => {
     fireEvent.click(screen.getByRole("button", { name: copy.renameHeading }));
     fireEvent.click(screen.getByText("mock-search-pick"));
 
-    expect(renameEntryMock).toHaveBeenCalledWith(2, 205, "Work This Time");
+    // A ??? placeholder's stored fan is empty (D-08), so the recomputed outcome
+    // stays a miss (WR-01).
+    expect(renameEntryMock).toHaveBeenCalledWith(2, 205, "Work This Time", "miss");
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("edit: correcting a real HIT to a song outside that moment's fan flips it to a miss (WR-01)", () => {
+    // A hit entry whose stored fan does NOT contain the corrected song id 205.
+    // Editing it must re-classify against that fan, honestly flipping hit→miss
+    // (the tally SHOW-09 depends on this).
+    const entry: TrackedEntry = {
+      ...normalEntry(),
+      outcome: "hit",
+      shownFanSongIds: [101, 102, 103], // 205 is NOT in the shown fan
+    };
+    const onClose = vi.fn();
+    render(<TrailNodeSheet entry={entry} onClose={onClose} />);
+
+    fireEvent.click(screen.getByRole("button", { name: copy.editCta }));
+    fireEvent.click(screen.getByText("mock-search-pick"));
+
+    expect(renameEntryMock).toHaveBeenCalledWith(1, 205, "Work This Time", "miss");
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("edit: correcting a real entry to a song that WAS in that moment's fan stays a hit (WR-01)", () => {
+    // The corrected song id 205 IS in the stored fan → outcome remains a hit.
+    const entry: TrackedEntry = {
+      ...normalEntry(),
+      outcome: "miss",
+      shownFanSongIds: [205, 300], // 205 IS in the shown fan
+    };
+    const onClose = vi.fn();
+    render(<TrailNodeSheet entry={entry} onClose={onClose} />);
+
+    fireEvent.click(screen.getByRole("button", { name: copy.editCta }));
+    fireEvent.click(screen.getByText("mock-search-pick"));
+
+    expect(renameEntryMock).toHaveBeenCalledWith(1, 205, "Work This Time", "hit");
     expect(onClose).toHaveBeenCalled();
   });
 

@@ -247,16 +247,24 @@ export async function deleteEntry(id: number): Promise<void> {
   await db.trackedEntries.delete(id);
 }
 
-/** Rename a "???" placeholder to a real song (D-14/D-15); clears isPlaceholder. */
+/**
+ * Rename a "???" placeholder OR edit a mis-logged real entry to a different song
+ * (D-14/D-15); clears isPlaceholder. When `outcome` is supplied it is persisted
+ * too, so the edit path can re-classify hit/miss against the entry's shown fan
+ * (WR-01) and keep the tally honest (SHOW-09). Omitting `outcome` leaves the
+ * stored outcome untouched (backward-compatible with the plain ??? rename).
+ */
 export async function renameEntry(
   id: number,
   songId: number,
   songName: string,
+  outcome?: EntryOutcome,
 ): Promise<void> {
   await db.trackedEntries.update(id, {
     songId,
     songName,
     isPlaceholder: false,
+    ...(outcome !== undefined ? { outcome } : {}),
   });
 }
 
