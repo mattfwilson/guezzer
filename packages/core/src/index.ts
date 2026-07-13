@@ -120,3 +120,15 @@ export {
  */
 export { pollLatest, type PollDeps } from "./live/poll-latest.ts";
 export { latestSetlistRow, type LatestSetlistRow } from "./ingest/latest-types.ts";
+export {
+  diffLatestAgainstTrail,
+  resolvePlaceholders,
+  type Suggestion,
+  type FillHint,
+  type TrailEntryInput,
+} from "./live/suggest.ts";
+export {
+  bindShowFromLatest,
+  type TrackedShowInput,
+  type ShowBinding,
+} from "./live/bind-show.ts";
