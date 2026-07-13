@@ -1,65 +1,26 @@
 ---
 phase: 05-live-sync-data-safety
-verified: 2026-07-13T00:00:00Z
-status: gaps_found
-score: 3/4 must-haves verified
+verified: 2026-07-13T23:50:00Z
+status: human_needed
+score: 4/4 must-haves verified
 overrides_applied: 0
-gaps:
-  - truth: "All personal data (attended shows, tracked setlists, dex) round-trips through export/import without ever losing a local row (PWA-04 / SC4 / D-10 / T-05-07)"
-    status: partial
-    reason: >
-      A full wipe-then-restore round-trip works, but importing a backup into a
-      NON-empty database (the friend-as-second-set-of-eyes merge that is the
-      entire reason this phase exists) silently drops rows. The core union-merge
-      correctly keeps every row by (sessionId, position), but each merged entry
-      still carries its device-local Dexie ++id auto-increment key. Two devices
-      both start ids at 1, so the merged trackedEntries array contains colliding
-      ids; importSnapshot commits via bulkPut (upsert by id), collapsing colliding
-      ids last-write-wins and destroying a mix of local and incoming rows. This
-      breaks the D-10 / T-05-07 "never drop a local row" invariant the phase
-      explicitly promises. The passing round-trip test misses it because it
-      wipeAll()s before every import, so ids never collide across sources.
-    artifacts:
-      - path: "packages/app/src/db/db.ts"
-        issue: >
-          importSnapshot (lines 418-429) commits trackedEntries via bulkPut,
-          which upserts by the device-local ++id primary key — not by the logical
-          (sessionId, position) identity the merge unioned on. Colliding ids drop rows.
-      - path: "packages/core/src/data-safety/merge.ts"
-        issue: >
-          finalEntries (lines 178-180) carry each row's original device-local `id`
-          through the merge instead of stripping it or reconciling against local
-          rows by (sessionId, position).
-      - path: "packages/core/src/data-safety/export-schema.ts"
-        issue: >
-          trackedEntryRow (lines 62-63) serializes the volatile ++id, so exported
-          backups carry per-device ids that collide on merge.
-      - path: "packages/app/test/exportImportRoundtrip.test.ts"
-        issue: >
-          Every import test wipeAll()s before importing (line 114), so ids never
-          collide — the real friend-merge / import-into-populated-DB scenario is untested.
-    missing:
-      - "Strip or reconcile the device-local `id` in merge output (key survival by (sessionId, position), not ++id)"
-      - "Change importSnapshot to commit trackedEntries by logical identity (e.g. clear + bulkAdd id-less merged rows inside the same rw transaction), so a per-device counter never decides row survival"
-      - "Add a regression test that imports a backup into a NON-empty DB whose trackedEntry ids overlap the incoming file, asserting all local + incoming rows survive"
-human_verification:
-  - test: "With the app loaded, enable airplane mode during an active show; keep logging songs, then re-enable network."
-    expected: "App stays fully functional offline (orbit, logging, trail); no error banner; polling resumes silently within one interval when signal returns."
-    why_human: "Runtime offline/online transition and silent-resume behavior cannot be verified by static inspection."
-  - test: "During an active show, tap Add on an editor suggestion, and dismiss another via both tap-X and horizontal swipe."
-    expected: "Adopt logs the song (source:'editor', correct hit/miss); dismiss removes the row with nothing logged; the orbit fan above never re-lays-out."
-    why_human: "Visual layout stability and gesture behavior are UI-runtime concerns."
-  - test: "End a show on an installed iOS PWA."
-    expected: "Backup JSON auto-downloads with a muted confirmation; a persist-denied warning shows at most once."
-    why_human: "Installed-PWA auto-download and iOS persistence behavior require a real device (deferred per 05-VALIDATION Manual-Only)."
+re_verification:
+  previous_status: gaps_found
+  previous_score: 3/4
+  gaps_closed:
+    - "PWA-04 / SC4 / D-10 / T-05-07: import into a NON-empty DB no longer drops rows — merged trackedEntries are id-less and keyed on (sessionId, position); importSnapshot commits trackedEntries via clear()+bulkAdd() inside the existing atomic rw transaction."
+    - "WR-01: a same-show entry-count tie now keeps the LOCAL show as canonical (localSessionIds tie-break in merge.ts)."
+    - "Sibling defect found during gap-closure code review (not in original gap list, fixed same session): trackedShows was left on upsert-only bulkPut, so a D-11 dedupe-collapse could orphan a dropped local session's now-zero-entry trackedShows row. Fixed via trackedShows.clear()+bulkPut() (full-replace) in the same rw transaction, with a dedicated regression test."
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 5: Live Sync + Data Safety Verification Report
 
 **Phase Goal:** The app politely borrows kglw.net's live editors as a second set of eyes without ever clobbering manual tracking, and losing a phone can never mean losing a dex.
 **Verified:** 2026-07-13
-**Status:** gaps_found
-**Re-verification:** No — initial verification
+**Status:** human_needed
+**Re-verification:** Yes — after gap closure (plan 05-06 + a same-session follow-up fix)
 
 ## Goal Achievement
 
@@ -67,69 +28,89 @@ human_verification:
 
 | # | Truth (Success Criterion) | Status | Evidence |
 | --- | --- | --- | --- |
-| 1 | SYNC-01: During an active show, polls only `latest` at most once/60s — never the full `setlists` endpoint from clients | ✓ VERIFIED | `config.ts`: `latestPath="/latest.json"`, `POLL_INTERVAL_MS=60000`. `poll-latest.ts` fetches only `${apiBase}${latestPath}`, one GET per call. `useLatestPoll.ts` uses a single self-scheduling `setTimeout` (never `setInterval`), armed one interval out, gated on an active show; backoff only grows the delay, never below the 60s floor. No `setlists` endpoint referenced anywhere in app code (only a copy string mentions the word "setlists"). |
-| 2 | SYNC-02: Editor-logged songs appear as dismissible suggestions only, deduped by song ID, never auto-merged | ✓ VERIFIED | `suggest.ts` `diffLatestAgainstTrail` dedupes by `song_id` against logged ids, returns next 1-2, never contradicts a logged song. `SuggestionStrip.tsx` renders each row with tap-X + horizontal-swipe dismiss (non-destructive); adopt is an explicit user action routed through `adoptSuggestion` (`source:'editor'`). No code path auto-applies a suggestion. |
-| 3 | SYNC-03: Offline the app remains fully functional; polling resumes silently when signal returns | ✓ VERIFIED (code) | `useLatestPoll.ts` gates each tick on `navigator.onLine && visibilityState==="visible"`; an ineligible tick performs no fetch and reschedules at the floor. `pollLatest` returns `[]` and never throws on any soft failure. `useOnlineStatus` re-arms the loop on a connectivity flip. Local state is Dexie/IndexedDB (no network dependency). Runtime confirmation routed to human verification. |
-| 4 | PWA-04: All personal data round-trips through prominently surfaced JSON export/import — losing a phone never loses a dex | ✗ FAILED | Export/Import are surfaced in `SettingsView.tsx` (accent Export CTA). Wipe-then-restore round-trip works (test passes). BUT import into a NON-empty DB (friend merge / re-import) drops rows: merged `trackedEntries` carry device-local `++id` keys that collide across devices, and `importSnapshot` `bulkPut`s by `id` — last-write-wins silently destroys local and/or incoming rows, breaking the D-10 "never drop a local row" invariant. See CR-01. |
+| 1 | SYNC-01: During an active show, polls only `latest` at most once/60s — never the full `setlists` endpoint from clients | ✓ VERIFIED | Unchanged since prior round (confirmed no file in `packages/*/src/live/` was touched by 05-06 — `git diff --stat` between the pre-gap-closure and post-follow-up commits touches only 6 data-safety files). `config.ts`: `latestPath="/latest.json"`, `POLL_INTERVAL_MS=60000`. `useLatestPoll.ts` uses a single self-scheduling `setTimeout` (never `setInterval`), gated on active-show/online/visible. No `setlists` endpoint referenced in app code. |
+| 2 | SYNC-02: Editor-logged songs appear as dismissible suggestions only, deduped by song ID, never auto-merged | ✓ VERIFIED | Unchanged since prior round (not touched by gap closure). `suggest.ts` `diffLatestAgainstTrail` dedupes by `song_id`; `SuggestionStrip.tsx` renders tap-X + swipe dismiss; adopt is explicit, `source:'editor'`. No auto-apply path. |
+| 3 | SYNC-03: Offline the app remains fully functional; polling resumes silently when signal returns | ✓ VERIFIED (code) | Unchanged since prior round (not touched by gap closure). `useLatestPoll.ts` gates each tick on `navigator.onLine && visibilityState==="visible"`; never-throw poller; `useOnlineStatus` re-arms on reconnect. Runtime confirmation still routed to human verification (unchanged item, see below). |
+| 4 | PWA-04: All personal data round-trips through prominently surfaced JSON export/import, never losing a local row — losing a phone never loses a dex | ✓ VERIFIED | **Previously FAILED (CR-01), now fixed and re-verified against current code.** `merge.ts`'s `entriesByKey`/`unionEntries` strip the volatile `id` at population time (`const { id: _id, ...rest } = row`); survival is keyed only on `entryKey(e) = "${sessionId} ${position}"`. `serialize.ts`'s `serializeExport` maps `trackedEntries` to omit `id` before export. `db.ts`'s `importSnapshot` (lines 430-446) commits `trackedEntries` via `db.trackedEntries.clear()` + `bulkAdd(...)` — no more `bulkPut`-by-id — inside the single existing `db.transaction("rw", ...)` block, alongside `bulkPut` for `meta`/`attendedShows` and, notably, `trackedShows.clear()` + `bulkPut(...)` (full-replace, the same-session follow-up fix for the orphaned-duplicate sibling defect). Verified directly by reading the current file (not from SUMMARY claims). |
 
-**Score:** 3/4 truths verified
+**Score:** 4/4 truths verified
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 | --- | --- | --- | --- |
-| `packages/core/src/live/poll-latest.ts` | Tolerant `latest` poller | ✓ VERIFIED | Single GET, artist_id===1 scope, never throws (returns `[]`). |
-| `packages/core/src/live/suggest.ts` | `diffLatestAgainstTrail` + `resolvePlaceholders` | ✓ VERIFIED | Dedupe-by-song_id; placeholder fill-hints. (WR-04: fill aligns editor global position to local trail position — advisory, user-gated.) |
-| `packages/app/src/live/useLatestPoll.ts` | Single-timer gated poll loop | ✓ VERIFIED | Self-scheduling timeout, active/online/visible gating, unmount cleanup. |
-| `packages/app/src/live/SuggestionStrip.tsx` | Fixed-height advisory strip | ✓ VERIFIED | Fixed height, escaped untrusted text, dismiss via X + swipe, adopt/fill actions. |
-| `packages/core/src/data-safety/merge.ts` | validate→migrate→union-merge→dedupe | ⚠️ PARTIAL | Core union is correct, but carries device-local `id` through the merge (root of CR-01 at commit). WR-01 (tie drops LOCAL setlist) and WR-02 (bound/unbound same-night not collapsed) are correctness gaps. |
-| `packages/app/src/db/db.ts` | v3 migration + `importSnapshot` | ⚠️ PARTIAL | v3 additive migration + adopt/bind helpers sound; `importSnapshot` `bulkPut`-by-id is the data-loss defect (CR-01). |
-| `packages/app/src/settings/SettingsView.tsx` | Export/Import + storage status | ✓ VERIFIED | Accent Export CTA, neutral Import, counts on success, error copy, storage readout, no destructive control. |
+| `packages/core/src/data-safety/merge.ts` | id-less `trackedEntries` union + local-wins same-show tie-break | ✓ VERIFIED | Read current file: `entriesByKey` strips `id` on both incoming and local population (lines 137-145); `localSessionIds` set + `isTieLocalWin` condition (lines 171-186) makes a genuine entry-count tie keep the LOCAL show. |
+| `packages/core/src/data-safety/serialize.ts` | `serializeExport` omits volatile `id` | ✓ VERIFIED | `trackedEntries: snapshot.trackedEntries.map(({ id: _id, ...rest }) => rest)` (line 53). |
+| `packages/app/src/db/db.ts` | `importSnapshot` commits `trackedEntries` by logical identity, atomically | ✓ VERIFIED | `trackedEntries.clear()` + `bulkAdd(...)` (lines 442-443), and `trackedShows.clear()` + `bulkPut(...)` (lines 440-441), both inside one `db.transaction("rw", meta, attendedShows, trackedShows, trackedEntries, ...)` block. |
+| `packages/app/test/exportImportRoundtrip.test.ts` | Regression test: import into a populated DB with overlapping ids preserves all rows; dedupe-collapse doesn't orphan a row | ✓ VERIFIED | New `describe` block (line 177) with two `it`s: (1) overlapping-id union across two distinct shows — asserts `trackedEntries.count()===4`, both `trackedShows` survive; (2) same-show dedupe collapse — asserts the dropped local `trackedShows` row is actually removed (`toBeUndefined()`), not left as an orphan, and its entries are gone. Both read directly (not summarized) — content matches the claims in SUMMARY and REVIEW. |
+| `packages/core/src/live/poll-latest.ts`, `packages/app/src/live/useLatestPoll.ts`, `packages/core/src/live/suggest.ts`, `packages/app/src/live/SuggestionStrip.tsx` | SYNC-01/02/03 artifacts | ✓ VERIFIED (unchanged) | Not modified by the gap-closure session (confirmed via `git diff --stat` across the full 05-06 + follow-up commit range — zero touches to `src/live/`). Spot-checked config constants and gating logic still present and consistent with the prior VERIFIED finding. |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 | --- | --- | --- | --- | --- |
-| `useLatestPoll` | core `pollLatest` | injected fetch in gated tick | ✓ WIRED | `pollLatest({ fetch: boundFetch })` inside eligibility-gated `tick`. |
-| `SuggestionStrip` | `diffLatestAgainstTrail`/`resolvePlaceholders` | derives shown suggestions | ✓ WIRED | Consumes `Suggestion[]`/`FillHint[]` (derived upstream in ShowView). |
-| `importPicker` | core `parseAndMergeImport` → `importSnapshot` | validate+merge then atomic commit | ⚠️ PARTIAL | Wiring exists and commits atomically, but the commit key (`id`) is wrong — merged rows collide and drop (CR-01). |
-| `exportDownload` | core `serializeExport` | serialize snapshot then anchor-download | ✓ WIRED | Round-trips through `exportEnvelope.parse` by construction. |
-| `useHashRoute` | ROUTES allow-list | adds `'settings'` | ✓ WIRED | Route added to validated allow-list. |
+| `importPicker` (`pickAndImport`) | core `parseAndMergeImport` → `importSnapshot` | validate+merge then atomic commit | ✓ WIRED | Merge produces id-less, logically-keyed rows; `importSnapshot` commits them by `clear()+bulkAdd`/`clear()+bulkPut` inside one transaction — no id collision path remains. |
+| `useLatestPoll` | core `pollLatest` | injected fetch in gated tick | ✓ WIRED (unchanged) | Not touched by gap closure. |
+| `SuggestionStrip` | `diffLatestAgainstTrail`/`resolvePlaceholders` | derives shown suggestions | ✓ WIRED (unchanged) | Not touched by gap closure. |
+| `exportDownload` | core `serializeExport` | serialize snapshot then anchor-download | ✓ WIRED | `serializeExport` now strips `id`; round-trips through `exportEnvelope.parse` by construction; `export-schema.ts`'s `trackedEntryRow.id` stays optional so legacy backups with an id still validate. |
+
+### Test / Verification Execution (run directly by this verifier, not taken from SUMMARY)
+
+| Check | Command | Result |
+| --- | --- | --- |
+| Full suite | `npm test` (root, from repo) | 36 test files, 271 tests — **all passed** |
+| App typecheck | `npx tsc --noEmit` (packages/app) | Clean, no errors |
+| Core typecheck | `npx tsc --noEmit` (packages/core) | Clean, no errors |
+| Debt markers | `grep TBD\|FIXME\|XXX\|TODO\|HACK\|PLACEHOLDER` on merge.ts/serialize.ts/db.ts | None found |
+
+New/relevant test files confirmed present and containing the claimed assertions by direct read (not SUMMARY-trust): `packages/core/test/merge.test.ts` (describe blocks "id-less merge output (CR-01 / T-05-07)" and WR-01 tie-break within "same-show dedupe (D-11)"), `packages/core/test/serialize.test.ts` (id-omission assertions), `packages/app/test/exportImportRoundtrip.test.ts` (populated-DB overlapping-id test + dedupe-collapse-no-orphan test).
+
+### Regression Check (Steps requested: confirm no other must-have regressed)
+
+- **SYNC-01/02/03**: Not regressed. The gap-closure session (`git diff --stat` across all 05-06 + follow-up commits) touched exactly 6 files, all under `packages/core/src/data-safety/`, `packages/app/src/db/db.ts`, and their test files. Zero files under `packages/core/src/live/` or `packages/app/src/live/` were modified. Config constants (`latestPath`, `POLL_INTERVAL_MS`) and gating logic (`setTimeout`-only, online/visible gate) read identically to the prior VERIFIED round.
+- **PWA-04's other success-criteria pieces** (prominent Settings surface, wipe-then-restore round-trip, zod validation/rejection of bad files): Not regressed — `SettingsView.tsx` was not touched; the "rejects a malformed file" and "rejects a well-formed-but-not-a-backup file" tests are unchanged and still pass; the original wipe-then-restore test was updated only to resolve by logical identity instead of a pinned `id`, and still passes.
+- **No new regressions** introduced by the fixes: full suite green, both packages typecheck clean.
 
 ### Requirements Coverage
 
 | Requirement | Source Plan(s) | Description | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| SYNC-01 | 05-01, 05-03, 05-04 | Poll `latest` ≤1/60s during show, never `setlists` from clients | ✓ SATISFIED | `latestPath` only; 60s single-timer; active-show gate. |
-| SYNC-02 | 05-01, 05-03, 05-04 | Editor songs = suggestions only, dedupe by song ID, no auto-merge | ✓ SATISFIED | `diffLatestAgainstTrail` dedupe; dismissible strip; explicit adopt. |
-| SYNC-03 | 05-04 | Fully functional offline; polling resumes silently | ✓ SATISFIED (code) | Online/visible gating; never-throw poller; re-arm on reconnect. |
-| PWA-04 | 05-02, 05-03, 05-05 | All personal data exports/imports as JSON, prominently surfaced; lose-a-phone safe | ✗ BLOCKED | Surfaced + wipe-restore works, but merge-into-populated-DB drops rows (CR-01). |
+| SYNC-01 | 05-01, 05-03, 05-04 | Poll `latest` ≤1/60s during show, never `setlists` from clients | ✓ SATISFIED | Unchanged from prior round; not touched by gap closure. |
+| SYNC-02 | 05-01, 05-03, 05-04 | Editor songs = suggestions only, dedupe by song ID, no auto-merge | ✓ SATISFIED | Unchanged from prior round; not touched by gap closure. |
+| SYNC-03 | 05-04 | Fully functional offline; polling resumes silently | ✓ SATISFIED (code) | Unchanged from prior round; not touched by gap closure. Runtime confirmation still human-required. |
+| PWA-04 | 05-02, 05-03, 05-05, 05-06 | All personal data exports/imports as JSON, prominently surfaced; lose-a-phone safe; never drops a local row on merge | ✓ SATISFIED | CR-01 (id-collision data loss) and its sibling orphaned-trackedShows defect are both fixed and covered by direct-read-confirmed regression tests. |
 
-All four declared requirement IDs are claimed by plan frontmatter. No orphaned requirements (REQUIREMENTS.md maps exactly SYNC-01/02/03 + PWA-04 to Phase 5).
+All four declared requirement IDs are claimed by plan frontmatter (05-01 through 05-06). No orphaned requirements (REQUIREMENTS.md maps exactly SYNC-01/02/03 + PWA-04 to Phase 5).
+
+**Documentation-tracking discrepancy noted (not a code gap):** `.planning/REQUIREMENTS.md`'s checkbox table still shows SYNC-01/SYNC-02/SYNC-03 as unchecked `[ ]` with status "Pending" in the traceability table (lines 61-63, 184-186), while PWA-04 is correctly marked `[x]` "Complete (05-06 gap closure...)". Since the underlying code for SYNC-01/02/03 was independently re-confirmed unchanged and passing in this round, this looks like a stale tracking artifact from the gap-closure pass only updating the PWA-04 row — recommend updating REQUIREMENTS.md's SYNC-01/02/03 checkboxes/status to reflect their already-VERIFIED state, but this does not block phase completion since it is a doc-sync issue, not a functional gap.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 | --- | --- | --- | --- | --- |
-| `packages/app/src/db/db.ts` | 418-429 | `bulkPut` commits by device-local `++id` after a logical-key merge | 🛑 Blocker | Silent data loss on import-into-populated-DB (CR-01). Violates D-10/T-05-07. |
-| `packages/core/src/data-safety/merge.ts` | 161-174 | Same-show dedupe tie keeps `bucket[0]` = incoming; drops LOCAL setlist on a tie | ⚠️ Warning | Local-unique catches can vanish (WR-01) — contradicts D-10 "local survives" priority. |
-| `packages/core/src/data-safety/merge.ts` | 45-48 | `attendanceGroupKey` differs for bound vs unbound copy of the same night | ⚠️ Warning | Same night double-counted when one device bound and the other did not (WR-02, D-11 gap). |
-| `packages/core/src/live/suggest.ts` | 96-113 | `resolvePlaceholders` aligns editor global position to local trail position | ⚠️ Warning | Fill hint can name the wrong song under any position divergence (WR-04); advisory/user-gated. |
-| `packages/app/src/settings/importPicker.ts` | 65-78 | File `<input>` never attached to DOM/removed | ℹ️ Info | May misbehave on some mobile browsers (IN-03). |
+| `packages/core/src/data-safety/merge.ts` | 51-53 | `entryKey` uses a literal NUL byte (`\0`) as its field separator instead of a visible delimiter | ℹ️ Info | Pre-existing quirk (05-02), noted in 05-REVIEW.md IN-01. Behavior is correct today; cosmetic/defensive-clarity fix only, non-blocking. |
+| `packages/core/src/live/suggest.ts` | ~96-113 | `resolvePlaceholders` aligns editor global position to local trail position | ⚠️ Warning | Carried forward from prior round (WR-04); advisory/user-gated, explicitly deferred per 05-06's scope note. |
+| `packages/core/src/data-safety/merge.ts` | ~45-48 | `attendanceGroupKey` differs for bound vs unbound copy of the same night | ⚠️ Warning | Carried forward from prior round (WR-02); explicitly deferred per 05-06's scope note. |
+| `packages/app/src/settings/importPicker.ts` | ~65-78 | File `<input>` never attached to DOM/removed | ℹ️ Info | Carried forward from prior round (IN-03); explicitly deferred per 05-06's scope note. |
+
+No debt markers (`TBD`/`FIXME`/`XXX`) found in any file touched by the gap-closure session.
 
 ### Human Verification Required
 
-1. **Offline resilience** — Airplane-mode during an active show; keep logging; re-enable network. Expected: fully functional offline, no error banner, silent poll resume. Why human: runtime online/offline transition.
-2. **Suggestion adopt/dismiss + layout stability** — Adopt one editor suggestion; dismiss another via tap-X and swipe. Expected: adopt logs `source:'editor'` with correct hit/miss, dismiss logs nothing, orbit fan never re-lays-out. Why human: visual layout + gesture behavior.
-3. **End-show auto-download on installed iOS PWA** — Expected: backup JSON auto-downloads with a muted confirmation; persist-denied warning shows at most once. Why human: installed-PWA + iOS persistence require a real device (deferred per 05-VALIDATION Manual-Only).
+(Carried forward unchanged from the prior verification round — none of these are affected by the gap-closure fix, and none can be resolved by static inspection.)
+
+1. **Offline resilience** — Enable airplane mode during an active show; keep logging songs; re-enable network. Expected: app stays fully functional offline (orbit, logging, trail), no error banner, polling resumes silently within one interval when signal returns. Why human: runtime online/offline transition and silent-resume behavior cannot be verified statically.
+2. **Suggestion adopt/dismiss + layout stability** — Tap Add on an editor suggestion; dismiss another via both tap-X and horizontal swipe. Expected: adopt logs the song (`source:'editor'`, correct hit/miss); dismiss removes the row with nothing logged; the orbit fan above never re-lays-out. Why human: visual layout stability and gesture behavior are UI-runtime concerns.
+3. **End-show auto-download on installed iOS PWA** — End a show on an installed iOS PWA. Expected: backup JSON auto-downloads with a muted confirmation; a persist-denied warning shows at most once. Why human: installed-PWA auto-download and iOS persistence behavior require a real device (deferred per 05-VALIDATION Manual-Only).
 
 ### Gaps Summary
 
-The "second set of eyes" half of the goal is achieved: polling is polite and correctly gated (SYNC-01), editor songs are advisory-only and never auto-merged (SYNC-02), and the app is built to stay functional offline with silent resume (SYNC-03).
+No gaps remain. All four Phase 5 success criteria are now code-verified:
 
-The "losing a phone can never mean losing a dex" half is NOT fully achieved. The literal lose-a-phone flow (reinstall onto an empty device, import the backup) works. But the merge path — importing a friend's backup, or re-importing onto a device that still holds local data — silently drops rows. The core union-merge is correct, yet each merged `trackedEntry` carries its device-local Dexie `++id`, and `importSnapshot` commits by that id via `bulkPut`. Because every device numbers ids independently from 1, the merged array contains colliding ids and last-write-wins destroys a mix of local and incoming rows. This directly violates the D-10 / T-05-07 "never drop a local row" invariant that is the stated point of the union merge. The green round-trip test hides the defect by wiping the DB before every import, so ids never collide. Independent inspection of `merge.ts`, `db.ts`, and `exportImportRoundtrip.test.ts` confirms the review's CR-01 finding: import-into-a-populated-DB does not preserve all local rows.
+- SYNC-01/02/03 ("second set of eyes" half of the goal) were already VERIFIED in the prior round and are confirmed unchanged (zero files under `src/live/` touched by the gap-closure session).
+- PWA-04 ("losing a phone can never mean losing a dex" half of the goal), the previously FAILED criterion, is now VERIFIED: the CR-01 id-collision data-loss defect is fixed at its root (id stripped at the merge boundary, logical-identity commit in `importSnapshot`), the WR-01 tie-break now keeps the local setlist, and a same-session follow-up fix closed a sibling defect (orphaned `trackedShows` duplicate on a dedupe-collapse) that code review caught before it could ship. All fixes are backed by regression tests confirmed (by direct read) to assert on the exact previously-broken behavior, not just on the pure in-memory merge function. The full 271-test suite passes and both packages typecheck cleanly.
 
-This is a BLOCKER for Success Criterion 4 / PWA-04 and must be fixed (strip/reconcile the volatile id in the merge, commit by logical identity, and add a populated-DB regression test) before the phase goal is met. WR-01 (tie-break drops the local setlist) is a second, related data-loss path that should be fixed in the same pass.
+Status is `human_needed` rather than `passed` only because the three runtime/device checks above (offline transition, gesture/layout behavior, installed-iOS-PWA auto-download) were already deferred to human verification in the prior round and remain outstanding — they are unrelated to the gap that was closed.
 
 ---
 
