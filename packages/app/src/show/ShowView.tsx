@@ -25,17 +25,32 @@
  * `flex-1` child that never overflows. The ActionBar + CometTrail slots land in
  * 04-05/04-06.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CircleStop } from "lucide-react";
+import {
+  bindShowFromLatest,
+  diffLatestAgainstTrail,
+  resolvePlaceholders,
+  type FillHint,
+  type LatestSetlistRow,
+  type Suggestion,
+} from "@guezzer/core";
 import { config } from "../config.ts";
 import {
+  adoptSuggestion,
+  bindShow,
   logSong,
   markEncore,
   markSetBreak,
+  renameEntry,
   undoLast,
   type TrackedEntry,
 } from "../db/db.ts";
 import { acquireWakeLock, releaseWakeLock } from "../wakeLock.ts";
+import { useLatestPoll } from "../live/useLatestPoll.ts";
+import { useOnlineStatus } from "../live/useOnlineStatus.ts";
+import { SuggestionStrip } from "../live/SuggestionStrip.tsx";
+import { SyncDot } from "../live/SyncDot.tsx";
 import { classifyOutcome } from "./scoring.ts";
 import { ActionBar } from "./ActionBar.tsx";
 import { CometTrail } from "./CometTrail.tsx";
@@ -60,6 +75,53 @@ export function ShowView() {
   const wakeDismissedRef = useRef(false);
   const copy = config.copy.show;
 
+  // ── Live sync (Plan 05-04) ─────────────────────────────────────────────────
+  // The one poll timer is owned here: gated on active-show + online + visible
+  // (SYNC-01/SYNC-03), it write-throughs the raw latest rows into local state.
+  // Mounted UNCONDITIONALLY above the early returns (same discipline as the
+  // wake-lock effect) so hook order never changes across the show lifecycle.
+  const [latestRows, setLatestRows] = useState<LatestSetlistRow[]>([]);
+  const online = useOnlineStatus();
+  useLatestPoll(session.active, setLatestRows);
+
+  // Dismissed advisory rows (by song id) — non-destructive, local-only (SYNC-02).
+  const [dismissedIds, setDismissedIds] = useState<Set<number>>(new Set());
+
+  // One-time offline reassurance line (D-08): appears on an online→offline drop
+  // and auto-clears on return-to-online. A calm LINE, never a banner.
+  const [offlineNoticeVisible, setOfflineNoticeVisible] = useState(false);
+  useEffect(() => {
+    setOfflineNoticeVisible(!online);
+  }, [online]);
+
+  // Advisory suggestions = the next 1–2 un-logged editor songs (deduped by the
+  // pure core diff, D-02) plus fill-??? hints (D-04), recomputed only when the
+  // latest rows or the trail change — the orbit never re-lays-out (SHOW-02).
+  const suggestions = useMemo(
+    () =>
+      diffLatestAgainstTrail(
+        latestRows,
+        session.entries,
+        config.live.SUGGESTION_COUNT,
+      ),
+    [latestRows, session.entries],
+  );
+  const fillHints = useMemo(
+    () => resolvePlaceholders(latestRows, session.entries),
+    [latestRows, session.entries],
+  );
+
+  // D-07 guarded auto-bind: after a poll, if the show is unbound AND latest's
+  // date matches this show's date, write the canonical show_id/venue once. The
+  // wrong-show/date guard + never-overwrite live in the pure core decision fn.
+  const activeShow = session.active;
+  useEffect(() => {
+    if (!activeShow) return;
+    if (activeShow.showId !== null) return;
+    const binding = bindShowFromLatest(latestRows, activeShow, activeShow.date);
+    if (binding) void bindShow(activeShow.sessionId, binding);
+  }, [latestRows, activeShow]);
+
   // Hold a screen wake lock while a show is active (SHOW-12); reacquire on
   // return-to-visible is handled inside wakeLock.ts. The effect runs before the
   // early returns below (hooks must be unconditional), keyed off whether a show
@@ -78,6 +140,9 @@ export function ShowView() {
   useEffect(() => {
     wakeDismissedRef.current = false;
     setWakeNoticeVisible(false);
+    // A new night starts with a clean advisory strip — dismissals don't leak
+    // across shows (ShowView stays mounted; session.active merely toggles).
+    setDismissedIds(new Set());
   }, [activeSessionId]);
 
   useEffect(() => {
@@ -169,6 +234,44 @@ export function ShowView() {
   const handleEncore = () => void markEncore(sessionId);
   const handleUndo = () => void undoLast(sessionId);
 
+  // Adopt an editor suggestion (D-03): a no-confirm advisory→logged fast path.
+  // adoptSuggestion stamps source:"editor" and classifies hit/miss against the
+  // fan on screen with the SAME rule as a manual log — the tally stays honest
+  // (T-05-10). The write-through re-derives the trail/tally + drops the adopted
+  // song out of the strip (deduped, D-02) via useLiveQuery — no useState mirror.
+  const handleAdopt = (suggestion: Suggestion) => {
+    void adoptSuggestion(sessionId, {
+      songId: suggestion.songId,
+      songName: suggestion.songName,
+      shownFanSongIds: session.shownFanSongIds,
+    });
+  };
+
+  // Dismiss is non-destructive: nothing is logged, manual tracking untouched
+  // (SYNC-02). The row is filtered out of the strip locally by song id (D-01).
+  const handleDismiss = (songId: number) => {
+    setDismissedIds((prev) => new Set(prev).add(songId));
+  };
+
+  // Fill a "???" placeholder from the editor's name (D-04) — user-initiated via
+  // the Pencil control (never auto-applied). Reuses TrailNodeSheet's rename-path
+  // classification: re-classify the outcome against the placeholder entry's own
+  // stored fan so filling it honestly flips hit/miss, then write via renameEntry.
+  const handleFill = (hint: FillHint) => {
+    const entry = session.entries.find((e) => e.position === hint.entryPosition);
+    if (entry?.id == null) return;
+    const outcome = entry.shownFanSongIds
+      ? classifyOutcome(hint.songId, entry.shownFanSongIds)
+      : entry.outcome;
+    void renameEntry(entry.id, hint.songId, hint.songName, outcome);
+  };
+
+  // Filter dismissed rows out of the advisory strip (SYNC-02, local-only).
+  const visibleSuggestions = suggestions.filter(
+    (s) => !dismissedIds.has(s.songId),
+  );
+  const visibleFillHints = fillHints.filter((h) => !dismissedIds.has(h.songId));
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       {/* Region 1 — Show-Mode header slot extending the AppShell chrome: the
@@ -181,6 +284,8 @@ export function ShowView() {
           {session.active.date}
         </span>
         <div className="flex items-center gap-3">
+          {/* Quiet online/offline indicator (D-08) — passive, next to the tally. */}
+          <SyncDot online={online} />
           <TallyReadout tally={session.tally} />
           {/* End Show finalize control (D-04) — opens a destructive confirm; it
               never ends the show on this tap. Required before the next night can
@@ -195,6 +300,14 @@ export function ShowView() {
           </button>
         </div>
       </div>
+
+      {/* D-08 offline reassurance: a one-time calm LINE on a connectivity drop,
+          auto-clearing on return-to-online. Never a banner, never blocking. */}
+      {offlineNoticeVisible && (
+        <p className="shrink-0 border-b border-hairline bg-elevated px-4 py-2 text-base leading-tight text-text-muted">
+          {config.copy.live.offlineReassurance}
+        </p>
+      )}
 
       {/* SHOW-12 fallback: shown once per show only when the wake lock is
           unsupported/false-positive. The reacquire path is silent (no copy). */}
@@ -219,6 +332,18 @@ export function ShowView() {
         candidates={session.currentSongId === null ? [] : session.fan}
         onTapOrb={handleTapOrb}
         onWhy={setWhyCandidate}
+      />
+
+      {/* SuggestionStrip (05-04, D-01): the advisory editor songs + fill-???
+          hints, in a FIXED-height slot directly above the ActionBar so its
+          appearing/dismissing never re-lays-out the orbit (SHOW-02). Adopt logs
+          source:"editor"; dismiss is non-destructive; fill routes through rename. */}
+      <SuggestionStrip
+        suggestions={visibleSuggestions}
+        fillHints={visibleFillHints}
+        onAdopt={handleAdopt}
+        onDismiss={handleDismiss}
+        onFill={handleFill}
       />
 
       {/* Region 4 — the persistent D-13 action bar, mounted in BOTH the
