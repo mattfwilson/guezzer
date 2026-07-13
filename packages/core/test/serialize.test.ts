@@ -70,13 +70,27 @@ describe("serializeExport — D-09 envelope shape", () => {
     expect(Number.isNaN(Date.parse(exportedAt))).toBe(false);
   });
 
-  it("carries the four data arrays through verbatim (identity, no mutation)", () => {
+  it("carries meta/attendedShows/trackedShows through verbatim (identity, no mutation)", () => {
     const snap = sampleSnapshot();
     const out = serializeExport(snap, 1);
     expect(out.meta).toBe(snap.meta);
     expect(out.attendedShows).toBe(snap.attendedShows);
     expect(out.trackedShows).toBe(snap.trackedShows);
-    expect(out.trackedEntries).toBe(snap.trackedEntries);
+  });
+
+  it("carries trackedEntries values through, minus the volatile id (CR-01 / T-05-07)", () => {
+    const snap = sampleSnapshot();
+    const out = serializeExport(snap, 1);
+    // Not the same array reference — id is stripped via a map — but every
+    // other field passes through unchanged.
+    expect(out.trackedEntries).not.toBe(snap.trackedEntries);
+    const { id: _id, ...expected } = snap.trackedEntries[0];
+    expect(out.trackedEntries[0]).toEqual(expected);
+  });
+
+  it("omits the volatile device-local id from every exported trackedEntry (CR-01 / T-05-07)", () => {
+    const out = serializeExport(sampleSnapshot(), 1);
+    expect(out.trackedEntries.every((e) => !("id" in e))).toBe(true);
   });
 
   it("round-trips through exportEnvelope.parse without throwing", () => {

@@ -149,6 +149,35 @@ describe("parseAndMergeImport — union merge never drops local (D-10)", () => {
   });
 });
 
+describe("parseAndMergeImport — id-less merge output (CR-01 / T-05-07)", () => {
+  it("preserves both a local and an incoming entry that share a numeric id but differ in (sessionId, position), and strips id from the result", () => {
+    const local: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "A", date: "2026-08-01" })],
+      trackedEntries: [
+        entry({ sessionId: "A", position: 1, id: 1, songName: "Local" }),
+      ],
+    };
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "B", date: "2026-08-02" })],
+      trackedEntries: [
+        entry({ sessionId: "B", position: 1, id: 1, songName: "Incoming" }),
+      ],
+    };
+    const result = parseAndMergeImport(rawExport(incoming), local, SCHEMA_VERSION);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.merged.trackedEntries).toHaveLength(2);
+      expect(result.merged.trackedEntries.every((e) => e.id === undefined)).toBe(
+        true,
+      );
+      const names = result.merged.trackedEntries.map((e) => e.songName).sort();
+      expect(names).toEqual(["Incoming", "Local"]);
+    }
+  });
+});
+
 describe("parseAndMergeImport — same-show dedupe (D-11)", () => {
   it("collapses a night tracked on two devices (same show_id) to ONE attendance, keeping the richer setlist", () => {
     // Local device: bound show 999, only 1 song logged.
@@ -214,6 +243,35 @@ describe("parseAndMergeImport — same-show dedupe (D-11)", () => {
     const result = parseAndMergeImport(rawExport(incoming), local, SCHEMA_VERSION);
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.merged.trackedShows).toHaveLength(2);
+  });
+
+  it("WR-01: on an entry-count TIE within the same attendance group, the LOCAL show wins (local survives)", () => {
+    // Both devices tracked the same bound show (999) with an EQUAL entry
+    // count — a genuine tie must never drop the local-unique night in
+    // favour of the incoming copy (D-10 "local survives").
+    const local: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "dev-local", showId: 999 })],
+      trackedEntries: [
+        entry({ sessionId: "dev-local", position: 1, songName: "LocalOnly" }),
+      ],
+    };
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "dev-incoming", showId: 999 })],
+      trackedEntries: [
+        entry({ sessionId: "dev-incoming", position: 1, songName: "IncomingOnly" }),
+      ],
+    };
+    const result = parseAndMergeImport(rawExport(incoming), local, SCHEMA_VERSION);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.merged.trackedShows).toHaveLength(1);
+      expect(result.merged.trackedShows[0].sessionId).toBe("dev-local");
+      expect(result.merged.trackedEntries).toHaveLength(1);
+      expect(result.merged.trackedEntries[0].sessionId).toBe("dev-local");
+      expect(result.merged.trackedEntries[0].songName).toBe("LocalOnly");
+    }
   });
 });
 
