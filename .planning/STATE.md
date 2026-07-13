@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-07-09T13:08:35.029Z"
-last_activity: 2026-07-09 -- Phase 04 execution started
+stopped_at: Completed 04-07-PLAN.md (Phase 04 all 7 plans executed; device checks deferred to end-of-phase gate)
+last_updated: "2026-07-13T14:22:00.000Z"
+last_activity: 2026-07-13 -- Completed 04-07 (dark-venue survivability; on-device SHOW-12/13 deferred to end-of-phase gate)
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 21
-  completed_plans: 20
-  percent: 43
+  completed_plans: 21
+  percent: 45
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-08)
 ## Current Position
 
 Phase: 04 (show-mode) — EXECUTING
-Plan: 7 of 7
-Status: Ready to execute
-Last activity: 2026-07-09 -- Phase 04 execution started
+Plan: 7 of 7 — COMPLETE (all plans executed; awaiting end-of-phase device human-verify gate)
+Status: All 04 plans executed; SHOW-12/13 on-device checks deferred to end-of-phase gate
+Last activity: 2026-07-13 -- Completed 04-07 (dark-venue survivability)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100% (7/7 plans executed)
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P04 | 8min | 2 tasks | 6 files |
 | Phase 04 P05 | 6min | 2 tasks | 4 files |
 | Phase 04 P06 | 12min | 3 tasks | 12 files |
+| Phase 04 P07 | ~10min | 2 tasks (+1 deferred device checkpoint) | 9 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,10 @@ Recent decisions affecting current work:
 - [Phase 04]: ActionBar rendered in-flow (not fixed) to stack above the app BottomTabBar without overlap (04-05)
 - [Phase ?]: 04-06: D-15 destructive split — one-tap Undo (no dialog) vs confirm-gated deleteEntry in TrailNodeSheet
 - [Phase ?]: 04-06: CometTrail/TallyReadout are dumb components fed useShowSession live entries/tally; recompute after any edit
+- [Phase 04]: 04-07: wakeLock.ts mirrors persist.ts (feature-detect + try/catch + never-throw) and VERIFIES the sentinel is actually held — an immediate release/rejection is treated as unsupported (defeats iOS <18.4 installed-PWA false-positive, Pitfall 1) → calm once-per-show WakeLockNotice, silent visibilitychange reacquire
+- [Phase 04]: 04-07: gesture suppression is declarative CSS on the stage/action-bar scope (touch-action/overscroll-behavior/user-select, html/body overscroll-behavior-y none) — no preventDefault JS; relies on the 04-04 non-scrolling AppShell seam
+- [Phase 04]: 04-07: End Show is a confirm-gated destructive commit (EndShowDialog → endShow → finalized/read-only, D-04); weak-fan softening needed no new code (already live in OrbitStage from 04-03, EVAL-04)
+- [Phase 04]: 04-07: on-device SHOW-12/SHOW-13 verification (6 steps) deferred by user approval 2026-07-13 to the end-of-phase device human-verify gate — NOT skipped
 
 ### Pending Todos
 
@@ -89,7 +94,7 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 1] Open schema items to instrument during full corpus ingest: multi-set `setnumber` representation, `transition_id: 4` meaning, tease notation location, silent filter-ignore gotcha
-- [Phase 4] iOS PWA lifecycle is device/version-specific — plan a real-iPhone spike early (force-quit restore, wake lock on oldest iOS in friend group)
+- [Phase 4] iOS PWA lifecycle spike — DEFERRED to end-of-phase device human-verify gate (user approval 2026-07-13). Wake lock + gesture suppression code landed in 04-07 (verify-held guard defeats the iOS <18.4 installed-PWA false-positive; calm WakeLockNotice fallback). The six on-device SHOW-12/SHOW-13 perceptual checks (installed-PWA wake-lock hold + silent reacquire + pre-18.4 fallback + gesture suppression + weak-fan softening + End Show finalize) must be run on the oldest iOS device in the friend group before show #1; record tested iOS/device versions then — that resolves this blocker. See 04-07-SUMMARY.md "Deferred Human Verification".
 - [Phase 7] Canvas label rendering quality at ~250 nodes on small screens needs a spike
 
 ## Deferred Items
@@ -102,6 +107,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-09T13:08:07.776Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-07-13T14:22:00.000Z
+Stopped at: Completed 04-07-PLAN.md (Phase 04 all 7 plans executed; on-device SHOW-12/13 deferred to end-of-phase gate)
 Resume file: None

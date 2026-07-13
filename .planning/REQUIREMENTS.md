@@ -52,8 +52,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SHOW-09** 🎯: Running hit/miss tally for the night is persistently visible
 - [x] **SHOW-10** 🎯: Each orb carries a one-line "why" explanation, with a tappable detail view
 - [x] **SHOW-11** 🎯: Every confirmed song is written through to IndexedDB immediately; an interrupted session restores exactly on relaunch (iOS discards PWA state on app switch)
-- [ ] **SHOW-12** 🎯: Screen wake lock is held during an active show, reacquired on visibility change, with feature-detection fallback messaging
-- [ ] **SHOW-13** 🎯: Dark theme, fat-thumb tap targets, accidental-gesture suppression — usable one-handed in a dark crowded venue by a possibly slightly drunk operator
+- [x] **SHOW-12** 🎯: Screen wake lock is held during an active show, reacquired on visibility change, with feature-detection fallback messaging *(code complete in 04-07 — verify-held guard + silent reacquire + calm WakeLockNotice fallback; on-device installed-PWA confirmation deferred to end-of-phase device gate, user approval 2026-07-13)*
+- [x] **SHOW-13** 🎯: Dark theme, fat-thumb tap targets, accidental-gesture suppression — usable one-handed in a dark crowded venue by a possibly slightly drunk operator *(code complete in 04-07 — declarative gesture-suppression CSS on the non-scrolling stage/action bar; on-device confirmation deferred to end-of-phase device gate, user approval 2026-07-13)*
 - [ ] **SHOW-14**: Post-show recap view: hit/miss tally, final setlist with set structure, and show rarity score
 
 ### Live Sync
@@ -178,8 +178,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHOW-09 | Phase 4 | Complete |
 | SHOW-10 | Phase 4 | Complete |
 | SHOW-11 | Phase 4 | Complete |
-| SHOW-12 | Phase 4 | Pending |
-| SHOW-13 | Phase 4 | Pending |
+| SHOW-12 | Phase 4 | Complete (device verification deferred to end-of-phase gate) |
+| SHOW-13 | Phase 4 | Complete (device verification deferred to end-of-phase gate) |
 | SHOW-14 | Phase 6 | Pending |
 | SYNC-01 | Phase 5 | Pending |
 | SYNC-02 | Phase 5 | Pending |
@@ -215,4 +215,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-07-08*
-*Last updated: 2026-07-08 after roadmap creation (traceability populated)*
+*Last updated: 2026-07-13 — 04-07 marked SHOW-12/SHOW-13 code-complete (on-device confirmation deferred to end-of-phase device human-verify gate)*

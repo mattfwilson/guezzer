@@ -108,7 +108,7 @@ Plans:
   4. Force-quitting the app mid-show and relaunching restores the exact session state (every confirmed song write-through to IndexedDB), and the screen wake lock is held and reacquired on visibility change with fallback messaging
   5. The whole loop is usable one-handed in a dark venue (dark theme, fat targets, gesture suppression), confidence framing honestly reflects the backtest's free-choice accuracy, and the live-tracked show automatically counts as attended
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans executed (on-device SHOW-12/13 checks deferred to end-of-phase device human-verify gate)
 Plans:
 **Wave 1**
 
@@ -133,7 +133,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 04-07-PLAN.md — Wake lock + gesture suppression + weak-fan softening + End Show + device spike (SHOW-12/13, EVAL-04)
+- [x] 04-07-PLAN.md — Wake lock + gesture suppression + weak-fan softening + End Show (SHOW-12/13, EVAL-04) — code complete; 6-step on-device device spike deferred to end-of-phase gate
 
 **UI hint**: yes
 
