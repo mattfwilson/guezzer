@@ -58,9 +58,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Live Sync
 
-- [ ] **SYNC-01** 🎯: During an active show, the app polls the kglw.net `latest` endpoint at most once every 60 seconds — never the full `setlists` endpoint from client devices
-- [ ] **SYNC-02** 🎯: Editor-logged songs are offered as suggestions only (manual entry is primary); dedupe by song ID; no auto-merge into the user's trail
-- [ ] **SYNC-03** 🎯: The app is fully functional offline once loaded; polling resumes silently when signal returns
+- [x] **SYNC-01** 🎯: During an active show, the app polls the kglw.net `latest` endpoint at most once every 60 seconds — never the full `setlists` endpoint from client devices *(verified in 05-VERIFICATION.md — single self-scheduling setTimeout, 60s interval, no `setlists` endpoint referenced)*
+- [x] **SYNC-02** 🎯: Editor-logged songs are offered as suggestions only (manual entry is primary); dedupe by song ID; no auto-merge into the user's trail *(verified in 05-VERIFICATION.md — dedupe by song_id, explicit tap/swipe adopt only, no auto-apply path)*
+- [x] **SYNC-03** 🎯: The app is fully functional offline once loaded; polling resumes silently when signal returns *(code complete — verified in 05-VERIFICATION.md; on-device airplane-mode confirmation deferred to end-of-phase device gate, see 05-HUMAN-UAT.md)*
 
 ### PWA & Persistence
 
@@ -181,9 +181,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHOW-12 | Phase 4 | Complete (device verification deferred to end-of-phase gate) |
 | SHOW-13 | Phase 4 | Complete (device verification deferred to end-of-phase gate) |
 | SHOW-14 | Phase 6 | Pending |
-| SYNC-01 | Phase 5 | Pending |
-| SYNC-02 | Phase 5 | Pending |
-| SYNC-03 | Phase 5 | Pending |
+| SYNC-01 | Phase 5 | Complete |
+| SYNC-02 | Phase 5 | Complete |
+| SYNC-03 | Phase 5 | Complete (device verification deferred to end-of-phase gate) |
 | PWA-01 | Phase 3 | Complete |
 | PWA-02 | Phase 3 | Complete |
 | PWA-03 | Phase 3 | Complete |
