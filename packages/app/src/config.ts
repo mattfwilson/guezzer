@@ -57,6 +57,36 @@ export const config = {
     TRAIL_NODE_MAX_DIAMETER: 40,
   },
 
+  /**
+   * Phase-5 live-sync tunables (05-UI-SPEC §Config surface). Single-config-file
+   * ethos (CLAUDE.md) — no scattered magic numbers.
+   */
+  live: {
+    /**
+     * Minimum poll cadence in ms — the HARD floor for hitting the volunteer-run
+     * `latest` endpoint. Never poll below this (SYNC-01: ≤1 request / 60s).
+     */
+    POLL_INTERVAL_MS: 60000,
+    /** Adaptive-backoff ceiling in ms when the show is idle (D-06, optional). */
+    POLL_MAX_INTERVAL_MS: 300000,
+    /** Max un-logged editor suggestions shown in the strip at once (D-02). */
+    SUGGESTION_COUNT: 2,
+  },
+
+  /** Phase-5 UI geometry (05-UI-SPEC §Config surface). */
+  ui: {
+    /** Fixed SuggestionStrip slot height in px so the orbit never re-lays-out (SHOW-02 preservation). */
+    SUGGESTION_STRIP_HEIGHT: 56,
+    /** SyncDot glyph diameter in px (online = filled, offline = hollow ring). */
+    SYNC_DOT_DIAMETER: 8,
+  },
+
+  /** Phase-5 data-safety tunables (05-UI-SPEC §Config surface). */
+  dataSafety: {
+    /** Export envelope `schemaVersion` stamped by serializeExport / checked on import (D-09/D-12). */
+    SCHEMA_VERSION: 1,
+  },
+
   /** UI-SPEC §Copywriting Contract. */
   copy: {
     installBanner: {
@@ -149,6 +179,64 @@ export const config = {
       /** Matrix artifact load failure (full-stage state). */
       modelLoadFailureHeading: "Couldn't load the prediction model.",
       modelLoadFailureBody: "Reopen Guezzer to try again.",
+    },
+
+    /**
+     * Phase-5 live-sync copy (05-UI-SPEC §Copywriting Contract) — verbatim. The
+     * throughline is "second set of eyes, never a clobber": suggestions are
+     * advisory. No component hardcodes these — they READ these keys.
+     */
+    live: {
+      /** Suggestion eyebrow — the editor-provenance label, muted (D-01/D-02). */
+      suggestionEyebrow: "kglw editor",
+      /** One-time subtle adopt/dismiss hint above the SuggestionStrip. */
+      suggestionAdoptHint: "Tap Add to log it · swipe or tap ✕ to dismiss",
+      /** Fill-??? hint eyebrow, muted (D-04). */
+      fillPlaceholderEyebrow: "Fill in ???",
+      /** Fill-??? body — never auto-applied; reuses the rename path (D-04). */
+      fillPlaceholderBody: (songName: string): string =>
+        `Editor logged ${songName} here — tap to fill it in.`,
+      /** SyncDot offline reassurance line, shown once per drop, auto-dismissing (D-08). */
+      offlineReassurance:
+        "Offline — tracking still works. It'll resync when signal returns.",
+    },
+
+    /**
+     * Phase-5 Settings / data-safety copy (05-UI-SPEC §Copywriting Contract) —
+     * verbatim. Data safety is reassuring, not alarming: "the export is the real
+     * backstop". No component hardcodes these — they READ these keys.
+     */
+    settings: {
+      /** AppMenu entry label + gear icon route to #/settings (D-14). */
+      menuLabel: "Settings",
+      /** The single Backup & data section heading. */
+      sectionHeading: "Backup & data",
+      /** Primary phase CTA (accent). */
+      exportCta: "Export backup",
+      /** Import CTA (neutral). */
+      importCta: "Import backup",
+      exportDescription:
+        "Save all your shows, setlists, and dex to a file. Losing your phone won't lose your dex.",
+      importDescription:
+        "Merge a backup file. Your existing data is never overwritten.",
+      /** Export success confirmation (Settings + auto-download), muted, non-blocking. */
+      exportSuccess: "Backup saved.",
+      exportSuccessDetail: "Check your downloads.",
+      /** Import success (D-10/D-11): heading + a counts template. */
+      importSuccessHeading: "Backup merged.",
+      importSuccessBody: (shows: number, songs: number): string =>
+        `${shows} shows and ${songs} songs added. Nothing was removed.`,
+      /** Import error — corrupt/unrecognized file rejected before any DB write (D-12). */
+      importErrorHeading: "That's not a Guezzer backup.",
+      importErrorBody:
+        "Nothing changed. Pick a valid export file and try again.",
+      /** Storage-protection readout (D-13). */
+      storageProtected: "Storage is protected on this device.",
+      storageNotProtected: "Your device may clear Guezzer's data.",
+      storageNotProtectedBody:
+        "Export a backup now and again to keep your dex safe.",
+      /** End-Show auto-backup confirmation (D-13) — a single confirmation, not a per-show nag. */
+      endShowBackupConfirmation: "Backup saved to your downloads.",
     },
   },
 } as const;
