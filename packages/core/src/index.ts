@@ -132,3 +132,14 @@ export {
   type TrackedShowInput,
   type ShowBinding,
 } from "./live/bind-show.ts";
+
+/**
+ * Phase 5 data-safety core (plan 05-02). Pure, DOM-free, dependency-injected —
+ * the app tier (plan 05-05) owns only the DOM download/upload and the atomic
+ * Dexie write. `exportEnvelope` is the strict D-09 schema; `serializeExport` is
+ * the pure export assembler; `parseAndMergeImport` validates→migrates→
+ * union-merges→same-show-dedupes entirely in memory, rejecting bad files whole
+ * (D-10/D-11/D-12) and never dropping a local row.
+ */
+export { exportEnvelope, type ExportEnvelope } from "./data-safety/export-schema.ts";
+export { serializeExport, type ExportSnapshot } from "./data-safety/serialize.ts";
