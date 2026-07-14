@@ -1,14 +1,14 @@
 ---
-status: partial
+status: resolved
 phase: 05-live-sync-data-safety
 source: [05-VERIFICATION.md]
 started: 2026-07-13T23:43:31Z
-updated: 2026-07-13T23:43:31Z
+updated: 2026-07-14T04:55:00Z
 ---
 
 ## Current Test
 
-[awaiting human testing]
+[all tests complete]
 
 ## Tests
 
@@ -22,14 +22,14 @@ result: passed — verified 2026-07-14 via automated Playwright browser drive (m
 
 ### 3. End-show auto-download on installed iOS PWA
 expected: End a show on an installed iOS PWA. Backup JSON auto-downloads with a muted confirmation; a persist-denied warning shows at most once.
-result: [pending — device check only. All browser-verifiable behavior passed via automated Playwright drive 2026-07-14 (14/14 checks): download fires on End-Show confirm with dated `guezzer-backup-YYYY-MM-DD.json` filename; envelope parses (schemaVersion 1) and contains the finalized show + logged entry; muted nudge shown; persist-denied warning shown exactly once across two show cycles (forced-denied context) and never in a persisted context; no console errors. Repeated over the real HTTPS tunnel origin (trycloudflare) incl. active service worker. Remaining open question is solely iOS standalone-PWA download UX — QR + 90s checklist artifact prepared for the owner.]
+result: passed — verified on-device 2026-07-14 (iPhone, installed PWA over trycloudflare HTTPS tunnel): owner confirmed the end-show backup downloads from the standalone app per the checklist (install → show cycle → backup in Files/Downloads). All browser-verifiable behavior had already passed via automated Playwright drive (14/14 checks): download fires on End-Show confirm with dated `guezzer-backup-YYYY-MM-DD.json` filename; envelope parses (schemaVersion 1) and contains the finalized show + logged entry; muted nudge shown; persist-denied warning shown exactly once across two show cycles (forced-denied context) and never in a persisted context; no console errors — repeated over the real HTTPS tunnel origin incl. active service worker.
 
 ## Summary
 
 total: 3
-passed: 2
+passed: 3
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 

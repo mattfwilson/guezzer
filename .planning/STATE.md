@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 5 UI-SPEC approved
-last_updated: "2026-07-13T23:21:35.293Z"
-last_activity: 2026-07-13 -- Phase 05 execution started
+stopped_at: UAT Test 3 — automated halves passed (14/14 Playwright checks + HTTPS tunnel smoke); awaiting owner's 90-second iPhone check via trycloudflare tunnel + QR checklist artifact
+last_updated: "2026-07-14T04:07:08.335Z"
+last_activity: 2026-07-14
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 27
-  completed_plans: 26
-  percent: 57
+  completed_plans: 27
+  percent: 71
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-08)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 05 — live-sync-data-safety
+**Current focus:** Phase 06 — pokédex, history & stats
 
 ## Current Position
 
-Phase: 05 (live-sync-data-safety) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 05
-Last activity: 2026-07-14 -- UAT Test 2 passed (automated browser drive); mockLatest harness + dismissal slot-freeing fix shipped
+Phase: 6
+Plan: Not started
+Status: Phase 05 COMPLETE (verified passed, UAT 3/3) — Phase 06 ready to discuss/plan
+Last activity: 2026-07-14
 
-Progress: [██████████] 100% (7/7 plans executed)
+Progress: [███████░░░] 71% (5/7 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 21
+- Total plans completed: 27
 - Average duration: -
 - Total execution time: 0 hours
 
@@ -46,6 +46,7 @@ Progress: [██████████] 100% (7/7 plans executed)
 |-------|-------|-------|----------|
 | 02 | 5 | - | - |
 | 04 | 7 | - | - |
+| 05 | 6 | - | - |
 
 **Recent Trend:**
 
@@ -117,5 +118,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-07-14
-Stopped at: UAT Test 3 — automated halves passed (14/14 Playwright checks + HTTPS tunnel smoke); awaiting owner's 90-second iPhone check via trycloudflare tunnel + QR checklist artifact
-Resume file: .planning/phases/05-live-sync-data-safety/05-HUMAN-UAT.md
+Stopped at: Phase 05 completed — UAT Test 3 passed on-device (installed iOS PWA over HTTPS tunnel), verification flipped to passed, phase.complete run. Next: Phase 06 (pokédex, history & stats) discuss/plan.
+Resume file: none

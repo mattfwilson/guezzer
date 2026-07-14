@@ -1,7 +1,7 @@
 ---
 phase: 05-live-sync-data-safety
-verified: 2026-07-13T23:50:00Z
-status: human_needed
+verified: 2026-07-14T04:55:00Z
+status: passed
 score: 4/4 must-haves verified
 overrides_applied: 0
 re_verification:
@@ -18,8 +18,8 @@ re_verification:
 # Phase 5: Live Sync + Data Safety Verification Report
 
 **Phase Goal:** The app politely borrows kglw.net's live editors as a second set of eyes without ever clobbering manual tracking, and losing a phone can never mean losing a dex.
-**Verified:** 2026-07-13
-**Status:** human_needed
+**Verified:** 2026-07-14 (human verification complete)
+**Status:** passed
 **Re-verification:** Yes — after gap closure (plan 05-06 + a same-session follow-up fix)
 
 ## Goal Achievement
@@ -97,7 +97,9 @@ No debt markers (`TBD`/`FIXME`/`XXX`) found in any file touched by the gap-closu
 
 ### Human Verification Required
 
-(Carried forward unchanged from the prior verification round — none of these are affected by the gap-closure fix, and none can be resolved by static inspection.)
+**ALL THREE RESOLVED — see 05-HUMAN-UAT.md (status: resolved, 3/3 passed).** Test 1 passed on-device 2026-07-14; Test 2 passed via automated Playwright drive 2026-07-14 (owner-approved method); Test 3 passed on-device 2026-07-14 (installed iOS PWA over HTTPS tunnel), pre-verified by a 14/14 automated Playwright drive.
+
+(Original items, carried forward unchanged from the prior verification round — none of these are affected by the gap-closure fix, and none can be resolved by static inspection.)
 
 1. **Offline resilience** — Enable airplane mode during an active show; keep logging songs; re-enable network. Expected: app stays fully functional offline (orbit, logging, trail), no error banner, polling resumes silently within one interval when signal returns. Why human: runtime online/offline transition and silent-resume behavior cannot be verified statically.
 2. **Suggestion adopt/dismiss + layout stability** — Tap Add on an editor suggestion; dismiss another via both tap-X and horizontal swipe. Expected: adopt logs the song (`source:'editor'`, correct hit/miss); dismiss removes the row with nothing logged; the orbit fan above never re-lays-out. Why human: visual layout stability and gesture behavior are UI-runtime concerns.
@@ -110,9 +112,9 @@ No gaps remain. All four Phase 5 success criteria are now code-verified:
 - SYNC-01/02/03 ("second set of eyes" half of the goal) were already VERIFIED in the prior round and are confirmed unchanged (zero files under `src/live/` touched by the gap-closure session).
 - PWA-04 ("losing a phone can never mean losing a dex" half of the goal), the previously FAILED criterion, is now VERIFIED: the CR-01 id-collision data-loss defect is fixed at its root (id stripped at the merge boundary, logical-identity commit in `importSnapshot`), the WR-01 tie-break now keeps the local setlist, and a same-session follow-up fix closed a sibling defect (orphaned `trackedShows` duplicate on a dedupe-collapse) that code review caught before it could ship. All fixes are backed by regression tests confirmed (by direct read) to assert on the exact previously-broken behavior, not just on the pure in-memory merge function. The full 271-test suite passes and both packages typecheck cleanly.
 
-Status is `human_needed` rather than `passed` only because the three runtime/device checks above (offline transition, gesture/layout behavior, installed-iOS-PWA auto-download) were already deferred to human verification in the prior round and remain outstanding — they are unrelated to the gap that was closed.
+Status flipped from `human_needed` to `passed` on 2026-07-14: all three deferred runtime/device checks (offline transition, gesture/layout behavior, installed-iOS-PWA auto-download) passed human/automated UAT — see 05-HUMAN-UAT.md for per-test evidence.
 
 ---
 
-_Verified: 2026-07-13_
-_Verifier: Claude (gsd-verifier)_
+_Verified: 2026-07-13 (code) / 2026-07-14 (human UAT complete)_
+_Verifier: Claude (gsd-verifier); human UAT: owner_
