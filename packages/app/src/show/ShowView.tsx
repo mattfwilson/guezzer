@@ -95,16 +95,20 @@ export function ShowView() {
   }, [online]);
 
   // Advisory suggestions = the next 1–2 un-logged editor songs (deduped by the
-  // pure core diff, D-02) plus fill-??? hints (D-04), recomputed only when the
-  // latest rows or the trail change — the orbit never re-lays-out (SHOW-02).
+  // pure core diff, D-02) plus fill-??? hints (D-04), recomputed when the
+  // latest rows, the trail, or dismissals change — the orbit never re-lays-out
+  // (SHOW-02). dismissedIds is passed INTO the diff (not post-filtered) so a
+  // dismissed song frees its slot and the next editor song slides in (D-01 —
+  // UAT Test 2 found the old post-filter emptied the strip after 2 dismissals).
   const suggestions = useMemo(
     () =>
       diffLatestAgainstTrail(
         latestRows,
         session.entries,
         config.live.SUGGESTION_COUNT,
+        dismissedIds,
       ),
-    [latestRows, session.entries],
+    [latestRows, session.entries, dismissedIds],
   );
   const fillHints = useMemo(
     () => resolvePlaceholders(latestRows, session.entries),
@@ -266,10 +270,9 @@ export function ShowView() {
     void renameEntry(entry.id, hint.songId, hint.songName, outcome);
   };
 
-  // Filter dismissed rows out of the advisory strip (SYNC-02, local-only).
-  const visibleSuggestions = suggestions.filter(
-    (s) => !dismissedIds.has(s.songId),
-  );
+  // Dismissals are already excluded inside the diff (slot-freeing, D-01);
+  // fill-hints still post-filter since resolvePlaceholders is position-keyed.
+  const visibleSuggestions = suggestions;
   const visibleFillHints = fillHints.filter((h) => !dismissedIds.has(h.songId));
 
   return (

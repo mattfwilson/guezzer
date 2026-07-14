@@ -56,11 +56,19 @@ export interface FillHint {
  * logged song ids: a song the user already logged NEVER reappears as a
  * suggestion (D-02 — filter only, never contradict a logged position). A trail
  * whose logged song_ids cover all latest rows yields `[]`.
+ *
+ * `excludeSongIds` (the app's locally-dismissed rows, D-01) is applied BEFORE
+ * the slot fill, so a dismissed song frees its slot and the NEXT un-logged
+ * editor song slides in. Found by Phase-5 UAT (Test 2): the app previously
+ * filtered dismissed ids AFTER this function truncated to `suggestionCount`,
+ * so two dismissals emptied the strip for the rest of the show even with more
+ * un-logged editor songs queued.
  */
 export function diffLatestAgainstTrail(
   latestRows: LatestSetlistRow[],
   trail: TrailEntryInput[],
   suggestionCount = 2,
+  excludeSongIds?: ReadonlySet<number>,
 ): Suggestion[] {
   const loggedSongIds = new Set<number>();
   for (const entry of trail) {
@@ -75,6 +83,7 @@ export function diffLatestAgainstTrail(
   for (const row of ordered) {
     if (suggestions.length >= suggestionCount) break;
     if (loggedSongIds.has(row.song_id)) continue;
+    if (excludeSongIds?.has(row.song_id)) continue;
     suggestions.push({
       songId: row.song_id,
       songName: row.songname,

@@ -47,6 +47,24 @@ describe("diffLatestAgainstTrail (SYNC-02 / D-02)", () => {
     expect(result.map((s) => s.songId)).toEqual([100, 200, 300]);
   });
 
+  it("a dismissed (excluded) song frees its slot — the next editor song slides in (D-01, UAT Test 2)", () => {
+    // Dismissing A must surface C in the freed slot, not shrink the strip.
+    const result = diffLatestAgainstTrail(latest, [], 2, new Set([100]));
+    expect(result.map((s) => s.songId)).toEqual([200, 300]);
+  });
+
+  it("dismissing every visible suggestion surfaces the remaining queue, never an empty strip with songs left", () => {
+    // The pre-fix defect: excluding after truncation left [] here.
+    const result = diffLatestAgainstTrail(latest, [], 2, new Set([100, 200]));
+    expect(result.map((s) => s.songId)).toEqual([300]);
+  });
+
+  it("exclusions and trail dedupe compose", () => {
+    const trail = [entry({ position: 1, songId: 100 })];
+    const result = diffLatestAgainstTrail(latest, trail, 2, new Set([200]));
+    expect(result.map((s) => s.songId)).toEqual([300]);
+  });
+
   it("orders by position even when latest rows arrive out of order", () => {
     const shuffled = [
       row({ song_id: 300, position: 3 }),
