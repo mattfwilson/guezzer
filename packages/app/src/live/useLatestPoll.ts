@@ -34,6 +34,7 @@
 import { useEffect, useRef } from "react";
 import { pollLatest, type LatestSetlistRow } from "@guezzer/core";
 import { config } from "../config.ts";
+import { getMockLatestFetch, MOCK_FIRST_TICK_MS } from "./mockLatest.ts";
 import { useOnlineStatus } from "./useOnlineStatus.ts";
 
 /**
@@ -43,6 +44,15 @@ import { useOnlineStatus } from "./useOnlineStatus.ts";
  */
 const boundFetch: typeof globalThis.fetch = (input, init) =>
   globalThis.fetch(input, init);
+
+/**
+ * TEST HARNESS (260713-wjd): non-null ONLY when the URL carries
+ * `?mockLatest=1` — the poller then serves fixture rows through the SAME
+ * pipeline (validation, artist gate, diff) with a ~2s first tick instead of
+ * the 60s floor. Read once at module load; the flag can't change without a
+ * reload. Null on every normal load → behavior identical to before.
+ */
+const mockLatestFetch = getMockLatestFetch();
 
 export function useLatestPoll(
   active: { sessionId: string } | undefined,
@@ -92,7 +102,7 @@ export function useLatestPoll(
       }
 
       try {
-        const rows = await pollLatest({ fetch: boundFetch });
+        const rows = await pollLatest({ fetch: mockLatestFetch ?? boundFetch });
         if (cancelled) return;
         onRowsRef.current(rows);
         // Backoff bookkeeping: reset on any rows, grow on an empty poll.
@@ -110,7 +120,9 @@ export function useLatestPoll(
     };
 
     // Arm the FIRST tick one interval out — never an immediate burst on mount.
-    scheduleNext(config.live.POLL_INTERVAL_MS);
+    // (Mock harness: ~2s first tick so UAT doesn't wait out the 60s floor —
+    // no real request is made on that tick, the fetch is the fixture stub.)
+    scheduleNext(mockLatestFetch ? MOCK_FIRST_TICK_MS : config.live.POLL_INTERVAL_MS);
 
     return () => {
       cancelled = true;
