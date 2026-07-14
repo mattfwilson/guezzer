@@ -1,10 +1,11 @@
 ---
 phase: 6
 slug: pok-dex-history-stats
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-14
+reviewed_at: 2026-07-14
 ---
 
 # Phase 6 — UI Design Contract
