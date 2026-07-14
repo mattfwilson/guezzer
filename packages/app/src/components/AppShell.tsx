@@ -25,8 +25,17 @@ export function AppShell({
   // underneath one of those overlays. See pwa/bottomOverlayInset.ts.
   const overlayInset = useBottomOverlayInset();
 
+  // Bug fix (debug session: start-show-not-clickable) — height is `h-full`
+  // ONLY, never `min-h-screen`. The `html/body/#root { height:100% }` chain
+  // (styles.css) grounds `h-full` to the real VISIBLE viewport (and it already
+  // respects body's safe-area padding). `min-h-screen` (=100vh) is the iOS
+  // trap: on mobile Safari 100vh is the LARGE viewport (toolbars hidden), so it
+  // forced this column taller than the visible screen — vertically-centered
+  // content (PreShowLauncher's Start Show button) then centered against a box
+  // extending below the fold, landing it low, under the fixed InstallBanner,
+  // which intercepted the tap. Desktop was unaffected (100vh == visible there).
   return (
-    <div className="flex h-full min-h-screen flex-col bg-surface text-text-primary">
+    <div className="flex h-full flex-col bg-surface text-text-primary">
       <header
         className="flex items-center justify-between border-b border-hairline bg-elevated px-4 py-3"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
