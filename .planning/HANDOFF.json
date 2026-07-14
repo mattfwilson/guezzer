@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-14T04:20:23.374Z",
+  "phase": "06",
+  "phase_name": "pokédex,-history-&-stats",
+  "phase_dir": null,
+  "plan": 0,
+  "task": 0,
+  "total_tasks": 0,
+  "status": "paused",
+  "completed_tasks": [
+    { "id": 1, "name": "UAT Test 3 automated pre-verification — 14/14 Playwright checks (download fires with dated filename, envelope valid w/ finalized show + entry, muted nudge, persist warning exactly once across two shows, never when persisted, no console errors)", "status": "done", "commit": "9fd95de" },
+    { "id": 2, "name": "HTTPS tunnel stood up (cloudflared quick tunnel → scratchpad static server on 4180, since vite preview's allowedHosts rejects tunnel hostnames); full cycle re-verified over the tunnel origin incl. active SW; QR + checklist artifact published for the owner", "status": "done", "commit": "9fd95de" },
+    { "id": 3, "name": "UAT Test 3 PASSED on-device (owner, installed iOS PWA over HTTPS) — 05-HUMAN-UAT.md resolved 3/3", "status": "done", "commit": "1740aaa" },
+    { "id": 4, "name": "Phase 5 COMPLETED: 05-VERIFICATION.md flipped to passed, phase.complete run (roadmap/state/requirements advanced, 5/7 phases = 71%), prior HANDOFF.json + .continue-here consumed and deleted", "status": "done", "commit": "1740aaa" },
+    { "id": 5, "name": "Todos captured: InstallBanner once-per-version (a0d92b6 fixed its frontmatter title); Show-Mode FAB menu consolidation (a0d92b6/a0d92b6); STATE.md wrong 'orb todo file missing' note corrected (was a stale-cwd artifact)", "status": "done", "commit": "a0d92b6" }
+  ],
+  "remaining_tasks": [
+    { "id": 6, "name": "Phase 6 (pokédex, history & stats): no phase directory or CONTEXT.md exists yet — start with /gsd-discuss-phase 6 (or /gsd-plan-phase 6 to skip discussion)", "status": "not_started" }
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    { "decision": "UAT Test 3 verified as automated-preconditions (Playwright, forced persist-denied context) + minimal on-device confirmation of iOS standalone download UX only", "rationale": "Everything browser-verifiable was machine-checked; the phone test shrank to 90 seconds", "phase": "05" },
+    { "decision": "Tunnel served dist via a scratchpad static server, not vite preview", "rationale": "vite preview's allowedHosts rejects unknown tunnel hostnames; avoided touching repo vite config for a one-off test", "phase": "05" }
+  ],
+  "uncommitted_files": [],
+  "next_action": "Run /gsd-discuss-phase 6 to gather context for Phase 6 (Pokédex, History & Stats), then /gsd-plan-phase 6. Three pending UI-polish todos (orb text, InstallBanner once-per-version, FAB action menu) are candidates to bundle into a quick pass — none block Phase 6.",
+  "context_notes": "Clean between-phases pause: Phase 5 verified passed with UAT 3/3, nothing in flight, working tree clean. The show-#1 bar (Phases 1-5) is fully done. Cloudflared tunnel + scratchpad server (port 4180) were STOPPED after the test; the pre-existing vite preview servers on 4173 (localhost) and 4175 (LAN) are still running from an earlier session and serve a current dist (rebuilt this session with the slot-freeing fix). Owner's phone still has the throwaway tunnel-origin PWA install; safe to delete anytime. Phase 6 goal: browsable collection — completion %, sighting counts derived from attendance, rarest catch, retroactive show marking from kglw.net archive, honest sparse-data framing (debut candidates, not fake percentages). Reqs: SHOW-14, STAT-01..04, DEX-02..04, HIST-01, SHAR-01..02."
+}

@@ -118,6 +118,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14
-Stopped at: Phase 05 completed — UAT Test 3 passed on-device (installed iOS PWA over HTTPS tunnel), verification flipped to passed, phase.complete run. Next: Phase 06 (pokédex, history & stats) discuss/plan.
-Resume file: none
+Last session: 2026-07-14T04:20:23.374Z
+Stopped at: Clean between-phases pause — Phase 05 complete (verified passed, UAT 3/3); Phase 06 not started (no CONTEXT.md). 3 pending UI-polish todos.
+Resume file: .planning/.continue-here.md (+ .planning/HANDOFF.json)
