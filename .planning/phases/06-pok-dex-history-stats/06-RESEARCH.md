@@ -451,20 +451,24 @@ const buildStamp = `${__APP_VERSION__}+${__GIT_SHA__}`;  // stable per release
 | A6 | ~141 KB raw (~35–40 KB gzipped) archive JSON in the main bundle is acceptable for the venue-loading constraint | Archive artifact | Switch to the CLAUDE.md-documented `?url` + runtime-fetch + workbox `json` glob variant — a contained change [ASSUMED] |
 | A7 | Marking a tracked show's night as ALSO retro-marked should dedupe attendance but union sightings | Dex derivation | Slight sighting over/under-credit on one night; fixture-test whichever rule the planner locks [ASSUMED] |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Completion denominator vs debut candidates**
    - What we know: UI-SPEC copy pins `87/264`; 264 = matrix catalog (all ≥1-play songs, verified); album tracklists include unplayed songs.
    - What's unclear: whether per-album tallies count debut candidates in `{total}`.
    - Recommendation: denominator = matrix-catalog songs only, at both the header and per-album levels (debut candidates listed, badged, uncounted) — otherwise 100% completion is unreachable and tallies don't sum to 264. Lock in the plan.
+   - **RESOLVED** — locked in plan 06-03 Task 2 (deriveDex): denominator = matrix catalog at BOTH the header and per-album levels; debut candidates listed, badged, uncounted.
 2. **Where the local owner name is set (D-17 needs one)**
    - What we know: the envelope gains `owner`; the import fork compares against a local identity; no UI for setting it is specced.
    - Recommendation: a small Settings field (meta row `ownerName`), prompted once on first export if unset. Needs a UI-SPEC-consistent copy string in config.
+   - **RESOLVED** — locked in plan 06-07 Task 3: Settings identity field persisted to meta row `ownerName`, length-clamped (OWNER_NAME_MAX_LENGTH), stamped on v2 exports.
 3. **Recap for retro-marked shows**
    - What we know: D-16/UI-SPEC route tracked shows → recap, retro-marked → plain setlist view (no tally/source data exists for them).
    - Recommendation: confirmed split — recap components should not assume `trackedEntries` exist for every Shows-list row.
+   - **RESOLVED** — locked in plan 06-09: tracked shows → RecapView, retro-marked shows → plain set-structured SetlistView (no rings, no tally).
 4. **`Fishing For Fishies` duplicate URL** (`-video` vs real album, same title, both `islive=0`)
    - Recommendation: allowlist pins `/albums/fishing-for-fishies`; drift-guard test catches regressions.
+   - **RESOLVED** — locked in plan 06-01 Task 2: allowlist pins `/albums/fishing-for-fishies`; drift-guard test asserts it.
 
 ## Environment Availability
 

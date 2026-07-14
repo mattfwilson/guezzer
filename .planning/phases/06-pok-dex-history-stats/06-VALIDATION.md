@@ -36,6 +36,8 @@ created: 2026-07-14
 
 ## Per-Task Verification Map
 
+> Renumbered 2026-07-14 after plan-check revision: old 06-05 split into 06-05 (data foundation) + 06-06 (view family); old 06-06/07/08 shifted to 06-07/08/09; old 06-09 split into 06-10 (compare) + 06-11 (share card).
+
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 01-T1 | 06-01 | 1 | D-15 config, artifact schemas | T-06-02 | strictObject artifact schemas reject drift | unit (core) | `npx vitest run --project @guezzer/core test/dex/archive-artifact.test.ts` | ❌ created in-task | ⬜ pending |
@@ -50,20 +52,21 @@ created: 2026-07-14
 | 04-T1 | 06-04 | 2 | DEX-04 (D-03 covers) | T-06-10, T-06-SC | paced fetch, pinned sharp devDep | typecheck + source assertions | `npx tsc --noEmit` | n/a | ⬜ pending |
 | 04-T2 | 06-04 | 2 | DEX-04 (D-03 budget) | T-06-09 | re-encoded assets, 25 KB cap | unit (app fs assertions) | `npx vitest run --project @guezzer/app test/coversManifest.test.ts` | ❌ created in-task | ⬜ pending |
 | 05-T1 | 06-05 | 3 | DEX-03 (reactive derivation) | T-06-12 | guarded loaders never crash | component (app) | `npx vitest run --project @guezzer/app test/dexView.test.tsx` | ❌ created in-task | ⬜ pending |
-| 05-T2 | 06-05 | 3 | DEX-04 (D-01/02/07) | T-06-11 | React-text-only rendering | component (app) | `npx vitest run --project @guezzer/app test/dexView.test.tsx` | shared with 05-T1 | ⬜ pending |
-| 05-T3 | 06-05 | 3 | STAT-01, STAT-03, STAT-04 (D-05/06/08) | T-06-13 | no seen-toggle affordance exists | component (app) | `npx vitest run --project @guezzer/app test/songRow.test.tsx` | ❌ created in-task | ⬜ pending |
-| 06-T1 | 06-06 | 4 | SHAR-01 (envelope v2) | T-06-14 | strictObject + owner length clamp | unit (core, extends existing) | `npx vitest run --project @guezzer/core test/serialize.test.ts test/merge.test.ts` | ✅ extends existing | ⬜ pending |
-| 06-T2 | 06-06 | 4 | DEX-02 (persistence) | T-06-15 | atomic fallback-mark txn; round-trip | unit (app, fake-indexeddb) | `npx vitest run --project @guezzer/app test/retroMark.test.ts test/exportImportRoundtrip.test.ts` | ❌ retroMark new; roundtrip extends | ⬜ pending |
-| 06-T3 | 06-06 | 4 | SHAR-01 (owner identity) | T-06-16 | clamped owner field | component (app) | `npx vitest run --project @guezzer/app test/exportImportRoundtrip.test.ts && npx tsc --noEmit` | ✅ extends existing | ⬜ pending |
-| 07-T1 | 06-07 | 5 | DEX-02 (D-10 search) | — | — | unit (core fixtures) | `npx vitest run --project @guezzer/core test/dex/search-archive.test.ts` | ❌ created in-task | ⬜ pending |
-| 07-T2 | 06-07 | 5 | DEX-02 (D-09 fallback) | T-06-17, T-06-19 | zod + assertFilterApplied; never retry | unit (core, injected fetch) | `npx vitest run --project @guezzer/core test/dex/recent-shows.test.ts` | ❌ created in-task | ⬜ pending |
-| 07-T3 | 06-07 | 5 | DEX-02, DEX-03 (D-11/D-12) | T-06-18, T-06-20 | React text; dual-source dedupe | component (app, fake-indexeddb) | `npx vitest run --project @guezzer/app test/archiveBrowser.test.tsx` | ❌ created in-task | ⬜ pending |
-| 08-T1 | 06-08 | 6 | HIST-01 (D-16) | T-06-21 | React text only | component (app) | `npx vitest run --project @guezzer/app test/showsList.test.tsx` | ❌ created in-task | ⬜ pending |
-| 08-T2 | 06-08 | 6 | SHOW-14, STAT-02 (D-14/D-15) | T-06-21 | zero stat arithmetic in view | component (app) | `npx vitest run --project @guezzer/app test/recapView.test.tsx` | ❌ created in-task | ⬜ pending |
-| 08-T3 | 06-08 | 6 | SHOW-14 (D-13 seam) | T-06-23 | recap-before-early-return pinned | component (app) | `npx vitest run --project @guezzer/app test/recapView.test.tsx test/endShowDialog.test.tsx` | shared + extends existing | ⬜ pending |
-| 09-T1 | 06-09 | 7 | SHAR-01, SHAR-02 (core) | — | pure diff, input immutability | unit (core fixtures) | `npx vitest run --project @guezzer/core test/dex/compare.test.ts test/dex/share-stats.test.ts` | ❌ created in-task | ⬜ pending |
-| 09-T2 | 06-09 | 7 | SHAR-01 (D-17 fork) | T-06-24, T-06-25, T-06-26 | zero-writes deep-equal proof | unit+component (app, fake-indexeddb) | `npx vitest run --project @guezzer/app test/importFork.test.ts` | ❌ created in-task | ⬜ pending |
-| 09-T3 | 06-09 | 7 | SHAR-02 (D-18/D-19) | T-06-27 | never-throw share flow | component (app, mock ctx/navigator) | `npx vitest run --project @guezzer/app test/shareCard.test.tsx` | ❌ created in-task | ⬜ pending |
+| 06-T1 | 06-06 | 4 | DEX-04 (D-01/02/07) | T-06-11 | React-text-only rendering | component (app) | `npx vitest run --project @guezzer/app test/dexView.test.tsx` | shared with 05-T1 | ⬜ pending |
+| 06-T2 | 06-06 | 4 | STAT-01, STAT-03, STAT-04 (D-05/06/08) | T-06-13 | no seen-toggle affordance exists | component (app) | `npx vitest run --project @guezzer/app test/songRow.test.tsx` | ❌ created in-task | ⬜ pending |
+| 07-T1 | 06-07 | 5 | SHAR-01 (envelope v2) | T-06-14 | strictObject + owner length clamp | unit (core, extends existing) | `npx vitest run --project @guezzer/core test/serialize.test.ts test/merge.test.ts` | ✅ extends existing | ⬜ pending |
+| 07-T2 | 06-07 | 5 | DEX-02 (persistence) | T-06-15 | atomic fallback-mark txn; round-trip | unit (app, fake-indexeddb) | `npx vitest run --project @guezzer/app test/retroMark.test.ts test/exportImportRoundtrip.test.ts` | ❌ retroMark new; roundtrip extends | ⬜ pending |
+| 07-T3 | 06-07 | 5 | SHAR-01 (owner identity) | T-06-16 | clamped owner field | component (app) | `npx vitest run --project @guezzer/app test/exportImportRoundtrip.test.ts && npx tsc --noEmit` | ✅ extends existing | ⬜ pending |
+| 08-T1 | 06-08 | 6 | DEX-02 (D-10 search) | — | — | unit (core fixtures) | `npx vitest run --project @guezzer/core test/dex/search-archive.test.ts` | ❌ created in-task | ⬜ pending |
+| 08-T2 | 06-08 | 6 | DEX-02 (D-09 fallback) | T-06-17, T-06-19 | zod + assertFilterApplied; never retry; songs record names post-corpus debuts | unit (core, injected fetch) | `npx vitest run --project @guezzer/core test/dex/recent-shows.test.ts` | ❌ created in-task | ⬜ pending |
+| 08-T3 | 06-08 | 6 | DEX-02, DEX-03 (D-11/D-12) | T-06-18, T-06-20 | React text; dual-source dedupe | component (app, fake-indexeddb) | `npx vitest run --project @guezzer/app test/archiveBrowser.test.tsx` | ❌ created in-task | ⬜ pending |
+| 09-T1 | 06-09 | 7 | HIST-01 (D-16) | T-06-21 | React text only | component (app) | `npx vitest run --project @guezzer/app test/showsList.test.tsx` | ❌ created in-task | ⬜ pending |
+| 09-T2 | 06-09 | 7 | SHOW-14, STAT-02 (D-14/D-15) | T-06-21 | zero stat arithmetic in view | component (app) | `npx vitest run --project @guezzer/app test/recapView.test.tsx` | ❌ created in-task | ⬜ pending |
+| 09-T3 | 06-09 | 7 | SHOW-14 (D-13 seam) | T-06-23 | recap-before-early-return pinned | component (app) | `npx vitest run --project @guezzer/app test/recapView.test.tsx test/endShowDialog.test.tsx` | shared + extends existing | ⬜ pending |
+| 10-T1 | 06-10 | 8 | SHAR-01 (compare core) | — | pure diff, input immutability | unit (core fixtures) | `npx vitest run --project @guezzer/core test/dex/compare.test.ts` | ❌ created in-task | ⬜ pending |
+| 10-T2 | 06-10 | 8 | SHAR-01 (D-17 fork) | T-06-24, T-06-25, T-06-26 | zero-writes deep-equal proof | unit+component (app, fake-indexeddb) | `npx vitest run --project @guezzer/app test/importFork.test.ts` | ❌ created in-task | ⬜ pending |
+| 11-T1 | 06-11 | 9 | SHAR-02 (card stats core) | — | zero-catch card valid, no NaN | unit (core fixtures) | `npx vitest run --project @guezzer/core test/dex/share-stats.test.ts` | ❌ created in-task | ⬜ pending |
+| 11-T2 | 06-11 | 9 | SHAR-02 (D-18/D-19) | T-06-27 | never-throw share flow | component (app, mock ctx/navigator) | `npx vitest run --project @guezzer/app test/shareCard.test.tsx` | ❌ created in-task | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

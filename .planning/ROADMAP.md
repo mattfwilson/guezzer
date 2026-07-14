@@ -184,7 +184,7 @@ Plans:
   4. After a show, a recap view shows the hit/miss tally, final setlist with set structure, and a show rarity score — and past tracked shows remain viewable as complete setlists
   5. The dex exports/imports as JSON for friend exchange, and the user can generate a shareable summary card (completion %, rarest catch, show count)
 
-**Plans:** 9 plans
+**Plans:** 11 plans
 **UI hint**: yes
 
 Plans:
@@ -201,23 +201,31 @@ Plans:
 
 **Wave 3** *(blocked on 06-03, 06-04)*
 
-- [ ] 06-05-PLAN.md — Dex tab UI slice: loaders, useDexStats, album shelf + drill-in + tier/debut badges + why-detail stats (D-01..08)
+- [ ] 06-05-PLAN.md — Dex data foundation: artifact loaders (@archive/@dexAlbums), covers module, reactive useDexStats hook
 
 **Wave 4** *(blocked on 06-05)*
 
-- [ ] 06-06-PLAN.md — Envelope v2 + Dexie v4 atomic cluster: owner field, archiveShows cache, mark/unmark helpers, Settings identity
+- [ ] 06-06-PLAN.md — Dex tab UI: album shelf + drill-in + tier/debut badges + why-detail stats (D-01..08)
 
 **Wave 5** *(blocked on 06-06)*
 
-- [ ] 06-07-PLAN.md — Retro marking slice: archive search + year browse + online fallback + ArchiveBrowser (DEX-02, D-09..12)
+- [ ] 06-07-PLAN.md — Envelope v2 + Dexie v4 atomic cluster: owner field, archiveShows cache, mark/unmark helpers, Settings identity
 
 **Wave 6** *(blocked on 06-07)*
 
-- [ ] 06-08-PLAN.md — Recap + history slice: RecapView auto-shown at End Show, Shows list, retro setlist views (SHOW-14, HIST-01)
+- [ ] 06-08-PLAN.md — Retro marking slice: archive search + year browse + online fallback + ArchiveBrowser (DEX-02, D-09..12)
 
-**Wave 7** *(blocked on 06-06, 06-08)*
+**Wave 7** *(blocked on 06-08)*
 
-- [ ] 06-09-PLAN.md — Sharing slice: friend-compare fork (never merges) + canvas PNG share card via Web Share (SHAR-01/02)
+- [ ] 06-09-PLAN.md — Recap + history slice: RecapView auto-shown at End Show, Shows list, retro setlist views (SHOW-14, HIST-01)
+
+**Wave 8** *(blocked on 06-07, 06-09)*
+
+- [ ] 06-10-PLAN.md — Friend-compare slice: structural import fork (never merges) + read-only CompareView (SHAR-01, D-17)
+
+**Wave 9** *(blocked on 06-10)*
+
+- [ ] 06-11-PLAN.md — Share card slice: canvas PNG brag card via Web Share + download fallback (SHAR-02, D-18/19)
 
 ### Phase 7: Explore Mode Constellation
 
@@ -259,4 +267,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 *Phase 2 planned: 2026-07-08 (5 plans)*
 *Phase 3 planned: 2026-07-09 (4 plans)*
 *Phase 4 planned: 2026-07-09 (7 plans)*
-*Phase 6 planned: 2026-07-14 (9 plans)*
+*Phase 6 planned: 2026-07-14 (11 plans — revised after plan-check: 06-05 and 06-09 split for context budget)*
