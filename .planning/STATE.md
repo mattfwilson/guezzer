@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-07-08)
 Phase: 05 (live-sync-data-safety) — EXECUTING
 Plan: 1 of 6
 Status: Executing Phase 05
-Last activity: 2026-07-14 -- Completed quick task 260713-w1c: SyncDot green online state (owner B3 override)
+Last activity: 2026-07-14 -- UAT Test 2 passed (automated browser drive); mockLatest harness + dismissal slot-freeing fix shipped
 
 Progress: [██████████] 100% (7/7 plans executed)
 
@@ -97,6 +97,7 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260713-w1c | SyncDot online state → hit-green (owner override of 05-UI-SPEC B3) | 2026-07-14 | c99ea42 | [260713-w1c-make-the-syncdot-render-green-22c55e-whe](./quick/260713-w1c-make-the-syncdot-render-green-22c55e-whe/) |
+| 260713-wjd | ?mockLatest=1 UAT harness for the suggestion strip (found+fixed dismissal slot bug) | 2026-07-14 | (multiple) | [260713-wjd-add-mocklatest-1-url-flag-that-feeds-the](./quick/260713-wjd-add-mocklatest-1-url-flag-that-feeds-the/) |
 
 ### Blockers/Concerns
 

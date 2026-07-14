@@ -18,7 +18,7 @@ result: passed — verified on-device (iPhone, 2026-07-14): SyncDot flips to hol
 
 ### 2. Suggestion adopt/dismiss + layout stability
 expected: Tap Add on an editor suggestion; dismiss another via both tap-X and horizontal swipe. Adopt logs the song (`source:'editor'`, correct hit/miss); dismiss removes the row with nothing logged; the orbit fan above never re-lays-out.
-result: [pending]
+result: passed — verified 2026-07-14 via automated Playwright browser drive (mobile viewport, touch context) at the user's request, using the ?mockLatest=1 fixture harness (quick task 260713-wjd). Adopt logged instantly with no confirm (tally 0/1 · 0%, honest pre-opener miss, orbit recentered onto the adopted song with a real prediction fan); X-dismiss and ~100px pointer-swipe both removed rows with nothing logged (tally unchanged); orbit stage bounding box byte-identical across suggestion appearance and both dismissals. Screenshots reviewed. FOUND+FIXED one real defect: dismissed suggestions permanently occupied strip slots (post-truncation filter) — dismissals now free the slot so the next editor song slides in (core suggest.ts excludeSongIds param + regression tests).
 
 ### 3. End-show auto-download on installed iOS PWA
 expected: End a show on an installed iOS PWA. Backup JSON auto-downloads with a muted confirmation; a persist-denied warning shows at most once.
@@ -27,9 +27,9 @@ result: [pending]
 ## Summary
 
 total: 3
-passed: 1
+passed: 2
 issues: 0
-pending: 2
+pending: 1
 skipped: 0
 blocked: 0
 
