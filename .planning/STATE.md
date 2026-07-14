@@ -93,6 +93,7 @@ Recent decisions affecting current work:
 
 - [ui] Fix truncated/oversized song-name text inside prediction orbs (esp. center current-song orb) — `.planning/todos/pending/2026-07-11-orb-song-name-text-truncated-and-oversized.md`. Non-blocking UI-polish; found on-device during Phase 04 device gate.
 - [ui/pwa] InstallBanner should show once per app version, not on every reload — `.planning/todos/pending/2026-07-14-install-banner-reappears-every-reload.md`. Non-blocking; owner-reported during Phase 05 UAT Test 3 setup.
+- [ui] Consolidate Show-Mode actions (Search/Unknown/Set break/Encore/Undo) into a collapsed-by-default bottom-right FAB menu to free vertical space for the orbit — `.planning/todos/pending/2026-07-14-collapse-show-actions-into-fab-menu.md`. Owner idea 2026-07-14; note the zero-tap ???/Undo trade-off flagged inside.
 
 ### Quick Tasks Completed
 
