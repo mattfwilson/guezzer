@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-14T03:40:51.807Z",
+  "phase": "05",
+  "phase_name": "live-sync-data-safety",
+  "phase_dir": ".planning/phases/05-live-sync-data-safety",
+  "plan": 6,
+  "task": 3,
+  "total_tasks": 3,
+  "status": "paused",
+  "completed_tasks": [
+    { "id": 1, "name": "All 6 phase plans executed (incl. 05-06 gap closure for CR-01 import data loss)", "status": "done", "commit": "bf11de1" },
+    { "id": 2, "name": "Code review of gap closure — found+fixed orphaned trackedShows on dedupe collapse (clear+bulkPut)", "status": "done", "commit": "e5eb181" },
+    { "id": 3, "name": "Re-verification: 4/4 must-haves VERIFIED, status human_needed (3 runtime/device UAT items)", "status": "done", "commit": "fcac8e0" },
+    { "id": 4, "name": "HUMAN-UAT Test 1 (offline resilience) — PASSED on-device", "status": "done", "commit": "33b0dec" },
+    { "id": 5, "name": "HUMAN-UAT Test 2 (suggestion adopt/dismiss + layout stability) — PASSED via automated Playwright drive; found+fixed dismissal slot-freeing bug", "status": "done", "commit": "7bee672" }
+  ],
+  "remaining_tasks": [
+    { "id": 6, "name": "HUMAN-UAT Test 3: end-show auto-backup on installed iOS PWA (needs HTTPS — tunnel or static deploy)", "status": "not_started" },
+    { "id": 7, "name": "On Test 3 pass: mark 05-HUMAN-UAT.md resolved, re-run/flip verification to passed, run update_roadmap (gsd-tools query phase.complete 05), route to Phase 6", "status": "not_started" }
+  ],
+  "blockers": [
+    {
+      "description": "Test 3 requires HTTPS on the iPhone (installed-PWA auto-download + SW). Plain-HTTP LAN (192.168.1.178:4175) is insufficient for a real installed-PWA test.",
+      "type": "human_action",
+      "workaround": "cloudflared/localtunnel/ngrok tunnel to localhost:4175, or push packages/app/dist to a static host (Vercel/Netlify/GH Pages)"
+    }
+  ],
+  "human_actions_pending": [
+    { "action": "Run UAT Test 3 on iPhone over HTTPS: install PWA, start+end a show, confirm guezzer-backup-YYYY-MM-DD.json auto-downloads with muted confirmation; persist-denied warning at most once", "context": "Last remaining Phase-5 UAT item; phase completion gates on it", "blocking": true }
+  ],
+  "decisions": [
+    { "decision": "SyncDot online state is hit-green #22C55E (owner override of 05-UI-SPEC §Color B3)", "rationale": "Owner explicitly requested green-when-online after on-device testing; reuses CometTrail hit-green, no new token", "phase": "05" },
+    { "decision": "?mockLatest=1 URL flag is a permanent UAT harness", "rationale": "Suggestion strip untestable outside live shows; flag stubs only the fetch, real pipeline otherwise; inert without the flag", "phase": "05" },
+    { "decision": "Dismissed suggestions free their strip slot (excludeSongIds applied before slot fill in core diff)", "rationale": "UAT found post-truncation filtering emptied the strip after 2 dismissals despite queued editor songs", "phase": "05" },
+    { "decision": "randomUUID via app-tier fallback helper (crypto.getRandomValues v4) instead of bare crypto.randomUUID", "rationale": "crypto.randomUUID is secure-context-only; broke Start Show on plain-HTTP LAN devices", "phase": "05" }
+  ],
+  "uncommitted_files": [],
+  "next_action": "Set up HTTPS access for the iPhone (tunnel to localhost:4175 or deploy packages/app/dist), then walk the user through UAT Test 3 (end-show auto-backup on installed iOS PWA). On pass: mark 05-HUMAN-UAT.md resolved, flip phase 5 verification to passed, run phase completion (gsd-tools query phase.complete 05), offer Phase 6.",
+  "context_notes": "Phase 5 execution + gap closure fully done and code-verified (05-VERIFICATION.md: 4/4 must-haves, human_needed only for device checks). Two of three UAT items passed. Local preview servers on 4173 (localhost) and 4175 (LAN 0.0.0.0) serve the current dist; rebuild with 'npm run build' in packages/app before testing if source changed. Session also fixed: stale-dist confusion (SyncDot 'missing'), InstallBanner overlay inset accounting, iOS 100vh min-h-screen, randomUUID secure-context crash. Debug sessions archived in .planning/debug/resolved/."
+}
