@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Menu } from "lucide-react";
 import { BottomTabBar } from "./BottomTabBar";
+import { useBottomOverlayInset } from "../pwa/bottomOverlayInset";
 
 export function AppShell({
   children,
@@ -17,6 +18,13 @@ export function AppShell({
    */
   scroll?: boolean;
 }) {
+  // Bug fix (debug session: start-show-not-clickable) — the base 4rem here
+  // matches the fixed BottomTabBar; `overlayInset` adds whatever height any
+  // OTHER fixed-bottom overlay (InstallBanner, UpdateToast) is really
+  // rendering at right now, so <main>'s content is never covered/untappable
+  // underneath one of those overlays. See pwa/bottomOverlayInset.ts.
+  const overlayInset = useBottomOverlayInset();
+
   return (
     <div className="flex h-full min-h-screen flex-col bg-surface text-text-primary">
       <header
@@ -39,9 +47,10 @@ export function AppShell({
       <main
         className={
           scroll
-            ? "flex-1 overflow-y-auto pb-16"
-            : "flex min-h-0 flex-1 flex-col overflow-hidden pb-16"
+            ? "flex-1 overflow-y-auto"
+            : "flex min-h-0 flex-1 flex-col overflow-hidden"
         }
+        style={{ paddingBottom: `calc(4rem + ${overlayInset}px)` }}
       >
         {children}
       </main>

@@ -1,5 +1,6 @@
 import { config } from "../config";
 import { useInstallState } from "../pwa/install/useInstallState";
+import { useBottomOverlayHeightRegistration } from "../pwa/bottomOverlayInset";
 import { IosInstallInstructions } from "./IosInstallInstructions";
 
 /**
@@ -7,18 +8,29 @@ import { IosInstallInstructions } from "./IosInstallInstructions";
  * PWA-01). Renders nothing when already installed or dismissed for this
  * session. The Install button is the ONLY accent element here (UI-SPEC
  * §Color, accent reserved list #2) — "Not now" stays muted.
+ *
+ * Bug fix (debug session: start-show-not-clickable) — this is a
+ * `fixed bottom-16` overlay stacked above the BottomTabBar. Its real
+ * rendered height (especially the iOS multi-step instructions branch) can
+ * exceed AppShell's static reservation, so it registers its own measured
+ * height via `useBottomOverlayHeightRegistration` — AppShell adds that on
+ * top of its base reservation so this banner never covers/intercepts taps
+ * on page content underneath it again.
  */
 export function InstallBanner() {
   const { canInstall, promptInstall, isIos, isInstalled, dismissed, dismiss } =
     useInstallState();
+  const visible = !isInstalled && !dismissed;
+  const ref = useBottomOverlayHeightRegistration("installBanner", visible);
 
-  if (isInstalled || dismissed) return null;
+  if (!visible) return null;
 
   const { headline, body, dismiss: dismissLabel } = config.copy.installBanner;
   const showAndroidCta = canInstall && !isIos;
 
   return (
     <div
+      ref={ref}
       role="region"
       aria-label={headline}
       className="fixed inset-x-0 bottom-16 z-10 border-t border-hairline bg-elevated px-4 py-4 motion-safe:transition-all motion-safe:duration-200"
