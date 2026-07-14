@@ -9,6 +9,7 @@
 import Dexie, { type Table } from "dexie";
 import { config } from "../config.ts";
 import { classifyOutcome } from "../show/scoring.ts";
+import { randomUUID } from "../uuid.ts";
 
 /** Generic key/value settings row. Value type is validated at the call site. */
 export interface MetaRow {
@@ -243,7 +244,10 @@ export async function startShow(): Promise<TrackedShow> {
       );
     }
     const show: TrackedShow = {
-      sessionId: crypto.randomUUID(),
+      // uuid.ts, NOT crypto.randomUUID directly — the native API is missing in
+      // insecure contexts (plain-HTTP LAN testing), which silently broke Start
+      // Show on real phones (debug session: start-show-not-clickable).
+      sessionId: randomUUID(),
       date: todayIso(),
       status: "active",
       currentSetNumber: "1",
