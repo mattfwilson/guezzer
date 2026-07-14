@@ -1,7 +1,8 @@
 ---
-created: 2026-07-14
+title: InstallBanner should show once per app version, not every reload
+created: 2026-07-14T04:10:00Z
 source: owner report during Phase 05 UAT Test 3 setup
-area: ui / pwa
+area: ui
 blocking: false
 ---
 
