@@ -184,8 +184,40 @@ Plans:
   4. After a show, a recap view shows the hit/miss tally, final setlist with set structure, and a show rarity score — and past tracked shows remain viewable as complete setlists
   5. The dex exports/imports as JSON for friend exchange, and the user can generate a shareable summary card (completion %, rarest catch, show count)
 
-**Plans**: TBD
+**Plans:** 9 plans
 **UI hint**: yes
+
+Plans:
+
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — Build-time artifacts: compact archive index + album-shelf mapping + core dex config (D-04, rarity constants)
+- [ ] 06-02-PLAN.md — Show-Mode polish: FAB action menu, orb label fit, InstallBanner once-per-version (D-20/21/22)
+
+**Wave 2** *(blocked on 06-01)*
+
+- [ ] 06-03-PLAN.md — Core dex derivation: rarity tiers, deriveDex single entry point, recap assembly (fixture-tested, EVAL-05)
+- [ ] 06-04-PLAN.md — Album-cover pipeline: MusicBrainz/CAA → sharp → committed WebP thumbnails + manifest (D-03)
+
+**Wave 3** *(blocked on 06-03, 06-04)*
+
+- [ ] 06-05-PLAN.md — Dex tab UI slice: loaders, useDexStats, album shelf + drill-in + tier/debut badges + why-detail stats (D-01..08)
+
+**Wave 4** *(blocked on 06-05)*
+
+- [ ] 06-06-PLAN.md — Envelope v2 + Dexie v4 atomic cluster: owner field, archiveShows cache, mark/unmark helpers, Settings identity
+
+**Wave 5** *(blocked on 06-06)*
+
+- [ ] 06-07-PLAN.md — Retro marking slice: archive search + year browse + online fallback + ArchiveBrowser (DEX-02, D-09..12)
+
+**Wave 6** *(blocked on 06-07)*
+
+- [ ] 06-08-PLAN.md — Recap + history slice: RecapView auto-shown at End Show, Shows list, retro setlist views (SHOW-14, HIST-01)
+
+**Wave 7** *(blocked on 06-06, 06-08)*
+
+- [ ] 06-09-PLAN.md — Sharing slice: friend-compare fork (never merges) + canvas PNG share card via Web Share (SHAR-01/02)
 
 ### Phase 7: Explore Mode Constellation
 
@@ -218,7 +250,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. App Shell & PWA Foundation | 4/4 | Complete    | 2026-07-09 |
 | 4. Show Mode | 7/7 | Complete    | 2026-07-13 |
 | 5. Live Sync & Data Safety | 6/6 | Complete    | 2026-07-14 |
-| 6. Pokédex, History & Stats | 0/TBD | Not started | - |
+| 6. Pokédex, History & Stats | 0/9 | Planned | - |
 | 7. Explore Mode Constellation | 0/TBD | Not started | - |
 
 ---
@@ -227,3 +259,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 *Phase 2 planned: 2026-07-08 (5 plans)*
 *Phase 3 planned: 2026-07-09 (4 plans)*
 *Phase 4 planned: 2026-07-09 (7 plans)*
+*Phase 6 planned: 2026-07-14 (9 plans)*
