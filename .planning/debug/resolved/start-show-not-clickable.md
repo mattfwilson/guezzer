@@ -1,8 +1,8 @@
 ---
-status: awaiting_human_verify
+status: resolved
 trigger: "Start Show button on the pre-show launcher (packages/app/src/show/PreShowLauncher.tsx) is not clickable/tappable on mobile at http://192.168.1.178:4173/. Strong hypothesis from static code read: InstallBanner (packages/app/src/components/InstallBanner.tsx) is a `fixed inset-x-0 bottom-16 z-10` element that renders whenever the app is not yet installed and not dismissed for the session — on iOS Safari it renders IosInstallInstructions (a heading + multi-step ordered list), which is likely taller than the pb-16 (4rem) bottom padding that <main> (AppShell.tsx) reserves for the BottomTabBar. Since InstallBanner is position:fixed and later in the DOM than <main>, it would visually and functionally overlay the vertically-centered Start Show button in PreShowLauncher.tsx whenever the banner's actual rendered height exceeds 4rem, intercepting the tap before it reaches the button underneath. User is very likely testing on iOS Safari (asked earlier about re-adding to home screen / installed PWA), on a fresh origin (LAN IP:port) where isInstalled would be false, so the banner is showing."
 created: 2026-07-14T01:55:19Z
-updated: 2026-07-14T03:15:00Z
+updated: 2026-07-14T03:40:00Z
 ---
 
 ## Current Focus
@@ -135,8 +135,7 @@ verification: >
   4122 variant; 100 fallback calls all unique) — full suite 281/281 green,
   tsc --noEmit clean, vite build succeeds; rebuilt bundle
   (index-BAscnPb1.js) confirmed served on the instrumented no-store port
-  4176 with the getRandomValues fallback present. Pending: user's on-device
-  confirmation that Start Show now works at http://192.168.1.178:4176.
+  4176 with the getRandomValues fallback present. User CONFIRMED on-device 2026-07-14: Start Show works on the iPhone, and the SyncDot flips to the hollow outline in airplane mode.
 files_changed:
   - packages/app/src/uuid.ts (new)
   - packages/app/src/db/db.ts
