@@ -90,7 +90,8 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- [ui] Fix truncated/oversized song-name text inside prediction orbs (esp. center current-song orb) — `.planning/todos/pending/2026-07-11-orb-song-name-text-truncated-and-oversized.md`. Non-blocking UI-polish; found on-device during Phase 04 device gate.
+- [ui] Fix truncated/oversized song-name text inside prediction orbs (esp. center current-song orb) — `.planning/todos/pending/2026-07-11-orb-song-name-text-truncated-and-oversized.md`. Non-blocking UI-polish; found on-device during Phase 04 device gate. (NOTE: referenced file missing on disk — pointer only.)
+- [ui/pwa] InstallBanner should show once per app version, not on every reload — `.planning/todos/pending/2026-07-14-install-banner-reappears-every-reload.md`. Non-blocking; owner-reported during Phase 05 UAT Test 3 setup.
 
 ### Quick Tasks Completed
 
@@ -115,6 +116,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T21:07:18.611Z
-Stopped at: Phase 5 UI-SPEC approved
-Resume file: .planning/phases/05-live-sync-data-safety/05-UI-SPEC.md
+Last session: 2026-07-14
+Stopped at: UAT Test 3 — automated halves passed (14/14 Playwright checks + HTTPS tunnel smoke); awaiting owner's 90-second iPhone check via trycloudflare tunnel + QR checklist artifact
+Resume file: .planning/phases/05-live-sync-data-safety/05-HUMAN-UAT.md
