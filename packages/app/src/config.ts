@@ -109,6 +109,15 @@ export const config = {
     SCHEMA_VERSION: 1,
   },
 
+  /**
+   * Phase-6 dex UI geometry (06-UI-SPEC §Config surface). Rarity thresholds are
+   * CORE config (pure derivation, EVAL-05) — only display dimensions live here.
+   */
+  dex: {
+    /** Album-cover display size in px; the committed WebP assets are 2× (160px). */
+    ALBUM_ART_DISPLAY_PX: 80,
+  },
+
   /** UI-SPEC §Copywriting Contract. */
   copy: {
     installBanner: {
@@ -261,6 +270,47 @@ export const config = {
         "Export a backup now and again to keep your dex safe.",
       /** End-Show auto-backup confirmation (D-13) — a single confirmation, not a per-show nag. */
       endShowBackupConfirmation: "Backup saved to your downloads.",
+    },
+
+    /**
+     * Phase-6 Pokédex copy (06-UI-SPEC §Copywriting Contract) — verbatim. The
+     * throughline is "your collection, honestly counted": game feel on top, real
+     * corpus statistics underneath, never fake precision (STAT-04). No component
+     * under packages/app/src/dex may hardcode a dex string — they READ these keys.
+     */
+    dex: {
+      /** Completion-headline caption under the `{caught}/{total} · {pct}%` Display number. */
+      caughtCaption: "caught",
+      /** Rarest-catch subline (STAT — game framing), song name is kglw-derived (React text). */
+      rarestCatchLabel: (song: string): string => `Rarest catch: ${song}`,
+      /** Attended-show count subline. */
+      showsAttended: (n: number): string => `${n} shows attended`,
+      /** Segment-control labels (component state, not a route). */
+      segmentAlbums: "Albums",
+      segmentShows: "Shows",
+      /** Catch-all bucket card names (D-04), pinned last in the shelf. */
+      bucketMiscellaneous: "Miscellaneous",
+      bucketCovers: "Covers",
+      /** Empty-dex state (the Mark CTA joins in plan 06-08). */
+      emptyHeading: "No catches yet",
+      emptyBody: "Track a show live, or mark the shows you've already been to.",
+      /** Shows-segment empty state (the list lands in plan 06-09). */
+      showsEmptyHeading: "No shows yet",
+      showsEmptyBody: "Your tracked and marked shows land here.",
+      /** Album-detail back control. */
+      albumBack: "Back",
+      /**
+       * Rarity-tier words (D-15, §B3). The tier WORD always renders — color is
+       * reinforcement only (color-blind safety, WCAG 1.4.1). Keyed by RarityTier.
+       */
+      tierLabels: {
+        common: "Common",
+        uncommon: "Uncommon",
+        rare: "Rare",
+        legendary: "Legendary",
+      },
+      /** Debut-candidate pill (STAT-04, D-08) — replaces any tier/percentage for zero-history songs. */
+      debutBadge: "Debut candidate",
     },
   },
 } as const;
