@@ -79,6 +79,10 @@ export const config = {
     SUGGESTION_STRIP_HEIGHT: 56,
     /** SyncDot glyph diameter in px (online = filled, offline = hollow ring). */
     SYNC_DOT_DIAMETER: 8,
+    /** Phase-6 D-20: collapsed Show-Mode FAB diameter in px (≥44px hit floor cleared). */
+    FAB_DIAMETER: 56,
+    /** Phase-6 D-20: min height in px of each expanded speed-dial action row (≥44px hit floor cleared). */
+    FAB_ACTION_HEIGHT: 48,
   },
 
   /** Phase-5 data-safety tunables (05-UI-SPEC §Config surface). */
@@ -153,6 +157,8 @@ export const config = {
       encoreCta: "Encore",
       /** Undo control (SHOW-07/D-15). */
       undoCta: "Undo",
+      /** Phase-6 D-20: accessible label for the collapsed Show-Mode FAB speed-dial. */
+      fabLabel: "Show actions",
       /** Weak-fan softening hint (D-10). */
       weakFanHeading: "Low confidence",
       weakFanBody: "Wide-open moment — the model isn't sure.",

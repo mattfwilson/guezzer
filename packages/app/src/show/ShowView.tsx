@@ -52,7 +52,7 @@ import { useOnlineStatus } from "../live/useOnlineStatus.ts";
 import { SuggestionStrip } from "../live/SuggestionStrip.tsx";
 import { SyncDot } from "../live/SyncDot.tsx";
 import { classifyOutcome } from "./scoring.ts";
-import { ActionBar } from "./ActionBar.tsx";
+import { FabMenu } from "./FabMenu.tsx";
 import { CometTrail } from "./CometTrail.tsx";
 import { EndShowDialog } from "./EndShowDialog.tsx";
 import { OrbitStage } from "./OrbitStage.tsx";
@@ -338,7 +338,8 @@ export function ShowView() {
       />
 
       {/* SuggestionStrip (05-04, D-01): the advisory editor songs + fill-???
-          hints, in a FIXED-height slot directly above the ActionBar so its
+          hints, in a FIXED-height slot at the bottom of the column (above the
+          app BottomTabBar, now that the in-flow ActionBar is gone — D-20) so its
           appearing/dismissing never re-lays-out the orbit (SHOW-02). Adopt logs
           source:"editor"; dismiss is non-destructive; fill routes through rename. */}
       <SuggestionStrip
@@ -349,10 +350,12 @@ export function ShowView() {
         onFill={handleFill}
       />
 
-      {/* Region 4 — the persistent D-13 action bar, mounted in BOTH the
-          pre-opener and active-fan states (the opener is always enterable via
-          Search). The CometTrail (SHOW-08) slot lands in 04-06. */}
-      <ActionBar
+      {/* Region 4 — the D-20 Show-Mode FAB speed-dial (supersedes the Phase-4
+          in-flow ActionBar). Fixed-position, so removing the old in-flow rows
+          hands the freed height to the orbit stage automatically; mounted in
+          BOTH the pre-opener and active-fan states (the opener is always
+          enterable via Search). Same five-callback contract ActionBar had. */}
+      <FabMenu
         onSearch={() => setSearchOpen(true)}
         onUnknown={handleUnknown}
         onSetBreak={handleSetBreak}

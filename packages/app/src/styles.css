@@ -23,9 +23,12 @@ body,
    trigger double-tap zoom, pull-to-refresh, overscroll bounce, text selection,
    or the iOS long-press callout. Declarative CSS only — no passive-listener
    footguns. The stage itself never scrolls (the comet-trail strip scrolls
-   horizontally; the stage is a fixed flex child, Pitfall 5). */
+   horizontally; the stage is a fixed flex child, Pitfall 5). The Phase-6 D-20
+   FAB speed-dial (`.fab-menu`) shares this scope so a fat thumb on the FAB or its
+   open scrim never triggers zoom/overscroll/callout either (T-06-04). */
 .orbit-stage,
-.action-bar {
+.action-bar,
+.fab-menu {
   touch-action: manipulation; /* kills 300ms double-tap-zoom + double-tap gesture */
   overscroll-behavior: none; /* no pull-to-refresh, no scroll chaining */
   user-select: none;
