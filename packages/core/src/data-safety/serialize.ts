@@ -12,6 +12,7 @@
  */
 import type {
   ExportEnvelope,
+  archiveShowRow,
   attendedShowRow,
   metaRow,
   trackedEntryRow,
@@ -20,14 +21,20 @@ import type {
 import type { z } from "zod";
 
 /**
- * The in-memory snapshot the app assembles from the four Dexie tables and hands
- * to `serializeExport`. Row types are the schema-inferred shapes so the snapshot
+ * The in-memory snapshot the app assembles from the Dexie tables and hands to
+ * `serializeExport`. Row types are the schema-inferred shapes so the snapshot
  * and the envelope share one source of truth. Reused by merge.ts as both the
  * local-snapshot input and the merged-result shape.
+ *
+ * v2 (plan 06-07): `owner` (D-17 identity fork key, read from the meta
+ * `ownerName` row by the app caller — null when unset) and `archiveShows` (the
+ * online-fallback setlist cache table — Pitfall 5).
  */
 export interface ExportSnapshot {
+  owner: string | null;
   meta: z.infer<typeof metaRow>[];
   attendedShows: z.infer<typeof attendedShowRow>[];
+  archiveShows: z.infer<typeof archiveShowRow>[];
   trackedShows: z.infer<typeof trackedShowRow>[];
   trackedEntries: z.infer<typeof trackedEntryRow>[];
 }
@@ -37,8 +44,9 @@ export interface ExportSnapshot {
  * `trackedShows` pass through verbatim; `trackedEntries` is mapped to strip
  * the volatile device-local `id` (CR-01 / T-05-07) so a new backup never
  * carries a per-device Dexie `++id` that could collide on a future merge.
- * `schemaVersion` (caller-supplied) and `exportedAt` (now) are added. Output
- * keys are exactly the six D-09 keys — nothing more.
+ * `schemaVersion` (caller-supplied) and `exportedAt` (now) are added; `owner`
+ * and `archiveShows` pass through verbatim (v2, plan 06-07). Output keys are
+ * exactly the eight v2 envelope keys — nothing more.
  */
 export function serializeExport(
   snapshot: ExportSnapshot,
@@ -47,8 +55,10 @@ export function serializeExport(
   return {
     schemaVersion,
     exportedAt: new Date().toISOString(),
+    owner: snapshot.owner,
     meta: snapshot.meta,
     attendedShows: snapshot.attendedShows,
+    archiveShows: snapshot.archiveShows,
     trackedShows: snapshot.trackedShows,
     trackedEntries: snapshot.trackedEntries.map(({ id: _id, ...rest }) => rest),
   };

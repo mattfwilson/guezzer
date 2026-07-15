@@ -24,11 +24,41 @@
  * 05-03 / 05-05's `tsc --noEmit` gate fails.
  */
 import { z } from "zod";
+import { config } from "../config.ts";
 
 /** Generic key/value settings row (mirrors db.ts `MetaRow`). */
 export const metaRow = z.strictObject({
   key: z.string(),
   value: z.unknown(),
+});
+
+/**
+ * One cached online-fallback setlist row (mirrors db.ts `ArchiveShowRow`, plan
+ * 06-07). This is the v2 `archiveShows` element: a show marked from the live
+ * archive carries its setlist here so its sightings survive reload AND backup
+ * round-trips (Pitfall 5 — the bundled corpus already holds corpus-era
+ * setlists, so ONLY post-corpus fallback marks populate this cache). `n` is
+ * enum-pinned to `"1"|"2"|"e"` EXACTLY like db.ts's `SetNumber` and
+ * `setNumber`/`currentSetNumber` above — the inferred row type must stay
+ * assignable to `Table<ArchiveShowRow>` at `db.importSnapshot`, or the app's
+ * `tsc --noEmit` gate fails (the atomic-cluster contract).
+ */
+export const archiveShowRow = z.strictObject({
+  show_id: z.number().int(),
+  date: z.string(),
+  venueName: z.string(),
+  city: z.string(),
+  sets: z.array(
+    z.strictObject({
+      n: z.enum(["1", "2", "e"]),
+      songs: z.array(
+        z.strictObject({
+          songId: z.number().int(),
+          songName: z.string(),
+        }),
+      ),
+    }),
+  ),
 });
 
 /** Attendance stub keyed by the stable 10-digit `show_id` (mirrors db.ts `AttendedShow`). */
@@ -75,16 +105,27 @@ export const trackedEntryRow = z.strictObject({
 });
 
 /**
- * The D-09 export envelope: a versioned wrapper carrying all four tables plus
- * provenance metadata. `strictObject` at the top level rejects any file with an
- * unexpected top-level key (T-05-06). `schemaVersion` drives the forward
- * migration chain in merge.ts.
+ * The export envelope (v2, plan 06-07): a versioned wrapper carrying all four
+ * tables plus provenance metadata, the D-17 `owner` identity fork key, and the
+ * `archiveShows` online-fallback setlist cache. `strictObject` at the top level
+ * rejects any file with an unexpected top-level key (T-05-06). `schemaVersion`
+ * drives the forward migration chain in merge.ts.
+ *
+ * `owner` and `archiveShows` use `.default(...)` — NOT plain required fields —
+ * so a genuine v1 backup (written before 06-07, lacking these two keys) still
+ * PARSES: the defaults fill in (owner null, archiveShows []), and the v1→v2
+ * MIGRATIONS entry normalizes them explicitly. The inferred OUTPUT type keeps
+ * both fields required (`string | null`, `ArchiveShowRow[]`) so serialize.ts /
+ * merge.ts / the app snapshot never juggle `undefined`. `owner` is length-
+ * clamped (ASVS V5, T-06-14) and rendered as escaped React text only (06-10).
  */
 export const exportEnvelope = z.strictObject({
   schemaVersion: z.number().int(),
   exportedAt: z.string(),
+  owner: z.string().max(config.dex.OWNER_NAME_MAX_LENGTH).nullable().default(null),
   meta: z.array(metaRow),
   attendedShows: z.array(attendedShowRow),
+  archiveShows: z.array(archiveShowRow).default([]),
   trackedShows: z.array(trackedShowRow),
   trackedEntries: z.array(trackedEntryRow),
 });

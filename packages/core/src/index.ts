@@ -141,7 +141,11 @@ export {
  * union-merges→same-show-dedupes entirely in memory, rejecting bad files whole
  * (D-10/D-11/D-12) and never dropping a local row.
  */
-export { exportEnvelope, type ExportEnvelope } from "./data-safety/export-schema.ts";
+export {
+  exportEnvelope,
+  archiveShowRow,
+  type ExportEnvelope,
+} from "./data-safety/export-schema.ts";
 export { serializeExport, type ExportSnapshot } from "./data-safety/serialize.ts";
 export { parseAndMergeImport, type ImportResult } from "./data-safety/merge.ts";
 

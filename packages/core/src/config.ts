@@ -210,6 +210,15 @@ export const config = {
      */
     RARITY_MIN_PLAYS: 3,
 
+    /**
+     * D-17 (plan 06-07): max length of the export-envelope `owner` identity
+     * field. An ASVS V5 length clamp on an untrusted, friend-file-crossing
+     * string — the schema hard-rejects an over-length owner before any merge,
+     * and the Settings input mirrors this as a `maxLength` attribute. 40 chars
+     * comfortably fits a display name for the ≤10-friend fork-key use (SHAR-01).
+     */
+    OWNER_NAME_MAX_LENGTH: 40,
+
     /** The compact offline show archive artifact (DEX-02 substrate) — sibling of matrixArtifactPath. */
     archiveArtifactPath: "data/normalized/archive.json",
 
