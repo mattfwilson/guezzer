@@ -311,6 +311,21 @@ export const config = {
       },
       /** Debut-candidate pill (STAT-04, D-08) — replaces any tier/percentage for zero-history songs. */
       debutBadge: "Debut candidate",
+      /**
+       * Caught song-row subline (STAT-03) — personal-gap phrasing. `mon` is a
+       * pre-formatted "Mon YYYY" string; `gap` is your shows since last sighting.
+       */
+      songSeenCaught: (sightings: number, mon: string, gap: number): string =>
+        `Seen ${sightings}× · last ${mon} · ${gap} of your shows ago`,
+      /** Caught song-row subline at gap 0 (seen at your most recent show). */
+      songSeenLastShow: (sightings: number): string => `Seen ${sightings}× · last show`,
+      /** Unseen-but-has-live-history subline — honest corpus stat, no personal fake. */
+      songPlayedAllTime: (playCount: number): string => `Played ${playCount}× all-time`,
+      /** Debut-candidate detail line (STAT-04) — the anti-fake-precision copy. */
+      debutDetail: "Never played live — no odds to fake.",
+      /** WhyDetail corpus-stat line (STAT-01) — play count · last played · corpus gap. */
+      whyCorpusStat: (playCount: number, mon: string, gap: number): string =>
+        `Played ${playCount}× · last ${mon} · gap ${gap}`,
     },
   },
 } as const;

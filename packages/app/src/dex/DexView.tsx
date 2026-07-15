@@ -10,18 +10,49 @@
  * crash. The Share-card CTA (DexHeader) arrives in 06-11; the Shows list in 06-09;
  * the retro-mark CTA in 06-08 — no dead buttons this plan.
  */
+import type { AlbumTrack, DexAlbumsArtifact } from "@guezzer/core";
 import { useState } from "react";
 import { config } from "../config.ts";
+import { AlbumDetail } from "./AlbumDetail.tsx";
 import { AlbumGrid } from "./AlbumGrid.tsx";
 import { DexHeader } from "./DexHeader.tsx";
 import { useDexStats } from "./useDexStats.ts";
 
 type Segment = "albums" | "shows";
 
+/** A resolved open-album drill-in target (card album or bucket). */
+interface OpenAlbum {
+  title: string;
+  slug: string | null;
+  tracks: AlbumTrack[];
+}
+
+/** Resolve the perAlbum key back to its display title + cover slug + track list. */
+function resolveOpenAlbum(
+  key: string,
+  albums: DexAlbumsArtifact,
+  copy: typeof config.copy.dex,
+): OpenAlbum | null {
+  if (key === "covers") {
+    return { title: copy.bucketCovers, slug: null, tracks: albums.buckets.covers };
+  }
+  if (key === "miscellaneous") {
+    return { title: copy.bucketMiscellaneous, slug: null, tracks: albums.buckets.miscellaneous };
+  }
+  const album = albums.albums.find((a) => a.albumUrl === key);
+  if (album == null) return null;
+  return {
+    title: album.title,
+    slug: album.albumUrl.slice(album.albumUrl.lastIndexOf("/") + 1),
+    tracks: album.tracks,
+  };
+}
+
 export function DexView() {
   const copy = config.copy.dex;
   const stats = useDexStats();
   const [segment, setSegment] = useState<Segment>("albums");
+  const [openAlbumKey, setOpenAlbumKey] = useState<string | null>(null);
 
   // Loader-guard failure (T-06-12): a calm handled state, never a thrown crash.
   if (stats.error != null) {
@@ -37,8 +68,9 @@ export function DexView() {
     return <div className="mx-auto w-full max-w-md" aria-hidden="true" />;
   }
 
-  const { dex, archive, albums } = stats;
+  const { dex, archive, albums, rarity } = stats;
   const emptyDex = dex.completion.caught === 0;
+  const openAlbum = openAlbumKey != null ? resolveOpenAlbum(openAlbumKey, albums, copy) : null;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col">
@@ -70,11 +102,23 @@ export function DexView() {
         emptyDex ? (
           <EmptyState heading={copy.emptyHeading} body={copy.emptyBody} />
         ) : (
-          // Drill-in (onOpen) is wired to AlbumDetail in Task 2.
-          <AlbumGrid dex={dex} albums={albums} onOpen={() => undefined} />
+          <AlbumGrid dex={dex} albums={albums} onOpen={setOpenAlbumKey} />
         )
       ) : (
         <EmptyState heading={copy.showsEmptyHeading} body={copy.showsEmptyBody} />
+      )}
+
+      {/* Album drill-in overlay — within #/dex (component state), back → grid. */}
+      {openAlbum != null && rarity != null && openAlbumKey != null && (
+        <AlbumDetail
+          albumKey={openAlbumKey}
+          title={openAlbum.title}
+          slug={openAlbum.slug}
+          tracks={openAlbum.tracks}
+          dex={dex}
+          rarity={rarity}
+          onBack={() => setOpenAlbumKey(null)}
+        />
       )}
     </div>
   );
