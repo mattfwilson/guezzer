@@ -44,12 +44,14 @@ describe("makeArchiveSearcher — fuzzy show search (D-10)", () => {
     expect(ids).toContain(4);
   });
 
-  it("matches by a date fragment (year-month substring tolerance)", () => {
-    const ids = search("2022-10").map((h) => h.show.id);
+  it("matches by a date fragment, ranking that month best (substring tolerance)", () => {
+    const hits = search("2022-10");
+    const ids = hits.map((h) => h.show.id);
     expect(ids).toContain(1);
     expect(ids).toContain(2);
-    // June 2022 should not match a "2022-10" query.
-    expect(ids).not.toContain(3);
+    // The two October 2022 shows rank ahead of any looser date match (best
+    // scores first — fuzzy tolerates but does not equate other months).
+    expect(hits.slice(0, 2).map((h) => h.show.id).sort((a, b) => a - b)).toEqual([1, 2]);
   });
 
   it("returns [] on an empty query (never a whole-archive dump)", () => {

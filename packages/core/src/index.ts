@@ -197,3 +197,16 @@ export {
   type RecapSet,
   type RecapSetlistRow,
 } from "./dex/recap.ts";
+
+/**
+ * Phase 6 archive search + year browse (plan 06-08). `makeArchiveSearcher` is
+ * the memoizable fuse.js searcher over the bundled show archive (date/venue/
+ * city, empty query → []); `groupShowsByYear` is the plain newest-first year
+ * browse. Pure, DOM-free, config-tuned — the retro-mark ArchiveBrowser's
+ * offline search substrate (DEX-02/D-10).
+ */
+export {
+  makeArchiveSearcher,
+  groupShowsByYear,
+  type ArchiveSearchHit,
+} from "./dex/search-archive.ts";
