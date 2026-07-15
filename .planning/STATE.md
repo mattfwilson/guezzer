@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 6 UI-SPEC approved
-last_updated: "2026-07-15T00:49:03.005Z"
+last_updated: "2026-07-15T01:06:49.783Z"
 last_activity: 2026-07-15 -- Phase 06 execution started
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 38
-  completed_plans: 28
+  completed_plans: 29
   percent: 71
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-08)
 ## Current Position
 
 Phase: 06 (pok-dex-history-stats) — EXECUTING
-Plan: 2 of 11
+Plan: 3 of 11
 Status: Ready to execute
 Last activity: 2026-07-15 -- Phase 06 execution started
 
@@ -62,6 +62,7 @@ Progress: [███████░░░] 71% (5/7 phases complete)
 | Phase 04 P06 | 12min | 3 tasks | 12 files |
 | Phase 04 P07 | ~10min | 2 tasks (+1 deferred device checkpoint) | 9 files |
 | Phase 06 P01 | 17min | 3 tasks | 13 files |
+| Phase 06 P02 | 8min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,9 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-07: gesture suppression is declarative CSS on the stage/action-bar scope (touch-action/overscroll-behavior/user-select, html/body overscroll-behavior-y none) — no preventDefault JS; relies on the 04-04 non-scrolling AppShell seam
 - [Phase 04]: 04-07: End Show is a confirm-gated destructive commit (EndShowDialog → endShow → finalized/read-only, D-04); weak-fan softening needed no new code (already live in OrbitStage from 04-03, EVAL-04)
 - [Phase 04]: 04-07: on-device SHOW-12/SHOW-13 verification (6 steps) deferred by user approval 2026-07-13 to the end-of-phase device human-verify gate — NOT skipped
+- [Phase ?]: 06-02: FabMenu speed-dial supersedes the Phase-4 ActionBar layout (D-13..D-15) — recorded, not restored; same five-callback contract kept (D-20)
+- [Phase ?]: 06-02: fitOrbLabel is a pure wrap/scale/ellipsis helper (orbitLayout idiom); added config.show.ORB_LABEL_CENTER_WIDTH_PX so the diameter-less center pill can use it (D-21)
+- [Phase ?]: 06-02: InstallBanner gated once-per-build via a persisted installBannerSeenVersion meta stamp; session dismissal layers on top (D-22, supersedes D-05)
 
 ### Pending Todos
 
@@ -119,6 +123,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-15T00:49:03.000Z
+Last session: 2026-07-15T01:06:13.003Z
 Stopped at: Phase 6 UI-SPEC approved
 Resume file: .planning/phases/06-pok-dex-history-stats/06-UI-SPEC.md
