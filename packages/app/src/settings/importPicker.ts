@@ -15,18 +15,7 @@
  */
 import { parseAndMergeImport, type ImportResult } from "@guezzer/core";
 import { config } from "../config.ts";
-import { db, importSnapshot, type DbSnapshot } from "../db/db.ts";
-
-/** Read the four Dexie tables into the local snapshot core merges against. */
-async function readLocalSnapshot(): Promise<DbSnapshot> {
-  const [meta, attendedShows, trackedShows, trackedEntries] = await Promise.all([
-    db.meta.toArray(),
-    db.attendedShows.toArray(),
-    db.trackedShows.toArray(),
-    db.trackedEntries.toArray(),
-  ]);
-  return { meta, attendedShows, trackedShows, trackedEntries };
-}
+import { importSnapshot, snapshot } from "../db/db.ts";
 
 /**
  * Validate + merge `file` via core, then (only on success) commit atomically.
@@ -36,7 +25,9 @@ async function readLocalSnapshot(): Promise<DbSnapshot> {
 export async function pickAndImport(file: File): Promise<ImportResult> {
   try {
     const text = await file.text();
-    const local = await readLocalSnapshot();
+    // The local snapshot core merges against — the same single assembly path
+    // exportBackup uses (plan 06-07), so `owner`/`archiveShows` are included.
+    const local = await snapshot();
     const result = parseAndMergeImport(
       text,
       local,

@@ -70,9 +70,11 @@ describe("db version(3) additive migration", () => {
     });
     oldDb.close();
 
-    // Reopen through the real version(3) schema → the upgrade callback runs.
+    // Reopen through the real schema → the version(3) upgrade callback runs.
+    // The DB now opens at version(4) (Phase 6 added the additive archiveShows
+    // table); the v3 upgrade still runs on the way up from the seeded v2 data.
     await db.open();
-    expect(db.verno).toBe(3);
+    expect(db.verno).toBe(4);
 
     // Backfill: the pre-existing source-less entry now reads "manual".
     const entry = await db.trackedEntries.where("sessionId").equals("s1").first();
@@ -163,8 +165,10 @@ describe("db version(3) write helpers", () => {
 
   it("importSnapshot commits all four tables in one transaction", async () => {
     await importSnapshot({
+      owner: null,
       meta: [{ key: "persistStatus", value: "best-effort" }],
       attendedShows: [{ show_id: 111, showDate: "2026-02-02" }],
+      archiveShows: [],
       trackedShows: [
         {
           sessionId: "imp",
@@ -209,8 +213,10 @@ describe("db version(3) write helpers", () => {
     // AFTER the meta bulkPut has already been applied within the same
     // transaction. The atomic-write contract requires the meta write to roll back.
     const badSnapshot = {
+      owner: null,
       meta: [{ key: "fromBadImport", value: "should-not-persist" }],
       attendedShows: [],
+      archiveShows: [],
       trackedShows: [],
       trackedEntries: null,
     } as unknown as DbSnapshot;
@@ -226,8 +232,10 @@ describe("db version(3) write helpers", () => {
     // A trackedShows row missing its inbound &sessionId primary key: meta and
     // attendedShows are written first, then this bulkPut rejects, aborting the tx.
     const badSnapshot = {
+      owner: null,
       meta: [{ key: "fromInvalidRow", value: "should-not-persist" }],
       attendedShows: [{ show_id: 222, showDate: "2026-03-03" }],
+      archiveShows: [],
       trackedShows: [
         {
           date: "2026-03-03",

@@ -105,8 +105,13 @@ export const config = {
 
   /** Phase-5 data-safety tunables (05-UI-SPEC §Config surface). */
   dataSafety: {
-    /** Export envelope `schemaVersion` stamped by serializeExport / checked on import (D-09/D-12). */
-    SCHEMA_VERSION: 1,
+    /**
+     * Export envelope `schemaVersion` stamped by serializeExport / checked on
+     * import (D-09/D-12). Bumped 1 → 2 in plan 06-07: the v2 envelope adds the
+     * `owner` identity fork key + the `archiveShows` fallback setlist cache.
+     * v1 backups migrate forward losslessly via core MIGRATIONS[1].
+     */
+    SCHEMA_VERSION: 2,
   },
 
   /**

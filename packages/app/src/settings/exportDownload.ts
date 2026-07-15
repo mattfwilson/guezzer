@@ -14,9 +14,9 @@
  * API (`showSaveFilePicker`) is deliberately NOT used — it is unavailable on
  * iOS Safari, the primary target (05-RESEARCH §Don't Hand-Roll).
  */
-import { serializeExport, type ExportSnapshot } from "@guezzer/core";
+import { serializeExport } from "@guezzer/core";
 import { config } from "../config.ts";
-import { db } from "../db/db.ts";
+import { snapshot } from "../db/db.ts";
 
 /** Dated `YYYY-MM-DD` stamp for the backup filename (local time). */
 function backupDateStamp(): string {
@@ -34,23 +34,15 @@ function backupDateStamp(): string {
  */
 export async function exportBackup(): Promise<{ ok: boolean }> {
   try {
-    const [meta, attendedShows, trackedShows, trackedEntries] = await Promise.all(
-      [
-        db.meta.toArray(),
-        db.attendedShows.toArray(),
-        db.trackedShows.toArray(),
-        db.trackedEntries.toArray(),
-      ],
+    // Single assembly path (plan 06-07): db.snapshot() reads every table plus
+    // the `owner` identity, so the v2 envelope (owner + archiveShows) is built
+    // in ONE place shared with the import's local-snapshot read.
+    const dbSnapshot = await snapshot();
+
+    const envelope = serializeExport(
+      dbSnapshot,
+      config.dataSafety.SCHEMA_VERSION,
     );
-
-    const snapshot: ExportSnapshot = {
-      meta,
-      attendedShows,
-      trackedShows,
-      trackedEntries,
-    };
-
-    const envelope = serializeExport(snapshot, config.dataSafety.SCHEMA_VERSION);
     const json = JSON.stringify(envelope, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);

@@ -117,6 +117,27 @@ export interface TrackedEntry {
   loggedAt: number;
 }
 
+/**
+ * A cached online-fallback setlist row (DEX-02, plan 06-07), keyed by the
+ * stable 10-digit `show_id`. ONLY written by an online-fallback retro mark: a
+ * show marked from the live archive (post-corpus, absent from the bundled
+ * `archive.json`) stashes its setlist here so its sightings survive reload AND
+ * backup round-trips (Pitfall 5). Corpus-era marks write nothing here — their
+ * setlists already ride in the bundled archive artifact.
+ *
+ * `sets[].n` reuses the existing `SetNumber` union — the core `archiveShowRow`
+ * schema (export-schema.ts) enum-pins to it, so a validated envelope row is
+ * assignable to `ArchiveShowRow` at `importSnapshot` (the `tsc --noEmit`
+ * cross-boundary contract).
+ */
+export interface ArchiveShowRow {
+  show_id: number;
+  date: string;
+  venueName: string;
+  city: string;
+  sets: Array<{ n: SetNumber; songs: Array<{ songId: number; songName: string }> }>;
+}
+
 /** Binding written onto a provisional show by `bindShow` on kglw.net reconciliation (D-07). */
 export interface ShowBinding {
   showId: number;
@@ -139,8 +160,12 @@ export interface AdoptedEntry {
  * so the merged import is written atomically (D-12/Pitfall 5).
  */
 export interface DbSnapshot {
+  /** D-17 identity fork key (plan 06-07): read from the meta `ownerName` row; null when unset. */
+  owner: string | null;
   meta: MetaRow[];
   attendedShows: AttendedShow[];
+  /** The online-fallback setlist cache (plan 06-07). */
+  archiveShows: ArchiveShowRow[];
   trackedShows: TrackedShow[];
   trackedEntries: TrackedEntry[];
 }
@@ -148,6 +173,7 @@ export interface DbSnapshot {
 export class GuezzerDB extends Dexie {
   meta!: Table<MetaRow, string>;
   attendedShows!: Table<AttendedShow, number>;
+  archiveShows!: Table<ArchiveShowRow, number>;
   trackedShows!: Table<TrackedShow, string>;
   trackedEntries!: Table<TrackedEntry, number>;
 
@@ -198,6 +224,15 @@ export class GuezzerDB extends Dexie {
             if (s.city === undefined) s.city = null;
           });
       });
+
+    // Version 4 (Phase 6 Pokédex): ADDITIVE only — v1/v2/v3 above are untouched,
+    // so no destructive rewrite and no data loss. Adds a SINGLE new table,
+    // `archiveShows`, the online-fallback setlist cache (DEX-02, plan 06-07),
+    // keyed by the stable 10-digit `&show_id`. No `.upgrade` is needed: a new
+    // table has no pre-existing rows to backfill.
+    this.version(4).stores({
+      archiveShows: "&show_id",
+    });
   }
 }
 
@@ -411,6 +446,66 @@ export async function bindShow(
   await db.trackedShows.update(sessionId, binding);
 }
 
+// ── Phase 6 retro mark/unmark helpers (DEX-02, plan 06-07) ───────────────────
+
+/**
+ * Mark a show as attended (DEX-02). Corpus-era marks pass NO `cachedSetlist` —
+ * the bundled archive already holds their setlists, so only the `attendedShows`
+ * attendance stub is written. Online-fallback marks (a post-corpus show pulled
+ * from the live archive, absent from the bundle) pass `cachedSetlist`, which is
+ * cached in `archiveShows` IN THE SAME transaction so the attendance stub and
+ * its setlist are written atomically (Pitfall 5 — a forced failure writes
+ * neither, so a fallback mark can never credit zero sightings after reload).
+ * `&show_id` is a stable upsert key, so re-marking is idempotent.
+ */
+export async function markShowAttended(input: {
+  show_id: number;
+  showDate: string;
+  cachedSetlist?: ArchiveShowRow;
+}): Promise<void> {
+  await db.transaction("rw", db.attendedShows, db.archiveShows, async () => {
+    await db.attendedShows.put({
+      show_id: input.show_id,
+      showDate: input.showDate,
+    });
+    if (input.cachedSetlist) {
+      await db.archiveShows.put(input.cachedSetlist);
+    }
+  });
+}
+
+/**
+ * Un-mark a show (D-12). A plain two-table delete of the attendance stub and any
+ * cached fallback setlist — derivation recomputes every dex stat from raw
+ * attendance, so unmark needs no bookkeeping ("unmark is free"). Deleting a
+ * `show_id` absent from either table is a harmless no-op.
+ */
+export async function unmarkShowAttended(show_id: number): Promise<void> {
+  await db.transaction("rw", db.attendedShows, db.archiveShows, async () => {
+    await db.attendedShows.delete(show_id);
+    await db.archiveShows.delete(show_id);
+  });
+}
+
+/**
+ * Read the full DB snapshot for export/merge (plan 06-07). Reads every table
+ * plus the `owner` identity (from the meta `ownerName` row, null when unset).
+ * The single assembly path — `exportDownload` and the import's local-snapshot
+ * read both route through here so the export shape is defined in ONE place.
+ */
+export async function snapshot(): Promise<DbSnapshot> {
+  const [meta, attendedShows, archiveShows, trackedShows, trackedEntries] =
+    await Promise.all([
+      db.meta.toArray(),
+      db.attendedShows.toArray(),
+      db.archiveShows.toArray(),
+      db.trackedShows.toArray(),
+      db.trackedEntries.toArray(),
+    ]);
+  const owner = (await getMeta<string>("ownerName")) ?? null;
+  return { owner, meta, attendedShows, archiveShows, trackedShows, trackedEntries };
+}
+
 /**
  * Commit a fully-merged import snapshot in ONE rw transaction (D-12/Pitfall 5).
  * The caller (Plan 05-05) validates + merges entirely in memory first and passes
@@ -436,11 +531,17 @@ export async function importSnapshot(snapshot: DbSnapshot): Promise<void> {
     "rw",
     db.meta,
     db.attendedShows,
+    db.archiveShows,
     db.trackedShows,
     db.trackedEntries,
     async () => {
       await db.meta.bulkPut(snapshot.meta);
       await db.attendedShows.bulkPut(snapshot.attendedShows);
+      // archiveShows has a stable `&show_id` key and is union-only (never
+      // reduced by the merge, D-10) — commit via bulkPut upsert, NOT
+      // clear-and-rewrite (plan 06-07). `owner` is deliberately NOT written into
+      // meta here: it is a device-local fork key, not portable state (D-17).
+      await db.archiveShows.bulkPut(snapshot.archiveShows);
       await db.trackedShows.clear();
       await db.trackedShows.bulkPut(snapshot.trackedShows);
       await db.trackedEntries.clear();
