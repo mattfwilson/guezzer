@@ -20,6 +20,7 @@ import { ArchiveBrowser } from "./ArchiveBrowser.tsx";
 import { DexHeader } from "./DexHeader.tsx";
 import { RecapView } from "./RecapView.tsx";
 import { SetlistView } from "./SetlistView.tsx";
+import { ShareCardSheet } from "./ShareCardSheet.tsx";
 import { ShowsList } from "./ShowsList.tsx";
 import { useDexStats } from "./useDexStats.ts";
 
@@ -67,6 +68,7 @@ export function DexView() {
   const [openAlbumKey, setOpenAlbumKey] = useState<string | null>(null);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [openShow, setOpenShow] = useState<OpenShow>(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Loader-guard failure (T-06-12): a calm handled state, never a thrown crash.
   if (stats.error != null) {
@@ -88,7 +90,7 @@ export function DexView() {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col">
-      <DexHeader dex={dex} archive={archive} />
+      <DexHeader dex={dex} archive={archive} onShare={() => setShareOpen(true)} />
 
       {/* Segment control — component state, not a route (no new hash routes). The
           active half is accent-tinted (reserved accent use #4, §Color A). */}
@@ -165,6 +167,9 @@ export function DexView() {
           onClose={() => setOpenShow(null)}
         />
       )}
+
+      {/* Share-card preview sheet (SHAR-02) — self-sources the live dex. */}
+      <ShareCardSheet open={shareOpen} onClose={() => setShareOpen(false)} />
     </div>
   );
 }

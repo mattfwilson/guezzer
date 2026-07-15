@@ -16,14 +16,15 @@
  * (T-06-21); the Share card CTA joins in 06-11 (no dead button here).
  */
 import { deriveRecap, type RarityTier } from "@guezzer/core";
-import { Sparkles } from "lucide-react";
+import { Share2, Sparkles } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { config } from "../config.ts";
 import { db } from "../db/db.ts";
 import { loadArchive } from "./archive-loader.ts";
 import { loadDexAlbums } from "./dex-albums-loader.ts";
 import { getRarityIndex } from "./rarityIndex.ts";
+import { ShareCardSheet } from "./ShareCardSheet.tsx";
 import { TierBadge } from "./TierBadge.tsx";
 
 /**
@@ -48,7 +49,9 @@ interface RecapViewProps {
 
 export function RecapView({ sessionId, onClose }: RecapViewProps) {
   const copy = config.copy.recap;
+  const shareCopy = config.copy.share;
   const setLabels = config.copy.dex.setLabels as Record<string, string>;
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Live reads — Dexie is the single source of truth (a rename/edit re-derives).
   const trackedShows = useLiveQuery(() => db.trackedShows.toArray());
@@ -253,11 +256,19 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
           ))}
         </div>
 
-        {/* Footer — Done (neutral). Share card joins in 06-11. */}
+        {/* Footer — Share card (accent) · Done (neutral). */}
         <div
-          className="mt-auto pt-4 pb-4"
+          className="mt-auto flex flex-col gap-2 pt-4 pb-4"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
         >
+          <button
+            type="button"
+            onClick={() => setShareOpen(true)}
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-accent px-4 text-[14px] font-semibold text-surface touch-manipulation"
+          >
+            <Share2 size={18} aria-hidden="true" />
+            {shareCopy.cta}
+          </button>
           <button
             type="button"
             onClick={onClose}
@@ -267,6 +278,9 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
           </button>
         </div>
       </div>
+
+      {/* Share-card preview sheet (SHAR-02) — self-sources the live dex. */}
+      <ShareCardSheet open={shareOpen} onClose={() => setShareOpen(false)} />
     </div>
   );
 }

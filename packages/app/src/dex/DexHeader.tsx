@@ -5,21 +5,26 @@
  * the "caught" caption, the rarest-catch subline with its tier pill, and the
  * attended-show count. Generous `xl` rhythm.
  *
- * The accent Share-card CTA is deliberately NOT here yet — it arrives in plan
- * 06-11 (no dead buttons). The rarest-catch song name is kglw-derived, rendered
- * as React text only (never dangerouslySetInnerHTML).
+ * The accent Share-card CTA lives here (reserved accent use #1, §Color A): the
+ * only accent control on the dex face, opening the share-card preview sheet
+ * (plan 06-11). The rarest-catch song name is kglw-derived, rendered as React
+ * text only (never dangerouslySetInnerHTML).
  */
 import type { ArchiveArtifact, DexStats } from "@guezzer/core";
+import { Share2 } from "lucide-react";
 import { config } from "../config.ts";
 import { TierBadge } from "./TierBadge.tsx";
 
 interface DexHeaderProps {
   dex: DexStats;
   archive: ArchiveArtifact;
+  /** Open the share-card preview sheet (accent CTA, plan 06-11). */
+  onShare: () => void;
 }
 
-export function DexHeader({ dex, archive }: DexHeaderProps) {
+export function DexHeader({ dex, archive, onShare }: DexHeaderProps) {
   const copy = config.copy.dex;
+  const shareCopy = config.copy.share;
   const { caught, total, pct } = dex.completion;
 
   const rarestName =
@@ -50,6 +55,16 @@ export function DexHeader({ dex, archive }: DexHeaderProps) {
       <p className="text-base leading-normal text-text-muted tabular-nums">
         {copy.showsAttended(dex.showCount)}
       </p>
+
+      {/* The accent Share-card CTA — reserved accent use #1 (§Color A). */}
+      <button
+        type="button"
+        onClick={onShare}
+        className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-accent px-4 text-[14px] font-semibold text-surface touch-manipulation"
+      >
+        <Share2 size={18} aria-hidden="true" />
+        {shareCopy.cta}
+      </button>
     </header>
   );
 }
