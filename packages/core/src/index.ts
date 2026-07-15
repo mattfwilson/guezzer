@@ -166,3 +166,18 @@ export {
   type DexAlbum,
   type DexAlbumsArtifact,
 } from "./dex/archive-types.ts";
+
+/**
+ * Phase 6 dex derivation (plan 06-03). `buildRarityIndex`/`showRarityScore`
+ * (D-15/STAT-01/STAT-02) are the corpus-honest rarity substrate; `deriveDex`
+ * (DEX-03/DEX-04/STAT-03/STAT-04) is the single derivation entry point that
+ * yields every dex stat from raw attendance; `deriveRecap` (SHOW-14/D-14)
+ * assembles the night's scorecard. All pure, zero I/O, fixture-pinned.
+ */
+export {
+  buildRarityIndex,
+  showRarityScore,
+  type RarityTier,
+  type SongRarity,
+  type RarityIndex,
+} from "./dex/rarity.ts";
