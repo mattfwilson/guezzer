@@ -33,12 +33,18 @@ interface EndShowDialogProps {
   /** The active show to finalize on confirm (D-04). */
   sessionId: string;
   onClose: () => void;
+  /**
+   * D-13 recap seam (plan 06-09): fired on confirm AFTER `endShow` + the
+   * auto-backup, so ShowView can auto-open the post-show recap for this session.
+   * Optional — the finalize + backup contract is unchanged when omitted.
+   */
+  onEnded?: (sessionId: string) => void;
 }
 
 /** Meta flag key gating the one-time persist-denied warning (D-13). */
 const PERSIST_WARNING_SHOWN = "persistWarningShown";
 
-export function EndShowDialog({ open, sessionId, onClose }: EndShowDialogProps) {
+export function EndShowDialog({ open, sessionId, onClose, onEnded }: EndShowDialogProps) {
   const copy = config.copy.show;
   const settingsCopy = config.copy.settings;
   const [showPersistWarning, setShowPersistWarning] = useState(false);
@@ -77,6 +83,7 @@ export function EndShowDialog({ open, sessionId, onClose }: EndShowDialogProps) 
   const handleConfirm = () => {
     void endShow(sessionId);
     void exportBackup(); // D-13 auto-backup — never-throws, fire-and-forget
+    onEnded?.(sessionId); // D-13 recap seam (06-09) — AFTER finalize + backup
     onClose();
   };
 

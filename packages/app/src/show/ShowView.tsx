@@ -51,6 +51,7 @@ import { useLatestPoll } from "../live/useLatestPoll.ts";
 import { useOnlineStatus } from "../live/useOnlineStatus.ts";
 import { SuggestionStrip } from "../live/SuggestionStrip.tsx";
 import { SyncDot } from "../live/SyncDot.tsx";
+import { RecapView } from "../dex/RecapView.tsx";
 import { classifyOutcome } from "./scoring.ts";
 import { FabMenu } from "./FabMenu.tsx";
 import { CometTrail } from "./CometTrail.tsx";
@@ -71,6 +72,8 @@ export function ShowView() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [trailNode, setTrailNode] = useState<TrackedEntry | null>(null);
   const [endOpen, setEndOpen] = useState(false);
+  // D-13 recap seam (06-09): set by EndShowDialog.onEnded when a show finalizes.
+  const [recapSessionId, setRecapSessionId] = useState<string | null>(null);
   const [wakeNoticeVisible, setWakeNoticeVisible] = useState(false);
   const wakeDismissedRef = useRef(false);
   const copy = config.copy.show;
@@ -158,6 +161,18 @@ export function ShowView() {
       void releaseWakeLock();
     };
   }, [isActive]);
+
+  // D-13 recap seam (06-09) — LOAD-BEARING ORDER (RESEARCH Pattern 6): confirming
+  // End Show finalizes the session synchronously, so the `!session.active` early
+  // return below fires the instant the show ends. The recap MUST be checked FIRST
+  // or the payoff screen is swallowed. Done clears recapSessionId → the pre-show
+  // launcher then renders. A finalized recap is a pure re-derivation over the
+  // persisted trackedEntries, so it stays reachable from Dex history forever.
+  if (recapSessionId != null) {
+    return (
+      <RecapView sessionId={recapSessionId} onClose={() => setRecapSessionId(null)} />
+    );
+  }
 
   // No active show → the pre-show launcher (D-01/D-03).
   if (!session.active) {
@@ -385,6 +400,7 @@ export function ShowView() {
         open={endOpen}
         sessionId={sessionId}
         onClose={() => setEndOpen(false)}
+        onEnded={(id) => setRecapSessionId(id)}
       />
 
       <WhyDetail candidate={whyCandidate} onClose={() => setWhyCandidate(null)} />
