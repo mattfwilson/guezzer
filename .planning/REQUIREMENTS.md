@@ -100,7 +100,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Dex Sharing
 
 - [x] **SHAR-01**: Dex exports/imports as JSON for friend-group exchange (no backend, no synced state)
-- [ ] **SHAR-02**: User can generate a shareable summary card (image or text) comparing-friendly: completion %, rarest catch, show count
+- [x] **SHAR-02**: User can generate a shareable summary card (image or text) comparing-friendly: completion %, rarest catch, show count
 
 ## v2 Requirements
 
@@ -205,7 +205,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXPL-06 | Phase 7 | Pending |
 | HIST-01 | Phase 6 | Complete |
 | SHAR-01 | Phase 6 | Complete |
-| SHAR-02 | Phase 6 | Pending |
+| SHAR-02 | Phase 6 | Complete (06-11) |
 
 **Coverage:**
 

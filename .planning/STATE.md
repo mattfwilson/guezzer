@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-10-PLAN.md
-last_updated: "2026-07-15T03:30:03Z"
-last_activity: 2026-07-15 -- Phase 06 plan 10 (friend compare) executed
+stopped_at: Completed 06-11-PLAN.md
+last_updated: "2026-07-15T23:46:00Z"
+last_activity: 2026-07-15 -- Phase 06 plan 11 (share card) executed
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 38
-  completed_plans: 37
+  completed_plans: 38
   percent: 71
 ---
 
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-07-08)
 
 Phase: 06 (pok-dex-history-stats) — EXECUTING
 Plan: 11 of 11
-Status: Ready to execute
-Last activity: 2026-07-15 -- Phase 06 plan 10 (friend compare) executed
+Status: All 11 plans executed — phase ready for verification/close
+Last activity: 2026-07-15 -- Phase 06 plan 11 (share card) executed
 
 Progress: [███████░░░] 71% (5/7 phases complete)
 
@@ -71,6 +71,7 @@ Progress: [███████░░░] 71% (5/7 phases complete)
 | Phase 06 P08 | 13min | 3 tasks | 10 files |
 | Phase 06 P09 | 7min | 3 tasks | 10 files |
 | Phase 06 P10 | 7min | 2 tasks | 9 files |
+| Phase 06 P11 | ~9min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,8 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-10: compareDexes is the structural INVERSE of parseAndMergeImport — same songId identity, songId-only tier-sorted diff lists, never merges/writes (name-free core)
 - [Phase 06]: 06-10: D-17 fork is structural not behavioral — classifyImport validates + forks on envelope.owner BEFORE parseAndMergeImport/importSnapshot are reachable; pickAndImport kept verbatim and called only for the "mine" kind
 - [Phase 06]: 06-10: CompareView runs deriveDex a SECOND time over the friend envelope (v2 ⊇ DexSnapshotInput) and diffs — zero DB writes proven by two independent before/after table deep-equals
+- [Phase 06]: 06-11: buildShareStats(dex, archive) is pure — latest-show date = max(perSong.lastSeenDate), venue resolved from archive by date; no attendance re-read needed (deriveDex exposes no timeline)
+- [Phase 06]: 06-11: ShareCardSheet self-sources the live dex via useDexStats (no dex/archive props) so DexHeader + RecapView both open the same whole-dex brag card; File pre-built on sheet-open, share tap has no async before navigator.share (Pitfall 7)
 
 ### Pending Todos
 
@@ -145,6 +148,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-15T03:30:03Z
-Stopped at: Completed 06-10-PLAN.md
+Last session: 2026-07-15T23:46:00Z
+Stopped at: Completed 06-11-PLAN.md
 Resume file: None

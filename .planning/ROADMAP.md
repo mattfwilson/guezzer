@@ -184,7 +184,7 @@ Plans:
   4. After a show, a recap view shows the hit/miss tally, final setlist with set structure, and a show rarity score — and past tracked shows remain viewable as complete setlists
   5. The dex exports/imports as JSON for friend exchange, and the user can generate a shareable summary card (completion %, rarest catch, show count)
 
-**Plans:** 10/11 plans executed
+**Plans:** 11/11 plans executed
 **UI hint**: yes
 
 Plans:
@@ -225,7 +225,7 @@ Plans:
 
 **Wave 9** *(blocked on 06-10)*
 
-- [ ] 06-11-PLAN.md — Share card slice: canvas PNG brag card via Web Share + download fallback (SHAR-02, D-18/19)
+- [x] 06-11-PLAN.md — Share card slice: canvas PNG brag card via Web Share + download fallback (SHAR-02, D-18/19)
 
 ### Phase 7: Explore Mode Constellation
 
