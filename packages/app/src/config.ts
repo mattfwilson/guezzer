@@ -55,6 +55,24 @@ export const config = {
     TRAIL_NODE_MIN_DIAMETER: 24,
     /** Largest (most-recent) comet-trail node circle diameter in px — nodes diminish from this toward MIN by age (SHOW-08). */
     TRAIL_NODE_MAX_DIAMETER: 40,
+
+    /**
+     * Phase-6 D-21 orb-label fit (fitOrbLabel). Names wrap + scale-to-fit down to
+     * a floor before ellipsis so full song titles stay readable inside an orb;
+     * base sizes stay the existing role sizes (14px orb Label / 20px center
+     * Heading). SHOW-02 hit targets are untouched — this only affects text.
+     */
+    /** Max wrapped lines for a prediction-orb label before shrinking (D-21). */
+    ORB_LABEL_MAX_LINES: 2,
+    /** Font-size floor in px for a prediction-orb label before ellipsis (D-21). */
+    ORB_LABEL_MIN_FONT_PX: 11,
+    /** Max wrapped lines for the larger center-node label (D-21). */
+    ORB_LABEL_MAX_LINES_CENTER: 3,
+    /** Font-size floor in px for the center-node label before ellipsis (D-21). */
+    ORB_LABEL_MIN_FONT_PX_CENTER: 14,
+    /** Nominal center-pill text-width budget in px fed to fitOrbLabel (the pill is
+     *  max-w-[70%] of the stage and receives no px size; this is the wrap heuristic). */
+    ORB_LABEL_CENTER_WIDTH_PX: 220,
   },
 
   /**
