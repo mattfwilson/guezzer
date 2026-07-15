@@ -13,9 +13,66 @@
  * are wrapped so a read/write failure surfaces as an `{ ok: false }`
  * ImportResult rather than an exception the SettingsView would have to catch.
  */
-import { parseAndMergeImport, type ImportResult } from "@guezzer/core";
+import {
+  exportEnvelope,
+  parseAndMergeImport,
+  type ExportEnvelope,
+  type ImportResult,
+} from "@guezzer/core";
 import { config } from "../config.ts";
 import { importSnapshot, snapshot } from "../db/db.ts";
+
+/**
+ * The D-17 compare-vs-merge fork outcome (RESEARCH Pattern 5). `classifyImport`
+ * runs the strict zod gate FIRST, then forks on `envelope.owner` vs the local
+ * owner name BEFORE any merge code is reachable:
+ *   - `invalid` — bad JSON or not a Guezzer backup (existing rejection path).
+ *   - `mine`    — owner matches the local name → the Phase-5 merge path VERBATIM.
+ *   - `friend`  — owner names someone else → route the PARSED envelope to the
+ *                 read-only CompareView (structurally never reaches a write).
+ *   - `unowned` — owner is null (a v1 file, or never stamped) → the app prompts
+ *                 "Whose dex is this?" and the answer routes to mine or friend.
+ */
+export type ImportClassification =
+  | { kind: "invalid"; error: string }
+  | { kind: "mine"; rawJson: string }
+  | { kind: "friend"; envelope: ExportEnvelope }
+  | { kind: "unowned"; envelope: ExportEnvelope };
+
+/**
+ * Fork an import file's raw text into one of four outcomes (D-17 / Pattern 5).
+ * Validation happens FIRST via the same strict `exportEnvelope` gate the merge
+ * uses; only a valid envelope is ever routed. Owner comparison is trimmed +
+ * case-insensitive. This is the structural guarantee: the friend/unowned kinds
+ * carry the parsed envelope OUT to the compare view — they never touch a DB, and
+ * `pickAndImport` (below) is called ONLY for the `mine` kind.
+ */
+export function classifyImport(
+  rawJson: string,
+  localOwnerName: string | null,
+): ImportClassification {
+  // Parse (T-05-05) then strict-shape gate (T-05-06) — reject the whole file on
+  // any failure, exactly as parseAndMergeImport does, BEFORE any fork decision.
+  let parsedUnknown: unknown;
+  try {
+    parsedUnknown = JSON.parse(rawJson);
+  } catch {
+    return { kind: "invalid", error: "invalid-json" };
+  }
+  const parsed = exportEnvelope.safeParse(parsedUnknown);
+  if (!parsed.success) return { kind: "invalid", error: "invalid-shape" };
+  const envelope = parsed.data;
+
+  // Owner is the D-17 fork key. Absent/blank → prompt path (v1 files, unstamped).
+  const fileOwner = envelope.owner?.trim();
+  if (!fileOwner) return { kind: "unowned", envelope };
+
+  const local = localOwnerName?.trim().toLowerCase();
+  if (local && local === fileOwner.toLowerCase()) {
+    return { kind: "mine", rawJson };
+  }
+  return { kind: "friend", envelope };
+}
 
 /**
  * Validate + merge `file` via core, then (only on success) commit atomically.

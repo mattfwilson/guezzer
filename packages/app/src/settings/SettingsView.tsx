@@ -10,7 +10,7 @@
  * COUNTS only — never an echoed imported string — and everything renders as
  * escaped React text (no dangerouslySetInnerHTML).
  */
-import type { ImportResult } from "@guezzer/core";
+import type { ExportEnvelope, ImportResult } from "@guezzer/core";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   CircleCheck,
@@ -21,15 +21,32 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { config } from "../config.ts";
+import { CompareView } from "../dex/CompareView.tsx";
 import { getMeta, setMeta } from "../db/db.ts";
 import type { PersistStatus } from "../pwa/persist.ts";
 import { exportBackup } from "./exportDownload.ts";
-import { openBackupFilePicker, pickAndImport } from "./importPicker.ts";
+import {
+  classifyImport,
+  openBackupFilePicker,
+  pickAndImport,
+} from "./importPicker.ts";
+
+/** An unowned file (no owner name) awaiting the "Whose dex is this?" answer. */
+interface NamePrompt {
+  envelope: ExportEnvelope;
+  file: File;
+}
 
 export function SettingsView() {
   const copy = config.copy.settings;
+  const compareCopy = config.copy.compare;
   const [exportDone, setExportDone] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  // D-17 fork state: a friend's parsed envelope opens the read-only CompareView;
+  // an unowned file first asks "Whose dex is this?". Neither writes to the DB.
+  const [compareEnvelope, setCompareEnvelope] = useState<ExportEnvelope | null>(null);
+  const [namePrompt, setNamePrompt] = useState<NamePrompt | null>(null);
+  const [promptName, setPromptName] = useState("");
 
   // Reactive read of the persistence status recorded by requestPersistenceOnce
   // (Plan 04). `undefined` while loading is treated as "not yet protected".
@@ -54,13 +71,64 @@ export function SettingsView() {
     setExportDone(res.ok);
   };
 
+  // Commit the Phase-5 merge path VERBATIM (only ever reached for a "mine" file
+  // or an unowned file the user confirms is their own). Surfaces counts/errors.
+  const mergeFile = (file: File) => {
+    void pickAndImport(file).then(setImportResult);
+  };
+
   const handleImport = () => {
-    // Fresh attempt clears the previous result; the picker callback resolves
-    // the merge and surfaces counts (success) or the rejection copy (failure).
+    // Fresh attempt clears prior fork state; the picker callback classifies the
+    // file (validation FIRST) and forks BEFORE any merge code is reachable.
     setImportResult(null);
+    setCompareEnvelope(null);
+    setNamePrompt(null);
+    setPromptName("");
     openBackupFilePicker((file) => {
-      void pickAndImport(file).then(setImportResult);
+      void file.text().then((text) => {
+        const result = classifyImport(text, ownerName ?? null);
+        switch (result.kind) {
+          case "invalid":
+            // Reuse the existing rejection copy (T-05-16: fixed copy, no echo).
+            setImportResult({ ok: false, error: result.error });
+            break;
+          case "mine":
+            mergeFile(file);
+            break;
+          case "friend":
+            // A friend's file → read-only compare, ZERO DB writes (D-17).
+            setCompareEnvelope(result.envelope);
+            break;
+          case "unowned":
+            // Pre-owner-field file → ask whose dex before doing anything.
+            setNamePrompt({ envelope: result.envelope, file });
+            break;
+        }
+      });
     });
+  };
+
+  // Resolve the "Whose dex is this?" answer: a name matching the local owner
+  // routes to the merge path (it's mine); any other name opens compare with that
+  // name stamped on the envelope (a friend's file — still zero DB writes).
+  const resolveNamePrompt = () => {
+    if (namePrompt == null) return;
+    const answer = promptName.trim();
+    const isMine = answer !== "" && answer.toLowerCase() === (ownerName ?? "").trim().toLowerCase();
+    if (isMine) {
+      mergeFile(namePrompt.file);
+    } else {
+      setCompareEnvelope({ ...namePrompt.envelope, owner: answer || null });
+    }
+    setNamePrompt(null);
+    setPromptName("");
+  };
+
+  const confirmPromptMine = () => {
+    if (namePrompt == null) return;
+    mergeFile(namePrompt.file);
+    setNamePrompt(null);
+    setPromptName("");
   };
 
   return (
@@ -177,6 +245,74 @@ export function SettingsView() {
           </div>
         </div>
       </section>
+
+      {/* Import fork surfaces (D-17) — component state, no new routes, no writes. */}
+
+      {/* Friend-file announcement (transient, above the fold) — the compare view
+          opens as a full-screen overlay below. */}
+      {compareEnvelope != null && (
+        <p className="sr-only">
+          {compareCopy.friendOpening(compareEnvelope.owner ?? "")}
+        </p>
+      )}
+
+      {/* Unowned file → "Whose dex is this?" before anything happens (never guess). */}
+      {namePrompt != null && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={compareCopy.namePrompt}
+          className="fixed inset-0 z-40 flex items-end bg-black/60"
+          onClick={() => {
+            setNamePrompt(null);
+            setPromptName("");
+          }}
+        >
+          <div
+            className="flex w-full flex-col gap-3 rounded-t-2xl border-t border-hairline bg-elevated p-4"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <label
+              htmlFor="whose-dex"
+              className="text-[20px] font-semibold leading-tight text-text-primary"
+            >
+              {compareCopy.namePrompt}
+            </label>
+            <input
+              id="whose-dex"
+              type="text"
+              value={promptName}
+              onChange={(e) => setPromptName(e.target.value)}
+              placeholder={compareCopy.namePromptPlaceholder}
+              autoComplete="off"
+              className="min-h-11 w-full rounded-md border border-hairline bg-surface px-3 text-base text-text-primary placeholder:text-text-muted touch-manipulation"
+            />
+            <button
+              type="button"
+              onClick={resolveNamePrompt}
+              className="flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+            >
+              {compareCopy.namePromptConfirm}
+            </button>
+            <button
+              type="button"
+              onClick={confirmPromptMine}
+              className="flex min-h-11 w-full items-center justify-center rounded-md px-4 text-[14px] font-semibold text-text-muted touch-manipulation"
+            >
+              {compareCopy.namePromptMine}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Read-only friend compare — a second deriveDex + diff, ZERO DB writes. */}
+      {compareEnvelope != null && (
+        <CompareView
+          envelope={compareEnvelope}
+          onClose={() => setCompareEnvelope(null)}
+        />
+      )}
     </div>
   );
 }

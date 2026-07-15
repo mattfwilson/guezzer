@@ -440,5 +440,46 @@ export const config = {
       /** Footer neutral CTA — returns to Show/Dex (Share card joins in 06-11). */
       done: "Done",
     },
+
+    /**
+     * Phase-6 friend-compare copy (06-UI-SPEC §Copywriting Contract, Layout 4) —
+     * verbatim. The throughline is "a friend's file is a read-only trophy case":
+     * the persistent banner reaffirms nothing was merged (D-17). The friend's
+     * name is untrusted (kglw-adjacent) and renders as escaped React text only,
+     * length-clamped by the schema's 40-char cap (T-06-26). No CompareView
+     * component hardcodes a string — they READ these keys.
+     */
+    compare: {
+      /** Persistent read-only banner — always visible atop the compare view. */
+      banner: (name: string): string =>
+        `Viewing ${name}'s dex — nothing was added to yours.`,
+      /** Your stat column heading. */
+      columnYou: "You",
+      /** The friend's stat column heading (their stamped name). */
+      columnThem: (name: string): string => name,
+      /** Per-column stat row labels (side-by-side, tabular-nums). */
+      statCompletion: "Completion",
+      statCaught: "Caught",
+      statShows: "Shows",
+      /** Diff-section headings — n = the list length. */
+      onlyThemHeading: (name: string, n: number): string =>
+        `Only ${name} has caught (${n})`,
+      onlyYouHeading: (n: number): string => `Only you have caught (${n})`,
+      /** Shared-catches section heading (both have caught). */
+      sharedHeading: (n: number): string => `You both caught (${n})`,
+      /** Close control (returns to Settings). */
+      close: "Close",
+      /** Import-fork surface copy (Settings) — the friend-file announcement. */
+      friendOpening: (name: string): string =>
+        `This is ${name}'s dex — opening compare view.`,
+      /** Unowned-file prompt (friend files pre-date the owner field; never guess). */
+      namePrompt: "Whose dex is this?",
+      /** Name-prompt text-input placeholder. */
+      namePromptPlaceholder: "Enter a name",
+      /** Name-prompt confirm — opens the compare view with the entered name. */
+      namePromptConfirm: "Open compare",
+      /** Name-prompt "it's my own backup" escape → routes to the merge path. */
+      namePromptMine: "It's mine — merge it",
+    },
   },
 } as const;
