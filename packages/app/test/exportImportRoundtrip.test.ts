@@ -3,6 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { config } from "../src/config.ts";
 import {
   db,
+  importSnapshot,
+  markShowAttended,
+  setMeta,
+  snapshot,
+  type ArchiveShowRow,
   type AttendedShow,
   type MetaRow,
   type TrackedEntry,
@@ -65,6 +70,7 @@ async function wipeAll(): Promise<void> {
   await db.attendedShows.clear();
   await db.trackedShows.clear();
   await db.trackedEntries.clear();
+  await db.archiveShows.clear();
 }
 
 async function tableCounts() {
@@ -421,5 +427,85 @@ describe("import into a populated DB with overlapping ids preserves every local 
       .equals("session-local-thin")
       .toArray();
     expect(droppedEntries).toHaveLength(0);
+  });
+});
+
+describe("envelope v2 round-trip: archiveShows + owner (plan 06-07 / Pitfall 5)", () => {
+  beforeEach(async () => {
+    await wipeAll();
+    capturedBlob = null;
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      capturedBlob = blob;
+      return "blob:mock-url";
+    });
+    URL.revokeObjectURL = vi.fn();
+  });
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await wipeAll();
+  });
+
+  const cachedSetlist: ArchiveShowRow = {
+    show_id: 1782000000,
+    date: "2026-07-13",
+    venueName: "Red Rocks Amphitheatre",
+    city: "Morrison",
+    sets: [{ n: "1", songs: [{ songId: 42, songName: "Rattlesnake" }] }],
+  };
+
+  it("a fallback-marked show's archiveShows cache row survives snapshot → clear → importSnapshot (Pitfall 5)", async () => {
+    // Mark a show from the online archive, caching its setlist.
+    await markShowAttended({
+      show_id: cachedSetlist.show_id,
+      showDate: cachedSetlist.date,
+      cachedSetlist,
+    });
+
+    // Snapshot (the backup shape), then simulate losing the phone.
+    const snap = await snapshot();
+    expect(snap.archiveShows).toHaveLength(1);
+    await wipeAll();
+    expect(await db.archiveShows.count()).toBe(0);
+
+    // Restore from the snapshot — the cached setlist must come back, or the
+    // fallback mark would credit zero sightings after reload (data loss).
+    await importSnapshot(snap);
+    expect(await db.archiveShows.get(cachedSetlist.show_id)).toEqual(
+      cachedSetlist,
+    );
+    expect(await db.attendedShows.get(cachedSetlist.show_id)).toBeDefined();
+  });
+
+  it("snapshot().owner reflects the meta ownerName (set → value, unset → null)", async () => {
+    expect((await snapshot()).owner).toBeNull();
+
+    await setMeta("ownerName", "Matt");
+    expect((await snapshot()).owner).toBe("Matt");
+  });
+
+  it("importSnapshot does NOT write owner into meta (owner is a fork key, not merged state)", async () => {
+    const snap = await snapshot();
+    await importSnapshot({ ...snap, owner: "Friend" });
+
+    // No ownerName meta row was created by the import.
+    expect(await db.meta.get("ownerName")).toBeUndefined();
+  });
+
+  it("a full exportBackup envelope is schemaVersion 2 and carries owner + archiveShows", async () => {
+    await setMeta("ownerName", "Matt");
+    await markShowAttended({
+      show_id: cachedSetlist.show_id,
+      showDate: cachedSetlist.date,
+      cachedSetlist,
+    });
+
+    await exportBackup();
+    const json = await capturedBlob!.text();
+    const parsed = exportEnvelope.parse(JSON.parse(json));
+
+    expect(parsed.schemaVersion).toBe(2);
+    expect(parsed.owner).toBe("Matt");
+    expect(parsed.archiveShows).toHaveLength(1);
+    expect(parsed.archiveShows[0].show_id).toBe(cachedSetlist.show_id);
   });
 });
