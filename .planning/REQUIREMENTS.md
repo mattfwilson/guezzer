@@ -95,7 +95,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Show History
 
-- [ ] **HIST-01**: Past tracked shows are viewable as complete setlists with set structure
+- [x] **HIST-01**: Past tracked shows are viewable as complete setlists with set structure
 
 ### Dex Sharing
 
@@ -203,7 +203,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXPL-04 | Phase 7 | Pending |
 | EXPL-05 | Phase 7 | Pending |
 | EXPL-06 | Phase 7 | Pending |
-| HIST-01 | Phase 6 | Pending |
+| HIST-01 | Phase 6 | Complete |
 | SHAR-01 | Phase 6 | Complete |
 | SHAR-02 | Phase 6 | Pending |
 

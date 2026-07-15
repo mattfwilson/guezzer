@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-07-15T02:57:36.636Z"
+last_updated: "2026-07-15T03:17:50.685Z"
 last_activity: 2026-07-15 -- Phase 06 execution started
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 38
-  completed_plans: 35
+  completed_plans: 36
   percent: 71
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-08)
 ## Current Position
 
 Phase: 06 (pok-dex-history-stats) — EXECUTING
-Plan: 9 of 11
+Plan: 10 of 11
 Status: Ready to execute
 Last activity: 2026-07-15 -- Phase 06 execution started
 
@@ -69,6 +69,7 @@ Progress: [███████░░░] 71% (5/7 phases complete)
 | Phase 06 P6 | 12min | 2 tasks | 13 files |
 | Phase 06 P07 | 12min | 3 tasks | 14 files |
 | Phase 06 P08 | 13min | 3 tasks | 10 files |
+| Phase 06 P09 | 7min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-06: TierBadge is the ONLY place the two new rarity hues (#60A5FA/#E879F9) appear — data semantics never chrome (B3); tier word always renders for color-blind safety
 - [Phase ?]: 06-07: envelope v2 uses zod .default(null)/.default([]) so v1 backups parse while the inferred output type stays required; owner is a device-local fork key (kept local on merge, never written to meta on import); archiveShows commits via bulkPut upsert
 - [Phase ?]: 06-08: retro-mark slice — makeArchiveSearcher (offline fuse.js) + fetchRecentShows (tolerant pollLatest-tier online fallback; assert-trip is a soft empty) + ArchiveBrowser one-tap mark/confirm-unmark; dual-source marked-state (retro unmarkable, tracked rows not — Pitfall 6); post-corpus debut names sourced from the fetch record first
+- [Phase 06]: 06-09: RecapView renders pure core RecapStats (zero component stat math); the End Show recap seam renders BEFORE ShowView's !session.active early return (RESEARCH Pattern 6) so the payoff is never swallowed
+- [Phase 06]: 06-09: ShowsList buildShowRows reuses the deriveDex/merge group-key rule (bound→show_id, unbound→date) so history-list dedupe matches the dex derivation; a tracked+marked night renders once, as tracked (D-16)
 
 ### Pending Todos
 
@@ -138,6 +141,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-15T02:57:02.779Z
+Last session: 2026-07-15T03:17:23.213Z
 Stopped at: Completed 06-03-PLAN.md
 Resume file: None
