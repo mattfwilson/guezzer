@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 6 UI-SPEC approved
-last_updated: "2026-07-15T01:06:49.783Z"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-07-15T01:27:03.648Z"
 last_activity: 2026-07-15 -- Phase 06 execution started
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 38
-  completed_plans: 29
+  completed_plans: 30
   percent: 71
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-08)
 ## Current Position
 
 Phase: 06 (pok-dex-history-stats) — EXECUTING
-Plan: 3 of 11
+Plan: 4 of 11
 Status: Ready to execute
 Last activity: 2026-07-15 -- Phase 06 execution started
 
@@ -63,6 +63,7 @@ Progress: [███████░░░] 71% (5/7 phases complete)
 | Phase 04 P07 | ~10min | 2 tasks (+1 deferred device checkpoint) | 9 files |
 | Phase 06 P01 | 17min | 3 tasks | 13 files |
 | Phase 06 P02 | 8min | 3 tasks | 14 files |
+| Phase 06 P03 | 11min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 06-02: FabMenu speed-dial supersedes the Phase-4 ActionBar layout (D-13..D-15) — recorded, not restored; same five-callback contract kept (D-20)
 - [Phase ?]: 06-02: fitOrbLabel is a pure wrap/scale/ellipsis helper (orbitLayout idiom); added config.show.ORB_LABEL_CENTER_WIDTH_PX so the diameter-less center pill can use it (D-21)
 - [Phase ?]: 06-02: InstallBanner gated once-per-build via a persisted installBannerSeenVersion meta stamp; session dismissal layers on top (D-22, supersedes D-05)
+- [Phase 06]: 06-03: deriveDex is the single dex derivation entry point — completion/sightings/personalGap/rarest/perAlbum all pure-derived from raw attendance; unmark is free (D-05/D-11/D-12)
+- [Phase 06]: 06-03: DexSnapshotInput is a structural subset of ExportSnapshot (enums widened to string) so friend files feed the same derivation (06-10)
 
 ### Pending Todos
 
@@ -123,6 +126,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-15T01:06:13.003Z
-Stopped at: Phase 6 UI-SPEC approved
-Resume file: .planning/phases/06-pok-dex-history-stats/06-UI-SPEC.md
+Last session: 2026-07-15T01:26:29.414Z
+Stopped at: Completed 06-03-PLAN.md
+Resume file: None

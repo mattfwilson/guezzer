@@ -54,7 +54,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SHOW-11** 🎯: Every confirmed song is written through to IndexedDB immediately; an interrupted session restores exactly on relaunch (iOS discards PWA state on app switch)
 - [x] **SHOW-12** 🎯: Screen wake lock is held during an active show, reacquired on visibility change, with feature-detection fallback messaging *(code complete in 04-07 — verify-held guard + silent reacquire + calm WakeLockNotice fallback; on-device installed-PWA confirmation deferred to end-of-phase device gate, user approval 2026-07-13)*
 - [x] **SHOW-13** 🎯: Dark theme, fat-thumb tap targets, accidental-gesture suppression — usable one-handed in a dark crowded venue by a possibly slightly drunk operator *(code complete in 04-07 — declarative gesture-suppression CSS on the non-scrolling stage/action bar; on-device confirmation deferred to end-of-phase device gate, user approval 2026-07-13)*
-- [ ] **SHOW-14**: Post-show recap view: hit/miss tally, final setlist with set structure, and show rarity score
+- [x] **SHOW-14**: Post-show recap view: hit/miss tally, final setlist with set structure, and show rarity score
 
 ### Live Sync
 
@@ -71,16 +71,16 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Stats
 
-- [ ] **STAT-01**: Song detail (orb detail view / Explore Mode) shows gap (shows since last played), play count, and last-played date
-- [ ] **STAT-02**: Post-show recap includes a show rarity score (average gap of the night's songs)
-- [ ] **STAT-03**: Pokédex shows personal gap ("N of your shows since you last saw this song")
+- [x] **STAT-01**: Song detail (orb detail view / Explore Mode) shows gap (shows since last played), play count, and last-played date
+- [x] **STAT-02**: Post-show recap includes a show rarity score (average gap of the night's songs)
+- [x] **STAT-03**: Pokédex shows personal gap ("N of your shows since you last saw this song")
 - [x] **STAT-04**: Songs with no live history (new-album material) are framed as "debut candidate" rather than shown with fake-precise low percentages
 
 ### Pokédex
 
 - [x] **DEX-01** 🎯: Live-tracked shows automatically count as attended (show #1's dex credit must not be lost)
 - [x] **DEX-02**: User can retroactively mark attended shows from the full kglw.net archive, searchable by date/venue, keyed by stable show ID
-- [ ] **DEX-03**: Per-song sighting counts are derived from attended shows — never hand-tallied
+- [x] **DEX-03**: Per-song sighting counts are derived from attended shows — never hand-tallied
 - [x] **DEX-04**: Pokédex UI shows collection completion %, per-song sighting counts, rarest catch (lowest base-rate song seen), and never-seen list
 - [ ] **DEX-05**: Pokédex state overlays the constellation: unseen songs as dimmed silhouettes, seen at full color, sighting count as badge/ring
 
@@ -180,7 +180,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHOW-11 | Phase 4 | Complete |
 | SHOW-12 | Phase 4 | Complete (device verification deferred to end-of-phase gate) |
 | SHOW-13 | Phase 4 | Complete (device verification deferred to end-of-phase gate) |
-| SHOW-14 | Phase 6 | Pending |
+| SHOW-14 | Phase 6 | Complete |
 | SYNC-01 | Phase 5 | Complete |
 | SYNC-02 | Phase 5 | Complete |
 | SYNC-03 | Phase 5 | Complete (device verification deferred to end-of-phase gate) |
@@ -188,13 +188,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PWA-02 | Phase 3 | Complete |
 | PWA-03 | Phase 3 | Complete |
 | PWA-04 | Phase 5 | Complete (05-06 gap closure — CR-01 import data loss fixed) |
-| STAT-01 | Phase 6 | Pending |
-| STAT-02 | Phase 6 | Pending |
-| STAT-03 | Phase 6 | Pending |
+| STAT-01 | Phase 6 | Complete |
+| STAT-02 | Phase 6 | Complete |
+| STAT-03 | Phase 6 | Complete |
 | STAT-04 | Phase 6 | Complete |
 | DEX-01 | Phase 4 | Complete |
 | DEX-02 | Phase 6 | Complete |
-| DEX-03 | Phase 6 | Pending |
+| DEX-03 | Phase 6 | Complete |
 | DEX-04 | Phase 6 | Complete |
 | DEX-05 | Phase 7 | Pending |
 | EXPL-01 | Phase 7 | Pending |
