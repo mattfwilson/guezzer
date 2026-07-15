@@ -187,3 +187,9 @@ export {
   type SongDexStats,
   type DexStats,
 } from "./dex/derive-dex.ts";
+export {
+  deriveRecap,
+  type RecapStats,
+  type RecapSet,
+  type RecapSetlistRow,
+} from "./dex/recap.ts";
