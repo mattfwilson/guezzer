@@ -144,3 +144,25 @@ export {
 export { exportEnvelope, type ExportEnvelope } from "./data-safety/export-schema.ts";
 export { serializeExport, type ExportSnapshot } from "./data-safety/serialize.ts";
 export { parseAndMergeImport, type ImportResult } from "./data-safety/merge.ts";
+
+/**
+ * Phase 6 dex artifact schemas + types (plan 06-01). The two build-time
+ * artifacts — the compact show archive (DEX-02) and the album-shelf mapping
+ * (D-04) — are validated through these strict zod schemas by the build CLIs
+ * and re-guarded by the app loaders (plan 06-05). Inferred types are shared
+ * across the core/app boundary.
+ */
+export {
+  archiveArtifact,
+  archiveShowSchema,
+  archiveSetSchema,
+  albumTrackSchema,
+  dexAlbumSchema,
+  dexAlbumsArtifact,
+  type ArchiveArtifact,
+  type ArchiveShow,
+  type ArchiveSet,
+  type AlbumTrack,
+  type DexAlbum,
+  type DexAlbumsArtifact,
+} from "./dex/archive-types.ts";

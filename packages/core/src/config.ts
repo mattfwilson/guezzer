@@ -185,4 +185,90 @@ export const config = {
      */
     distance: 100,
   },
+
+  // --- Phase 6: Pokédex, History & Stats (D-04 / D-15) ---
+  // All Phase-6 tunables live here (CLAUDE.md single-config-file constraint).
+  // Tuning values are [ASSUMED] — starting defaults per 06-UI-SPEC §Config /
+  // 06-RESEARCH A5, surfaced at the end-of-phase human-verify gate, not claims
+  // of optimality. `cardAlbumUrls` is the ONE home for the D-04 card-album
+  // allowlist — no allowlist ever lives in derivation code (dex/albums.ts).
+  dex: {
+    /**
+     * [ASSUMED] A5 (06-RESEARCH.md), D-15: corpus play-rate quantile cut-points
+     * for the game-style rarity tiers. A song in the bottom `legendary` fraction
+     * of catalog play-rate is Legendary; below `rare` is Rare; below `uncommon`
+     * is Uncommon; `>= uncommon` (i.e. ≥0.50) is Common. Tunable — the build
+     * prints the tier histogram so the distribution can be eyeballed.
+     */
+    RARITY_QUANTILES: { legendary: 0.05, rare: 0.2, uncommon: 0.5 },
+
+    /**
+     * [ASSUMED] D-15, RESEARCH Pitfall 12: a played song with fewer than this
+     * many corpus plays caps at Rare — guards the "fake Legendary" a
+     * single-play-in-2011 song would otherwise earn (epistemically garbage on a
+     * tiny sample).
+     */
+    RARITY_MIN_PLAYS: 3,
+
+    /** The compact offline show archive artifact (DEX-02 substrate) — sibling of matrixArtifactPath. */
+    archiveArtifactPath: "data/normalized/archive.json",
+
+    /** The album-shelf mapping artifact (D-04) — cards + Covers/Miscellaneous buckets. */
+    dexAlbumsArtifactPath: "data/normalized/dex-albums.json",
+
+    /**
+     * [ASSUMED] fuse.js tunables for the archive date/venue/city search
+     * (plan 06-08). Seeded from `config.search` as starting points — the
+     * archive corpus (738 shows) is a different search surface than the song
+     * catalog, so these are separated to tune independently.
+     */
+    archiveSearch: {
+      threshold: 0.4,
+      distance: 100,
+    },
+
+    /**
+     * [ASSUMED] A4 (06-RESEARCH.md), D-04: the canonical studio-discography
+     * "shelf" — card membership is by `album_url` (NEVER title: duplicates and
+     * trailing-space collisions verified, Pitfall 3). D-04's `islive=0` +
+     * earliest-release-date heuristic operates WITHIN this allowlist (defeating
+     * Pitfalls 1-2: recent official live albums carry `islive:0`; singles
+     * predate the LPs that carry their songs). Every entry verified present in
+     * data/raw/albums.json (drift-guard test). Pins `/albums/fishing-for-fishies`
+     * NOT the `-video` duplicate (Open Question 4). Excludes demos, singles,
+     * promos, and every "Live in/at ..." title. ~29 entries — cosmetic and
+     * config-editable, surfaced at the phase human-verify gate.
+     */
+    cardAlbumUrls: [
+      "/albums/12-bar-bruise",
+      "/albums/eyes-like-the-sky",
+      "/albums/float-along-fill-your-lungs",
+      "/albums/oddments",
+      "/albums/im-in-your-mind-fuzz",
+      "/albums/quarters",
+      "/albums/paper-mache-dream-balloon",
+      "/albums/nonagon-infinity",
+      "/albums/flying-microtonal-banana",
+      "/albums/murder-of-the-universe",
+      "/albums/sketches-of-brunswick-east",
+      "/albums/polygondwanaland",
+      "/albums/gumboot-soup",
+      "/albums/fishing-for-fishies",
+      "/albums/infest-the-rats-nest",
+      "/albums/kg",
+      "/albums/lw",
+      "/albums/butterfly-3000",
+      "/albums/made-in-timeland",
+      "/albums/omnium-gatherum",
+      "/albums/ice-death-planets-lungs-mushrooms-and-lava",
+      "/albums/laminated-denim",
+      "/albums/changes",
+      "/albums/petrodragonic-apocalypse",
+      "/albums/the-silver-cord",
+      "/albums/flight-b741",
+      "/albums/phantom-island",
+      "/albums/willoughbys-beach",
+      "/albums/teenage-gizzard",
+    ],
+  },
 } as const;

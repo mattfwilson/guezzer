@@ -110,7 +110,8 @@ describe("dexAlbumsArtifact schema (zod strictObject)", () => {
 
   it("Test 9: rejects a track row with a non-integer songId", () => {
     const bad = minimalDexAlbums();
-    // @ts-expect-error deliberately corrupt the songId to a float
+    // A non-integer songId is a valid `number` at the TS level but zod's
+    // `.int()` rejects it at the runtime trust boundary.
     bad.albums[0].tracks[0].songId = 1.5;
     expect(() => dexAlbumsArtifact.parse(bad)).toThrow();
   });
