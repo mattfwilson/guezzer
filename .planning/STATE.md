@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-07-15T01:27:03.648Z"
+last_updated: "2026-07-15T01:46:38.503Z"
 last_activity: 2026-07-15 -- Phase 06 execution started
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 38
-  completed_plans: 30
+  completed_plans: 31
   percent: 71
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-08)
 ## Current Position
 
 Phase: 06 (pok-dex-history-stats) — EXECUTING
-Plan: 4 of 11
+Plan: 5 of 11
 Status: Ready to execute
 Last activity: 2026-07-15 -- Phase 06 execution started
 
@@ -64,6 +64,7 @@ Progress: [███████░░░] 71% (5/7 phases complete)
 | Phase 06 P01 | 17min | 3 tasks | 13 files |
 | Phase 06 P02 | 8min | 3 tasks | 14 files |
 | Phase 06 P03 | 11min | 3 tasks | 8 files |
+| Phase 06 P04 | 13min | 2 tasks | 38 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 06-02: InstallBanner gated once-per-build via a persisted installBannerSeenVersion meta stamp; session dismissal layers on top (D-22, supersedes D-05)
 - [Phase 06]: 06-03: deriveDex is the single dex derivation entry point — completion/sightings/personalGap/rarest/perAlbum all pure-derived from raw attendance; unmark is free (D-05/D-11/D-12)
 - [Phase 06]: 06-03: DexSnapshotInput is a structural subset of ExportSnapshot (enums widened to string) so friend files feed the same derivation (06-10)
+- [Phase 06]: 06-04: album covers fetched once at build time via MusicBrainz plus Cover Art Archive plus sharp (D-03 discretion); 29 studio cards resolved, ~195 KB total WebP, provenance manifest and 25 KB/350 KB budget-guard test
 
 ### Pending Todos
 
@@ -126,6 +128,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-15T01:26:29.414Z
+Last session: 2026-07-15T01:45:50.186Z
 Stopped at: Completed 06-03-PLAN.md
 Resume file: None
