@@ -330,6 +330,20 @@ export const config = {
       /** Album-detail back control. */
       albumBack: "Back",
       /**
+       * Set-structure labels (SHOW-06 vocabulary "1"/"2"/"e"). Shared by the
+       * retro-setlist history view (SetlistView, HIST-01) and the recap's
+       * set-grouped setlist so the two never disagree on a set name.
+       */
+      setLabels: {
+        "1": "Set 1",
+        "2": "Set 2",
+        e: "Encore",
+      },
+      /** Show-history row song-count subline (D-16). */
+      showsSongCount: (n: number): string => `${n} songs`,
+      /** Show-history tracked-row tally chip — hits/total (D-16). */
+      showsTallyChip: (hits: number, total: number): string => `${hits}/${total}`,
+      /**
        * Rarity-tier words (D-15, §B3). The tier WORD always renders — color is
        * reinforcement only (color-blind safety, WCAG 1.4.1). Keyed by RarityTier.
        */
@@ -393,6 +407,38 @@ export const config = {
       unmarkBody: "Its songs come off your dex counts.",
       unmarkConfirm: "Unmark",
       unmarkCancel: "Cancel",
+    },
+
+    /**
+     * Phase-6 post-show recap copy (06-UI-SPEC §Copywriting Contract, Layout 3) —
+     * verbatim. The recap ONLY renders the pure core `RecapStats`; these strings
+     * are the presentation layer over that derivation (SHOW-14, D-13/D-14/D-15).
+     * kglw-derived song/venue names render as React text only (T-06-21).
+     */
+    recap: {
+      /** Auto-shown heading. */
+      heading: "Show recap",
+      /** Subline `{date} · {venue}` (venue nullable → date-only fallback). */
+      subline: (date: string, venue: string | null): string =>
+        venue ? `${date} · ${venue}` : date,
+      /** Hero tally `{hits}/{total} · {pct}%` (Display, tabular-nums); pct null → "—". */
+      heroTally: (hits: number, total: number, pct: number | null): string =>
+        `${hits}/${total} · ${pct == null ? "—" : `${pct}%`}`,
+      /** Hero caption under the tally. */
+      heroCaption: "calls hit",
+      /** Manual-vs-editor source split (D-14) — consumes the Phase-5 source tags. */
+      sourceSplit: (manualHits: number, manualTotal: number, editorHits: number): string =>
+        `Your calls: ${manualHits}/${manualTotal} · Editor assists: ${editorHits}`,
+      /** Show rarity score line (STAT-02, D-15) — avg corpus gap of the night. */
+      showRarity: (score: number): string => `Show rarity: ${score}`,
+      /** Tier-chip count suffix — the tier word renders via TierBadge alongside. */
+      tierCount: (count: number): string => `× ${count}`,
+      /** Rarest-catch-of-the-night line (STAT-02); song name is kglw-derived (React text). */
+      rarestOfNight: (song: string): string => `Rarest catch of the night: ${song}`,
+      /** New-catches row (D-14) — omitted entirely at zero (no "+0"). */
+      newCatches: (n: number): string => `+${n} new catches`,
+      /** Footer neutral CTA — returns to Show/Dex (Share card joins in 06-11). */
+      done: "Done",
     },
   },
 } as const;
