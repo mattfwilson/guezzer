@@ -11,10 +11,12 @@
  * the retro-mark CTA in 06-08 — no dead buttons this plan.
  */
 import type { AlbumTrack, DexAlbumsArtifact } from "@guezzer/core";
-import { useState } from "react";
+import { Plus } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { config } from "../config.ts";
 import { AlbumDetail } from "./AlbumDetail.tsx";
 import { AlbumGrid } from "./AlbumGrid.tsx";
+import { ArchiveBrowser } from "./ArchiveBrowser.tsx";
 import { DexHeader } from "./DexHeader.tsx";
 import { useDexStats } from "./useDexStats.ts";
 
@@ -50,9 +52,11 @@ function resolveOpenAlbum(
 
 export function DexView() {
   const copy = config.copy.dex;
+  const archiveCopy = config.copy.archive;
   const stats = useDexStats();
   const [segment, setSegment] = useState<Segment>("albums");
   const [openAlbumKey, setOpenAlbumKey] = useState<string | null>(null);
+  const [browserOpen, setBrowserOpen] = useState(false);
 
   // Loader-guard failure (T-06-12): a calm handled state, never a thrown crash.
   if (stats.error != null) {
@@ -100,13 +104,24 @@ export function DexView() {
 
       {segment === "albums" ? (
         emptyDex ? (
-          <EmptyState heading={copy.emptyHeading} body={copy.emptyBody} />
+          <EmptyState heading={copy.emptyHeading} body={copy.emptyBody}>
+            <MarkCta label={archiveCopy.cta} onClick={() => setBrowserOpen(true)} />
+          </EmptyState>
         ) : (
           <AlbumGrid dex={dex} albums={albums} onOpen={setOpenAlbumKey} />
         )
       ) : (
-        <EmptyState heading={copy.showsEmptyHeading} body={copy.showsEmptyBody} />
+        <div className="flex flex-col">
+          {/* Shows segment header — the Mark attended shows CTA (neutral, Plus). */}
+          <div className="mx-4 mb-2">
+            <MarkCta label={archiveCopy.cta} onClick={() => setBrowserOpen(true)} />
+          </div>
+          <EmptyState heading={copy.showsEmptyHeading} body={copy.showsEmptyBody} />
+        </div>
       )}
+
+      {/* Full-screen retro-mark browser — component state, no new hash route. */}
+      {browserOpen && <ArchiveBrowser archive={archive} onClose={() => setBrowserOpen(false)} />}
 
       {/* Album drill-in overlay — within #/dex (component state), back → grid. */}
       {openAlbum != null && rarity != null && openAlbumKey != null && (
@@ -127,15 +142,36 @@ export function DexView() {
 interface EmptyStateProps {
   heading: string;
   body: string;
+  children?: ReactNode;
 }
 
-function EmptyState({ heading, body }: EmptyStateProps) {
+function EmptyState({ heading, body, children }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center gap-2 px-4 pt-16 pb-16 text-center">
       <p className="text-[20px] font-semibold leading-tight text-text-primary">
         {heading}
       </p>
       <p className="text-base leading-normal text-text-muted">{body}</p>
+      {children != null && <div className="mt-4 w-full max-w-xs">{children}</div>}
     </div>
+  );
+}
+
+interface MarkCtaProps {
+  label: string;
+  onClick: () => void;
+}
+
+/** The "Mark attended shows" entry CTA — neutral (never accent), Plus-adjacent. */
+function MarkCta({ label, onClick }: MarkCtaProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+    >
+      <Plus size={18} aria-hidden="true" />
+      {label}
+    </button>
   );
 }

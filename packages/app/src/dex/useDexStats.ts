@@ -52,10 +52,12 @@ function getRarityIndex(archive: ArchiveArtifact): RarityIndex {
 }
 
 export function useDexStats(): DexStatsResult {
-  // (a) The three attendance tables — reactive. A write anywhere re-runs these.
+  // (a) The attendance tables + the online-fallback setlist cache — reactive.
+  // A mark/unmark (incl. a fallback mark writing archiveShows) re-runs these.
   const attendedShows = useLiveQuery(() => db.attendedShows.toArray());
   const trackedShows = useLiveQuery(() => db.trackedShows.toArray());
   const trackedEntries = useLiveQuery(() => db.trackedEntries.toArray());
+  const archiveShows = useLiveQuery(() => db.archiveShows.toArray());
 
   // (b) The bundled artifacts, guarded + memoized (same reference every render).
   const archiveResult = loadArchive();
@@ -82,14 +84,17 @@ export function useDexStats(): DexStatsResult {
     const ready =
       attendedShows !== undefined &&
       trackedShows !== undefined &&
-      trackedEntries !== undefined;
+      trackedEntries !== undefined &&
+      archiveShows !== undefined;
 
     const dex = deriveDex(
       {
         attendedShows: attendedShows ?? [],
         trackedShows: trackedShows ?? [],
         trackedEntries: trackedEntries ?? [],
-        // archiveShows (online-fallback setlist cache) joins in plan 06-08.
+        // The online-fallback setlist cache (plan 06-08) — the ONLY setlist
+        // source for post-corpus retro marks (absent from the bundled archive).
+        archiveShows: archiveShows ?? [],
       },
       archive,
       albums,
@@ -97,5 +102,5 @@ export function useDexStats(): DexStatsResult {
     );
 
     return { ready, error: null, dex, rarity, archive, albums };
-  }, [attendedShows, trackedShows, trackedEntries, archiveResult, albumsResult]);
+  }, [attendedShows, trackedShows, trackedEntries, archiveShows, archiveResult, albumsResult]);
 }
