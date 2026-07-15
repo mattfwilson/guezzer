@@ -4,9 +4,43 @@ import type { ExportSnapshot } from "../src/data-safety/serialize.ts";
 import { parseAndMergeImport } from "../src/data-safety/merge.ts";
 
 const SCHEMA_VERSION = 1;
+/** Current schema version once envelope v2 (plan 06-07) ships. */
+const SCHEMA_VERSION_V2 = 2;
 
 function emptySnapshot(): ExportSnapshot {
-  return { meta: [], attendedShows: [], trackedShows: [], trackedEntries: [] };
+  return {
+    owner: null,
+    archiveShows: [],
+    meta: [],
+    attendedShows: [],
+    trackedShows: [],
+    trackedEntries: [],
+  };
+}
+
+/** An archiveShows cache row (the v2 online-fallback setlist cache). */
+function archiveRow(
+  over: Partial<ExportSnapshot["archiveShows"][number]> = {},
+): ExportSnapshot["archiveShows"][number] {
+  return {
+    show_id: 100,
+    date: "2026-07-13",
+    venueName: "Red Rocks Amphitheatre",
+    city: "Morrison",
+    sets: [{ n: "1", songs: [{ songId: 42, songName: "Rattlesnake" }] }],
+    ...over,
+  };
+}
+
+/**
+ * Serialize a snapshot as a GENUINE v1 raw file: strip the v2-only `owner` and
+ * `archiveShows` keys so the fixture matches a backup written before plan 06-07.
+ */
+function rawV1Export(snap: ExportSnapshot): string {
+  const env = serializeExport(snap, 1) as Record<string, unknown>;
+  delete env.owner;
+  delete env.archiveShows;
+  return JSON.stringify(env);
 }
 
 function show(
@@ -294,6 +328,35 @@ describe("parseAndMergeImport — migration chain + metrics", () => {
     }
   });
 
+  it("migrates a GENUINE v1 file (no owner/archiveShows keys) to v2 defaults and merges", () => {
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "x", showId: 5 })],
+      trackedEntries: [entry({ sessionId: "x", position: 1 })],
+    };
+    const result = parseAndMergeImport(
+      rawV1Export(incoming),
+      emptySnapshot(),
+      SCHEMA_VERSION_V2,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // v1→v2 migration filled the new fields with their defaults.
+      expect(result.merged.owner).toBeNull();
+      expect(result.merged.archiveShows).toEqual([]);
+      // The v1 payload still merged cleanly.
+      expect(result.merged.trackedShows).toHaveLength(1);
+      expect(result.merged.trackedEntries).toHaveLength(1);
+    }
+  });
+
+  it("still rejects a backup from a newer schema version (v3 under current v2)", () => {
+    const raw = rawExport(emptySnapshot(), 3);
+    const result = parseAndMergeImport(raw, emptySnapshot(), SCHEMA_VERSION_V2);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/newer version/i);
+  });
+
   it("reports added shows and songs gained from the import", () => {
     const incoming: ExportSnapshot = {
       ...emptySnapshot(),
@@ -318,5 +381,85 @@ describe("parseAndMergeImport — migration chain + metrics", () => {
       expect(result.added.shows).toBe(2);
       expect(result.added.songs).toBe(3);
     }
+  });
+});
+
+describe("parseAndMergeImport — v2 archiveShows union-merge (plan 06-07)", () => {
+  it("unions archiveShows by show_id, keeps every local row, local wins on collision", () => {
+    const local: ExportSnapshot = {
+      ...emptySnapshot(),
+      archiveShows: [
+        archiveRow({ show_id: 1, city: "LocalCity" }),
+        archiveRow({ show_id: 2 }),
+      ],
+    };
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      archiveShows: [
+        archiveRow({ show_id: 1, city: "IncomingCity" }),
+        archiveRow({ show_id: 3 }),
+      ],
+    };
+    const result = parseAndMergeImport(
+      rawExport(incoming, SCHEMA_VERSION_V2),
+      local,
+      SCHEMA_VERSION_V2,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const ids = result.merged.archiveShows.map((r) => r.show_id).sort();
+      expect(ids).toEqual([1, 2, 3]); // every local row survives, incoming-3 added
+      const one = result.merged.archiveShows.find((r) => r.show_id === 1);
+      expect(one?.city).toBe("LocalCity"); // local wins on collision
+    }
+  });
+
+  it("keeps the LOCAL owner on merge (owner is a device-local fork key, never merged)", () => {
+    const local: ExportSnapshot = { ...emptySnapshot(), owner: "Matt" };
+    const incoming: ExportSnapshot = { ...emptySnapshot(), owner: "Friend" };
+    const result = parseAndMergeImport(
+      rawExport(incoming, SCHEMA_VERSION_V2),
+      local,
+      SCHEMA_VERSION_V2,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.merged.owner).toBe("Matt");
+  });
+
+  it("rejects the WHOLE file when an archiveShows row carries an extra key (T-06-14)", () => {
+    const env = serializeExport(
+      { ...emptySnapshot(), archiveShows: [archiveRow({ show_id: 1 })] },
+      SCHEMA_VERSION_V2,
+    );
+    const tampered = JSON.parse(JSON.stringify(env));
+    tampered.archiveShows[0].injected = "surprise";
+    const result = parseAndMergeImport(
+      JSON.stringify(tampered),
+      emptySnapshot(),
+      SCHEMA_VERSION_V2,
+    );
+    expect(result.ok).toBe(false);
+    expect("merged" in result).toBe(false);
+  });
+
+  it("rejects the WHOLE file when an archiveShows set label is out of vocabulary", () => {
+    const env = serializeExport(
+      {
+        ...emptySnapshot(),
+        archiveShows: [
+          archiveRow({
+            show_id: 1,
+            sets: [{ n: "3" as never, songs: [{ songId: 1, songName: "X" }] }],
+          }),
+        ],
+      },
+      SCHEMA_VERSION_V2,
+    );
+    const result = parseAndMergeImport(
+      JSON.stringify(env),
+      emptySnapshot(),
+      SCHEMA_VERSION_V2,
+    );
+    expect(result.ok).toBe(false);
   });
 });

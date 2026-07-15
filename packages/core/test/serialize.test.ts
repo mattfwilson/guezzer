@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { config } from "../src/config.ts";
 import {
+  archiveShowRow,
   exportEnvelope,
   type ExportEnvelope,
 } from "../src/data-safety/export-schema.ts";
@@ -11,6 +13,19 @@ import {
 /** A minimal but fully-typed snapshot exercising every table. */
 function sampleSnapshot(): ExportSnapshot {
   return {
+    owner: "Matt",
+    archiveShows: [
+      {
+        show_id: 1782000000,
+        date: "2026-07-13",
+        venueName: "Red Rocks Amphitheatre",
+        city: "Morrison",
+        sets: [
+          { n: "1", songs: [{ songId: 42, songName: "Rattlesnake" }] },
+          { n: "e", songs: [{ songId: 7, songName: "The River" }] },
+        ],
+      },
+    ],
     meta: [{ key: "wakeLockEnabled", value: true }],
     attendedShows: [{ show_id: 1782000000, showDate: "2026-07-13" }],
     trackedShows: [
@@ -44,19 +59,23 @@ function sampleSnapshot(): ExportSnapshot {
   };
 }
 
-const D09_KEYS = [
+// Envelope v2 (plan 06-07): the six D-09 keys plus `owner` (D-17 fork key) and
+// `archiveShows` (the online-fallback setlist cache — Pitfall 5).
+const V2_KEYS = [
+  "archiveShows",
   "attendedShows",
   "exportedAt",
   "meta",
+  "owner",
   "schemaVersion",
   "trackedEntries",
   "trackedShows",
 ];
 
-describe("serializeExport — D-09 envelope shape", () => {
-  it("produces exactly the six D-09 top-level keys, no extras", () => {
-    const out = serializeExport(sampleSnapshot(), 1);
-    expect(Object.keys(out).sort()).toEqual(D09_KEYS);
+describe("serializeExport — envelope v2 shape", () => {
+  it("produces exactly the eight v2 top-level keys, no extras", () => {
+    const out = serializeExport(sampleSnapshot(), 2);
+    expect(Object.keys(out).sort()).toEqual(V2_KEYS);
   });
 
   it("carries schemaVersion through verbatim", () => {
@@ -140,5 +159,65 @@ describe("exportEnvelope — enum-pinning guards Table<> assignability (Plan 05-
     const bad = serializeExport(sampleSnapshot(), 1) as ExportEnvelope;
     bad.trackedEntries[0].source = "robot" as never;
     expect(() => exportEnvelope.parse(bad)).toThrow();
+  });
+});
+
+describe("serializeExport — v2 owner + archiveShows (plan 06-07)", () => {
+  it("carries owner and archiveShows through verbatim (identity, no mutation)", () => {
+    const snap = sampleSnapshot();
+    const out = serializeExport(snap, 2);
+    expect(out.owner).toBe(snap.owner);
+    expect(out.archiveShows).toBe(snap.archiveShows);
+  });
+
+  it("carries a null owner through (unset identity)", () => {
+    const snap = { ...sampleSnapshot(), owner: null };
+    expect(serializeExport(snap, 2).owner).toBeNull();
+  });
+
+  it("round-trips a v2 envelope through exportEnvelope.parse without throwing", () => {
+    expect(() =>
+      exportEnvelope.parse(serializeExport(sampleSnapshot(), 2)),
+    ).not.toThrow();
+  });
+
+  it("rejects an owner longer than OWNER_NAME_MAX_LENGTH at parse", () => {
+    const overlong = "x".repeat(config.dex.OWNER_NAME_MAX_LENGTH + 1);
+    const bad = serializeExport({ ...sampleSnapshot(), owner: overlong }, 2);
+    expect(() => exportEnvelope.parse(bad)).toThrow();
+  });
+
+  it("accepts an owner of exactly OWNER_NAME_MAX_LENGTH", () => {
+    const maxOwner = "x".repeat(config.dex.OWNER_NAME_MAX_LENGTH);
+    const ok = serializeExport({ ...sampleSnapshot(), owner: maxOwner }, 2);
+    expect(() => exportEnvelope.parse(ok)).not.toThrow();
+  });
+});
+
+describe("archiveShowRow — enum-pinned set vocabulary + strict shape (T-06-14)", () => {
+  const validRow = {
+    show_id: 1782000000,
+    date: "2026-07-13",
+    venueName: "Red Rocks Amphitheatre",
+    city: "Morrison",
+    sets: [{ n: "1", songs: [{ songId: 42, songName: "Rattlesnake" }] }],
+  };
+
+  it("accepts a well-formed archive cache row", () => {
+    expect(() => archiveShowRow.parse(validRow)).not.toThrow();
+  });
+
+  it("rejects a set label outside the closed 1|2|e vocabulary", () => {
+    const bad = {
+      ...validRow,
+      sets: [{ n: "3", songs: [{ songId: 42, songName: "Rattlesnake" }] }],
+    };
+    expect(() => archiveShowRow.parse(bad)).toThrow();
+  });
+
+  it("rejects an archive row carrying an unexpected key (strictObject)", () => {
+    expect(() =>
+      archiveShowRow.parse({ ...validRow, injected: "surprise" }),
+    ).toThrow();
   });
 });
