@@ -211,6 +211,17 @@ export {
 } from "./dex/compare.ts";
 
 /**
+ * Phase 6 share-card stats (plan 06-11, SHAR-02/D-18/D-19). `buildShareStats`
+ * is the pure projection of a derived `DexStats` into the flat, canvas-ready
+ * `ShareCardData` the PNG brag card draws — all stat math stays in core so the
+ * app draw layer only draws (RESEARCH Pitfall 8). Zero I/O.
+ */
+export {
+  buildShareStats,
+  type ShareCardData,
+} from "./dex/share-stats.ts";
+
+/**
  * Phase 6 archive search + year browse (plan 06-08). `makeArchiveSearcher` is
  * the memoizable fuse.js searcher over the bundled show archive (date/venue/
  * city, empty query → []); `groupShowsByYear` is the plain newest-first year
