@@ -20,8 +20,13 @@ export interface InstallState {
   isIos: boolean;
   /** Already running installed (standalone) — banner must render nothing. */
   isInstalled: boolean;
-  /** Session-only "Not now" state (D-05) — intentionally NOT persisted so the
-   *  banner re-shows on the next app launch until the app is installed. */
+  /** Session-only "Not now" state (D-05). Intentionally NOT persisted — it only
+   *  hides the banner within the current session. NOTE (Phase-6 D-22 supersession):
+   *  the PRIMARY re-show throttle is no longer "re-show every launch until
+   *  installed" — InstallBanner now gates on a persisted once-per-BUILD-version
+   *  meta flag (`installBannerSeenVersion`), so a reload on the same build no
+   *  longer re-shows the banner. This session dismissal layers on top of that
+   *  gate; the permanent AppMenu "Install" entry stays the always-on fallback. */
   dismissed: boolean;
   dismiss: () => void;
 }
@@ -35,8 +40,9 @@ export interface InstallState {
 export function useInstallState(): InstallState {
   const deferredRef = useRef<BeforeInstallPromptEvent | null>(null);
   const [canInstall, setCanInstall] = useState(false);
-  // Session-only — deliberately useState, never persisted (D-05 / RESEARCH
-  // Anti-Pattern: persisting dismissal would break re-show-next-launch).
+  // Session-only — deliberately useState, never persisted. Phase-6 D-22 moved the
+  // durable "don't nag every reload" throttle into InstallBanner's once-per-build
+  // meta gate (installBannerSeenVersion); this stays session-scoped on top of it.
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
