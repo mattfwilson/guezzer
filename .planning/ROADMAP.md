@@ -184,7 +184,7 @@ Plans:
   4. After a show, a recap view shows the hit/miss tally, final setlist with set structure, and a show rarity score — and past tracked shows remain viewable as complete setlists
   5. The dex exports/imports as JSON for friend exchange, and the user can generate a shareable summary card (completion %, rarest catch, show count)
 
-**Plans:** 7/11 plans executed
+**Plans:** 8/11 plans executed
 **UI hint**: yes
 
 Plans:
@@ -213,7 +213,7 @@ Plans:
 
 **Wave 6** *(blocked on 06-07)*
 
-- [ ] 06-08-PLAN.md — Retro marking slice: archive search + year browse + online fallback + ArchiveBrowser (DEX-02, D-09..12)
+- [x] 06-08-PLAN.md — Retro marking slice: archive search + year browse + online fallback + ArchiveBrowser (DEX-02, D-09..12)
 
 **Wave 7** *(blocked on 06-08)*
 
@@ -258,7 +258,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. App Shell & PWA Foundation | 4/4 | Complete    | 2026-07-09 |
 | 4. Show Mode | 7/7 | Complete    | 2026-07-13 |
 | 5. Live Sync & Data Safety | 6/6 | Complete    | 2026-07-14 |
-| 6. Pokédex, History & Stats | 7/11 | In Progress|  |
+| 6. Pokédex, History & Stats | 8/11 | In Progress|  |
 | 7. Explore Mode Constellation | 0/TBD | Not started | - |
 
 ---

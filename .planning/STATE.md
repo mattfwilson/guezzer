@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-07-15T02:39:59.881Z"
+last_updated: "2026-07-15T02:57:36.636Z"
 last_activity: 2026-07-15 -- Phase 06 execution started
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 38
-  completed_plans: 34
+  completed_plans: 35
   percent: 71
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-08)
 ## Current Position
 
 Phase: 06 (pok-dex-history-stats) — EXECUTING
-Plan: 8 of 11
+Plan: 9 of 11
 Status: Ready to execute
 Last activity: 2026-07-15 -- Phase 06 execution started
 
@@ -68,6 +68,7 @@ Progress: [███████░░░] 71% (5/7 phases complete)
 | Phase 06 P05 | 6min | 1 tasks | 8 files |
 | Phase 06 P6 | 12min | 2 tasks | 13 files |
 | Phase 06 P07 | 12min | 3 tasks | 14 files |
+| Phase 06 P08 | 13min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,7 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-06: dex views are dumb components over useDexStats — a mark/unmark re-derives the whole shelf/rows live (D-12); album drill-in is component view-state within #/dex, never a new hash route
 - [Phase 06]: 06-06: TierBadge is the ONLY place the two new rarity hues (#60A5FA/#E879F9) appear — data semantics never chrome (B3); tier word always renders for color-blind safety
 - [Phase ?]: 06-07: envelope v2 uses zod .default(null)/.default([]) so v1 backups parse while the inferred output type stays required; owner is a device-local fork key (kept local on merge, never written to meta on import); archiveShows commits via bulkPut upsert
+- [Phase ?]: 06-08: retro-mark slice — makeArchiveSearcher (offline fuse.js) + fetchRecentShows (tolerant pollLatest-tier online fallback; assert-trip is a soft empty) + ArchiveBrowser one-tap mark/confirm-unmark; dual-source marked-state (retro unmarkable, tracked rows not — Pitfall 6); post-corpus debut names sourced from the fetch record first
 
 ### Pending Todos
 
@@ -136,6 +138,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-15T02:39:27.822Z
+Last session: 2026-07-15T02:57:02.779Z
 Stopped at: Completed 06-03-PLAN.md
 Resume file: None
