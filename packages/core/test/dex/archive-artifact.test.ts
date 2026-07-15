@@ -1,5 +1,9 @@
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { config } from "../../src/config.ts";
+import type { NormalizedCorpus, NormalizedShow } from "../../src/domain/types.ts";
+import { deriveArchive } from "../../src/dex/archive.ts";
 import {
   archiveArtifact,
   archiveSetSchema,
@@ -121,5 +125,109 @@ describe("index.ts barrel re-exports (Phase-6 dex block)", () => {
   it("Test 10: archiveArtifact and dexAlbumsArtifact are re-exported from the barrel", () => {
     expect(barrelArchiveArtifact).toBe(archiveArtifact);
     expect(barrelDexAlbumsArtifact).toBe(dexAlbumsArtifact);
+  });
+});
+
+/** Resolve a repo-root-relative data file independent of the test runner cwd. */
+function repoFile(rel: string): string {
+  return fileURLToPath(new URL(`../../../../${rel}`, import.meta.url));
+}
+
+/** A synthetic show with minimal-but-valid performances (only the fields deriveArchive reads matter). */
+function makeShow(
+  showId: number,
+  date: string,
+  showOrder: number,
+  sets: Array<{ n: "1" | "2" | "e"; perfs: Array<{ songId: number; songName: string; placeholder?: boolean }> }>,
+): NormalizedShow {
+  return {
+    showId,
+    date,
+    showOrder,
+    year: Number(date.slice(0, 4)),
+    venue: { venueId: 1, name: `Venue ${showId}`, city: "Town", state: null, country: "Australia" },
+    tourId: 2,
+    tourName: "Tour",
+    sets: sets.map((s) => ({
+      setNumber: s.n,
+      performances: s.perfs.map((p, i) => ({
+        songId: p.songId,
+        songName: p.songName,
+        slug: p.songName.toLowerCase().replace(/\s+/g, "-"),
+        position: i + 1,
+        transitionKind: "none" as const,
+        transitionId: 1,
+        isCover: false,
+        originalArtist: null,
+        isPlaceholder: p.placeholder ?? false,
+        footnotesParsed: null,
+        footnotesRaw: null,
+        footnote: "",
+      })),
+    })),
+  };
+}
+
+function makeCorpus(shows: NormalizedShow[]): NormalizedCorpus {
+  return {
+    schemaVersion: 1,
+    generatedAt: "2026-07-08T21:48:06.479Z",
+    latestShowDate: shows.reduce((m, s) => (s.date > m ? s.date : m), ""),
+    showCount: shows.length,
+    songCount: 0,
+    shows,
+  };
+}
+
+describe("deriveArchive (synthetic corpus fixtures)", () => {
+  const corpus = makeCorpus([
+    makeShow(1001, "2010-10-29", 1, [
+      { n: "1", perfs: [{ songId: 23, songName: "Ants & Bats" }, { songId: 1, songName: "Unknown", placeholder: true }] },
+      { n: "e", perfs: [{ songId: 127, songName: "Life Is Cool" }] },
+    ]),
+    makeShow(1002, "2025-12-13", 1, [
+      { n: "1", perfs: [{ songId: 127, songName: "Life Is Cool" }, { songId: 42, songName: "Robot Stop" }] },
+    ]),
+  ]);
+  const archive = deriveArchive(corpus);
+
+  it("Test 11: shows are sorted newest-first", () => {
+    expect(archive.shows.map((s) => s.date)).toEqual(["2025-12-13", "2010-10-29"]);
+  });
+
+  it("Test 12: latestShowDate is the maximum show date", () => {
+    expect(archive.latestShowDate).toBe("2025-12-13");
+  });
+
+  it("Test 13: set structure and in-set song order are preserved", () => {
+    const oldShow = archive.shows.find((s) => s.id === 1001);
+    expect(oldShow?.sets.map((set) => set.n)).toEqual(["1", "e"]);
+    expect(oldShow?.sets[0].songs).toEqual([23]); // placeholder/sentinel dropped from set 1
+    expect(oldShow?.sets[1].songs).toEqual([127]);
+  });
+
+  it("Test 14: the sentinel/placeholder song is excluded from the songs map", () => {
+    expect(archive.songs["1"]).toBeUndefined();
+    expect(archive.songs["23"]).toBe("Ants & Bats");
+    expect(archive.songs["127"]).toBe("Life Is Cool");
+    expect(archive.songs["42"]).toBe("Robot Stop");
+  });
+
+  it("Test 15: the output validates through archiveArtifact.parse", () => {
+    expect(() => archiveArtifact.parse(archive)).not.toThrow();
+  });
+});
+
+describe("committed archive.json artifact", () => {
+  it("Test 16: parses through archiveArtifact, has 738 shows, matches corpus latestShowDate, under 250 KB", async () => {
+    const rawText = await readFile(repoFile("data/normalized/archive.json"), "utf8");
+    const parsed = archiveArtifact.parse(JSON.parse(rawText));
+    expect(parsed.shows.length).toBe(738);
+
+    const corpusText = await readFile(repoFile("data/normalized/corpus.json"), "utf8");
+    const corpus = JSON.parse(corpusText) as NormalizedCorpus;
+    expect(parsed.latestShowDate).toBe(corpus.latestShowDate);
+
+    expect(Buffer.byteLength(rawText, "utf8")).toBeLessThanOrEqual(250 * 1024);
   });
 });

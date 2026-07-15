@@ -19,6 +19,8 @@
  */
 import { pathToFileURL } from "node:url";
 import { config } from "../config.ts";
+import { formatBuildAlbumsSummary, runBuildAlbums } from "./build-albums.ts";
+import { formatBuildArchiveSummary, runBuildArchive } from "./build-archive.ts";
 import { fetchCorpus } from "./fetch-corpus.ts";
 import { formatNormalizeSummary, runNormalizeCorpus } from "./normalize-corpus.ts";
 import { runCensusCli } from "./run-census.ts";
@@ -125,6 +127,19 @@ export function parseRefreshArgs(argv: string[], currentYear: number): RefreshOp
   return { mode: "current", years: [currentYear], includeTables: false, fetchOnly, inputDir, outPath };
 }
 
+/**
+ * Regenerate the Phase-6 build-time dex artifacts (D-04 album shelf + the
+ * compact archive) after a fresh normalize, so `npm run refresh` regenerates
+ * everything downstream. build-archive consumes the just-written corpus;
+ * build-albums consumes the committed matrix + raw albums/songs tables.
+ */
+async function runDexArtifactBuilds(): Promise<void> {
+  const archive = await runBuildArchive();
+  console.log(formatBuildArchiveSummary(archive));
+  const albums = await runBuildAlbums();
+  console.log(formatBuildAlbumsSummary(albums));
+}
+
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
 
@@ -142,6 +157,7 @@ async function main(): Promise<void> {
     if (options.mode === "normalize-only") {
       const result = await runNormalizeCorpus({ inputDir: options.inputDir, outPath: options.outPath });
       console.log(formatNormalizeSummary(result));
+      await runDexArtifactBuilds();
       return;
     }
 
@@ -175,6 +191,9 @@ async function main(): Promise<void> {
       outPath: options.outPath,
     });
     console.log(formatNormalizeSummary(normalizeResult));
+
+    // Phase 6: regenerate the dex artifacts from the freshly-normalized corpus.
+    await runDexArtifactBuilds();
   } catch (err) {
     console.error((err as Error).message);
     process.exitCode = 1;
