@@ -1,0 +1,2433 @@
+{
+  "schemaVersion": 1,
+  "albums": [
+    {
+      "albumUrl": "/albums/12-bar-bruise",
+      "title": "12 Bar Bruise",
+      "releaseDate": "2012-09-07",
+      "tracks": [
+        {
+          "songId": 66,
+          "slug": "elbow",
+          "title": "Elbow",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 138,
+          "slug": "muckraker",
+          "title": "Muckraker",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 143,
+          "slug": "nein",
+          "title": "Nein",
+          "position": 3,
+          "inMatrix": false
+        },
+        {
+          "songId": 2,
+          "slug": "12-bar-bruise",
+          "title": "12 Bar Bruise",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 83,
+          "slug": "garage-liddiard",
+          "title": "Garage Liddiard",
+          "position": 5,
+          "inMatrix": false
+        },
+        {
+          "songId": 175,
+          "slug": "sam-cherrys-last-shot",
+          "title": "Sam Cherry's Last Shot",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 98,
+          "slug": "high-hopes-low",
+          "title": "High Hopes Low",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 49,
+          "slug": "cut-throat-boogie",
+          "title": "Cut Throat Boogie",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 34,
+          "slug": "bloody-ripper",
+          "title": "Bloody Ripper",
+          "position": 9,
+          "inMatrix": true
+        },
+        {
+          "songId": 237,
+          "slug": "uh-oh-i-called-mum",
+          "title": "Uh Oh, I Called Mum",
+          "position": 10,
+          "inMatrix": true
+        },
+        {
+          "songId": 177,
+          "slug": "sea-of-trees",
+          "title": "Sea of Trees",
+          "position": 11,
+          "inMatrix": true
+        },
+        {
+          "songId": 77,
+          "slug": "footy-footy",
+          "title": "Footy Footy",
+          "position": 12,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/butterfly-3000",
+      "title": "Butterfly 3000",
+      "releaseDate": "2021-06-11",
+      "tracks": [
+        {
+          "songId": 250,
+          "slug": "yours",
+          "title": "Yours",
+          "position": 1,
+          "inMatrix": false
+        },
+        {
+          "songId": 182,
+          "slug": "shanghai",
+          "title": "Shanghai",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 59,
+          "slug": "dreams",
+          "title": "Dreams",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 35,
+          "slug": "blue-morpho",
+          "title": "Blue Morpho",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 115,
+          "slug": "interior-people",
+          "title": "Interior People",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 40,
+          "slug": "catching-smoke",
+          "title": "Catching Smoke",
+          "position": 6,
+          "inMatrix": false
+        },
+        {
+          "songId": 3,
+          "slug": "202-killer-year",
+          "title": "2.02 Killer Year",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 31,
+          "slug": "black-hot-soup",
+          "title": "Black Hot Soup",
+          "position": 8,
+          "inMatrix": false
+        },
+        {
+          "songId": 247,
+          "slug": "ya-love",
+          "title": "Ya Love",
+          "position": 9,
+          "inMatrix": false
+        },
+        {
+          "songId": 38,
+          "slug": "butterfly-3000",
+          "title": "Butterfly 3000",
+          "position": 10,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/changes",
+      "title": "Changes",
+      "releaseDate": "2022-10-28",
+      "tracks": [
+        {
+          "songId": 42,
+          "slug": "change",
+          "title": "Change",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 92,
+          "slug": "hate-dancin",
+          "title": "Hate Dancin'",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 24,
+          "slug": "astroturf",
+          "title": "Astroturf",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 145,
+          "slug": "no-body",
+          "title": "No Body",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 87,
+          "slug": "gondii",
+          "title": "Gondii",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 72,
+          "slug": "exploding-suns",
+          "title": "Exploding Suns",
+          "position": 6,
+          "inMatrix": false
+        },
+        {
+          "songId": 183,
+          "slug": "short-change",
+          "title": "Short Change",
+          "position": 7,
+          "inMatrix": false
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/eyes-like-the-sky",
+      "title": "Eyes Like The Sky",
+      "releaseDate": "2013-02-22",
+      "tracks": [
+        {
+          "songId": 73,
+          "slug": "eyes-like-the-sky",
+          "title": "Eyes Like the Sky",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 248,
+          "slug": "year-of-our-lord",
+          "title": "Year Of Our Lord",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 225,
+          "slug": "the-raid",
+          "title": "The Raid",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 60,
+          "slug": "drum-run",
+          "title": "Drum Run",
+          "position": 4,
+          "inMatrix": false
+        },
+        {
+          "songId": 69,
+          "slug": "evil-man",
+          "title": "Evil Man",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 78,
+          "slug": "fort-whipple",
+          "title": "Fort Whipple",
+          "position": 6,
+          "inMatrix": false
+        },
+        {
+          "songId": 217,
+          "slug": "the-god-mans-goat-lust",
+          "title": "The God Mans Goat Lust",
+          "position": 7,
+          "inMatrix": false
+        },
+        {
+          "songId": 221,
+          "slug": "the-killing-ground",
+          "title": "The Killing Ground",
+          "position": 8,
+          "inMatrix": false
+        },
+        {
+          "songId": 62,
+          "slug": "dust-in-the-wind",
+          "title": "Dust In the Wind",
+          "position": 9,
+          "inMatrix": false
+        },
+        {
+          "songId": 90,
+          "slug": "guns-and-horses",
+          "title": "Guns & Horses",
+          "position": 10,
+          "inMatrix": false
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/fishing-for-fishies",
+      "title": "Fishing For Fishies",
+      "releaseDate": "2019-04-26",
+      "tracks": [
+        {
+          "songId": 74,
+          "slug": "fishing-for-fishies",
+          "title": "Fishing For Fishies",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 37,
+          "slug": "boogieman-sam",
+          "title": "Boogieman Sam",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 207,
+          "slug": "the-bird-song",
+          "title": "The Bird Song",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 161,
+          "slug": "plastic-boogie",
+          "title": "Plastic Boogie",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 211,
+          "slug": "the-cruel-millennial",
+          "title": "The Cruel Millennial",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 169,
+          "slug": "reals-not-real",
+          "title": "Real's Not Real",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 230,
+          "slug": "this-thing",
+          "title": "This Thing",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 9,
+          "slug": "acarine",
+          "title": "Acarine",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 50,
+          "slug": "cyboogie",
+          "title": "Cyboogie",
+          "position": 9,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/flight-b741",
+      "title": "Flight b741",
+      "releaseDate": "2024-08-09",
+      "tracks": [
+        {
+          "songId": 445,
+          "slug": "mirage-city",
+          "title": "Mirage City",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 452,
+          "slug": "antarctica",
+          "title": "Antarctica",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 441,
+          "slug": "raw-feel",
+          "title": "Raw Feel",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 451,
+          "slug": "field-of-vision",
+          "title": "Field of Vision",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 455,
+          "slug": "hog-calling-contest",
+          "title": "Hog Calling Contest",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 435,
+          "slug": "le-risque",
+          "title": "Le Risque",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 453,
+          "slug": "flight-b741",
+          "title": "Flight b741",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 430,
+          "slug": "sad-pilot",
+          "title": "Sad Pilot",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 454,
+          "slug": "rats-in-the-sky",
+          "title": "Rats In The Sky",
+          "position": 9,
+          "inMatrix": true
+        },
+        {
+          "songId": 440,
+          "slug": "daily-blues",
+          "title": "Daily Blues",
+          "position": 10,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/float-along-fill-your-lungs",
+      "title": "Float Along — Fill Your Lungs",
+      "releaseDate": "2013-09-27",
+      "tracks": [
+        {
+          "songId": 93,
+          "slug": "head-on-pill",
+          "title": "Head On/Pill",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 269,
+          "slug": "im-not-a-man-unless-i-have-a-woman",
+          "title": "I'm Not a Man Unless I Have a Woman",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 85,
+          "slug": "god-is-calling-me-back-home",
+          "title": "God Is Calling Me Back Home",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 4,
+          "slug": "30-past-7",
+          "title": "30 Past 7",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 125,
+          "slug": "let-me-mend-the-past",
+          "title": "Let Me Mend the Past",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 142,
+          "slug": "mystery-jack",
+          "title": "Mystery Jack",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 164,
+          "slug": "pop-in-my-step",
+          "title": "Pop In My Step",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 75,
+          "slug": "float-along-fill-your-lungs-2",
+          "title": "Float Along – Fill Your Lungs",
+          "position": 8,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/flying-microtonal-banana",
+      "title": "Flying Microtonal Banana",
+      "releaseDate": "2017-02-24",
+      "tracks": [
+        {
+          "songId": 168,
+          "slug": "rattlesnake",
+          "title": "Rattlesnake",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 134,
+          "slug": "melting",
+          "title": "Melting",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 151,
+          "slug": "open-water",
+          "title": "Open Water",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 187,
+          "slug": "sleep-drifter",
+          "title": "Sleep Drifter",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 30,
+          "slug": "billabong-valley",
+          "title": "Billabong Valley",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 22,
+          "slug": "anoxia",
+          "title": "Anoxia",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 57,
+          "slug": "doom-city",
+          "title": "Doom City",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 146,
+          "slug": "nuclear-fusion",
+          "title": "Nuclear Fusion",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 76,
+          "slug": "flying-microtonal-banana",
+          "title": "Flying Microtonal Banana",
+          "position": 9,
+          "inMatrix": false
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/gumboot-soup",
+      "title": "Gumboot Soup",
+      "releaseDate": "2017-12-29",
+      "tracks": [
+        {
+          "songId": 28,
+          "slug": "beginners-luck",
+          "title": "Beginner's Luck",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 89,
+          "slug": "greenhouse-heat-death",
+          "title": "Greenhouse Heat Death",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 27,
+          "slug": "barefoot-desert",
+          "title": "Barefoot Desert",
+          "position": 3,
+          "inMatrix": false
+        },
+        {
+          "songId": 139,
+          "slug": "muddy-water",
+          "title": "Muddy Water",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 201,
+          "slug": "superposition",
+          "title": "Superposition",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 58,
+          "slug": "down-the-sink",
+          "title": "Down the Sink",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 218,
+          "slug": "the-great-chain-of-being",
+          "title": "The Great Chain of Being",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 223,
+          "slug": "the-last-oasis",
+          "title": "The Last Oasis",
+          "position": 8,
+          "inMatrix": false
+        },
+        {
+          "songId": 10,
+          "slug": "all-is-known",
+          "title": "All Is Known",
+          "position": 9,
+          "inMatrix": true
+        },
+        {
+          "songId": 111,
+          "slug": "im-sleepin-in",
+          "title": "I'm Sleepin' In",
+          "position": 10,
+          "inMatrix": false
+        },
+        {
+          "songId": 229,
+          "slug": "the-wheel",
+          "title": "The Wheel",
+          "position": 11,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/im-in-your-mind-fuzz",
+      "title": "I'm In Your Mind Fuzz",
+      "releaseDate": "2014-10-31",
+      "tracks": [
+        {
+          "songId": 108,
+          "slug": "im-in-your-mind",
+          "title": "I'm In Your Mind",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 110,
+          "slug": "im-not-in-your-mind",
+          "title": "I'm Not In Your Mind",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 41,
+          "slug": "cellophane",
+          "title": "Cellophane",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 107,
+          "slug": "im-in-your-mind-fuzz",
+          "title": "I'm In Your Mind Fuzz",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 67,
+          "slug": "empty",
+          "title": "Empty",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 102,
+          "slug": "hot-water",
+          "title": "Hot Water",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 19,
+          "slug": "am-i-in-heaven",
+          "title": "Am I In Heaven?",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 190,
+          "slug": "slow-jam-1",
+          "title": "Slow Jam 1",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 176,
+          "slug": "satan-speeds-up",
+          "title": "Satan Speeds Up",
+          "position": 9,
+          "inMatrix": true
+        },
+        {
+          "songId": 96,
+          "slug": "her-and-i-slow-jam-2",
+          "title": "Her and I (Slow Jam 2)",
+          "position": 10,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/ice-death-planets-lungs-mushrooms-and-lava",
+      "title": "Ice, Death, Planets, Lungs, Mushrooms and Lava",
+      "releaseDate": "2022-10-07",
+      "tracks": [
+        {
+          "songId": 141,
+          "slug": "mycelium",
+          "title": "Mycelium",
+          "position": 1,
+          "inMatrix": false
+        },
+        {
+          "songId": 105,
+          "slug": "ice-v",
+          "title": "Ice V",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 132,
+          "slug": "magma",
+          "title": "Magma",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 123,
+          "slug": "lava",
+          "title": "Lava",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 95,
+          "slug": "hells-itch",
+          "title": "Hell's Itch",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 118,
+          "slug": "iron-lung",
+          "title": "Iron Lung",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 84,
+          "slug": "gliese-710",
+          "title": "Gliese 710",
+          "position": 7,
+          "inMatrix": false
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/infest-the-rats-nest",
+      "title": "Infest the Rats' Nest",
+      "releaseDate": "2019-08-16",
+      "tracks": [
+        {
+          "songId": 160,
+          "slug": "planet-b",
+          "title": "Planet B",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 133,
+          "slug": "mars-for-the-rich",
+          "title": "Mars For the Rich",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 152,
+          "slug": "organ-farmer",
+          "title": "Organ Farmer",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 200,
+          "slug": "superbug",
+          "title": "Superbug",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 239,
+          "slug": "venusian-1",
+          "title": "Venusian 1",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 157,
+          "slug": "perihelion",
+          "title": "Perihelion",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 240,
+          "slug": "venusian-2",
+          "title": "Venusian 2",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 180,
+          "slug": "self-immolate",
+          "title": "Self-Immolate",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 94,
+          "slug": "hell",
+          "title": "Hell",
+          "position": 9,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/kg",
+      "title": "K.G.",
+      "releaseDate": "2020-11-20",
+      "tracks": [
+        {
+          "songId": 121,
+          "slug": "kglw-intro",
+          "title": "K.G.L.W. (Intro)",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 26,
+          "slug": "automation",
+          "title": "Automation",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 135,
+          "slug": "minimum-brain-size",
+          "title": "Minimum Brain Size",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 197,
+          "slug": "straws-in-the-wind",
+          "title": "Straws In The Wind",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 193,
+          "slug": "some-of-us",
+          "title": "Some of Us",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 150,
+          "slug": "ontology",
+          "title": "Ontology",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 116,
+          "slug": "intrasport",
+          "title": "Intrasport",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 148,
+          "slug": "oddlife",
+          "title": "Oddlife",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 100,
+          "slug": "honey",
+          "title": "Honey",
+          "position": 9,
+          "inMatrix": true
+        },
+        {
+          "songId": 220,
+          "slug": "the-hungry-wolf-of-fate",
+          "title": "The Hungry Wolf of Fate",
+          "position": 10,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/lw",
+      "title": "L.W.",
+      "releaseDate": "2021-02-25",
+      "tracks": [
+        {
+          "songId": 106,
+          "slug": "if-not-now-then-when",
+          "title": "If Not Now, Then When?",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 147,
+          "slug": "o-n-e",
+          "title": "O.N.E.",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 162,
+          "slug": "pleura",
+          "title": "Pleura",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 202,
+          "slug": "supreme-ascendancy",
+          "title": "Supreme Ascendancy",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 195,
+          "slug": "static-electricity",
+          "title": "Static Electricity",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 64,
+          "slug": "east-west-link",
+          "title": "East West Link",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 25,
+          "slug": "ataraxia",
+          "title": "Ataraxia",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 179,
+          "slug": "see-me",
+          "title": "See Me",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 122,
+          "slug": "kglw-outro",
+          "title": "K.G.L.W. (Outro)",
+          "position": 9,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/laminated-denim",
+      "title": "Laminated Denim",
+      "releaseDate": "2022-10-12",
+      "tracks": [
+        {
+          "songId": 222,
+          "slug": "the-land-before-timeland",
+          "title": "The Land Before Timeland",
+          "position": 1,
+          "inMatrix": false
+        },
+        {
+          "songId": 104,
+          "slug": "hypertension",
+          "title": "Hypertension",
+          "position": 2,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/made-in-timeland",
+      "title": "Made In Timeland",
+      "releaseDate": "2022-03-05",
+      "tracks": [
+        {
+          "songId": 233,
+          "slug": "timeland",
+          "title": "Timeland",
+          "position": 1,
+          "inMatrix": false
+        },
+        {
+          "songId": 191,
+          "slug": "smoke-and-mirrors",
+          "title": "Smoke & Mirrors",
+          "position": 2,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/murder-of-the-universe",
+      "title": "Murder of the Universe",
+      "releaseDate": "2017-06-23",
+      "tracks": [
+        {
+          "songId": 7,
+          "slug": "a-new-world",
+          "title": "A New World",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 15,
+          "slug": "altered-beast-i",
+          "title": "Altered Beast I",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 12,
+          "slug": "alter-me-i",
+          "title": "Alter Me I",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 16,
+          "slug": "altered-beast-ii",
+          "title": "Altered Beast II",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 13,
+          "slug": "alter-me-ii",
+          "title": "Alter Me II",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 17,
+          "slug": "altered-beast-iii",
+          "title": "Altered Beast III",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 14,
+          "slug": "alter-me-iii",
+          "title": "Alter Me III",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 18,
+          "slug": "altered-beast-iv",
+          "title": "Altered Beast IV",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 126,
+          "slug": "life-death",
+          "title": "Life/Death",
+          "position": 9,
+          "inMatrix": false
+        },
+        {
+          "songId": 192,
+          "slug": "some-context",
+          "title": "Some Context",
+          "position": 10,
+          "inMatrix": true
+        },
+        {
+          "songId": 226,
+          "slug": "the-reticent-raconteur",
+          "title": "The Reticent Raconteur",
+          "position": 11,
+          "inMatrix": true
+        },
+        {
+          "songId": 224,
+          "slug": "the-lord-of-lightning",
+          "title": "The Lord of Lightning",
+          "position": 12,
+          "inMatrix": true
+        },
+        {
+          "songId": 206,
+          "slug": "the-balrog",
+          "title": "The Balrog",
+          "position": 13,
+          "inMatrix": true
+        },
+        {
+          "songId": 213,
+          "slug": "the-floating-fire",
+          "title": "The Floating Fire",
+          "position": 14,
+          "inMatrix": false
+        },
+        {
+          "songId": 205,
+          "slug": "the-acrid-corpse",
+          "title": "The Acrid Corpse",
+          "position": 15,
+          "inMatrix": false
+        },
+        {
+          "songId": 243,
+          "slug": "welcome-to-an-altered-future",
+          "title": "Welcome to an Altered Future",
+          "position": 16,
+          "inMatrix": true
+        },
+        {
+          "songId": 55,
+          "slug": "digital-black",
+          "title": "Digital Black",
+          "position": 17,
+          "inMatrix": true
+        },
+        {
+          "songId": 91,
+          "slug": "han-tyumi-the-confused-cyborg",
+          "title": "Han-Tyumi, The Confused Cyborg",
+          "position": 18,
+          "inMatrix": true
+        },
+        {
+          "songId": 194,
+          "slug": "soy-protein-munt-machine",
+          "title": "Soy-Protein Munt Machine",
+          "position": 19,
+          "inMatrix": true
+        },
+        {
+          "songId": 241,
+          "slug": "vomit-coffin",
+          "title": "Vomit Coffin",
+          "position": 20,
+          "inMatrix": true
+        },
+        {
+          "songId": 140,
+          "slug": "murder-of-the-universe",
+          "title": "Murder of the Universe",
+          "position": 21,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/nonagon-infinity",
+      "title": "Nonagon Infinity",
+      "releaseDate": "2016-04-29",
+      "tracks": [
+        {
+          "songId": 172,
+          "slug": "robot-stop",
+          "title": "Robot Stop",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 29,
+          "slug": "big-fig-wasp",
+          "title": "Big Fig Wasp",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 82,
+          "slug": "gamma-knife",
+          "title": "Gamma Knife",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 156,
+          "slug": "people-vultures",
+          "title": "People-Vultures",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 137,
+          "slug": "mr-beat",
+          "title": "Mr. Beat",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 68,
+          "slug": "evil-death-roll",
+          "title": "Evil Death Roll",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 117,
+          "slug": "invisible-face",
+          "title": "Invisible Face",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 242,
+          "slug": "wah-wah",
+          "title": "Wah Wah",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 171,
+          "slug": "road-train",
+          "title": "Road Train",
+          "position": 9,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/oddments",
+      "title": "Oddments",
+      "releaseDate": "2014-03-07",
+      "tracks": [
+        {
+          "songId": 11,
+          "slug": "alluda-majaka",
+          "title": "Alluda Majaka",
+          "position": 1,
+          "inMatrix": false
+        },
+        {
+          "songId": 198,
+          "slug": "stressin",
+          "title": "Stressin'",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 238,
+          "slug": "vegemite",
+          "title": "Vegemite",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 119,
+          "slug": "its-got-old",
+          "title": "It's Got Old",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 246,
+          "slug": "work-this-time",
+          "title": "Work This Time",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 8,
+          "slug": "ababcd",
+          "title": "ABABCD",
+          "position": 6,
+          "inMatrix": false
+        },
+        {
+          "songId": 189,
+          "slug": "sleepwalker",
+          "title": "Sleepwalker",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 103,
+          "slug": "hot-wax",
+          "title": "Hot Wax",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 48,
+          "slug": "crying",
+          "title": "Crying",
+          "position": 9,
+          "inMatrix": true
+        },
+        {
+          "songId": 159,
+          "slug": "pipe-dream",
+          "title": "Pipe-Dream",
+          "position": 10,
+          "inMatrix": false
+        },
+        {
+          "songId": 99,
+          "slug": "homeless-man-in-adidas",
+          "title": "Homeless Man In Adidas",
+          "position": 11,
+          "inMatrix": false
+        },
+        {
+          "songId": 149,
+          "slug": "oddments",
+          "title": "Oddments",
+          "position": 12,
+          "inMatrix": false
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/omnium-gatherum",
+      "title": "Omnium Gatherum",
+      "releaseDate": "2022-04-22",
+      "tracks": [
+        {
+          "songId": 212,
+          "slug": "the-dripping-tap",
+          "title": "The Dripping Tap",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 131,
+          "slug": "magenta-mountain",
+          "title": "Magenta Mountain",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 120,
+          "slug": "kepler-22b",
+          "title": "Kepler-22b",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 81,
+          "slug": "gaia",
+          "title": "Gaia",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 20,
+          "slug": "ambergris",
+          "title": "Ambergris",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 174,
+          "slug": "sadie-sorceress",
+          "title": "Sadie Sorceress",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 71,
+          "slug": "evilest-man",
+          "title": "Evilest Man",
+          "position": 7,
+          "inMatrix": false
+        },
+        {
+          "songId": 216,
+          "slug": "the-garden-goblin",
+          "title": "The Garden Goblin",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 33,
+          "slug": "blame-it-on-the-weather",
+          "title": "Blame It On the Weather",
+          "position": 9,
+          "inMatrix": true
+        },
+        {
+          "songId": 158,
+          "slug": "persistence",
+          "title": "Persistence",
+          "position": 10,
+          "inMatrix": true
+        },
+        {
+          "songId": 219,
+          "slug": "the-grim-reaper",
+          "title": "The Grim Reaper",
+          "position": 11,
+          "inMatrix": true
+        },
+        {
+          "songId": 166,
+          "slug": "presumptuous",
+          "title": "Presumptuous",
+          "position": 12,
+          "inMatrix": true
+        },
+        {
+          "songId": 165,
+          "slug": "predator-x",
+          "title": "Predator X",
+          "position": 13,
+          "inMatrix": true
+        },
+        {
+          "songId": 170,
+          "slug": "red-smoke",
+          "title": "Red Smoke",
+          "position": 14,
+          "inMatrix": true
+        },
+        {
+          "songId": 39,
+          "slug": "candles",
+          "title": "Candles",
+          "position": 15,
+          "inMatrix": true
+        },
+        {
+          "songId": 215,
+          "slug": "the-funeral",
+          "title": "The Funeral",
+          "position": 16,
+          "inMatrix": false
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/paper-mache-dream-balloon",
+      "title": "Paper Mâché Dream Balloon",
+      "releaseDate": "2015-11-13",
+      "tracks": [
+        {
+          "songId": 181,
+          "slug": "sense",
+          "title": "Sense",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 36,
+          "slug": "bone",
+          "title": "Bone",
+          "position": 2,
+          "inMatrix": false
+        },
+        {
+          "songId": 56,
+          "slug": "dirt",
+          "title": "Dirt",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 153,
+          "slug": "paper-mache-dream-balloon",
+          "title": "Paper Mâché Dream Balloon",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 235,
+          "slug": "trapdoor",
+          "title": "Trapdoor",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 43,
+          "slug": "cold-cadaver",
+          "title": "Cold Cadaver",
+          "position": 6,
+          "inMatrix": false
+        },
+        {
+          "songId": 208,
+          "slug": "the-bitter-boogie",
+          "title": "The Bitter Boogie",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 144,
+          "slug": "ngri-bloodstain",
+          "title": "N.G.R.I. (Bloodstain)",
+          "position": 8,
+          "inMatrix": false
+        },
+        {
+          "songId": 231,
+          "slug": "time-equals-fate",
+          "title": "Time = Fate",
+          "position": 9,
+          "inMatrix": false
+        },
+        {
+          "songId": 232,
+          "slug": "time-equals-money",
+          "title": "Time = $$$",
+          "position": 10,
+          "inMatrix": true
+        },
+        {
+          "songId": 136,
+          "slug": "most-of-what-i-like",
+          "title": "Most Of What I Like",
+          "position": 11,
+          "inMatrix": true
+        },
+        {
+          "songId": 154,
+          "slug": "paper-mache",
+          "title": "Paper Mâché",
+          "position": 12,
+          "inMatrix": false
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/petrodragonic-apocalypse",
+      "title": "PetroDragonic Apocalypse; or, Dawn of Eternal Night: An Annihilation of Planet Earth and the Beginning of Merciless Damnation",
+      "releaseDate": "2023-06-16",
+      "tracks": [
+        {
+          "songId": 324,
+          "slug": "motor-spirit",
+          "title": "Motor Spirit",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 325,
+          "slug": "supercell",
+          "title": "Supercell",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 314,
+          "slug": "converge",
+          "title": "Converge",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 326,
+          "slug": "witchcraft",
+          "title": "Witchcraft",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 251,
+          "slug": "gila-monster",
+          "title": "Gila Monster",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 327,
+          "slug": "dragon",
+          "title": "Dragon",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 328,
+          "slug": "flamethrower",
+          "title": "Flamethrower",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 329,
+          "slug": "dawn-of-eternal-night",
+          "title": "Dawn of Eternal Night",
+          "position": 8,
+          "inMatrix": false
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/phantom-island",
+      "title": "Phantom Island",
+      "releaseDate": "2025-06-13",
+      "tracks": [
+        {
+          "songId": 480,
+          "slug": "phantom-island",
+          "title": "Phantom Island",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 532,
+          "slug": "deadstick",
+          "title": "Deadstick",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 534,
+          "slug": "lonely-cosmos",
+          "title": "Lonely Cosmos",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 535,
+          "slug": "eternal-return",
+          "title": "Eternal Return",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 536,
+          "slug": "panpsych",
+          "title": "Panpsych",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 537,
+          "slug": "spacesick",
+          "title": "Spacesick",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 538,
+          "slug": "aerodynamic",
+          "title": "Aerodynamic",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 539,
+          "slug": "sea-of-doubt",
+          "title": "Sea of Doubt",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 533,
+          "slug": "silent-spirit",
+          "title": "Silent Spirit",
+          "position": 9,
+          "inMatrix": true
+        },
+        {
+          "songId": 500,
+          "slug": "grow-wings-and-fly",
+          "title": "Grow Wings and Fly",
+          "position": 10,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/polygondwanaland",
+      "title": "Polygondwanaland",
+      "releaseDate": "2017-11-17",
+      "tracks": [
+        {
+          "songId": 47,
+          "slug": "crumbling-castle",
+          "title": "Crumbling Castle",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 163,
+          "slug": "polygondwanaland",
+          "title": "Polygondwanaland",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 210,
+          "slug": "the-castle-in-the-air",
+          "title": "The Castle in the Air",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 54,
+          "slug": "deserted-dunes-welcome-weary-feet",
+          "title": "Deserted Dunes Welcome Weary Feet",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 114,
+          "slug": "inner-cell",
+          "title": "Inner Cell",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 129,
+          "slug": "loyalty",
+          "title": "Loyalty",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 101,
+          "slug": "horology",
+          "title": "Horology",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 203,
+          "slug": "tetrachromacy",
+          "title": "Tetrachromacy",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 178,
+          "slug": "searching",
+          "title": "Searching...",
+          "position": 9,
+          "inMatrix": false
+        },
+        {
+          "songId": 214,
+          "slug": "the-fourth-colour",
+          "title": "The Fourth Colour",
+          "position": 10,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/quarters",
+      "title": "Quarters!",
+      "releaseDate": "2015-05-01",
+      "tracks": [
+        {
+          "songId": 227,
+          "slug": "the-river",
+          "title": "The River",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 113,
+          "slug": "infinite-rise",
+          "title": "Infinite Rise",
+          "position": 2,
+          "inMatrix": false
+        },
+        {
+          "songId": 86,
+          "slug": "god-is-in-the-rhythm",
+          "title": "God Is In the Rhythm",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 128,
+          "slug": "lonely-steel-sheet-flyer",
+          "title": "Lonely Steel Sheet Flyer",
+          "position": 4,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/sketches-of-brunswick-east",
+      "title": "Sketches of Brunswick East",
+      "releaseDate": "2017-08-18",
+      "tracks": [
+        {
+          "songId": 184,
+          "slug": "sketches-of-brunswick-east-i",
+          "title": "Sketches of Brunswick East I",
+          "position": 1,
+          "inMatrix": false
+        },
+        {
+          "songId": 44,
+          "slug": "countdown",
+          "title": "Countdown",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 51,
+          "slug": "d-day",
+          "title": "D-Day",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 204,
+          "slug": "tezeta",
+          "title": "Tezeta",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 45,
+          "slug": "cranes-planes-migraines",
+          "title": "Cranes, Planes, Migraines",
+          "position": 5,
+          "inMatrix": false
+        },
+        {
+          "songId": 228,
+          "slug": "the-spider-and-me",
+          "title": "The Spider and Me",
+          "position": 6,
+          "inMatrix": false
+        },
+        {
+          "songId": 185,
+          "slug": "sketches-of-brunswick-east-ii",
+          "title": "Sketches of Brunswick East II",
+          "position": 7,
+          "inMatrix": false
+        },
+        {
+          "songId": 61,
+          "slug": "dusk-to-dawn-on-lygon-street",
+          "title": "Dusk To Dawn On Lygon Street",
+          "position": 8,
+          "inMatrix": false
+        },
+        {
+          "songId": 209,
+          "slug": "the-book",
+          "title": "The Book",
+          "position": 9,
+          "inMatrix": true
+        },
+        {
+          "songId": 6,
+          "slug": "a-journey-to-s-hell",
+          "title": "A Journey To (S)Hell",
+          "position": 10,
+          "inMatrix": false
+        },
+        {
+          "songId": 173,
+          "slug": "rolling-stoned",
+          "title": "Rolling Stoned",
+          "position": 11,
+          "inMatrix": true
+        },
+        {
+          "songId": 249,
+          "slug": "you-can-be-your-silhouette",
+          "title": "You Can Be Your Silhouette",
+          "position": 12,
+          "inMatrix": true
+        },
+        {
+          "songId": 186,
+          "slug": "sketches-of-brunswick-east-iii",
+          "title": "Sketches of Brunswick East III",
+          "position": 13,
+          "inMatrix": false
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/teenage-gizzard",
+      "title": "Teenage Gizzard",
+      "releaseDate": "2020-12-25",
+      "tracks": [
+        {
+          "songId": 97,
+          "slug": "hey-there",
+          "title": "Hey There",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 23,
+          "slug": "ants-and-bats",
+          "title": "Ants & Bats",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 188,
+          "slug": "sleep",
+          "title": "Sleep",
+          "position": 3,
+          "inMatrix": false
+        },
+        {
+          "songId": 199,
+          "slug": "summer",
+          "title": "Summer!",
+          "position": 4,
+          "inMatrix": false
+        },
+        {
+          "songId": 65,
+          "slug": "eddie-cousin",
+          "title": "Eddie Cousin",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 79,
+          "slug": "fried",
+          "title": "Fried",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 88,
+          "slug": "good-to-me",
+          "title": "Good To Me",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 234,
+          "slug": "tomb-beach",
+          "title": "Tomb/Beach",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 236,
+          "slug": "trench-foot",
+          "title": "Trench Foot",
+          "position": 9,
+          "inMatrix": false
+        },
+        {
+          "songId": 127,
+          "slug": "life-is-cool",
+          "title": "Life Is Cool",
+          "position": 10,
+          "inMatrix": true
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/the-silver-cord",
+      "title": "The Silver Cord",
+      "releaseDate": "2023-10-27",
+      "tracks": [
+        {
+          "songId": 387,
+          "slug": "theia",
+          "title": "Theia",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 388,
+          "slug": "the-silver-cord",
+          "title": "The Silver Cord",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 389,
+          "slug": "set",
+          "title": "Set",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 390,
+          "slug": "chang-e",
+          "title": "Chang'e",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 427,
+          "slug": "space-junk",
+          "title": "Space Junk",
+          "position": 5,
+          "inMatrix": false
+        },
+        {
+          "songId": 391,
+          "slug": "gilgamesh",
+          "title": "Gilgamesh",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 392,
+          "slug": "swan-song",
+          "title": "Swan Song",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 393,
+          "slug": "extinction",
+          "title": "Extinction",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 428,
+          "slug": "plasma",
+          "title": "Plasma",
+          "position": 9,
+          "inMatrix": false
+        },
+        {
+          "songId": 429,
+          "slug": "embryo",
+          "title": "Embryo",
+          "position": 10,
+          "inMatrix": false
+        }
+      ]
+    },
+    {
+      "albumUrl": "/albums/willoughbys-beach",
+      "title": "Willoughby's Beach",
+      "releaseDate": "2011-10-21",
+      "tracks": [
+        {
+          "songId": 52,
+          "slug": "danger-money",
+          "title": "Danger $$$",
+          "position": 1,
+          "inMatrix": true
+        },
+        {
+          "songId": 32,
+          "slug": "black-tooth",
+          "title": "Black Tooth",
+          "position": 2,
+          "inMatrix": true
+        },
+        {
+          "songId": 130,
+          "slug": "lunch-meat",
+          "title": "Lunch Meat",
+          "position": 3,
+          "inMatrix": true
+        },
+        {
+          "songId": 46,
+          "slug": "crookedile",
+          "title": "Crookedile",
+          "position": 4,
+          "inMatrix": true
+        },
+        {
+          "songId": 124,
+          "slug": "let-it-bleed",
+          "title": "Let It Bleed",
+          "position": 5,
+          "inMatrix": true
+        },
+        {
+          "songId": 53,
+          "slug": "dead-beat",
+          "title": "Dead-Beat",
+          "position": 6,
+          "inMatrix": true
+        },
+        {
+          "songId": 63,
+          "slug": "dustbin-fletcher",
+          "title": "Dustbin Fletcher",
+          "position": 7,
+          "inMatrix": true
+        },
+        {
+          "songId": 196,
+          "slug": "stoned-mullet",
+          "title": "Stoned Mullet",
+          "position": 8,
+          "inMatrix": true
+        },
+        {
+          "songId": 245,
+          "slug": "willoughbys-beach",
+          "title": "Willoughby's Beach",
+          "position": 9,
+          "inMatrix": true
+        }
+      ]
+    }
+  ],
+  "buckets": {
+    "covers": [
+      {
+        "songId": 258,
+        "slug": "moby-dick",
+        "title": "Moby Dick",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 263,
+        "slug": "happy-birthday-to-you",
+        "title": "Happy Birthday To You",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 266,
+        "slug": "i-gotta-rock-n-roll",
+        "title": "I Gotta Rock 'n' Roll",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 267,
+        "slug": "i-wanna-be-your-dog",
+        "title": "I Wanna Be Your Dog",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 268,
+        "slug": "open-my-eyes",
+        "title": "Open My Eyes",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 272,
+        "slug": "pushin-too-hard",
+        "title": "Pushin' Too Hard",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 276,
+        "slug": "let-there-be-rock",
+        "title": "Let There Be Rock",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 277,
+        "slug": "all-my-loving",
+        "title": "All My Loving",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 278,
+        "slug": "dirty-deeds-done-dirt-cheap",
+        "title": "Dirty Deeds Done Dirt Cheap",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 279,
+        "slug": "proud-mary",
+        "title": "Proud Mary",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 280,
+        "slug": "la-grange",
+        "title": "La Grange",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 281,
+        "slug": "i-was-made-for-lovin-you",
+        "title": "I Was Made for Lovin' You",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 282,
+        "slug": "whole-lotta-love",
+        "title": "Whole Lotta Love",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 283,
+        "slug": "you-gotta-fight-for-your-right-to-party",
+        "title": "(You Gotta) Fight for Your Right (To Party!)",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 284,
+        "slug": "these-boots-are-made-for-walkin",
+        "title": "These Boots Are Made for Walkin'",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 285,
+        "slug": "every-1s-a-winner",
+        "title": "Every 1's a Winner",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 289,
+        "slug": "on-the-road-again",
+        "title": "On the Road Again",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 290,
+        "slug": "silver-machine",
+        "title": "Silver Machine",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 330,
+        "slug": "boogie",
+        "title": "Boogie",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 381,
+        "slug": "ghost",
+        "title": "Ghost",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 425,
+        "slug": "tv-eye",
+        "title": "T.V. Eye",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 498,
+        "slug": "treaty",
+        "title": "Treaty",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 927,
+        "slug": "jailbreak",
+        "title": "Jailbreak",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 980,
+        "slug": "police-truck",
+        "title": "Police Truck",
+        "position": 0,
+        "inMatrix": true
+      }
+    ],
+    "miscellaneous": [
+      {
+        "songId": 80,
+        "slug": "fury",
+        "title": "Fury",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 255,
+        "slug": "love-for-me",
+        "title": "Love For Me",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 256,
+        "slug": "oh-god",
+        "title": "Oh God",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 257,
+        "slug": "other-side",
+        "title": "Other Side",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 265,
+        "slug": "talk-talk-talk",
+        "title": "Talk Talk Talk",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 270,
+        "slug": "the-wholly-ghost",
+        "title": "Ghost",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 274,
+        "slug": "high-school",
+        "title": "High School",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 404,
+        "slug": "gypsy",
+        "title": "Gypsy",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 405,
+        "slug": "stoned",
+        "title": "Stoned",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 424,
+        "slug": "rock-n-roll",
+        "title": "Rock N’ Roll",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 439,
+        "slug": "live-jam",
+        "title": "Jam",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 992,
+        "slug": "jojam",
+        "title": "JOJAM",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 996,
+        "slug": "luseq",
+        "title": "LUSEQ",
+        "position": 0,
+        "inMatrix": true
+      },
+      {
+        "songId": 1022,
+        "slug": "drum-solo",
+        "title": "Dueling Drums",
+        "position": 0,
+        "inMatrix": true
+      }
+    ]
+  }
+}
