@@ -199,6 +199,18 @@ export {
 } from "./dex/recap.ts";
 
 /**
+ * Phase 6 friend-file compare (plan 06-10, SHAR-01/D-17). `compareDexes` is the
+ * pure, read-only DIFF over two derived DexStats — the structural inverse of
+ * parseAndMergeImport: same songId identity discipline, but it NEVER merges or
+ * writes. Diff lists are songId-only (the view resolves names) and tier-sorted.
+ */
+export {
+  compareDexes,
+  type CompareResult,
+  type CompareColumn,
+} from "./dex/compare.ts";
+
+/**
  * Phase 6 archive search + year browse (plan 06-08). `makeArchiveSearcher` is
  * the memoizable fuse.js searcher over the bundled show archive (date/venue/
  * city, empty query → []); `groupShowsByYear` is the plain newest-first year
