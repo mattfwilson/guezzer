@@ -123,6 +123,13 @@ export const config = {
     ALBUM_ART_DISPLAY_PX: 80,
 
     /**
+     * Plan 06-08: how long the "+{n} songs caught" retro-mark flash lingers in
+     * the ArchiveBrowser before fading (ms). Purely cosmetic feedback — the
+     * counts recompute instantly via useLiveQuery regardless.
+     */
+    MARK_FLASH_MS: 1600,
+
+    /**
      * D-17 (plan 06-07): max length of the Settings owner-name input, applied as
      * a `maxLength` attribute. MIRRORS `config.dex.OWNER_NAME_MAX_LENGTH` in
      * @guezzer/core (which is not re-exported from the core barrel) — the core
@@ -349,6 +356,43 @@ export const config = {
       /** WhyDetail corpus-stat line (STAT-01) — play count · last played · corpus gap. */
       whyCorpusStat: (playCount: number, mon: string, gap: number): string =>
         `Played ${playCount}× · last ${mon} · gap ${gap}`,
+    },
+
+    /**
+     * Phase-6 retro-mark ArchiveBrowser copy (06-UI-SPEC §Copywriting Contract,
+     * Layout 2) — verbatim. "Mark attended shows" is both the entry CTA (Shows
+     * segment header + dex empty state) and the full-screen browser title. All
+     * kglw-derived venue/city/song strings render as React text only (T-06-18).
+     */
+    archive: {
+      /** Entry CTA (Shows segment header + dex empty-state) AND the browser title. */
+      cta: "Mark attended shows",
+      /** Full-screen browser title (same string as the CTA — D-09). */
+      title: "Mark attended shows",
+      /** Search field placeholder (fuzzy date/venue/city). */
+      searchPlaceholder: "Search by date, venue, or city",
+      /** Close-browser control accessible label. */
+      close: "Close",
+      /** One-tap-mark inline flash (D-11) — n = the show's setlist size. */
+      songsCaught: (n: number): string => `+${n} songs caught`,
+      /** No search results (offline or a query past the bundled corpus). */
+      noMatchHeading: "No shows match.",
+      noMatchBody: (corpusDate: string): string =>
+        `The bundled archive covers through ${corpusDate}.`,
+      /** Online fallback offer row (D-09) — user-initiated, session-cached, never retried. */
+      fallbackSearch: "Search kglw.net for newer shows",
+      /** Loading label while the polite live search runs. */
+      fallbackSearching: "Searching kglw.net…",
+      /** Offline: the fallback row is replaced by this muted note. */
+      offlineNote: "Newer shows need a connection.",
+      /** Online-search soft failure / no newer shows found (D-09). */
+      failureHeading: "Can't reach kglw.net.",
+      failureBody: "Showing the bundled archive only — try again with signal.",
+      /** Unmark confirm dialog (D-12) — the phase's only destructive control (#EF4444). */
+      unmarkHeading: "Unmark this show?",
+      unmarkBody: "Its songs come off your dex counts.",
+      unmarkConfirm: "Unmark",
+      unmarkCancel: "Cancel",
     },
   },
 } as const;
