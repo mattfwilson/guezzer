@@ -1,4 +1,5 @@
 {
+  "//": "Node-context files in the app package: the one-time build scripts and the fs-based committed-asset guard tests. Kept separate from tsconfig.json so browser src stays DOM-typed and node globals never leak into it.",
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2023"],
@@ -10,5 +11,5 @@
     "moduleResolution": "nodenext",
     "types": ["node"]
   },
-  "include": ["scripts/**/*.ts"]
+  "include": ["scripts/**/*.ts", "test/coversManifest.test.ts"]
 }

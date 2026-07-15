@@ -9,5 +9,7 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"],
+  "//exclude": "coversManifest.test.ts is an fs-based node-context asset guard — typechecked by tsconfig.node.json, not this DOM-typed browser project.",
+  "exclude": ["test/coversManifest.test.ts"]
 }
