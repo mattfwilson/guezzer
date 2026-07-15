@@ -198,8 +198,10 @@ describe("DexView: the album shelf (06-06, D-01/D-02/D-07)", () => {
 
     await waitFor(() => expect(screen.getAllByTestId("album-card").length).toBe(5));
 
+    // Switching to Shows now lists the marked show (06-09) instead of the empty
+    // state — the album cards leave the DOM (component-state toggle, no route).
     fireEvent.click(screen.getByRole("button", { name: copy.segmentShows }));
-    expect(screen.getByText(copy.showsEmptyHeading)).toBeInTheDocument();
+    await screen.findByTestId("show-row");
     expect(screen.queryAllByTestId("album-card").length).toBe(0);
 
     fireEvent.click(screen.getByRole("button", { name: copy.segmentAlbums }));

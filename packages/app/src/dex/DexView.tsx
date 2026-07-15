@@ -18,9 +18,18 @@ import { AlbumDetail } from "./AlbumDetail.tsx";
 import { AlbumGrid } from "./AlbumGrid.tsx";
 import { ArchiveBrowser } from "./ArchiveBrowser.tsx";
 import { DexHeader } from "./DexHeader.tsx";
+import { RecapView } from "./RecapView.tsx";
+import { SetlistView } from "./SetlistView.tsx";
+import { ShowsList } from "./ShowsList.tsx";
 import { useDexStats } from "./useDexStats.ts";
 
 type Segment = "albums" | "shows";
+
+/** The Shows-segment drill-in target (D-16): a tracked recap or a retro setlist. */
+type OpenShow =
+  | { kind: "tracked"; sessionId: string }
+  | { kind: "retro"; showId: number }
+  | null;
 
 /** A resolved open-album drill-in target (card album or bucket). */
 interface OpenAlbum {
@@ -57,6 +66,7 @@ export function DexView() {
   const [segment, setSegment] = useState<Segment>("albums");
   const [openAlbumKey, setOpenAlbumKey] = useState<string | null>(null);
   const [browserOpen, setBrowserOpen] = useState(false);
+  const [openShow, setOpenShow] = useState<OpenShow>(null);
 
   // Loader-guard failure (T-06-12): a calm handled state, never a thrown crash.
   if (stats.error != null) {
@@ -116,7 +126,13 @@ export function DexView() {
           <div className="mx-4 mb-2">
             <MarkCta label={archiveCopy.cta} onClick={() => setBrowserOpen(true)} />
           </div>
-          <EmptyState heading={copy.showsEmptyHeading} body={copy.showsEmptyBody} />
+          {/* Attended shows newest-first (D-16); ShowsList renders its own empty
+              state when there are no rows. Tracked → recap, retro → setlist. */}
+          <ShowsList
+            archive={archive}
+            onOpenTracked={(sessionId) => setOpenShow({ kind: "tracked", sessionId })}
+            onOpenRetro={(showId) => setOpenShow({ kind: "retro", showId })}
+          />
         </div>
       )}
 
@@ -133,6 +149,20 @@ export function DexView() {
           dex={dex}
           rarity={rarity}
           onBack={() => setOpenAlbumKey(null)}
+        />
+      )}
+
+      {/* Shows-segment drill-in (D-16, HIST-01) — component state, no new hash
+          route. Tracked opens the recap payoff; retro opens the plain setlist. */}
+      {openShow?.kind === "tracked" && (
+        <RecapView sessionId={openShow.sessionId} onClose={() => setOpenShow(null)} />
+      )}
+      {openShow?.kind === "retro" && rarity != null && (
+        <SetlistView
+          showId={openShow.showId}
+          archive={archive}
+          rarity={rarity}
+          onClose={() => setOpenShow(null)}
         />
       )}
     </div>
