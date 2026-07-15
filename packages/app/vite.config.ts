@@ -35,6 +35,15 @@ export default defineConfig({
       "@matrix": fileURLToPath(
         new URL("../../data/normalized/transition-matrix.json", import.meta.url),
       ),
+      // Phase-6 dex artifacts (plan 06-05) — same @matrix idiom. Both ride the
+      // JS bundle (JSON module), so the existing `**/*.js` Workbox glob
+      // precaches them; NO `json` glob edit is needed (offline-complete).
+      "@archive": fileURLToPath(
+        new URL("../../data/normalized/archive.json", import.meta.url),
+      ),
+      "@dexAlbums": fileURLToPath(
+        new URL("../../data/normalized/dex-albums.json", import.meta.url),
+      ),
     },
   },
   plugins: [

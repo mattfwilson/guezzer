@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
@@ -18,6 +19,22 @@ export default defineConfig({
       },
       {
         plugins: [react()],
+        // Resolve the bundled-artifact aliases (mirrors packages/app/vite.config.ts)
+        // so `@matrix`/`@archive`/`@dexAlbums` importers are collectable under
+        // Vitest; tests replace the real artifacts with `vi.mock` fixtures.
+        resolve: {
+          alias: {
+            "@matrix": fileURLToPath(
+              new URL("./data/normalized/transition-matrix.json", import.meta.url),
+            ),
+            "@archive": fileURLToPath(
+              new URL("./data/normalized/archive.json", import.meta.url),
+            ),
+            "@dexAlbums": fileURLToPath(
+              new URL("./data/normalized/dex-albums.json", import.meta.url),
+            ),
+          },
+        },
         test: {
           name: "@guezzer/app",
           root: "packages/app",
