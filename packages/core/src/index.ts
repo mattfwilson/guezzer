@@ -181,3 +181,9 @@ export {
   type SongRarity,
   type RarityIndex,
 } from "./dex/rarity.ts";
+export {
+  deriveDex,
+  type DexSnapshotInput,
+  type SongDexStats,
+  type DexStats,
+} from "./dex/derive-dex.ts";
