@@ -272,8 +272,10 @@ describe("import into a populated DB with overlapping ids preserves every local 
     };
     const envelope = serializeExport(
       {
+        owner: null,
         meta: [],
         attendedShows: [],
+        archiveShows: [],
         trackedShows: [incomingShow],
         trackedEntries: [incomingEntry1, incomingEntry2],
       },
@@ -393,8 +395,10 @@ describe("import into a populated DB with overlapping ids preserves every local 
     };
     const envelope = serializeExport(
       {
+        owner: null,
         meta: [],
         attendedShows: [],
+        archiveShows: [],
         trackedShows: [incomingRichShow],
         trackedEntries: [incomingRichEntry1, incomingRichEntry2],
       },
