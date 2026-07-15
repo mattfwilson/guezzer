@@ -210,3 +210,17 @@ export {
   groupShowsByYear,
   type ArchiveSearchHit,
 } from "./dex/search-archive.ts";
+
+/**
+ * Phase 6 online recent-show fallback (plan 06-08). `fetchRecentShows` is the
+ * polite, tolerant fetch for POST-corpus shows (mirrors pollLatest's never-throw
+ * tier + reuses assertFilterApplied) — returns `{ shows, songs }` where the
+ * songs record is the ONLY name source for post-corpus debut songs (D-09,
+ * Pitfall 9). Etiquette is a caller contract: user-initiated, session-cached,
+ * never retried.
+ */
+export {
+  fetchRecentShows,
+  type RecentShowsDeps,
+  type RecentShowsResult,
+} from "./dex/recent-shows.ts";
