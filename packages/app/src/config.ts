@@ -115,6 +115,19 @@ export const config = {
   },
 
   /**
+   * Phase-6 share-card geometry (06-UI-SPEC §Layout 5 / §Config surface). The
+   * PNG brag card is a fixed 1080×1350 (4:5) canvas drawn on #0C0C10 from the
+   * pure-core ShareCardData. Only dimensions live here; the card's copy is in
+   * config.copy.share.
+   */
+  share: {
+    /** Share-card canvas width in px (4:5 portrait, SHAR-02/D-18). */
+    CARD_WIDTH: 1080,
+    /** Share-card canvas height in px (4:5 portrait, SHAR-02/D-18). */
+    CARD_HEIGHT: 1350,
+  },
+
+  /**
    * Phase-6 dex UI geometry (06-UI-SPEC §Config surface). Rarity thresholds are
    * CORE config (pure derivation, EVAL-05) — only display dimensions live here.
    */
@@ -480,6 +493,40 @@ export const config = {
       namePromptConfirm: "Open compare",
       /** Name-prompt "it's my own backup" escape → routes to the merge path. */
       namePromptMine: "It's mine — merge it",
+    },
+
+    /**
+     * Phase-6 share-card copy (06-UI-SPEC §Copywriting Contract, Layout 5) —
+     * verbatim. The card itself is drawn on the canvas; these strings drive the
+     * CTA, the preview sheet, and the success/failure states. Share/render
+     * failures surface calm copy and never touch app state (T-06-27). The
+     * kglw-derived song/venue names drawn onto the card come from ShareCardData
+     * (assembled in core) — the app draw layer only renders them.
+     */
+    share: {
+      /** Primary phase CTA (accent) — DexHeader + RecapView footer (Share2 icon). */
+      cta: "Share card",
+      /** Preview-sheet accessible label / heading. */
+      sheetLabel: "Share card",
+      /** Web-Share-unsupported download-fallback confirmation (CircleCheck, muted). */
+      savedToDownloads: "Card saved to your downloads.",
+      /** Render/build failure heading — calm, non-blocking. */
+      failureHeading: "Couldn't build the card.",
+      /** Render failure body — reassures the dex is untouched (T-06-27). */
+      failureBody: "Try again — your dex is unaffected.",
+      /** Close-preview control accessible label. */
+      close: "Close",
+      /**
+       * Card face labels drawn onto the canvas (system-font stack, contract
+       * colors only). Tier WORDS reuse config.copy.dex.tierLabels — no duplication.
+       */
+      card: {
+        wordmark: "Guezzer",
+        caught: (caught: number, total: number): string => `${caught}/${total} caught`,
+        shows: (n: number): string => (n === 1 ? "1 show" : `${n} shows`),
+        rarestLabel: "Rarest catch",
+        latestLabel: "Latest show",
+      },
     },
   },
 } as const;
