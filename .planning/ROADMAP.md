@@ -184,7 +184,7 @@ Plans:
   4. After a show, a recap view shows the hit/miss tally, final setlist with set structure, and a show rarity score — and past tracked shows remain viewable as complete setlists
   5. The dex exports/imports as JSON for friend exchange, and the user can generate a shareable summary card (completion %, rarest catch, show count)
 
-**Plans:** 9/11 plans executed
+**Plans:** 10/11 plans executed
 **UI hint**: yes
 
 Plans:
@@ -221,7 +221,7 @@ Plans:
 
 **Wave 8** *(blocked on 06-07, 06-09)*
 
-- [ ] 06-10-PLAN.md — Friend-compare slice: structural import fork (never merges) + read-only CompareView (SHAR-01, D-17)
+- [x] 06-10-PLAN.md — Friend-compare slice: structural import fork (never merges) + read-only CompareView (SHAR-01, D-17)
 
 **Wave 9** *(blocked on 06-10)*
 
