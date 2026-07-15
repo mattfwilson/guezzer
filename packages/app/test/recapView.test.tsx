@@ -150,3 +150,37 @@ describe("RecapView — the payoff screen (SHOW-14, D-14/D-15)", () => {
     expect(onClose).toHaveBeenCalled();
   });
 });
+
+describe("End Show → recap seam (D-13, RESEARCH Pattern 6)", () => {
+  it("auto-shows the recap after confirming End Show, then returns to pre-show on Done", async () => {
+    const showCopy = config.copy.show;
+
+    // An active tracked show — the recap must render even AFTER endShow flips it
+    // finalized (the recap check precedes the `!session.active` early return).
+    await db.trackedShows.put({
+      sessionId: "seam1",
+      date: "2026-07-14",
+      status: "active",
+      currentSetNumber: "1",
+      startedAt: 1,
+      showId: null,
+      venueId: null,
+      venueName: "Seam Arena",
+      city: null,
+    });
+
+    const { ShowView } = await import("../src/show/ShowView.tsx");
+    render(<ShowView />);
+
+    // Active show → the End Show control is present; confirm it.
+    fireEvent.click(await screen.findByRole("button", { name: showCopy.endCta }));
+    fireEvent.click(await screen.findByRole("button", { name: showCopy.endConfirm }));
+
+    // The recap auto-appears with no navigation — the payoff moment.
+    await screen.findByText(copy.heading);
+
+    // Done → the recap clears and the pre-show launcher returns.
+    fireEvent.click(screen.getByRole("button", { name: copy.done }));
+    await screen.findByText(showCopy.startCta);
+  });
+});
