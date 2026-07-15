@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { config } from "../config.ts";
-import { getMeta } from "../db/db.ts";
+import { getMeta, setMeta } from "../db/db.ts";
 import type { PersistStatus } from "../pwa/persist.ts";
 import { exportBackup } from "./exportDownload.ts";
 import { openBackupFilePicker, pickAndImport } from "./importPicker.ts";
@@ -37,6 +37,17 @@ export function SettingsView() {
     getMeta<PersistStatus>("persistStatus"),
   );
   const isProtected = persistStatus === "persisted";
+
+  // D-17 owner identity: reactive read of the meta `ownerName` row. Dexie is the
+  // single source of truth (no useState mirror) — the input is a controlled
+  // field over the live value, saved back on every change.
+  const ownerName = useLiveQuery(() => getMeta<string>("ownerName"));
+
+  const handleOwnerChange = (value: string) => {
+    // Persist the trimmed name; an empty field clears the row (owner → null in
+    // the export). The schema clamp is the security control; maxLength is UX.
+    void setMeta("ownerName", value.trim());
+  };
 
   const handleExport = async () => {
     const res = await exportBackup();
@@ -54,6 +65,30 @@ export function SettingsView() {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 pt-8 pb-16">
+      {/* Owner identity (D-17) — stamped on every export so friend imports fork
+          to compare, never merge. */}
+      <section className="flex flex-col gap-2">
+        <label
+          htmlFor="owner-name"
+          className="text-[20px] font-semibold leading-tight text-text-primary"
+        >
+          {copy.ownerNameHeading}
+        </label>
+        <input
+          id="owner-name"
+          type="text"
+          value={ownerName ?? ""}
+          onChange={(e) => handleOwnerChange(e.target.value)}
+          maxLength={config.dex.OWNER_NAME_MAX_LENGTH}
+          placeholder={copy.ownerNamePlaceholder}
+          autoComplete="off"
+          className="min-h-11 w-full rounded-md border border-hairline bg-elevated px-3 text-base text-text-primary placeholder:text-text-muted touch-manipulation"
+        />
+        <p className="text-base leading-normal text-text-muted">
+          {copy.ownerNameDescription}
+        </p>
+      </section>
+
       <section className="flex flex-col gap-4">
         <h1 className="text-[20px] font-semibold leading-tight text-text-primary">
           {copy.sectionHeading}

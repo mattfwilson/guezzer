@@ -121,6 +121,14 @@ export const config = {
   dex: {
     /** Album-cover display size in px; the committed WebP assets are 2× (160px). */
     ALBUM_ART_DISPLAY_PX: 80,
+
+    /**
+     * D-17 (plan 06-07): max length of the Settings owner-name input, applied as
+     * a `maxLength` attribute. MIRRORS `config.dex.OWNER_NAME_MAX_LENGTH` in
+     * @guezzer/core (which is not re-exported from the core barrel) — the core
+     * schema hard-clamps the same value, so the two MUST stay equal (40).
+     */
+    OWNER_NAME_MAX_LENGTH: 40,
   },
 
   /** UI-SPEC §Copywriting Contract. */
@@ -275,6 +283,16 @@ export const config = {
         "Export a backup now and again to keep your dex safe.",
       /** End-Show auto-backup confirmation (D-13) — a single confirmation, not a per-show nag. */
       endShowBackupConfirmation: "Backup saved to your downloads.",
+
+      /**
+       * Owner-identity field (D-17, plan 06-07). Your name is stamped on every
+       * export so a friend importing your backup gets the compare view (06-10),
+       * never a silent merge into their own dex. Reassuring, not required.
+       */
+      ownerNameHeading: "Your name",
+      ownerNameDescription:
+        "Stamped on your backups so friends' dexes stay separate from yours.",
+      ownerNamePlaceholder: "Add your name",
     },
 
     /**
