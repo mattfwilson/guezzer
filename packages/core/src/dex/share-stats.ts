@@ -41,7 +41,6 @@ export interface ShareCardData {
  * null rarest/latest) — no NaN by construction.
  */
 export function buildShareStats(dex: DexStats, archive: ArchiveArtifact): ShareCardData {
-  throw new Error("buildShareStats not implemented");
   // Tier counts over caught songs + the newest sighting date, in one pass.
   const counts = new Map<RarityTier, number>();
   let latestDate: string | null = null;
