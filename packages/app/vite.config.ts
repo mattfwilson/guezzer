@@ -58,6 +58,13 @@ export default defineConfig({
         // within the 350 KB cover budget guarded by test/coversManifest.test.ts) so
         // the dex shelf renders offline (06-12 gap 1). 'json' is still intentionally
         // excluded — the matrix/archive/dex artifacts ride the JS bundle.
+        //
+        // clientsClaim makes the FIRST-installed SW control the already-open page,
+        // so the app is offline-complete on first load (core value) — without it,
+        // first-session fetches bypass the SW and precached covers 404 offline.
+        // Safe with registerType 'prompt': skipWaiting stays false, so an UPDATED
+        // SW still waits for user approval before activating (never mid-show).
+        clientsClaim: true,
       },
       manifest: {
         name: "Guezzer",
