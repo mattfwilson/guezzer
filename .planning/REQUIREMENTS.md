@@ -82,16 +82,16 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DEX-02**: User can retroactively mark attended shows from the full kglw.net archive, searchable by date/venue, keyed by stable show ID
 - [x] **DEX-03**: Per-song sighting counts are derived from attended shows — never hand-tallied
 - [x] **DEX-04**: Pokédex UI shows collection completion %, per-song sighting counts, rarest catch (lowest base-rate song seen), and never-seen list
-- [ ] **DEX-05**: Pokédex state overlays the constellation: unseen songs as dimmed silhouettes, seen at full color, sighting count as badge/ring
+- [x] **DEX-05**: Pokédex state overlays the constellation: unseen songs as dimmed silhouettes, seen at full color, sighting count as badge/ring
 
 ### Explore Mode
 
-- [ ] **EXPL-01**: Force-directed transition constellation: nodes = songs (size = play count, color = tuning family), directed edges = observed transitions (thickness = frequency), fed from the same matrix JSON as the predictor
-- [ ] **EXPL-02**: Clicking a node shows its outgoing next-song probabilities as ranked bars with percentages and one-line "why" explanations
-- [ ] **EXPL-03**: Default view renders only the current-era active rotation (songs in last N shows, tunable) with a toggle for the full catalog
-- [ ] **EXPL-04**: Edges below a tunable transition-count/probability threshold are hidden (slider)
-- [ ] **EXPL-05**: Clicking a node highlights its neighborhood and dims the rest (focus+context)
-- [ ] **EXPL-06**: Physics settles and freezes; labels never jitter permanently
+- [x] **EXPL-01**: Force-directed transition constellation: nodes = songs (size = play count, color = tuning family), directed edges = observed transitions (thickness = frequency), fed from the same matrix JSON as the predictor
+- [x] **EXPL-02**: Clicking a node shows its outgoing next-song probabilities as ranked bars with percentages and one-line "why" explanations
+- [x] **EXPL-03**: Default view renders only the current-era active rotation (songs in last N shows, tunable) with a toggle for the full catalog
+- [x] **EXPL-04**: Edges below a tunable transition-count/probability threshold are hidden (slider)
+- [x] **EXPL-05**: Clicking a node highlights its neighborhood and dims the rest (focus+context)
+- [x] **EXPL-06**: Physics settles and freezes; labels never jitter permanently
 
 ### Show History
 
@@ -196,13 +196,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEX-02 | Phase 6 | Complete |
 | DEX-03 | Phase 6 | Complete |
 | DEX-04 | Phase 6 | Complete |
-| DEX-05 | Phase 7 | Pending |
-| EXPL-01 | Phase 7 | Pending |
-| EXPL-02 | Phase 7 | Pending |
-| EXPL-03 | Phase 7 | Pending |
-| EXPL-04 | Phase 7 | Pending |
-| EXPL-05 | Phase 7 | Pending |
-| EXPL-06 | Phase 7 | Pending |
+| DEX-05 | Phase 7 | Complete |
+| EXPL-01 | Phase 7 | Complete |
+| EXPL-02 | Phase 7 | Complete |
+| EXPL-03 | Phase 7 | Complete |
+| EXPL-04 | Phase 7 | Complete |
+| EXPL-05 | Phase 7 | Complete |
+| EXPL-06 | Phase 7 | Complete |
 | HIST-01 | Phase 6 | Complete |
 | SHAR-01 | Phase 6 | Complete |
 | SHAR-02 | Phase 6 | Complete (06-11) |
