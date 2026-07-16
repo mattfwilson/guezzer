@@ -72,6 +72,7 @@ interface DexAlbumsArtifact {
 interface MbReleaseGroup {
   id: string;
   score?: number;
+  "primary-type"?: string;
 }
 
 interface MbSearchResponse {
@@ -101,8 +102,16 @@ const defaultSleep = (ms: number): Promise<void> =>
  * the UI renders the initials placeholder). Fails loudly (throws, endpoint
  * named) on a genuine HTTP error so a rate-limit/outage is diagnosable, never
  * silently swallowed as "no cover".
+ *
+ * Selection (06-12 gap 2): prefer the first group whose `primary-type` is
+ * "Album" — a same-titled Single can tie an Album at score 100 and land first
+ * (Phantom Island: 2024 Single vs 2025 studio Album), and the studio art is
+ * always the shelf's intent. When NO Album-typed group exists, fall back to
+ * the top-scored `groups[0]` — several committed covers are intentionally
+ * non-Album release groups (EPs etc.), so the fallback is load-bearing.
+ * Exported for the regression test (fetchCovers.test.ts).
  */
-async function findReleaseGroupMbid(title: string): Promise<string | null> {
+export async function findReleaseGroupMbid(title: string): Promise<string | null> {
   const query = `releasegroup:"${title}" AND artist:"${ARTIST}"`;
   const url = `${MB_BASE}/release-group/?query=${encodeURIComponent(query)}&fmt=json`;
 
@@ -120,8 +129,10 @@ async function findReleaseGroupMbid(title: string): Promise<string | null> {
   const body = (await res.json()) as MbSearchResponse;
   const groups = body["release-groups"] ?? [];
   if (groups.length === 0) return null;
-  // MB returns results already ordered by descending score; take the top one.
-  return groups[0].id;
+  // MB returns results already ordered by descending score. Prefer the first
+  // Album-typed group; fall back to the top-scored one when none exists.
+  const album = groups.find((group) => group["primary-type"] === "Album");
+  return (album ?? groups[0]).id;
 }
 
 /**
