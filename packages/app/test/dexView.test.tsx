@@ -96,6 +96,7 @@ const { config } = await import("../src/config.ts");
 const { db } = await import("../src/db/db.ts");
 const { useDexStats } = await import("../src/dex/useDexStats.ts");
 const { DexView } = await import("../src/dex/DexView.tsx");
+const { AlbumGrid } = await import("../src/dex/AlbumGrid.tsx");
 
 const copy = config.copy.dex;
 
@@ -211,6 +212,66 @@ describe("DexView: the album shelf (06-06, D-01/D-02/D-07)", () => {
   it("renders the 'No catches yet' empty state when nothing is caught", async () => {
     render(<DexView />);
     await screen.findByText(copy.emptyHeading);
+  });
+});
+
+describe("AlbumGrid: cover img → initials fallback (06-12 gap 1, UAT test 2)", () => {
+  afterEach(cleanup);
+
+  // A REAL committed cover slug (nonagon-infinity.webp exists on disk) so
+  // coverUrlFor resolves a bundled URL and the <img> branch renders.
+  const coveredAlbums = {
+    schemaVersion: 1,
+    albums: [
+      {
+        albumUrl: "/albums/nonagon-infinity",
+        title: "Nonagon Infinity",
+        releaseDate: "2016-04-29",
+        tracks: [],
+      },
+    ],
+    buckets: { covers: [], miscellaneous: [] },
+  } as unknown as Parameters<typeof AlbumGrid>[0]["albums"];
+
+  // Empty perAlbum → tally defaults to { caught: 0 } → zero-catch → §B4 dimmed.
+  const emptyDex = {
+    perAlbum: new Map(),
+  } as unknown as Parameters<typeof AlbumGrid>[0]["dex"];
+
+  function renderCoveredCard() {
+    render(<AlbumGrid dex={emptyDex} albums={coveredAlbums} onOpen={() => {}} />);
+    return screen
+      .getAllByTestId("album-card")
+      .find((c) => c.getAttribute("data-album-title") === "Nonagon Infinity")!;
+  }
+
+  it("degrades a broken cover img to the initials placeholder under the SAME testid", () => {
+    const card = renderCoveredCard();
+
+    // With a committed cover, the img branch renders first.
+    const cover = within(card).getByTestId("album-cover");
+    expect(cover.tagName).toBe("IMG");
+
+    // Simulate the offline/404 load failure (UAT test 2's broken-image "?").
+    fireEvent.error(cover);
+
+    // Same testid re-renders as the initials placeholder — no broken img remains.
+    const fallback = within(card).getByTestId("album-cover");
+    expect(fallback.tagName).not.toBe("IMG");
+    expect(fallback.textContent).toBe("NI");
+    expect(card.querySelector("img")).toBeNull();
+  });
+
+  it("keeps §B4 dim classes on the error-fallback placeholder of a zero-catch album", () => {
+    const card = renderCoveredCard();
+
+    fireEvent.error(within(card).getByTestId("album-cover"));
+
+    const fallback = within(card).getByTestId("album-cover");
+    // Must be the PLACEHOLDER carrying the dim classes — not a lingering img.
+    expect(fallback.tagName).not.toBe("IMG");
+    expect(fallback.className).toContain("opacity-40");
+    expect(fallback.className).toContain("grayscale");
   });
 });
 
