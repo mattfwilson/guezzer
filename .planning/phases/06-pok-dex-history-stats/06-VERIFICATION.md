@@ -9,7 +9,7 @@ device_uat:
   - "Test 9 (offline covers): PASS — all covers persist in airplane mode after the clientsClaim fix"
   followup_fix: "8424e6e — device re-UAT of the 06-12 offline fix surfaced that the built SW had no clients.claim(); first-session cover fetches bypassed the precache offline (only the 2 sub-4KB Vite-inlined covers survived). Set workbox.clientsClaim=true (skipWaiting stays false, registerType 'prompt' preserved). Re-confirmed on device: all covers persist offline."
 re_verification:
-  previous_status: human_needed
+  previous_status: "human_needed"
   previous_score: 5/5 (automated)
   gaps_closed:
     - "Airplane-mode archive/dex browse works fully offline including album covers (06-HUMAN-UAT gap 1, major) — confirmed on device (test 9)"
