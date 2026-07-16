@@ -82,6 +82,7 @@ export function ConstellationCanvas({
   focusId,
   onFocus,
   visibleNodeIds,
+  edgeThreshold,
 }: {
   /** The pure-core-derived `{nodes, links}` — owned by the graph once passed (Pitfall 1). */
   graphData: ConstellationData;
@@ -91,11 +92,22 @@ export function ConstellationCanvas({
   onFocus: (songId: number | null) => void;
   /**
    * Slice-3 seam (Pitfall 6): the filtered node population to draw. `null`/omitted
-   * (this slice) draws the full catalog. The focused node + its neighbors are
-   * ALWAYS drawn regardless of this set ("visible = filtered ∪ {focus, neighbors}"),
-   * so a chain-hop never lands the camera on empty space.
+   * draws the full catalog. The focused node + its neighbors are ALWAYS drawn
+   * regardless of this set ("visible = filtered ∪ {focus, neighbors}"), so a
+   * chain-hop never lands the camera on empty space. The 07-05 Rotation view
+   * passes its rotation songId Set here — a pure DRAW-GATE that never rebuilds
+   * `graphData`, so frozen fx/fy survive every toggle (the sky stays stable).
    */
   visibleNodeIds?: ReadonlySet<number> | null;
+  /**
+   * EXPL-04 edge-count slider (D-07/D-08): draw a link only when its `count >=`
+   * this threshold. A pure RENDER-PASS filter — nodes are untouched, so hiding
+   * all of a node's edges leaves it a free-floating star. `null`/omitted → no
+   * edge filtering. Changing it never rebuilds `graphData` and never reheats the
+   * simulation (the same `edgesAtThreshold` predicate, applied per-link here so
+   * the links array is never re-created).
+   */
+  edgeThreshold?: number | null;
 }) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   // Held for camera control (centerAt/zoom) the chain-hop focus needs in a later slice.
@@ -326,8 +338,14 @@ export function ConstellationCanvas({
           // focus + neighbors are always exempt so a chain-hop never hits a gap.
           // This slice passes no filter → every node visible.
           nodeVisibility={(n: FgNode) => isNodeVisible(n.id)}
+          // Draw an edge only when BOTH endpoints are visible AND its play-together
+          // count clears the slider threshold (EXPL-04/D-07). Pure render pass — the
+          // node array is untouched, so a node whose every edge is hidden still draws
+          // as a free-floating star (D-08). No graphData rebuild, no reheat.
           linkVisibility={(l: FgLink) =>
-            isNodeVisible(l.fromId) && isNodeVisible(l.toId)
+            isNodeVisible(l.fromId) &&
+            isNodeVisible(l.toId) &&
+            (edgeThreshold == null || l.count >= edgeThreshold)
           }
           // Tap a node → focus it (D-13); tap empty canvas → clear focus + dim.
           onNodeClick={(n: FgNode) => onFocus(n.id)}
@@ -360,11 +378,16 @@ export function ConstellationCanvas({
             }
             // Frame the connected main grouping cleanly on load (D-15 reads at this
             // rest zoom). Falls back to fitting all nodes if there are no edges.
-            // Runs at settle; the layout is frozen so the frame never drifts after.
+            // Also honours the active filter (07-05): the default Rotation view
+            // frames its ~56 visible nodes, not the whole catalog. Runs at settle;
+            // the layout is frozen so the frame never drifts after (and a later
+            // toggle never re-fires this — positions stay put).
             fgRef.current?.zoomToFit(
               config.explore.ZOOM_TO_FIT_DURATION_MS,
               config.explore.ZOOM_TO_FIT_PADDING_PX,
-              (n: FgNode) => connectedIds.size === 0 || connectedIds.has(n.id),
+              (n: FgNode) =>
+                (connectedIds.size === 0 || connectedIds.has(n.id)) &&
+                isNodeVisible(n.id),
             );
           }}
         />

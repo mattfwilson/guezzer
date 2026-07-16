@@ -20,11 +20,14 @@ import { Telescope } from "lucide-react";
 import {
   deriveConstellation,
   rankOutgoing,
+  rotationSongIds,
   type ConstellationNode,
 } from "@guezzer/core";
 import { config } from "../config.ts";
+import { loadArchive } from "../dex/archive-loader.ts";
 import { loadMatrix } from "../show/matrix.ts";
 import { ConstellationCanvas } from "./ConstellationCanvas.tsx";
+import { ExploreFilterFab } from "./ExploreFilterFab.tsx";
 import { NodeSheet, type SheetBar } from "./NodeSheet.tsx";
 
 export function ExploreView() {
@@ -32,21 +35,43 @@ export function ExploreView() {
   // the useMemo below re-derives the constellation exactly once.
   const result = loadMatrix();
 
-  // Focus is live this slice (tap-to-focus + chain-hop). Filter/overlay state is
-  // still forward-scaffold — consumed by the rotation toggle (07-05) and dex
-  // overlay (07-06) slices.
+  // Focus is live (tap-to-focus + chain-hop). View + edge-threshold are live this
+  // slice (07-05); the dex-overlay state stays forward-scaffold for 07-06.
   const [focusId, setFocusId] = useState<number | null>(null);
-  const [rotationOnly, setRotationOnly] = useState(true);
+  // Rotation is the OPENING DEFAULT (D-03/D-12): the last-N-shows active sky.
+  const [view, setView] = useState<"rotation" | "full">("rotation");
+  // Edge-count slider default (D-07): ≥2 kills the misleading one-play edges.
+  const [edgeThreshold, setEdgeThreshold] = useState<number>(
+    config.explore.EDGE_COUNT_THRESHOLD_DEFAULT,
+  );
+  // Filter panel open? Owned HERE (not the FAB) so a canvas tap can collapse it
+  // without a scrim — the graph must stay live while sliding (D-09).
+  const [filterOpen, setFilterOpen] = useState(false);
   const [dexOverlay, setDexOverlay] = useState(true);
-  // Silence "declared but unused" until the slices that read/write them land —
-  // referencing keeps the forward-looking state intentional, not dead.
-  void [rotationOnly, setRotationOnly, dexOverlay, setDexOverlay];
+  // Silence "declared but unused" until the 07-06 dex overlay reads them.
+  void [dexOverlay, setDexOverlay];
 
   // Derive once, keyed on the (stable, memoized) load result. Null unless the
   // matrix loaded — hooks must run unconditionally, so the branch lives inside.
   const graphData = useMemo(
     () => (result.ok ? deriveConstellation(result.matrix) : null),
     [result],
+  );
+
+  // Rotation node set (EXPL-03/D-05): the distinct songIds of the last N shows,
+  // from the guarded, memoized archive loader (reused verbatim). A load failure
+  // or empty archive → an empty Set (the honest "Nothing in rotation" state).
+  // loadArchive() returns a stable cached reference, so this derives once.
+  const archiveResult = loadArchive();
+  const rotationSet = useMemo(
+    () =>
+      archiveResult.ok
+        ? rotationSongIds(
+            archiveResult.archive,
+            config.explore.ROTATION_WINDOW_SHOWS,
+          )
+        : new Set<number>(),
+    [archiveResult],
   );
 
   // songId → node (name / playCount / tuningFamily) for the sheet header + bar
@@ -98,13 +123,56 @@ export function ExploreView() {
   // The focused node (for the sheet header); undefined when nothing is focused.
   const focusNode = focusId != null ? nodeById.get(focusId) : undefined;
 
+  // Rotation draw-gate (Pitfall 6, from 07-04): pass the rotation set as
+  // visibleNodeIds — a pure render draw-gate. Full view passes null (everything
+  // visible). The canvas ALWAYS unions in the focus + neighbors, so a chain-hop
+  // to a filter-hidden song never lands the camera on empty space. graphData is
+  // never rebuilt, so frozen fx/fy survive every toggle (the sky stays stable).
+  const visibleNodeIds = view === "rotation" ? rotationSet : null;
+
+  // Rotation view with an empty archive → the honest empty state (D-08). The FAB
+  // stays available so the user can switch to Full catalog.
+  const rotationEmpty = view === "rotation" && rotationSet.size === 0;
+
+  // Any canvas tap collapses the filter panel (no scrim to catch it, D-09) and
+  // applies the focus/clear.
+  const handleFocus = (songId: number | null) => {
+    setFilterOpen(false);
+    setFocusId(songId);
+  };
+
   return (
     <>
       <ConstellationCanvas
         graphData={graphData}
         focusId={focusId}
-        onFocus={setFocusId}
+        onFocus={handleFocus}
+        visibleNodeIds={visibleNodeIds}
+        edgeThreshold={edgeThreshold}
       />
+
+      {/* Rotation-empty corpus edge case — a calm overlay, not an error. The
+          canvas stays mounted beneath so switching to Full needs no remount. */}
+      {rotationEmpty && (
+        <div className="pointer-events-none fixed inset-0 flex flex-col items-center justify-center px-4 text-center">
+          <h2 className="text-[20px] font-semibold leading-tight text-text-primary">
+            {config.copy.explore.rotationEmptyHeading}
+          </h2>
+          <p className="mt-2 text-base leading-normal text-text-muted">
+            {config.copy.explore.rotationEmptyBody}
+          </p>
+        </div>
+      )}
+
+      <ExploreFilterFab
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        view={view}
+        onViewChange={setView}
+        edgeThreshold={edgeThreshold}
+        onEdgeThresholdChange={setEdgeThreshold}
+      />
+
       {focusId != null && focusNode && ranked && (
         <NodeSheet
           songName={focusNode.name}
