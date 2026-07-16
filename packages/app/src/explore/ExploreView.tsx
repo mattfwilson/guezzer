@@ -110,17 +110,32 @@ export function ExploreView() {
   // Resolve each bar's target name + tuning family (bar fill) from the node map.
   const sheetBars = useMemo<SheetBar[]>(() => {
     if (!ranked) return [];
-    return ranked.bars.map((bar) => {
+    return ranked.bars.flatMap((bar) => {
       const target = nodeById.get(bar.songId);
-      return {
-        bar,
-        targetName: target?.name ?? "",
-        targetTuningFamily: target?.tuningFamily ?? "other",
-        // Caught-tick (B2): only when the overlay is active, so the panel mirrors
-        // the sky's semantics (OFF → undefined → no leading indicator). Same
-        // single dex path as the canvas — no second derivation.
-        caught: dexOverlayActive ? sightingsFor(bar.songId) > 0 : undefined,
-      };
+      // Invariant: every matrix edge target is a matrix node, so `target` always
+      // resolves. Rather than silently render a blank-named, still-tappable
+      // dead-end bar (the old `?? ""` / `?? "other"` fallback) if a build
+      // artifact ever ships an edge whose target is absent from `nodes`, drop the
+      // bar and surface the drift in dev so it fails loud, not silent.
+      if (!target) {
+        if (import.meta.env.DEV) {
+          console.warn(
+            `Explore: edge target ${bar.songId} has no matrix node — dropping ranked bar`,
+          );
+        }
+        return [];
+      }
+      return [
+        {
+          bar,
+          targetName: target.name,
+          targetTuningFamily: target.tuningFamily,
+          // Caught-tick (B2): only when the overlay is active, so the panel mirrors
+          // the sky's semantics (OFF → undefined → no leading indicator). Same
+          // single dex path as the canvas — no second derivation.
+          caught: dexOverlayActive ? sightingsFor(bar.songId) > 0 : undefined,
+        },
+      ];
     });
   }, [ranked, nodeById, dexOverlayActive, sightingsFor]);
 
