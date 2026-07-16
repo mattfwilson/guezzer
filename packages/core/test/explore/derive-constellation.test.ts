@@ -1,0 +1,81 @@
+import { describe, expect, it } from "vitest";
+import type { MatrixEdge, MatrixNode, TransitionMatrix } from "../../src/domain/types.ts";
+import {
+  deriveConstellation,
+  edgesAtThreshold,
+} from "../../src/explore/derive-constellation.ts";
+
+/** Inert matrix-node factory — only the constellation-relevant fields matter. */
+function node(
+  songId: number,
+  songName: string,
+  playCount = 0,
+  tuningFamily: MatrixNode["tuningFamily"] = "standard",
+): MatrixNode {
+  return { songId, songName, playCount, eraPlayCount: 0, tuningFamily };
+}
+
+/** Inert matrix-edge factory. */
+function edge(
+  from: number,
+  to: number,
+  count: number,
+  segueCount = 0,
+  lastDate = "2020-06-01",
+): MatrixEdge {
+  return { from, to, count, weightedCount: count, segueCount, firstDate: "2010-01-01", lastDate };
+}
+
+function matrix(nodes: MatrixNode[], edges: MatrixEdge[]): TransitionMatrix {
+  return {
+    schemaVersion: 1,
+    generatedAt: "2026-07-16T00:00:00.000Z",
+    asOfDate: "2025-12-13",
+    showCount: 3,
+    nodeCount: nodes.length,
+    edgeCount: edges.length,
+    nodes,
+    edges,
+  };
+}
+
+describe("deriveConstellation (EXPL-01)", () => {
+  // 3 nodes given out of songId order to prove the deterministic sort.
+  const fixture = matrix(
+    [node(30, "Rattlesnake", 200, "microtonal"), node(10, "Robot Stop", 100), node(20, "Gamma Knife", 50)],
+    [edge(10, 20, 5, 1), edge(20, 30, 1)],
+  );
+
+  it("maps nodes to library default-key shape sorted by songId", () => {
+    const { nodes } = deriveConstellation(fixture);
+    expect(nodes.map((n) => n.id)).toEqual([10, 20, 30]);
+    expect(nodes[0]).toEqual({ id: 10, name: "Robot Stop", playCount: 100, tuningFamily: "standard" });
+    expect(nodes[2]).toEqual({ id: 30, name: "Rattlesnake", playCount: 200, tuningFamily: "microtonal" });
+  });
+
+  it("emits links with source/target default accessors AND mutation-safe fromId/toId (Pitfall 1)", () => {
+    const { links } = deriveConstellation(fixture);
+    const l = links[0];
+    expect(l.source).toBe(10);
+    expect(l.target).toBe(20);
+    expect(l.count).toBe(5);
+    expect(l.segueCount).toBe(1);
+    // fromId/toId equal the ORIGINAL songIds and are SEPARATE fields — they must
+    // survive the library replacing source/target with node object refs post-tick.
+    expect(l.fromId).toBe(10);
+    expect(l.toId).toBe(20);
+  });
+
+  it("threshold x=2 removes count===1 links while the node population is untouched (D-08)", () => {
+    const data = deriveConstellation(fixture);
+    const kept = edgesAtThreshold(data.links, 2);
+    expect(kept).toHaveLength(1); // the count===5 link survives; the count===1 link is dropped
+    expect(kept[0].count).toBe(5);
+    expect(data.nodes).toHaveLength(3); // nodes never churn with the slider
+  });
+
+  it("threshold x=1 restores the full truth", () => {
+    const data = deriveConstellation(fixture);
+    expect(edgesAtThreshold(data.links, 1)).toHaveLength(2);
+  });
+});
