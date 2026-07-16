@@ -256,6 +256,7 @@ export {
   type OutgoingBar,
   type RankedOutgoing,
 } from "./explore/rank-outgoing.ts";
+export { rotationSongIds } from "./explore/rotation.ts";
 
 /**
  * Phase 6 online recent-show fallback (plan 06-08). `fetchRecentShows` is the
