@@ -1,301 +1,121 @@
 ---
 phase: 06-pok-dex-history-stats
-reviewed: 2026-07-15T03:56:23Z
+reviewed: 2026-07-16T19:30:00Z
 depth: standard
-files_reviewed: 56
+files_reviewed: 8
 files_reviewed_list:
-  - packages/app/scripts/fetch-covers.ts
-  - packages/app/src/App.tsx
-  - packages/app/src/components/InstallBanner.tsx
-  - packages/app/src/config.ts
-  - packages/app/src/db/db.ts
-  - packages/app/src/dex/AlbumDetail.tsx
+  - packages/app/src/dex/CoverThumb.tsx
   - packages/app/src/dex/AlbumGrid.tsx
-  - packages/app/src/dex/ArchiveBrowser.tsx
-  - packages/app/src/dex/CompareView.tsx
-  - packages/app/src/dex/DexHeader.tsx
-  - packages/app/src/dex/DexView.tsx
-  - packages/app/src/dex/RecapView.tsx
-  - packages/app/src/dex/SetlistView.tsx
-  - packages/app/src/dex/ShareCardSheet.tsx
-  - packages/app/src/dex/ShowsList.tsx
-  - packages/app/src/dex/SongRow.tsx
-  - packages/app/src/dex/TierBadge.tsx
-  - packages/app/src/dex/covers.ts
-  - packages/app/src/dex/dex-albums-loader.ts
-  - packages/app/src/dex/dex-artifacts.d.ts
-  - packages/app/src/dex/archive-loader.ts
-  - packages/app/src/dex/formatMonYear.ts
-  - packages/app/src/dex/rarityIndex.ts
-  - packages/app/src/dex/shareCard.ts
-  - packages/app/src/dex/useDexStats.ts
-  - packages/app/src/pwa/install/useInstallState.ts
-  - packages/app/src/settings/SettingsView.tsx
-  - packages/app/src/settings/exportDownload.ts
-  - packages/app/src/settings/importPicker.ts
-  - packages/app/src/show/CenterNode.tsx
-  - packages/app/src/show/EndShowDialog.tsx
-  - packages/app/src/show/FabMenu.tsx
-  - packages/app/src/show/PredictionOrb.tsx
-  - packages/app/src/show/ShowView.tsx
-  - packages/app/src/show/WhyDetail.tsx
-  - packages/app/src/show/orbLabelFit.ts
+  - packages/app/src/dex/AlbumDetail.tsx
   - packages/app/vite.config.ts
-  - packages/core/src/cli/build-albums.ts
-  - packages/core/src/cli/build-archive.ts
-  - packages/core/src/cli/refresh.ts
-  - packages/core/src/config.ts
-  - packages/core/src/data-safety/export-schema.ts
-  - packages/core/src/data-safety/merge.ts
-  - packages/core/src/data-safety/serialize.ts
-  - packages/core/src/dex/albums.ts
-  - packages/core/src/dex/archive-types.ts
-  - packages/core/src/dex/archive.ts
-  - packages/core/src/dex/compare.ts
-  - packages/core/src/dex/derive-dex.ts
-  - packages/core/src/dex/rarity.ts
-  - packages/core/src/dex/recap.ts
-  - packages/core/src/dex/recent-shows.ts
-  - packages/core/src/dex/search-archive.ts
-  - packages/core/src/dex/share-stats.ts
-  - packages/core/src/index.ts
-  - vitest.config.ts
+  - packages/app/scripts/fetch-covers.ts
+  - packages/app/src/assets/covers/covers-manifest.json
+  - packages/app/test/dexView.test.tsx
+  - packages/app/test/fetchCovers.test.ts
 findings:
-  critical: 1
-  warning: 4
-  info: 3
-  total: 8
+  critical: 0
+  warning: 2
+  info: 4
+  total: 6
 status: issues_found
 ---
 
-# Phase 6: Code Review Report
+# Phase 6: Code Review Report (incremental — 06-12 gap closure)
 
-**Reviewed:** 2026-07-15T03:56:23Z
+**Reviewed:** 2026-07-16T19:30:00Z
 **Depth:** standard
-**Files Reviewed:** 56
+**Files Reviewed:** 8
 **Status:** issues_found
+
+> Supersedes the 2026-07-15 full-phase review (56 files, all findings resolved). This
+> incremental pass covers only the 06-12 gap-closure changes since `0fa4f40`.
+
+## Narrative Findings (AI reviewer)
 
 ## Summary
 
-Phase 6 (Pokédex, History & Stats) is defensively engineered. The trust-boundary
-discipline the prompt flagged for special attention holds up under scrutiny:
+Incremental review of the 06-12 gap-closure changes: the shared `CoverThumb` img-or-initials component and its integration into `AlbumGrid`/`AlbumDetail`, the `webp` workbox glob addition, the `findReleaseGroupMbid` Album-preference fix, the refreshed `phantom-island` manifest entry, and the two new test suites.
 
-- **Import fork safety (D-17):** `classifyImport` runs the strict `exportEnvelope`
-  gate first, and `CompareView` imports no db-write helper — a friend's file is
-  structurally incapable of reaching a merge. Verified sound.
-- **XSS:** No `dangerouslySetInnerHTML` anywhere; all kglw/friend-derived strings
-  render as escaped React text or canvas `fillText`. No injection surface found.
-- **v1→v2 migration & round-trip:** `serializeExport` strips the volatile Dexie
-  `++id`; the strict schema `.default(...)` + `MIGRATIONS[1]` bring a genuine v1
-  backup forward losslessly; `importSnapshot` commits atomically in one rw
-  transaction. The parse→migrate→merge→commit chain is correct.
-- **Pure-core determinism:** `deriveDex` / `buildRarityIndex` / `compareDexes`
-  use explicit sort comparators and insertion-ordered Maps. Deterministic.
+Verified clean:
 
-The findings below are concentrated on the merge path (one data-loss invariant
-violation that contradicts the code's own D-10 "never drop a local row" claim),
-the friend-name UX control, and two loose success-metric / coverage gaps.
+- **vite.config.ts** — `registerType: "prompt"` is preserved (CLAUDE.md hard rule). The `webp` glob claim checks out: 29 committed `.webp` files totaling 202,604 bytes (~198 KB), matching the "~195 KB / 29 assets" comment, and the referenced budget guard `packages/app/test/coversManifest.test.ts` exists with the 25 KB per-file and 350 KB total assertions. `json` remains correctly excluded.
+- **CoverThumb integration** — both call sites source `px` from `config.dex.ALBUM_ART_DISPLAY_PX` (config single-source rule); the `data-testid="album-cover"` contract is preserved across the img and placeholder branches; the §B4 dim classes ride the passthrough onto whichever branch renders (pinned by the new dexView tests). Album/title strings render as React text only.
+- **covers-manifest.json** — well-formed, key-sorted, trailing newline, all 29 entries carry coverartarchive.org provenance; the only content change is the refreshed `phantom-island` entry (new MBID, 2026-07-16 fetchedAt) matching the re-encoded 7,918-byte `.webp` (under the 25 KB budget).
+- **fetch-covers.ts etiquette** — the change does not alter pacing, User-Agent, or the no-auto-retry contract; the script remains manual-only.
 
-## Critical Issues
-
-### CR-01: Same-show dedupe silently drops local sightings, violating the stated D-10 "every local row survives" invariant
-
-**File:** `packages/core/src/data-safety/merge.ts:166-231`
-
-`parseAndMergeImport` first union-merges `trackedEntries` keyed by
-`(sessionId, position)` so "every LOCAL row survives (D-10)". The D-11 dedupe that
-follows then contradicts that guarantee. For each same-night group it selects a
-single canonical show (the one with the most entries) and **discards every other
-show's entries entirely**:
-
-```ts
-const finalEntries = unionEntries.filter(
-  (e) => !droppedSessionIds.has(e.sessionId),
-);
-```
-
-It never *unions* the entries of same-night shows — it keeps only the fullest
-one. Concrete data-loss path (same owner, two devices at one show):
-
-- Device A (local) tracks night D, session `S_A`, songs {1,2,3} (3 entries).
-- Device B (import) tracks night D, session `S_B`, songs {4,5,6,7} (4 entries).
-- Group key `date:D` has both. Canonical = `S_B` (4 > 3). `S_A` is dropped.
-- `importSnapshot` then `clear()`s `trackedEntries` and re-adds only the merged
-  set, so local songs {1,2,3} are permanently erased from the dex — even though
-  `deriveDex` would otherwise have unioned both sessions' songs for that night.
-
-Because the loser here is the *local* show, the local sightings the merge
-promised to preserve are the ones lost, and there is no user-facing indication.
-This is on the export/import round-trip integrity path the review was asked to
-scrutinize.
-
-**Fix:** For same-night groups, keep one canonical *attendance/show row* but
-UNION the entries of every session in the group (re-stamping `sessionId`/
-`position` onto the canonical session) instead of dropping the losers' entries.
-Sketch:
-
-```ts
-// after choosing `canonical` for a group:
-const groupSessionIds = new Set(bucket.map((s) => s.sessionId));
-let pos = 0;
-for (const e of unionEntries) {
-  if (!groupSessionIds.has(e.sessionId)) continue;
-  // collapse onto the canonical session, de-duping by songId within the night
-  mergedEntriesForNight.push({ ...e, sessionId: canonical.sessionId, position: ++pos });
-}
-```
-
-De-dupe by `songId` within the night so a genuinely-duplicated performance isn't
-double-counted, but a *unique* song from either device is never dropped. If the
-"fullest wins, drop the rest" behavior is truly intended, the D-10 "every local
-row survives" comment (lines 16-17, 119) must be corrected — it is currently
-false.
+Two Warnings: the Album-preference fix over-corrects (it prefers an Album-typed group at *any* score over a top-scored exact match, which can regress EP covers on a `--force` re-run), and the shared `CoverThumb` carries a sticky `failed` state that renders the wrong branch if any future call site reuses the component across slug changes.
 
 ## Warnings
 
-### WR-01: Owner-name input trims on every keystroke — multi-word names cannot be entered
+### WR-01: Album preference in `findReleaseGroupMbid` is unbounded by score — a low-scored Album can beat a top-scored exact-match EP
 
-**File:** `packages/app/src/settings/SettingsView.tsx:63-67, 148-149`
-
-The owner-name field is a controlled input whose value is the persisted, trimmed
-meta value, and `onChange` persists `value.trim()`:
+**File:** `packages/app/scripts/fetch-covers.ts:134-135`
+**Issue:** The Phantom Island bug was a score-100 *tie* (Single listed before Album). The fix, however, scans the entire result list:
 
 ```ts
-const handleOwnerChange = (value: string) => {
-  void setMeta("ownerName", value.trim());
-};
+const album = groups.find((group) => group["primary-type"] === "Album");
+return (album ?? groups[0]).id;
+```
+
+MusicBrainz returns every release group whose title matches the phrase query, ordered by descending score — including low-scored partial matches. In MB taxonomy, `primary-type: "Album"` also covers live albums and compilations (those are *secondary* types), and King Gizzard has dozens of them. If a search for an EP-typed card (e.g., "Willoughby's Beach", "Teenage Gizzard" — the code's own comment notes several committed covers are intentionally non-Album release groups) ever returns *any* Album-typed group lower in the list (e.g., a live album or compilation whose title contains the phrase), this code silently fetches that wrong art instead of the top-scored exact match. The doc comment's claim that the `groups[0]` fallback protects EPs only holds when *no* Album-typed group appears anywhere in the results — a weaker guarantee than intended. Triggerable today via `--force` and for every future EP added to the shelf.
+
+The new regression suite pins `[EP:100, Single:97] → EP` but never tests `[EP:100, Album:<100]`, which is exactly the case this implementation gets wrong.
+
+**Fix:** Restrict the Album preference to groups tied at the top score — this still fixes Phantom Island (a 100/100 tie) and cannot demote a strictly better match:
+
+```ts
+const topScore = groups[0].score;
+const album = groups.find(
+  (group) => group["primary-type"] === "Album" && group.score === topScore,
+);
+return (album ?? groups[0]).id;
+```
+
+Add a regression test in `fetchCovers.test.ts`: `[{ id: "ep-mbid", score: 100, "primary-type": "EP" }, { id: "album-mbid", score: 55, "primary-type": "Album" }]` must resolve to `ep-mbid`.
+
+### WR-02: `CoverThumb.failed` state is sticky across `slug` changes — latent wrong-render in the shared component
+
+**File:** `packages/app/src/dex/CoverThumb.tsx:43-44`
+**Issue:** `failed` is set once on `onError` and never reset. If a mounted `CoverThumb` instance receives a *different* `slug` prop (React reuses the instance when position and key are unchanged), a prior load failure permanently forces the initials placeholder for a slug whose image would load fine — the exact broken-visual class of bug this component was extracted to prevent. Today's two call sites dodge it by accident: `AlbumGrid` keys each `AlbumCard` by stable `item.key`, and `AlbumDetail` fully unmounts between opens (`openAlbumKey` returns to `null` via `onBack` in DexView). Nothing in the component itself enforces that contract, and it is explicitly documented as "the SINGLE img-or-placeholder block" for future reuse.
+**Fix:** Reset the flag when the slug changes (render-time state reset — no effect needed):
+
+```tsx
+const [failedSlug, setFailedSlug] = useState<string | null>(null);
+const failed = failedSlug === slug && slug != null;
 // ...
-value={ownerName ?? ""}
-onChange={(e) => handleOwnerChange(e.target.value)}
+onError={() => setFailedSlug(slug)}
 ```
 
-Typing a space produces a value with a trailing space, which `.trim()` removes;
-React then resets the DOM input to the pre-space text. The user can never get a
-space to "stick", so a display name like `Matt W` or `Anna Marie` is impossible
-to enter. Since the D-17 owner name is the fork key for friend-vs-mine
-classification (and the label on friends' share cards), this materially degrades
-the feature.
-
-**Fix:** Store the raw value and only trim at persistence boundaries that need
-it (export stamping, compare matching). E.g.:
-
-```ts
-const handleOwnerChange = (value: string) => {
-  void setMeta("ownerName", value); // keep raw; schema max(40) is the real clamp
-};
-```
-
-`classifyImport` already trims + lowercases both sides for comparison, and the
-schema `.max(40)` remains the security control, so no comparison logic changes.
-
-### WR-02: Import success counts ignore retro-marked shows/songs — "0 shows added" after a real merge
-
-**File:** `packages/core/src/data-safety/merge.ts:233-243`
-
-`added.shows` / `added.songs` are computed only over `finalShows` (tracked shows)
-and `finalEntries` (tracked entries):
-
-```ts
-const localGroupKeys = new Set(local.trackedShows.map(attendanceGroupKey));
-const addedShows = finalShows.filter((s) => !localGroupKeys.has(...)).length;
-const localEntryKeys = new Set(local.trackedEntries.map(entryKey));
-const addedSongs = finalEntries.filter((e) => !localEntryKeys.has(...)).length;
-```
-
-`attendedShows` (retro marks) and their `archiveShows` setlists are union-merged
-but never counted. Importing a backup whose contents are entirely retro-marked
-shows reports `"0 shows and 0 songs added. Nothing was removed."` even though it
-credited many nights/sightings — a misleading success message on the primary
-data-recovery flow.
-
-**Fix:** Fold newly-added `attendedShows` (by `show_id` not present locally) into
-`addedShows`, and count the songs their setlists contribute (from `mergedArchive`
-+ the bundled archive) into `addedSongs`, or reword the copy to reflect what is
-actually counted.
-
-### WR-03: Online fallback only fetches the boundary year + current year, missing intermediate years
-
-**File:** `packages/app/src/dex/ArchiveBrowser.tsx:152-168`
-
-```ts
-const currentYear = new Date().getFullYear();
-const latestYear = Number.parseInt(archive.latestShowDate.slice(0, 4), 10);
-const years = [...new Set([currentYear, latestYear])];
-```
-
-Only the corpus-boundary year and the current calendar year are fetched. If the
-gap between the bundled corpus (`latestShowDate`, 2025-12-13 as shipped) and the
-current year ever exceeds one year — e.g. a stale bundle used in 2027, or a build
-carried into a later tour — every intermediate year (2026 here) is unreachable
-via the "Search kglw.net for newer shows" fallback, so those shows can't be
-retro-marked at all. It happens to work for the summer-2026 first-show case
-(`years = [2026, 2025]`) but is fragile.
-
-**Fix:** Enumerate every year in `[latestYear, currentYear]` inclusive:
-
-```ts
-const years: number[] = [];
-for (let y = latestYear; y <= currentYear; y++) years.push(y);
-```
-
-`fetchRecentShows` already filters `show.date <= sinceDate`, so the boundary year
-stays de-duplicated against the bundle.
-
-### WR-04: `deriveRecap` new-catch detection re-runs `deriveDex` over the full corpus on every recap render
-
-**File:** `packages/core/src/dex/recap.ts:101-111`
-
-`deriveRecap` computes new catches by running the entire `deriveDex` derivation
-on a reduced snapshot. It is memoized in `RecapView`, but `deriveRecap` itself
-offers no way to reuse an already-derived `DexStats`, and any caller that invokes
-it outside a memo (or the auto-recap on End Show, which mounts fresh) pays a full
-corpus rescan. This is a correctness-adjacent robustness concern rather than a
-pure perf note: because the "prior" derivation silently includes
-`snapshot.attendedShows`, a night that was BOTH live-tracked and retro-marked
-(same date/show_id) will report **0 new catches** — the retro mark counts as a
-prior sighting of the very songs just played.
-
-**Fix:** Exclude the current night's attendance group (by the same
-`attendanceGroupKey`) from the reduced snapshot's `attendedShows`, not just its
-`trackedShows`/`trackedEntries`, so a tracked-and-marked night still surfaces its
-new catches. Optionally accept a precomputed prior `DexStats` to avoid the second
-full pass.
+Alternatively, require `key={slug}` at call sites — but the in-component reset is self-contained and cannot be forgotten by the next consumer.
 
 ## Info
 
-### IN-01: `serializeExport` performs no length clamp on `owner` before writing
+### IN-01: `dimClass` prop name is misleading — AlbumDetail passes a layout class through it
 
-**File:** `packages/core/src/data-safety/serialize.ts:58`
+**File:** `packages/app/src/dex/CoverThumb.tsx:39`, `packages/app/src/dex/AlbumDetail.tsx:65`
+**Issue:** The prop is named and documented as "§B4 dimming," but `AlbumDetail` passes `shrink-0` (flex layout) through it. The header comment papers over this ("dimClass is a className passthrough"), but the name actively misdirects the next reader.
+**Fix:** Rename the prop to `className` — it is a generic passthrough applied to whichever branch renders.
 
-`owner` is passed through verbatim from the DB snapshot. The strict schema clamps
-`.max(OWNER_NAME_MAX_LENGTH)` only on *import*. In the normal flow the Settings
-input caps at 40, so an export can't exceed it — but if an over-length owner ever
-reached the meta row by another path, the resulting backup would be rejected by
-its own schema on re-import. Low risk; consider clamping symmetrically at export
-for defense-in-depth.
+### IN-02: `initialsFor` produces empty/degenerate initials for whitespace-leading or symbol-only words
 
-### IN-02: Double `as unknown as` cast defeats type safety on the bundled songs map
+**File:** `packages/app/src/dex/CoverThumb.tsx:24-30`
+**Issue:** `title.split(/\s+/)` yields a leading `""` element for a title with leading whitespace (`"".charAt(0)` → `""`). Titles are build-frozen kglw-derived strings and currently all safe, but the helper is one `.filter` away from robust.
+**Fix:** `title.split(/\s+/).filter(Boolean).slice(0, 2)...`
 
-**File:** `packages/app/src/dex/ArchiveBrowser.tsx:286, 310`
+### IN-03: Unescaped double quote in title would corrupt the Lucene query (pre-existing; function touched this change)
 
-`archive.songs as unknown as Record<number, string>` relies on JS numeric-key
-string coercion to work. It functions but silences the compiler at a real type
-boundary. Prefer a small `resolveName` overload that reads `archive.songs[String(id)]`
-directly for bundled rows so no cast is needed.
+**File:** `packages/app/scripts/fetch-covers.ts:115`
+**Issue:** `releasegroup:"${title}"` — a title containing `"` would break out of the quoted phrase and produce an invalid/altered Lucene query. No current dex-albums title contains a double quote, and the failure mode is a loud HTTP-error throw rather than silent wrong art, so this is informational.
+**Fix:** Escape before interpolating: `const safe = title.replace(/(["\\])/g, "\\$1");`
 
-### IN-03: `EndShowDialog` fires `endShow` and `exportBackup` fire-and-forget
+### IN-04: albumUrl → slug derivation duplicated in three places
 
-**File:** `packages/app/src/show/EndShowDialog.tsx:83-88`
-
-`void endShow(sessionId); void exportBackup();` relies on IndexedDB serializing
-the finalize write ahead of the export read (overlapping `trackedShows` scope,
-creation-ordered — which does hold here). It is correct today but implicit;
-awaiting `endShow` before `exportBackup` would make the "backup reflects the
-finalized show" guarantee explicit and robust against future refactors of
-`snapshot()`.
+**File:** `packages/app/src/dex/AlbumGrid.tsx:37-39`, `packages/app/src/dex/DexView.tsx:58`, `packages/app/scripts/fetch-covers.ts:92-94`
+**Issue:** The "last path segment of albumUrl is the cover-asset slug" contract is implemented independently in `AlbumGrid.slugForAlbumUrl`, inline in `DexView.resolveOpenAlbum`, and via `basename()` in the fetch script. A divergence between any two copies silently degrades covers to initials placeholders — no error surfaces, per the `coverUrlFor` null contract.
+**Fix:** Export a single `slugForAlbumUrl` from `covers.ts` (already the cover-asset source-of-truth module) and use it in both UI files; the Node script may keep `basename` (different runtime), but the two app-side copies should collapse to one.
 
 ---
 
-_Reviewed: 2026-07-15T03:56:23Z_
+_Reviewed: 2026-07-16T19:30:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
