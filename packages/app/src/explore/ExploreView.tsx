@@ -27,13 +27,15 @@ export function ExploreView() {
   // the useMemo below re-derives the constellation exactly once.
   const result = loadMatrix();
 
-  // Focus/filter/overlay state, owned from the start (consumed by later slices).
+  // Focus is live this slice (tap-to-focus + chain-hop). Filter/overlay state is
+  // still forward-scaffold — consumed by the rotation toggle (07-05) and dex
+  // overlay (07-06) slices.
   const [focusId, setFocusId] = useState<number | null>(null);
   const [rotationOnly, setRotationOnly] = useState(true);
   const [dexOverlay, setDexOverlay] = useState(true);
   // Silence "declared but unused" until the slices that read/write them land —
   // referencing keeps the forward-looking state intentional, not dead.
-  void [focusId, setFocusId, rotationOnly, setRotationOnly, dexOverlay, setDexOverlay];
+  void [rotationOnly, setRotationOnly, dexOverlay, setDexOverlay];
 
   // Derive once, keyed on the (stable, memoized) load result. Null unless the
   // matrix loaded — hooks must run unconditionally, so the branch lives inside.
@@ -58,5 +60,11 @@ export function ExploreView() {
     );
   }
 
-  return <ConstellationCanvas graphData={graphData} />;
+  return (
+    <ConstellationCanvas
+      graphData={graphData}
+      focusId={focusId}
+      onFocus={setFocusId}
+    />
+  );
 }

@@ -39,11 +39,23 @@ import { tuningColor } from "../show/tuningColor.ts";
 const FONT_STACK =
   'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
-/** Neutral edge stroke — text-muted (#A1A1AA) at 20% opacity (§B3, never tuning-colored). */
-const EDGE_COLOR = "rgba(161, 161, 170, 0.2)";
+/** Neutral edge stroke — text-muted (#A1A1AA), alpha varies with focus state (§B3). */
+const rgbaMuted = (alpha: number) => `rgba(161, 161, 170, ${alpha})`;
+
+/** Base edge stroke — text-muted at 20% opacity (§B3, never tuning-colored). */
+const EDGE_COLOR = rgbaMuted(0.2);
+
+/** Focus state: neighborhood edges lift to 70% opacity, same hue (§B3/§B4). */
+const EDGE_HIGHLIGHT_COLOR = rgbaMuted(0.7);
 
 /** Zoom-revealed labels at rest render in text-muted (§Color, §B4). */
 const LABEL_COLOR = "#a1a1aa";
+
+/** Focused-node selection ring — accent gold, reserved use (§Color reserved list). */
+const FOCUS_RING_COLOR = "#F2C14E";
+
+/** Focused node + neighbor labels render in text-primary (§Color, §Typography). */
+const FOCUS_LABEL_COLOR = "#F5F5F7";
 
 /** Fully-typed node/link the canvas callbacks receive after the engine augments them with x/y/fx/fy. */
 type FgNode = NodeObject<ConstellationNode>;
@@ -67,9 +79,23 @@ function ellipsize(name: string, max: number): string {
 
 export function ConstellationCanvas({
   graphData,
+  focusId,
+  onFocus,
+  visibleNodeIds,
 }: {
   /** The pure-core-derived `{nodes, links}` — owned by the graph once passed (Pitfall 1). */
   graphData: ConstellationData;
+  /** The currently-focused song id, or null when nothing is focused (EXPL-05/D-13). */
+  focusId: number | null;
+  /** Tap a node → focus it; tap empty canvas → clear (passes null). */
+  onFocus: (songId: number | null) => void;
+  /**
+   * Slice-3 seam (Pitfall 6): the filtered node population to draw. `null`/omitted
+   * (this slice) draws the full catalog. The focused node + its neighbors are
+   * ALWAYS drawn regardless of this set ("visible = filtered ∪ {focus, neighbors}"),
+   * so a chain-hop never lands the camera on empty space.
+   */
+  visibleNodeIds?: ReadonlySet<number> | null;
 }) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   // Held for camera control (centerAt/zoom) the chain-hop focus needs in a later slice.
@@ -137,6 +163,59 @@ export function ConstellationCanvas({
     );
   }, [graphData]);
 
+  // Focus neighborhood (EXPL-05/D-13): the set of node ids with an in/out edge to
+  // the focused node. Computed from the immutable fromId/toId copies — NEVER the
+  // post-tick-mutated source/target (Pitfall 1). Empty when nothing is focused.
+  const neighborIds = useMemo(() => {
+    const ids = new Set<number>();
+    if (focusId == null) return ids;
+    for (const l of graphData.links) {
+      if (l.fromId === focusId) ids.add(l.toId);
+      else if (l.toId === focusId) ids.add(l.fromId);
+    }
+    return ids;
+  }, [graphData, focusId]);
+
+  // Visible-set rule (Pitfall 6): a node is drawn if it's in the filtered set OR
+  // it's the focus / a neighbor (temporary filter exemption while focused, D-03).
+  // `visibleNodeIds == null` (this slice) → everything visible. The focus node
+  // object always survives in graphData, so its frozen x/y is always camera-able.
+  const isNodeVisible = (id: number): boolean =>
+    visibleNodeIds == null ||
+    visibleNodeIds.has(id) ||
+    id === focusId ||
+    neighborIds.has(id);
+
+  // Focus-dim (§B4): focused node + neighborhood keep full opacity; everything
+  // else drops to FOCUS_DIM_OPACITY (0.12). No focus → everything full.
+  const isInNeighborhood = (id: number): boolean =>
+    focusId == null || id === focusId || neighborIds.has(id);
+
+  // Chain-hop / focus camera (D-13/D-16): ease the focused node into the upper 60%
+  // of the viewport (above the 40% peek sheet) at FOCUS_ZOOM_K. prefers-reduced-
+  // motion → instant jump (0ms). The on-load zoomToFit (onEngineStop) is untouched;
+  // this only fires while a node is focused.
+  useEffect(() => {
+    if (focusId == null) return;
+    const fg = fgRef.current;
+    if (!fg) return;
+    const node = graphData.nodes.find((n) => n.id === focusId) as
+      | FgNode
+      | undefined;
+    if (!node || node.x == null || node.y == null) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+    const ms = reduced ? 0 : config.explore.FOCUS_CAMERA_DURATION_MS;
+    const k = config.explore.FOCUS_ZOOM_K;
+    // Shift the viewport centre DOWN in world units so the node sits at
+    // FOCUS_TARGET_TOP_FRACTION from the top rather than dead-centre.
+    const offsetWorld =
+      ((0.5 - config.explore.FOCUS_TARGET_TOP_FRACTION) * size.height) / k;
+    fg.zoom(k, ms);
+    fg.centerAt(node.x, node.y + offsetWorld, ms);
+  }, [focusId, graphData, size.height]);
+
   const nodeCanvasObject = (
     node: FgNode,
     ctx: CanvasRenderingContext2D,
@@ -144,6 +223,14 @@ export function ConstellationCanvas({
   ) => {
     if (node.x == null || node.y == null) return;
     const r = radiusFor(node.playCount);
+    const focused = node.id === focusId;
+    const neighbor = focusId != null && neighborIds.has(node.id);
+    // Everything outside the focused neighborhood fades to 0.12 — fill, ring, and
+    // label alike (§B4). globalAlpha carries the dim through every draw below.
+    ctx.save();
+    ctx.globalAlpha = isInNeighborhood(node.id)
+      ? 1
+      : config.explore.FOCUS_DIM_OPACITY;
 
     // 1. Node fill — tuning-family data color (§B1), null → neutral fallback.
     ctx.beginPath();
@@ -151,23 +238,39 @@ export function ConstellationCanvas({
     ctx.fillStyle = tuningColor(node.tuningFamily);
     ctx.fill();
 
-    // 2. Zoom-gated label (D-15): drawn past the zoom threshold OR for the top-K
-    //    biggest nodes at rest. Constant screen-space size via fontPx/globalScale.
+    // 2. Focus ring (§Color reserved list): a 2px screen-space gold stroke on the
+    //    focused node only — the constellation's one-active-selection signal.
+    if (focused) {
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, r + 2 / globalScale, 0, 2 * Math.PI);
+      ctx.lineWidth = 2 / globalScale;
+      ctx.strokeStyle = FOCUS_RING_COLOR;
+      ctx.stroke();
+    }
+
+    // 3. Label. The focused node + its neighbors are ALWAYS labeled regardless of
+    //    zoom (§B4/D-15), in text-primary semibold; the focused node shows its
+    //    FULL name (ellipsis-exempt). Otherwise the zoom-gated / top-K-at-rest
+    //    muted label rule (D-15) applies. Constant screen size via fontPx/scale.
+    const forced = focused || neighbor;
     const showLabel =
-      globalScale >= config.explore.LABEL_ZOOM_THRESHOLD || topKIds.has(node.id);
+      forced ||
+      globalScale >= config.explore.LABEL_ZOOM_THRESHOLD ||
+      topKIds.has(node.id);
     if (showLabel) {
-      const fontPx = 12 / globalScale;
-      ctx.font = `${fontPx}px ${FONT_STACK}`;
+      const fontPx = (forced ? 14 : 12) / globalScale;
+      ctx.font = `${forced ? "600 " : ""}${fontPx}px ${FONT_STACK}`;
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
-      ctx.fillStyle = LABEL_COLOR;
+      ctx.fillStyle = forced ? FOCUS_LABEL_COLOR : LABEL_COLOR;
+      const text = focused
+        ? node.name
+        : ellipsize(node.name, config.explore.LABEL_MAX_CHARS);
       // fillText only — canvas text is inherently non-executing (T-07-02).
-      ctx.fillText(
-        ellipsize(node.name, config.explore.LABEL_MAX_CHARS),
-        node.x,
-        node.y + r + 2 / globalScale,
-      );
+      ctx.fillText(text, node.x, node.y + r + 2 / globalScale);
     }
+
+    ctx.restore();
   };
 
   // Pointer-area floor independent of visual radius: at least NODE_HIT_MIN_RADIUS_PX
@@ -189,6 +292,17 @@ export function ConstellationCanvas({
     ctx.fill();
   };
 
+  // Edge tint by focus state (§B3/§B4): no focus → base 20%; focus → edges on the
+  // focused node lift to 70%, every other edge dims to FOCUS_DIM_OPACITY. Reads
+  // the immutable fromId/toId (Pitfall 1), shared by stroke + directional arrow.
+  const edgeColor = (l: FgLink): string => {
+    if (focusId == null) return EDGE_COLOR;
+    const touchesFocus = l.fromId === focusId || l.toId === focusId;
+    return touchesFocus
+      ? EDGE_HIGHLIGHT_COLOR
+      : rgbaMuted(config.explore.FOCUS_DIM_OPACITY);
+  };
+
   return (
     <div
       ref={stageRef}
@@ -208,19 +322,31 @@ export function ConstellationCanvas({
           nodeCanvasObject={nodeCanvasObject}
           nodeCanvasObjectMode={() => "replace"}
           nodePointerAreaPaint={nodePointerAreaPaint}
+          // Slice-3 filter seam (Pitfall 6): draw only the visible population; the
+          // focus + neighbors are always exempt so a chain-hop never hits a gap.
+          // This slice passes no filter → every node visible.
+          nodeVisibility={(n: FgNode) => isNodeVisible(n.id)}
+          linkVisibility={(l: FgLink) =>
+            isNodeVisible(l.fromId) && isNodeVisible(l.toId)
+          }
+          // Tap a node → focus it (D-13); tap empty canvas → clear focus + dim.
+          onNodeClick={(n: FgNode) => onFocus(n.id)}
+          onBackgroundClick={() => onFocus(null)}
           // Freeze-and-explore, not rearrange: disable node dragging so a finger on
           // an orb never grabs it. This also hands multi-touch straight to d3-zoom,
           // so pinch-to-zoom works cleanly (node-drag was intercepting the gesture
           // on touch). A tap still fires onNodeClick — tap behaviour is unchanged.
           enableNodeDrag={false}
           // Directed, count-weighted neutral edges (§B3). Width clamps to 4px max.
-          linkColor={() => EDGE_COLOR}
+          // On focus, edges touching the focused node lift to 70% (EDGE_HIGHLIGHT);
+          // all other edges drop to FOCUS_DIM_OPACITY, same hue (§B4).
+          linkColor={edgeColor}
           linkWidth={(l: FgLink) =>
             Math.min(4, 0.5 + Math.sqrt(l.count ?? 0) * 0.5)
           }
           linkDirectionalArrowLength={3.5}
           linkDirectionalArrowRelPos={0.9}
-          linkDirectionalArrowColor={() => EDGE_COLOR}
+          linkDirectionalArrowColor={edgeColor}
           // Settle-and-freeze physics (EXPL-06). On stop, fix every node so pan/zoom
           // never reheats and labels never jitter permanently.
           cooldownTicks={config.explore.COOLDOWN_TICKS}

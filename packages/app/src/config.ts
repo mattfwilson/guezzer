@@ -209,6 +209,28 @@ export const config = {
     ZOOM_TO_FIT_PADDING_PX: 60,
     /** [device spike 2026-07-16] ms ease for the on-load zoom-to-fit camera move (0 = instant). */
     ZOOM_TO_FIT_DURATION_MS: 600,
+    /**
+     * [ASSUMED] Target zoom (globalScale) the camera eases to when a node is
+     * focused (EXPL-05/D-13). Chosen ≥ LABEL_ZOOM_THRESHOLD so the focused
+     * neighborhood reads at a comfortable magnification (labels are force-drawn
+     * regardless, §Typography canvas rules).
+     */
+    FOCUS_ZOOM_K: 2,
+    /**
+     * [ASSUMED] Vertical rest position of the focused node as a fraction from the
+     * top of the viewport (D-13). 0.3 places it in the middle of the upper 60% so
+     * the 40%-peek NodeSheet (SHEET_PEEK_FRACTION) never covers it.
+     */
+    FOCUS_TARGET_TOP_FRACTION: 0.3,
+    /** [ASSUMED] ms ease for the focus pan/zoom camera move (0 under prefers-reduced-motion). */
+    FOCUS_CAMERA_DURATION_MS: 400,
+    /**
+     * [ASSUMED] Bars shown before the "Show all N" expander in NodeSheet (D-04).
+     * MIRRORS `config.explore.BARS_TOP_N` in @guezzer/core (not re-exported from
+     * the core barrel — same mirror pattern as `dex.OWNER_NAME_MAX_LENGTH`); the
+     * two MUST stay equal (10).
+     */
+    BARS_TOP_N: 10,
   },
 
   /** UI-SPEC §Copywriting Contract. */
