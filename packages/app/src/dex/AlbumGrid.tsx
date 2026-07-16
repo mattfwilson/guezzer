@@ -13,7 +13,7 @@
 import type { DexAlbumsArtifact, DexStats } from "@guezzer/core";
 import { Check } from "lucide-react";
 import { config } from "../config.ts";
-import { coverUrlFor } from "./covers.ts";
+import { CoverThumb } from "./CoverThumb.tsx";
 
 /** hit-green (§B2) — the "caught / complete" success semantic, reused, not re-derived. */
 const CAUGHT_GREEN = "#22C55E";
@@ -36,15 +36,6 @@ interface AlbumGridProps {
 /** Album-url → cover slug ("/albums/nonagon-infinity" → "nonagon-infinity"). */
 function slugForAlbumUrl(albumUrl: string): string {
   return albumUrl.slice(albumUrl.lastIndexOf("/") + 1);
-}
-
-/** Up-to-2-word initials for the placeholder card (title is always non-empty). */
-function initialsFor(title: string): string {
-  return title
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word.charAt(0).toUpperCase())
-    .join("");
 }
 
 export function AlbumGrid({ dex, albums, onOpen }: AlbumGridProps) {
@@ -85,7 +76,6 @@ function AlbumCard({ item, dex, onOpen }: AlbumCardProps) {
   const complete = tally.total > 0 && tally.caught === tally.total;
   const dimmed = tally.caught === 0;
   const px = config.dex.ALBUM_ART_DISPLAY_PX;
-  const coverUrl = item.slug != null ? coverUrlFor(item.slug) : null;
 
   // §B4: zero-catch covers dim (40% opacity + grayscale) — dimmed, never hidden.
   const dimClass = dimmed ? "opacity-40 grayscale" : "";
@@ -99,27 +89,7 @@ function AlbumCard({ item, dex, onOpen }: AlbumCardProps) {
       onClick={() => onOpen(item.key)}
       className="flex min-h-11 flex-col gap-2 rounded-md border border-hairline bg-elevated p-2 text-left touch-manipulation"
     >
-      {coverUrl != null ? (
-        <img
-          data-testid="album-cover"
-          src={coverUrl}
-          alt=""
-          width={px}
-          height={px}
-          loading="lazy"
-          className={`rounded ${dimClass}`}
-          style={{ width: px, height: px }}
-        />
-      ) : (
-        <div
-          data-testid="album-cover"
-          aria-hidden="true"
-          className={`flex items-center justify-center rounded border border-hairline text-[20px] font-semibold text-text-muted ${dimClass}`}
-          style={{ width: px, height: px }}
-        >
-          {initialsFor(item.title)}
-        </div>
-      )}
+      <CoverThumb slug={item.slug} title={item.title} px={px} dimClass={dimClass} />
 
       <span className="line-clamp-2 text-[20px] font-semibold leading-tight text-text-primary">
         {item.title}

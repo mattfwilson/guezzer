@@ -9,7 +9,7 @@
 import type { AlbumTrack, DexStats, RarityIndex } from "@guezzer/core";
 import { ChevronLeft } from "lucide-react";
 import { config } from "../config.ts";
-import { coverUrlFor } from "./covers.ts";
+import { CoverThumb } from "./CoverThumb.tsx";
 import { SongRow } from "./SongRow.tsx";
 
 interface AlbumDetailProps {
@@ -24,14 +24,6 @@ interface AlbumDetailProps {
   onBack: () => void;
 }
 
-function initialsFor(title: string): string {
-  return title
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word.charAt(0).toUpperCase())
-    .join("");
-}
-
 export function AlbumDetail({
   albumKey,
   title,
@@ -44,7 +36,6 @@ export function AlbumDetail({
   const copy = config.copy.dex;
   const px = config.dex.ALBUM_ART_DISPLAY_PX;
   const tally = dex.perAlbum.get(albumKey) ?? { caught: 0, total: 0 };
-  const coverUrl = slug != null ? coverUrlFor(slug) : null;
 
   const ordered = [...tracks].sort((a, b) => a.position - b.position);
 
@@ -69,24 +60,9 @@ export function AlbumDetail({
           <ChevronLeft size={24} />
         </button>
 
-        {coverUrl != null ? (
-          <img
-            src={coverUrl}
-            alt=""
-            width={px}
-            height={px}
-            className="shrink-0 rounded"
-            style={{ width: px, height: px }}
-          />
-        ) : (
-          <div
-            aria-hidden="true"
-            className="flex shrink-0 items-center justify-center rounded border border-hairline text-[20px] font-semibold text-text-muted"
-            style={{ width: px, height: px }}
-          >
-            {initialsFor(title)}
-          </div>
-        )}
+        {/* No §B4 dimming here (drill-in header never dims); shrink-0 rides the
+            passthrough so the cover never compresses next to long album titles. */}
+        <CoverThumb slug={slug} title={title} px={px} dimClass="shrink-0" />
 
         <div className="flex min-w-0 flex-col">
           <span className="text-[20px] font-semibold leading-tight text-text-primary">

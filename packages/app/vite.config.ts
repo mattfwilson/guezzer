@@ -53,8 +53,11 @@ export default defineConfig({
       registerType: "prompt", // CLAUDE.md #4 — NEVER 'autoUpdate' (SW must never swap the app mid-show)
       // devOptions: { enabled: true }, // enable to test SW in `vite dev`; real validation is against `vite build` + `vite preview` (Pitfall 1)
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        // NOTE: 'json' is NOT a Workbox default — add it in a later phase when the matrix artifact is precached.
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,webp}"],
+        // NOTE: 'webp' precaches the 29 hashed album-cover assets (~195 KB total,
+        // within the 350 KB cover budget guarded by test/coversManifest.test.ts) so
+        // the dex shelf renders offline (06-12 gap 1). 'json' is still intentionally
+        // excluded — the matrix/archive/dex artifacts ride the JS bundle.
       },
       manifest: {
         name: "Guezzer",
