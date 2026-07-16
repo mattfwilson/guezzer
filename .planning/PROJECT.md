@@ -42,6 +42,18 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 - [x] Dark-venue survivability: Wake Lock (verify-held + reacquire on visibilitychange + calm pre-iOS-18.4 fallback), gesture suppression on the stage, weak-fan softening on low-confidence moments, End Show finalize (device-perceptual confirmation deferred to `04-HUMAN-UAT.md`)
 - [x] Provisional dex attendance recorded at Start Show (the tracked-show row itself)
 
+**Show history & Pokédex (Validated in Phase 6: Pokédex, History & Stats):**
+- [x] Past tracked shows viewable as complete setlists; Pokédex with DERIVED per-song sighting counts, completion %, rarest catch, never-seen list; retroactive attendance marking from the full kglw.net archive; JSON export/import + shareable summary card for friend-group comparison
+
+**Explore Mode (Validated in Phase 7: Explore Mode Constellation — full loop device-verified PASS on iPhone 16 Pro, 07-07-SUMMARY.md):**
+- [x] Force-directed transition constellation: nodes = songs (size = play count, color = tuning family), directed edges = observed transitions (thickness = frequency) — from the SAME matrix artifact the predictor consumes (EXPL-01)
+- [x] Tap a node → outgoing next-song history as ranked bars with honest counts/dates and one-line "why" lines; tap a bar chain-hops to that song (EXPL-02/EXPL-04)
+- [x] Default view: current-era rotation (last N shows, tunable); toggle for full historical catalog (EXPL-03)
+- [x] Edge filtering below a tunable transition-count threshold — nodes stay put as free-floating stars (EXPL-03/D-08)
+- [x] Focus+context: tapping a node highlights its neighborhood, dims the rest; camera pans it up (EXPL-05)
+- [x] Physics settles and freezes; labels never jitter permanently; device-tuned spacing + on-load auto-frame + clean pinch-to-zoom (EXPL-06)
+- [x] Pokédex overlays the constellation: unseen songs as dimmed silhouettes, seen at full color with a green sighting ring + zoom-gated count; live cross-tab recolor via useLiveQuery (DEX-05)
+
 ### Active
 
 **Show Mode (core loop validated in Phase 4 — see Validated; remaining open items):**
@@ -55,21 +67,8 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 **Data ingestion:**
 - [ ] Live polling limited to lightweight `latest` endpoint, ≤ once per 60s. Never hammer full `setlists` from client devices
 
-**Explore Mode (may ship after show #1; matrix must feed it from day one):**
-- [ ] Force-directed transition constellation: nodes = songs (size = play count, color = tuning family), directed edges = observed transitions (thickness = frequency)
-- [ ] Click a node → outgoing next-song probabilities as ranked bars with percentages and one-line "why" explanations (doubles as the model debugger during development)
-- [ ] Default view: current-era active rotation only (songs in last N shows, tunable); toggle for full historical catalog
-- [ ] Edge filtering below tunable transition-count/probability threshold
-- [ ] Focus+context: clicking a node highlights its neighborhood, dims the rest
-- [ ] Physics settles and freezes; labels never jitter permanently
-- [ ] Era slider (2010 → present) — v1.5 stretch, not MVP
-
-**Show history & Pokédex:**
-- [ ] Past tracked shows viewable as complete setlists
-- [ ] Pokédex: per-song sighting counts DERIVED (never hand-tallied) from attended shows; user marks attendance including retroactively from the full kglw.net archive (searchable by date/venue); live-tracked shows auto-count
-- [ ] Pokédex UI: collection completion %, per-song sighting count, rarest catch (lowest base-rate song seen), never-seen list
-- [ ] Pokédex overlays the constellation: unseen songs as dimmed silhouettes, seen at full color, sighting count as badge/ring
-- [ ] Dex sharing (no backend): JSON export/import + shareable summary card (image or text) for friend-group comparison
+**Explore Mode (validated in Phase 7 — see Validated; remaining stretch item):**
+- [ ] Era slider (2010 → present) — v1.5 stretch, not MVP; deliberately deferred, not built in Phase 7
 
 **Persistence & platform:**
 - [x] PWA installable, offline-capable — validated in Phase 3 (see Validated section above); shareable via URL still open (no sharing UI built yet)
@@ -151,4 +150,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-13 after Phase 4: Show Mode*
+*Last updated: 2026-07-16 after Phase 7: Explore Mode Constellation — milestone v1.0 feature-complete (all 7 phases done)*
