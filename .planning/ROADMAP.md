@@ -245,7 +245,7 @@ Plans:
   4. Physics settles and freezes; labels never jitter permanently
   5. The dex overlays the constellation: unseen songs as dimmed silhouettes, seen songs at full color with sighting-count badges
 
-**Plans:** 3/7 plans executed
+**Plans:** 4/7 plans executed
 **UI hint**: yes
 
 Plans:
@@ -264,7 +264,7 @@ Plans:
 
 **Wave 3** *(blocked on 07-03)*
 
-- [ ] 07-04-PLAN.md — Slice 2: tap node → ranked-bars sheet + focus-dim neighborhood + chain-hop (EXPL-02/05)
+- [x] 07-04-PLAN.md — Slice 2: tap node → ranked-bars sheet + focus-dim neighborhood + chain-hop (EXPL-02/05)
 
 **Wave 4** *(blocked on 07-04)*
 
@@ -293,7 +293,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. Show Mode | 7/7 | Complete    | 2026-07-13 |
 | 5. Live Sync & Data Safety | 6/6 | Complete    | 2026-07-14 |
 | 6. Pokédex, History & Stats | 12/12 | Complete    | 2026-07-16 |
-| 7. Explore Mode Constellation | 3/7 | In Progress|  |
+| 7. Explore Mode Constellation | 4/7 | In Progress|  |
 
 ---
 *Roadmap created: 2026-07-08*
