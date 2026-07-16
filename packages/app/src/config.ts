@@ -231,6 +231,38 @@ export const config = {
      * two MUST stay equal (10).
      */
     BARS_TOP_N: 10,
+
+    /**
+     * D-05/D-06 rotation window (last-N-shows → the opening-default sky). MIRRORS
+     * `config.explore.ROTATION_WINDOW_SHOWS` in @guezzer/core (not re-exported
+     * from the barrel — same mirror pattern as `BARS_TOP_N`); the two MUST stay
+     * equal (5). Passed into `rotationSongIds(archive, N)` and `rotationHelper(N)`.
+     * Config-only — there is deliberately NO second UI slider for N (D-12).
+     */
+    ROTATION_WINDOW_SHOWS: 5,
+
+    /**
+     * D-07 edge slider default ("played together ≥ X times"). MIRRORS
+     * `config.explore.EDGE_COUNT_THRESHOLD_DEFAULT` in @guezzer/core; the two MUST
+     * stay equal (2). ≥2 kills every misleading one-play (100%-from-one) edge by
+     * construction while keeping the node population intact (D-08 free-floating
+     * stars).
+     */
+    EDGE_COUNT_THRESHOLD_DEFAULT: 2,
+
+    /**
+     * D-07 edge slider lower bound (count ≥ X). MIRRORS
+     * `config.explore.EDGE_SLIDER_MIN` in @guezzer/core; the two MUST stay equal
+     * (1). Minimum 1 restores every observed transition for whoever wants it.
+     */
+    EDGE_SLIDER_MIN: 1,
+
+    /**
+     * D-07 edge slider upper bound. MIRRORS `config.explore.EDGE_SLIDER_MAX` in
+     * @guezzer/core; the two MUST stay equal (10) — deeper cuts add nothing
+     * legible, so the slider caps at 10.
+     */
+    EDGE_SLIDER_MAX: 10,
   },
 
   /** UI-SPEC §Copywriting Contract. */
