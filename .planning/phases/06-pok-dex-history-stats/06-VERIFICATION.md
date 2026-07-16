@@ -1,153 +1,172 @@
 ---
 phase: 06-pok-dex-history-stats
-verified: 2026-07-15T00:10:00Z
+verified: 2026-07-16T15:10:00Z
 status: human_needed
-score: 5/5 must-have truths verified (automated); UI/device confirmation pending
+score: 9/9 must-have truths verified (automated); 2 narrow device re-UAT confirmations pending (deferred by plan 06-12 to the next UAT round)
 overrides_applied: 0
+re_verification:
+  previous_status: human_needed
+  previous_score: 5/5 (automated)
+  gaps_closed:
+    - "Airplane-mode archive/dex browse works fully offline including album covers (06-HUMAN-UAT gap 1, major)"
+    - "Every studio album card shows its correct studio-release cover art (06-HUMAN-UAT gap 2, minor — Phantom Island)"
+  gaps_remaining: []
+  regressions: []
 warnings:
-  - concern: "CR-01 (from 06-REVIEW.md): same-show dedupe in merge.ts drops non-canonical sessions' unique entries instead of unioning them"
-    affects: "SHAR-01 / DEX-02 multi-device self-merge of the SAME night with divergent live-tracked setlists"
-    honest_derivation_impact: "Partial — derived counts remain honest/never hand-tallied, but a multi-device merge of the same night can UNDER-count live-tracked sightings (drops real songs). Retro-marked and archive-fallback sightings union correctly and are unaffected."
+  - concern: "WR-01 (06-REVIEW.md incremental): findReleaseGroupMbid's Album preference is unbounded by score — a low-scored Album-typed group (live album/compilation) could beat a top-scored exact-match EP on a future --force re-fetch"
+    affects: "Build-time cover fetch script only; no committed artifact is currently wrong; latent risk for future EP covers"
     severity: warning
-    note: "Already flagged as a blocker in 06-REVIEW.md (separate track). Not fixed here per instructions. Does not falsify the phase's core honest-derivation promise but should be resolved before relying on multi-device merge."
+    note: "Advisory. Regression tests pin [Single:100, Album:100]→Album and [EP:100, Single:97]→EP but not [EP:100, Album:<100]. Fix suggested in 06-REVIEW.md (restrict preference to top-score ties)."
+  - concern: "WR-02 (06-REVIEW.md incremental): CoverThumb 'failed' state is sticky across slug changes — a future call site that reuses a mounted instance with a new slug would render initials for a loadable cover"
+    affects: "Latent only. Both current call sites are safe: AlbumGrid keys cards by stable item.key; AlbumDetail fully unmounts between opens"
+    severity: warning
+    note: "Advisory. Fix suggested in 06-REVIEW.md (render-time failedSlug reset or key={slug} contract)."
 human_verification:
-  - test: "Open #/dex on a phone in a dark room; drill into an album"
-    expected: "Album drill-in is readable in the dark; dimmed (unseen) rows are legible; tier/Debut badges are readable without relying on color"
-    why_human: "Visual legibility, contrast, and one-thumb readability cannot be verified by grep"
-  - test: "On device, mark a real past show from the archive browser"
-    expected: "Dex header counts jump instantly; '+N songs caught' flashes; airplane-mode archive browse still works fully offline"
-    why_human: "Live reactive UI update + offline behavior needs a running device"
-  - test: "End a real tracked show on device"
-    expected: "The recap appears immediately after the backup download, still within the venue flow (not orphaned)"
-    why_human: "Real-time end-show flow and transition timing needs device testing"
-  - test: "Tap Share card on an iPhone, then on desktop"
-    expected: "Real navigator.share sheet opens on iPhone with the 1080x1350 PNG attached; anchor-download fallback works on desktop; the card renders correctly"
-    why_human: "navigator.share is unavailable in jsdom; PNG visual quality and iOS transient-activation behavior need real devices"
-  - test: "View the album shelf grid on device"
-    expected: "Covers render crisply at ~80px; the shelf reads as a coherent discography"
-    why_human: "Image rendering quality at physical size is visual-only"
-  - test: "Import a friend's exported dex file (different owner name)"
-    expected: "Read-only CompareView opens with You vs {name} columns + diff lists; NOTHING is written to the DB; no adopt/merge affordance exists"
-    why_human: "End-to-end file-picker + fork behavior and the visual compare layout need manual confirmation"
+  - test: "Re-UAT (UAT test 2 scope, fix confirmation): online-load the rebuilt PWA once, accept the SW update prompt, then enable airplane mode and browse #/dex shelf + album drill-in"
+    expected: "All album covers render offline — no broken-image '?'; any cover that genuinely fails degrades to the initials placeholder"
+    why_human: "Service-worker precache behavior on a real installed device cannot be confirmed by grep/jsdom — the original gap was found on device despite a prior code-level pass. Deferred by plan 06-12 to the next UAT round."
+  - test: "Re-UAT (UAT test 5 scope, fix confirmation): view the Phantom Island card on the album shelf"
+    expected: "The card shows the 2025 studio-album cover art, not the 2024 Single/EP art"
+    why_human: "Final art correctness is visual. Automated evidence is strong (manifest provenance points at the Album release group; re-encoded webp visually shows island-fortress album art) but the user is the arbiter of 'correct cover'. Deferred by plan 06-12 to the next UAT round."
 ---
 
-# Phase 6: Pokédex, History & Stats Verification Report
+# Phase 6: Pokédex, History & Stats — Re-Verification Report
 
 **Phase Goal:** The user's live-show history becomes a browsable collection — every sighting count derived from attendance, every stat honest about sparse data, and the whole dex shareable with friends.
-**Verified:** 2026-07-15T00:10:00Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
-**Mode:** mvp (goal is a descriptive success-criteria goal, not strict User Story format; verified goal-backward against the 5 ROADMAP success criteria + 11 requirement IDs)
+**Verified:** 2026-07-16T15:10:00Z
+**Status:** human_needed (2 narrow device re-UAT items only; all automated must-haves pass)
+**Re-verification:** Yes — after human UAT (4 passed / 2 issues) and gap-closure plan 06-12
+
+## Re-Verification Context
+
+- Initial verification (2026-07-15): 5/5 ROADMAP truths verified at code level; status `human_needed` with 6 device items.
+- Human UAT (06-HUMAN-UAT.md): 4 passed, 2 issues → 2 diagnosed gaps (offline covers, phantom-island art).
+- Gap-closure plan 06-12 executed (5 task commits verified in git log: 0761a81, d0f9fd3, 3cf35c6, 9f2055a, e795345).
+- This pass: full 3-level verification of the 2 closed gaps + regression check of previously passed items.
 
 ## Goal Achievement
 
-### Observable Truths (ROADMAP Success Criteria)
+### Observable Truths
 
-| # | Truth | Status | Evidence |
-|---|-------|--------|----------|
-| 1 | Pokédex shows completion %, per-song sighting counts derived from attendance (never hand-tallied), rarest catch, never-seen list | ✓ VERIFIED (code); UI needs human | `DexView.tsx` → `useDexStats()` → `useMemo(deriveDex)` over `useLiveQuery` table reads (no stored counts); `derive-dex.ts` (9.7 KB) computes completion %, sighting counts, rarest catch, never-seen purely from attendance + archive. 10 fixture tests pass. |
-| 2 | User can retroactively mark attended shows from the full archive, searchable by date/venue, keyed by stable show ID | ✓ VERIFIED (code); device needs human | `ArchiveBrowser.tsx` (16 KB) with year sections + `makeArchiveSearcher` (fuse.js) over the bundled 738-show `archive.json`; `markShowAttended` keyed by `show_id` (`&show_id` Dexie index). Online fallback via `fetchRecentShows`. |
-| 3 | Song detail shows gap, play count, last-played; personal gap in dex; no-history songs framed as "debut candidates" not fake percentages | ✓ VERIFIED | `WhyDetail.tsx` renders corpus gap/play count/last-played (STAT-01); `TierBadge.tsx` renders neutral "Debut" state (not a tier/percentage); `derive-dex.ts:239` excludes `!inMatrix` debut candidates from completion denominators (STAT-04). |
-| 4 | Recap shows hit/miss tally, final setlist with set structure, rarity score; past tracked shows remain viewable | ✓ VERIFIED (code); flow needs human | `RecapView.tsx` (11.6 KB) → `deriveRecap`; auto-opened via `recapSessionId` set by `EndShowDialog.onEnded`, rendered BEFORE the `!session.active` early return; `SetlistView.tsx` renders Set 1/Set 2/Encore structure (HIST-01); `ShowsList.tsx` unifies tracked + retro newest-first, deduped. |
-| 5 | Dex exports/imports as JSON for friend exchange; user can generate a shareable summary card | ✓ VERIFIED (code) ⚠️ merge caveat; device needs human | Friend path: `importPicker.ts` forks on `envelope.owner` → read-only `CompareView.tsx` (runs `deriveDex` a 2nd time, zero DB writes). Share card: `shareCard.ts` builds 1080×1350 PNG from `buildShareStats`, `canShare`-gated `navigator.share` + anchor-download fallback. ⚠️ Self-merge path carries CR-01 (see Warnings). |
+| # | Truth | Source | Status | Evidence |
+|---|-------|--------|--------|----------|
+| 1 | Pokédex shows completion %, sighting counts derived from attendance (never hand-tallied), rarest catch, never-seen list | ROADMAP SC1 | ✓ VERIFIED (regression) | `DexView.tsx` → `useDexStats.ts` → core `deriveDex`; all artifacts present and unchanged; 470-test suite green |
+| 2 | Retroactive marking from full archive, searchable, keyed by stable show ID | ROADMAP SC2 | ✓ VERIFIED (regression) | `ArchiveBrowser.tsx`, `search-archive.ts`, `markShowAttended` (&show_id); archive.json intact (738 shows) |
+| 3 | Gap/play-count/last-played stats; personal gap; debut candidates not fake percentages | ROADMAP SC3 | ✓ VERIFIED (regression) | `WhyDetail.tsx`, `derive-dex.ts` debut exclusion, `TierBadge` neutral Debut — unchanged, suite green |
+| 4 | Recap with hit/miss tally, set structure, rarity score; past shows viewable | ROADMAP SC4 | ✓ VERIFIED (regression) | `RecapView.tsx`, `recap.ts`, `rarity.ts`, `SetlistView.tsx`, `ShowsList.tsx` — unchanged, suite green |
+| 5 | Dex exports/imports as JSON; shareable summary card | ROADMAP SC5 | ✓ VERIFIED (regression, warning resolved) | Compare fork + `shareCard.ts` unchanged. Previous CR-01 merge warning now RESOLVED — see below |
+| 6 | Airplane-mode covers render in shelf + drill-in after one online load (no broken '?') | 06-12 truth / UAT gap 1 | ✓ VERIFIED (code); device re-UAT pending | `vite.config.ts:56` globPatterns include `webp`; built `dist/sw.js` precache manifest contains 27 `.webp` entries matching 27 emitted assets; remaining 2 covers (<4 KB: float-along 3,692 B, infest 3,318 B) confirmed inlined as 2 `data:image/webp` URLs in the precached JS bundle — all 29 offline-complete |
+| 7 | Any failing cover `<img>` degrades to the initials placeholder, never a broken-image icon | 06-12 truth | ✓ VERIFIED | `CoverThumb.tsx:67` `onError={() => setFailed(true)}`; both branches keep `data-testid="album-cover"`; jsdom tests fire the error event and assert `fallback.tagName !== "IMG"` + initials text + dim classes (dexView.test.tsx:248-274) |
+| 8 | Phantom Island card shows the 2025 studio-album cover (RG 716f0986-f131-4e3c-a140-55845bbded3c), not the 2024 Single art | 06-12 truth / UAT gap 2 | ✓ VERIFIED (code); device re-UAT pending | `covers-manifest.json:134-139` mbid + sourceUrl both point at 716f0986… (Album, fetchedAt 2026-07-16T14:49Z); webp re-encoded 7,918 B; visual inspection of the committed webp shows island-fortress album art; commit e795345 is the re-fetch, not a hand-edit |
+| 9 | Full test suite stays green, including 25 KB per-file / 350 KB total cover budget guards | 06-12 truth | ✓ VERIFIED | Ran `npm test -- --run` fresh: **62 files, 470 tests passed** (465 prior + 2 fallback + 3 release-group); covers dir 268 KB total, 29 files, max file well under 25 KB |
 
-**Score:** 5/5 truths verified at code level. Status is `human_needed` because visual/device/real-time behaviors (dark-mode legibility, live reactive updates, navigator.share, PNG quality, offline browse) cannot be confirmed programmatically.
+**Score:** 9/9 truths verified at automated level.
 
-### Required Artifacts
+### Required Artifacts (06-12 gap-closure, full 3-level + data flow)
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `data/normalized/archive.json` | schemaVersion 1, latestShowDate, songId→name map, 738 shows w/ id/date/venue/city/sets | ✓ VERIFIED | schemaVersion 1, latestShowDate 2025-12-13, 264 songs, 738 shows, sample keys id,date,venue,city,state,country,sets |
-| `data/normalized/dex-albums.json` | ~25-30 studio cards + Covers/Misc buckets, all 264 songs mapped once | ✓ VERIFIED | schemaVersion 1, 29 album cards + buckets |
-| `packages/core/src/dex/derive-dex.ts` | `deriveDex` single derivation entry point | ✓ VERIFIED | 9.7 KB, exported from index.ts, pure (no React/DOM) |
-| `packages/core/src/dex/rarity.ts` | `buildRarityIndex` + `showRarityScore` | ✓ VERIFIED | 4.8 KB, exported |
-| `packages/core/src/dex/recap.ts` | `deriveRecap` → RecapStats | ✓ VERIFIED | 6.0 KB, exported |
-| `packages/core/src/dex/compare.ts` | `compareDexes` pure diff, never merges | ✓ VERIFIED | 4.6 KB, exported |
-| `packages/core/src/dex/share-stats.ts` | `buildShareStats` | ✓ VERIFIED | 3.5 KB, exported |
-| `packages/core/src/dex/search-archive.ts` | `makeArchiveSearcher` + groupShowsByYear | ✓ VERIFIED | exported |
-| `packages/core/src/dex/recent-shows.ts` | `fetchRecentShows` w/ assertFilterApplied | ✓ VERIFIED | 7.2 KB, exported, names sourced from fetched rows (Pitfall 5) |
-| `packages/core/src/data-safety/merge.ts` | v1→v2 MIGRATIONS + archiveShows union | ✓ VERIFIED ⚠️ | union-merge present; CR-01 defect in trackedEntries same-show dedupe |
-| `packages/app/src/dex/DexView.tsx` | #/dex root w/ header + Albums/Shows | ✓ VERIFIED | 8.1 KB, wired to useDexStats |
-| `packages/app/src/dex/useDexStats.ts` | useLiveQuery + useMemo(deriveDex) | ✓ VERIFIED | reads 4 live tables, no stored counts |
-| `packages/app/src/dex/RecapView.tsx` | Post-show scorecard from deriveRecap | ✓ VERIFIED | 11.6 KB |
-| `packages/app/src/dex/CompareView.tsx` | Read-only You vs {name}, no DB writes | ✓ VERIFIED | 7.9 KB, only deriveDex reads, zero db.* writes |
-| `packages/app/src/dex/shareCard.ts` | Canvas draw + share/download flow | ✓ VERIFIED | 9.3 KB, canShare-gated |
-| `packages/app/src/assets/covers/*.webp` | ≤~300 KB total committed covers | ✓ VERIFIED | 29 WebP covers, 268 KB total |
+| `packages/app/vite.config.ts` | `webp` in workbox globPatterns | ✓ VERIFIED | Line 56: `["**/*.{js,css,html,ico,png,svg,woff2,webp}"]`; `registerType: "prompt"` untouched (CLAUDE.md rule); `json` still excluded with rationale comment |
+| `packages/app/src/dex/CoverThumb.tsx` | Shared cover-or-initials component with onError fallback, ≥30 lines | ✓ VERIFIED | 73 lines, substantive; `initialsFor` moved here (zero duplicates remain elsewhere in src); sizing via `px` prop sourced from config at call sites |
+| `packages/app/scripts/fetch-covers.ts` | primary-type Album preference in release-group selection | ✓ VERIFIED | `MbReleaseGroup` gains optional `"primary-type"` (line 75); `findReleaseGroupMbid` exported (line 114), prefers first Album-typed group with `groups[0]` fallback (lines 134-135); pacing/no-retry/25 KB guard untouched |
+| `packages/app/src/assets/covers/covers-manifest.json` | phantom-island provenance → Album release group | ✓ VERIFIED | Contains `716f0986-f131-4e3c-a140-55845bbded3c` twice (mbid + sourceUrl); provenance format intact; budget/bijection guards green |
+| `packages/app/src/assets/covers/phantom-island.webp` | Re-fetched Album art within budget | ✓ VERIFIED | 7,918 B (≤25 KB); total covers 268 KB (≤350 KB); mtime matches fetchedAt; visually album art, not obviously Single art |
+| `packages/app/test/fetchCovers.test.ts` | Regression tests for Album preference | ✓ VERIFIED | 3 tests: Single-first→Album wins, EP-only→groups[0] fallback, empty→null; stubbed fetch, no real network |
+| `packages/app/test/dexView.test.tsx` | img→initials fallback tests | ✓ VERIFIED | 2 new tests (lines 218-274) incl. tightened non-vacuous assertion (`tagName !== "IMG"`) per documented RED-phase deviation; existing dimming assertions untouched |
+| Prior phase-6 artifacts (15 core/app/data files) | Regression | ✓ VERIFIED | All present and non-empty (derive-dex, rarity, recap, compare, share-stats, search-archive, recent-shows, DexView, useDexStats, RecapView, CompareView, shareCard, ArchiveBrowser, archive.json, dex-albums.json); 470-test suite green |
 
 ### Key Link Verification
 
-| From | To | Via | Status |
-|------|----|----|--------|
-| `App.tsx` | `DexView.tsx` | `route === 'dex'` branch | ✓ WIRED (imported + rendered line 53) |
-| `DexView.tsx` | `useDexStats.ts` | hook feeds every number | ✓ WIRED |
-| `useDexStats.ts` | core `deriveDex` | useMemo over live reads | ✓ WIRED |
-| `RecapView.tsx` | core `deriveRecap` | pure stats in, render out | ✓ WIRED |
-| `ShowView.tsx` | `RecapView.tsx` | recapSessionId before early return | ✓ WIRED (line 171-173, set by onEnded line 403) |
-| `db.ts markShowAttended` | attendedShows + archiveShows | single rw transaction | ✓ WIRED (line 466, both tables) |
-| `importPicker.ts` | compare vs merge fork | envelope.owner vs local ownerName | ✓ WIRED |
-| `CompareView.tsx` | core `deriveDex` | run twice, zero DB writes | ✓ WIRED (no db.* mutations) |
-| `shareCard.ts` / `ShareCardSheet.tsx` | core `buildShareStats` | numbers assembled in core | ✓ WIRED |
+| From | To | Via | Status | Details |
+|------|----|-----|--------|---------|
+| `AlbumGrid.tsx` | `CoverThumb.tsx` | import replaces inline img/placeholder | ✓ WIRED | Import line 16, rendered line 92 with `dimClass={dimClass}` (§B4 dimming) |
+| `AlbumDetail.tsx` | `CoverThumb.tsx` | import replaces inline img/placeholder | ✓ WIRED | Import line 12, rendered line 65 with `dimClass="shrink-0"` (flex-header compression guard preserved) |
+| `vite.config.ts` | `dist/sw.js` | workbox globPatterns → precache manifest | ✓ WIRED | Built sw.js contains 27 `.webp` precache URLs = exactly the 27 non-inlined emitted webp assets; 2 sub-4 KB covers ride the JS bundle as data URLs |
+| Prior key links (route→DexView→useDexStats→deriveDex, recap, markShowAttended, import fork, share card) | — | — | ✓ WIRED (regression) | Unchanged files; suite green |
+
+### Data-Flow Trace (Level 4)
+
+| Artifact | Data Variable | Source | Produces Real Data | Status |
+|----------|---------------|--------|--------------------|--------|
+| `CoverThumb.tsx` | `coverUrl` | `coverUrlFor(slug)` → `import.meta.glob` over committed `src/assets/covers/*.webp` | Yes — 29 committed real assets; null contract → initials | ✓ FLOWING |
+| `AlbumGrid`/`AlbumDetail` call sites | `slug`, `title`, `px` | dex-albums.json cards + `config.dex.ALBUM_ART_DISPLAY_PX` | Yes — no hardcoded empty props | ✓ FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Full test suite | `vitest run` | 61 files, 462 tests passed | ✓ PASS |
-| Archive artifact shape | `node -e` inspect archive.json | schemaVersion 1, 738 shows, 264 songs | ✓ PASS |
-| Dex-albums artifact shape | `node -e` inspect dex-albums.json | schemaVersion 1, 29 cards + buckets | ✓ PASS |
-| Cover budget | `du -sh covers/` | 268 KB (≤ ~300 KB budget) | ✓ PASS |
-| Core purity | grep react/DOM/import.meta in core/dex | none found | ✓ PASS |
+| Full test suite | `npm test -- --run` (run fresh this pass) | 62 files, 470 tests passed | ✓ PASS |
+| SW precaches covers | `grep -o "\.webp" packages/app/dist/sw.js \| wc -l` | 27 (matches 27 dist webp assets) | ✓ PASS |
+| Small covers inlined | count `data:image/webp` in dist JS bundle | 2 occurrences (the two <4 KB covers) | ✓ PASS |
+| Manifest provenance | `grep -c 716f0986-… covers-manifest.json` | 2 (mbid + sourceUrl) | ✓ PASS |
+| Cover budget | `du -sk covers/` + `ls *.webp \| wc -l` | 268 KB, 29 files | ✓ PASS |
+| Task commits exist | `git log --oneline` | All 5 claimed commits present (0761a81, d0f9fd3, 3cf35c6, 9f2055a, e795345) | ✓ PASS |
+
+### Probe Execution
+
+No `scripts/*/tests/probe-*.sh` probes exist in this project and none are declared by any phase-6 plan — SKIPPED (no probes).
 
 ### Requirements Coverage
 
-| Requirement | Source Plan(s) | Description | Status | Evidence |
-|-------------|----------------|-------------|--------|----------|
-| SHOW-14 | 06-03, 06-09 | Post-show recap: hit/miss tally, setlist w/ structure, rarity score | ✓ SATISFIED | `deriveRecap` + `RecapView.tsx` |
-| STAT-01 | 06-03, 06-06 | Song detail gap, play count, last-played | ✓ SATISFIED | `WhyDetail.tsx`, rarity.ts |
-| STAT-02 | 06-03, 06-09 | Show rarity score (avg gap) | ✓ SATISFIED | `showRarityScore`, RecapView rarity block |
-| STAT-03 | 06-03, 06-06 | Pokédex personal gap | ✓ SATISFIED | deriveDex personalGap, SongRow |
-| STAT-04 | 06-01, 06-03, 06-06 | Debut candidates not fake percentages | ✓ SATISFIED | derive-dex.ts:239 excludes debut; TierBadge neutral "Debut" |
-| DEX-02 | 06-01, 06-07, 06-08 | Retro-mark from archive, searchable, stable show ID | ✓ SATISFIED | ArchiveBrowser + markShowAttended (&show_id) |
-| DEX-03 | 06-03, 06-05, 06-06, 06-08 | Sighting counts derived, never hand-tallied | ✓ SATISFIED | deriveDex; useLiveQuery, no stored counts |
-| DEX-04 | 06-01, 06-03, 06-04, 06-06 | Completion %, sighting counts, rarest catch, never-seen list | ✓ SATISFIED | DexHeader + AlbumGrid + derive-dex |
-| HIST-01 | 06-09 | Past shows viewable as complete setlists w/ structure | ✓ SATISFIED | SetlistView.tsx (Set 1/2/Encore) |
-| SHAR-01 | 06-07, 06-10 | Export/import JSON for friend exchange | ✓ SATISFIED ⚠️ | export v2 + compare fork; ⚠️ CR-01 on self-merge |
-| SHAR-02 | 06-11 | Shareable summary card | ✓ SATISFIED | shareCard.ts 1080×1350 PNG |
+| Requirement | Source Plan(s) | Status | Evidence |
+|-------------|----------------|--------|----------|
+| SHOW-14 | 06-03, 06-09 | ✓ SATISFIED (regression) | deriveRecap + RecapView unchanged, suite green |
+| STAT-01 | 06-03, 06-06 | ✓ SATISFIED (regression) | WhyDetail + rarity.ts |
+| STAT-02 | 06-03, 06-09 | ✓ SATISFIED (regression) | showRarityScore + RecapView |
+| STAT-03 | 06-03, 06-06 | ✓ SATISFIED (regression) | deriveDex personalGap |
+| STAT-04 | 06-01, 06-03, 06-06 | ✓ SATISFIED (regression) | debut-candidate exclusion + neutral badge |
+| DEX-02 | 06-01, 06-07, 06-08, **06-12** | ✓ SATISFIED | ArchiveBrowser + markShowAttended; offline archive/dex browse now includes precached covers |
+| DEX-03 | 06-03, 06-05, 06-06, 06-08 | ✓ SATISFIED (regression) | deriveDex over live table reads, no stored counts |
+| DEX-04 | 06-01, 06-03, 06-04, 06-06, **06-12** | ✓ SATISFIED | Shelf/header/derive-dex; correct studio art + offline covers + graceful fallback |
+| HIST-01 | 06-09 | ✓ SATISFIED (regression) | SetlistView set structure |
+| SHAR-01 | 06-07, 06-10 | ✓ SATISFIED — prior CR-01 caveat RESOLVED | See CR-01 resolution below |
+| SHAR-02 | 06-11 | ✓ SATISFIED (regression) | shareCard 1080×1350 PNG flow |
 
-**All 11 phase requirement IDs are claimed by at least one plan — no orphans.** (06-02 additionally covers SHOW-02/04/05 Show-Mode polish, outside the phase-6 requirement set but part of phase work; not evaluated as phase-6 gaps.)
+All 11 phase requirement IDs claimed by plans and mapped `Phase 6 / Complete` in REQUIREMENTS.md; DEX-05 correctly maps to Phase 7 — no orphans.
+
+### CR-01 Resolution (previous verification's WARNING — now closed)
+
+The 2026-07-15 report carried a WARNING: `merge.ts` same-show dedupe dropped non-canonical sessions' unique entries (multi-device same-night under-count). Commit `4c53de4 fix(core): union same-night sessions in import merge (CR-01)` resolves it: `merge.ts:210-269` now ADOPTS every non-canonical session's entries onto the canonical session, de-duped by songId within the night (unique-per-device songs survive; null-songId placeholders always adopted; positions re-stamped past canonical max). Dedicated regression tests exist and pass (`packages/core/test/merge.test.ts:312-366`: local-unique adoption + no double-count). The honest-derivation caveat on SHAR-01/DEX-02 is lifted.
+
+(Note: the single NUL byte ripgrep flags in merge.ts is an intentional literal `\0` compound-key separator in `entryKey`, not corruption.)
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| — | — | None found in packages/core/src/dex, packages/app/src/dex, packages/core/src/data-safety | — | No TODO/FIXME/XXX/PLACEHOLDER/"not implemented" debt markers in phase-6 source |
+| — | — | None | — | No TBD/FIXME/XXX/TODO/HACK debt markers in any 06-12 modified file. (dexView.test.tsx:271 contains the word "PLACEHOLDER" in a test comment for emphasis — not a debt marker.) |
 
-### Warnings
+### Advisory Warnings (carried from 06-REVIEW.md incremental review — non-blocking)
 
-**CR-01 (carried from 06-REVIEW.md) — merge.ts same-show dedupe data loss.** In `parseAndMergeImport` Step 5 (`packages/core/src/data-safety/merge.ts:191-218`), when two device sessions map to the same attendance group (a night live-tracked on two devices), the canonical (most-entries) session wins wholesale and `finalEntries` filters out ALL entries of the dropped sessions (lines 216-218). Unique songs logged only on the non-canonical device for that same night are lost rather than unioned.
-
-- **Honest-derivation impact:** Partial. Derived counts remain honest and never hand-tallied — the phase's core promise ("sighting counts derived from attendance") holds structurally. But a multi-device self-merge of the SAME night with divergent live-tracked setlists can UNDER-count real sightings. This is under-counting from data loss, not fabrication.
-- **Scope is narrow:** `attendedShows` and `archiveShows` (the retro-mark and online-fallback sighting sources — the DEX-02 substrate) union correctly by `show_id` (merge.ts:128-141) and are unaffected. Only cross-device live-tracked `trackedEntries` for the same night are at risk. The friend-exchange primary path (read-only CompareView, 06-10) performs no merge and is unaffected.
-- **Disposition:** Already flagged as a blocker in 06-REVIEW.md on a separate track; not fixed here per instructions. Recommend resolving (union entries by (sessionId, position) across the group before dropping the duplicate show) before relying on multi-device merge for accurate sighting counts.
+1. **WR-01** — `findReleaseGroupMbid` Album preference is unbounded by score; a low-scored Album-typed group could beat a top-scored EP on a future `--force` re-fetch. No committed artifact is currently wrong. Suggested fix: restrict preference to top-score ties + add `[EP:100, Album:<100]→EP` regression test.
+2. **WR-02** — `CoverThumb.failed` is sticky across slug changes; latent wrong-render if a future call site reuses a mounted instance. Both current call sites are safe (stable keys / full unmount). Suggested fix: render-time `failedSlug` reset.
 
 ### Human Verification Required
 
-1. **Dark-room dex legibility** — Open #/dex on a phone in the dark, drill into an album. Expected: readable drill-in, legible dimmed rows, badges readable without color.
-2. **On-device retro mark** — Mark a real past show. Expected: header counts jump instantly, "+N caught" flashes, airplane-mode browse works.
-3. **End-show recap flow** — End a real tracked show. Expected: recap appears immediately after backup download, still in venue flow.
-4. **Share card on iPhone + desktop** — Tap Share card. Expected: navigator.share sheet with 1080×1350 PNG on iPhone; anchor-download fallback on desktop; card renders correctly.
-5. **Cover rendering quality** — View the album shelf on device. Expected: covers crisp at ~80px, shelf reads as a discography.
-6. **Friend compare fork** — Import a friend's file (different owner). Expected: read-only CompareView with You vs {name} columns, zero DB writes, no merge affordance.
+Both items are narrow fix-confirmations deferred by plan 06-12's verification section ("Re-UAT on device — next UAT round, not this plan"). The 4 previously passed UAT items (dark-room legibility, retro-mark reactivity, end-show recap flow, share card, friend compare fork) do NOT need re-testing.
+
+### 1. Offline covers re-UAT (closes UAT test 2 residual)
+
+**Test:** Online-load the rebuilt PWA, accept the SW update prompt (registerType is "prompt" — the new precache only activates after the update), then enable airplane mode and browse the dex shelf and an album drill-in.
+**Expected:** All album covers render offline; no broken-image "?" anywhere; a genuinely failing cover shows the initials placeholder.
+**Why human:** Real-device service-worker precache behavior can't be confirmed by grep/jsdom — this exact gap slipped past code-level verification once already.
+
+### 2. Phantom Island art re-UAT (closes UAT test 5 residual)
+
+**Test:** View the Phantom Island card on the album shelf.
+**Expected:** The 2025 studio-album cover, not the 2024 Single art.
+**Why human:** Final art correctness is visual; the user is the arbiter, though provenance + committed-image inspection strongly indicate the fix landed.
 
 ### Gaps Summary
 
-No blocking gaps. All 5 ROADMAP success criteria and all 11 requirement IDs are satisfied at the code level: artifacts exist, are substantive, are wired end-to-end (route → hook → pure core derivation), the full 462-test suite passes, the committed data artifacts match their contracts exactly, core purity is intact, and no debt-marker anti-patterns exist.
+No blocking gaps and no regressions. Both UAT-diagnosed gaps have verified closing artifacts, wired and tested end-to-end:
 
-Status is `human_needed` rather than `passed` because this MVP-mode phase is dominated by device/visual/real-time behaviors (dark-mode legibility, live reactive updates, offline archive browse, navigator.share PNG sharing, cover rendering) that cannot be confirmed programmatically — these are surfaced as 6 human verification items (5 harvested from planner-deferred `<human-check>` device gates + 1 compare-fork check).
+- **Gap 1 (offline covers, major):** `webp` added to workbox globPatterns — the built sw.js precache manifest lists all 27 emitted webp cover assets, and the 2 sub-4 KB covers are confirmed inlined as data URLs in the already-precached JS bundle (all 29 offline-complete). The new shared `CoverThumb` component guarantees img→initials degradation under the same testid, pinned by 2 new jsdom tests (one deliberately tightened after a vacuous RED pass).
+- **Gap 2 (Phantom Island art, minor):** `findReleaseGroupMbid` now prefers Album-typed release groups (exported + 3 regression tests), and the phantom-island cover was re-fetched from the correct 2025 Album release group with intact provenance (mbid + sourceUrl verified, budgets green, single-cover etiquette honored — 2 external requests).
 
-One WARNING (CR-01) is carried forward from 06-REVIEW.md: the multi-device self-merge path can under-count live-tracked sightings for the same night. It partially dents the honest-derivation guarantee (under-counting, not fabrication) in a narrow edge case, leaves the retro/archive sighting sources and the friend-compare path unaffected, and is already tracked as a blocker on the review track. It does not falsify the phase goal but should be resolved before relying on multi-device merge.
+Additionally, the previous verification's CR-01 merge warning is now resolved in code with dedicated union-adoption tests. The full suite passes at 470/470. The only open items are the two device re-UAT confirmations explicitly deferred by plan 06-12 to the next UAT round — hence `human_needed` rather than `passed` — plus two advisory (non-blocking) review warnings, WR-01 and WR-02, recorded above for future hardening.
 
 ---
 
-_Verified: 2026-07-15T00:10:00Z_
+_Verified: 2026-07-16T15:10:00Z_
 _Verifier: Claude (gsd-verifier)_

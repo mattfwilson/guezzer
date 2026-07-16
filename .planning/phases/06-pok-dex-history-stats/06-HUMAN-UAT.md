@@ -1,14 +1,14 @@
 ---
-status: complete
+status: partial
 phase: 06-pok-dex-history-stats
 source: [06-VERIFICATION.md]
 started: 2026-07-15T00:10:00Z
-updated: 2026-07-16T00:00:00Z
+updated: 2026-07-16T15:15:00Z
 ---
 
 ## Current Test
 
-[testing complete]
+[awaiting device re-test of the two 06-12 fixes]
 
 ## Tests
 
@@ -43,19 +43,29 @@ note: Rendering quality itself passes (crisp at ~80px, coherent shelf; bucket in
 expected: Import a friend's exported dex file (different owner name) — read-only CompareView opens with You vs {name} columns + diff lists; NOTHING is written to the DB; no adopt/merge affordance exists.
 result: pass
 
+### 7. Re-test: offline covers after 06-12 fix
+expected: Load the deployed app online once and accept the SW update prompt, then enable airplane mode and browse the dex shelf and an album drill-in — all album covers render (no broken-image "?"); if any single image somehow fails, it degrades to the initials placeholder.
+result: [pending]
+
+### 8. Re-test: Phantom Island studio art after 06-12 fix
+expected: View the Phantom Island card on the album shelf — it shows the 2025 studio-album cover (island-fortress art), not the 2024 Single art.
+result: [pending]
+
 ## Summary
 
-total: 6
+total: 8
 passed: 4
 issues: 2
-pending: 0
+pending: 2
 skipped: 0
 blocked: 0
 
 ## Gaps
 
 - truth: "Airplane-mode archive/dex browse works fully offline including album covers"
-  status: failed
+  status: resolved
+  resolved_by: 06-12 (webp added to workbox globPatterns — 27 covers in SW precache manifest, 2 sub-4 KB covers inlined in JS bundle; CoverThumb onError → initials fallback)
+  pending_retest: test 7
   reason: "User reported: when i went into airplane mode the album covers in dex didn't show properly/showed a ?"
   severity: major
   test: 2
@@ -63,9 +73,21 @@ blocked: 0
   missing: ["webp in workbox globPatterns (covers never precached)", "onError fallback from <img> to initials placeholder"]
 
 - truth: "Every studio album card shows its correct studio-release cover art"
-  status: failed
+  status: resolved
+  resolved_by: 06-12 (findReleaseGroupMbid prefers primary-type Album; phantom-island re-fetched from Album release group 716f0986-f131-4e3c-a140-55845bbded3c)
+  pending_retest: test 8
   reason: "User reported: the 'Phantom Island' cover seems to be pulling possibly their older EP version, vs the studio released album cover"
   severity: minor
   test: 5
-  artifacts: ["packages/app/scripts/fetch-covers.ts", "packages/app/src/assets/covers/"]
-  missing: ["correct Cover Art Archive release selection for Phantom Island (verify against provenance manifest, re-fetch or manually swap the webp)"]
+  artifacts: ["packages/app/scripts/fetch-covers.ts", "packages/app/src/assets/covers/phantom-island.webp", "packages/app/src/assets/covers/covers-manifest.json"]
+  missing: ["primary-type Album preference in findReleaseGroupMbid (currently takes groups[0].id unfiltered)", "re-fetched phantom-island.webp from the Album release group"]
+  diagnosis: |
+    CONFIRMED via provenance manifest + MusicBrainz. covers-manifest.json shows
+    phantom-island was fetched from release-group e2e5b06e-e0e7-4362-ab3d-353f5f6a4455,
+    which MB identifies as the 2024-10-29 SINGLE "Phantom Island". The correct studio
+    album release group is 716f0986-f131-4e3c-a140-55845bbded3c (Album, 2025-06-13).
+    Root cause: findReleaseGroupMbid (fetch-covers.ts) returns groups[0].id from the
+    search response with no primary-type filter — both groups score 100 and MB
+    returned the Single first. Fix: prefer primary-type "Album" among results (or add
+    AND primarytype:album to the query with unfiltered fallback), re-fetch just the
+    phantom-island cover, update the webp + manifest entry.
