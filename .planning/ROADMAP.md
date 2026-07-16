@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: App Shell & PWA Foundation** - Installable offline-first shell with prompt-based updates and persistent IndexedDB storage (completed 2026-07-09)
 - [x] **Phase 4: Show Mode** - The full one-thumb live loop: orbit predictions, logging, trail, tally, crash-proof persistence, wake lock (completed 2026-07-13)
 - [x] **Phase 5: Live Sync & Data Safety** - Polite 60s `latest` polling with suggest-only auto-fill, and prominent JSON export/import (plans complete; verification gaps_found 2026-07-13 — PWA-04 import-into-populated-DB data loss) (completed 2026-07-13)
-- [ ] **Phase 6: Pokédex, History & Stats** - Derived dex, retroactive attendance, gap/rarity stats, post-show recap, dex sharing
+- [x] **Phase 6: Pokédex, History & Stats** - Derived dex, retroactive attendance, gap/rarity stats, post-show recap, dex sharing (completed 2026-07-16)
 - [ ] **Phase 7: Explore Mode Constellation** - Force-directed transition graph fed from the same matrix artifact, with dex overlay
 
 ## Phase Details
@@ -184,7 +184,7 @@ Plans:
   4. After a show, a recap view shows the hit/miss tally, final setlist with set structure, and a show rarity score — and past tracked shows remain viewable as complete setlists
   5. The dex exports/imports as JSON for friend exchange, and the user can generate a shareable summary card (completion %, rarest catch, show count)
 
-**Plans:** 11/12 plans executed (1 gap-closure plan pending)
+**Plans:** 12/12 plans complete
 **UI hint**: yes
 
 Plans:
@@ -229,7 +229,7 @@ Plans:
 
 **Gap closure** *(from 06-HUMAN-UAT.md)*
 
-- [ ] 06-12-PLAN.md — UAT gap closure: precache webp covers + img→initials fallback (offline dex), Album-type preference in cover fetch + phantom-island re-fetch
+- [x] 06-12-PLAN.md — UAT gap closure: precache webp covers + img→initials fallback (offline dex), Album-type preference in cover fetch + phantom-island re-fetch
 
 ### Phase 7: Explore Mode Constellation
 
@@ -262,7 +262,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. App Shell & PWA Foundation | 4/4 | Complete    | 2026-07-09 |
 | 4. Show Mode | 7/7 | Complete    | 2026-07-13 |
 | 5. Live Sync & Data Safety | 6/6 | Complete    | 2026-07-14 |
-| 6. Pokédex, History & Stats | 9/11 | In Progress|  |
+| 6. Pokédex, History & Stats | 12/12 | Complete   | 2026-07-16 |
 | 7. Explore Mode Constellation | 0/TBD | Not started | - |
 
 ---
