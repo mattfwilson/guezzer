@@ -245,8 +245,38 @@ Plans:
   4. Physics settles and freezes; labels never jitter permanently
   5. The dex overlays the constellation: unseen songs as dimmed silhouettes, seen songs at full color with sighting-count badges
 
-**Plans**: TBD
+**Plans:** 7 plans
 **UI hint**: yes
+
+Plans:
+
+**Wave 0**
+
+- [ ] 07-01-PLAN.md — Tested pure-core engine: deriveConstellation + rotationSongIds + rankOutgoing (fixture-tested) + core/app config + copy.explore
+
+**Wave 1** *(blocked on 07-01)*
+
+- [ ] 07-02-PLAN.md — Slice 1: install react-force-graph-2d, ConstellationCanvas + ExploreView, settle-and-freeze render at #/explore
+
+**Wave 2** *(blocked on 07-02)*
+
+- [ ] 07-03-PLAN.md — Canvas-label device spike (checkpoint): validate D-15 zoom-gating + Full-catalog perf, tune LABEL_AT_REST_TOP_K
+
+**Wave 3** *(blocked on 07-03)*
+
+- [ ] 07-04-PLAN.md — Slice 2: tap node → ranked-bars sheet + focus-dim neighborhood + chain-hop (EXPL-02/05)
+
+**Wave 4** *(blocked on 07-04)*
+
+- [ ] 07-05-PLAN.md — Slice 3: filter FAB — rotation/full toggle + edge slider (EXPL-03/04)
+
+**Wave 5** *(blocked on 07-05)*
+
+- [ ] 07-06-PLAN.md — Slice 4: dex overlay — silhouettes + sighting rings + zoom-gated counts + overlay switch (DEX-05)
+
+**Wave 6** *(blocked on 07-06)*
+
+- [ ] 07-07-PLAN.md — Full Explore-loop device verification (checkpoint)
 
 ## Progress
 
