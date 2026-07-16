@@ -17,10 +17,15 @@
  */
 import { useMemo, useState } from "react";
 import { Telescope } from "lucide-react";
-import { deriveConstellation } from "@guezzer/core";
+import {
+  deriveConstellation,
+  rankOutgoing,
+  type ConstellationNode,
+} from "@guezzer/core";
 import { config } from "../config.ts";
 import { loadMatrix } from "../show/matrix.ts";
 import { ConstellationCanvas } from "./ConstellationCanvas.tsx";
+import { NodeSheet, type SheetBar } from "./NodeSheet.tsx";
 
 export function ExploreView() {
   // loadMatrix() is module-memoized — a stable result reference every render, so
@@ -44,6 +49,36 @@ export function ExploreView() {
     [result],
   );
 
+  // songId → node (name / playCount / tuningFamily) for the sheet header + bar
+  // target resolution. Every matrix edge target is a matrix node, so every bar
+  // resolves here.
+  const nodeById = useMemo(() => {
+    const m = new Map<number, ConstellationNode>();
+    if (graphData) for (const n of graphData.nodes) m.set(n.id, n);
+    return m;
+  }, [graphData]);
+
+  // Ranked outgoing bars for the focused node — the COMPLETE raw history straight
+  // off the matrix (D-01/D-03), NEVER the drawn/filtered links and NEVER predict().
+  // Null unless a node is focused. Chain-hop re-runs this for the new focus.
+  const ranked = useMemo(
+    () => (result.ok && focusId != null ? rankOutgoing(result.matrix, focusId) : null),
+    [result, focusId],
+  );
+
+  // Resolve each bar's target name + tuning family (bar fill) from the node map.
+  const sheetBars = useMemo<SheetBar[]>(() => {
+    if (!ranked) return [];
+    return ranked.bars.map((bar) => {
+      const target = nodeById.get(bar.songId);
+      return {
+        bar,
+        targetName: target?.name ?? "",
+        targetTuningFamily: target?.tuningFamily ?? "other",
+      };
+    });
+  }, [ranked, nodeById]);
+
   // Guarded-load failure → the calm error state (never a throw). Split from the
   // success path so the discriminated union narrows cleanly.
   if (!result.ok || !graphData) {
@@ -60,11 +95,26 @@ export function ExploreView() {
     );
   }
 
+  // The focused node (for the sheet header); undefined when nothing is focused.
+  const focusNode = focusId != null ? nodeById.get(focusId) : undefined;
+
   return (
-    <ConstellationCanvas
-      graphData={graphData}
-      focusId={focusId}
-      onFocus={setFocusId}
-    />
+    <>
+      <ConstellationCanvas
+        graphData={graphData}
+        focusId={focusId}
+        onFocus={setFocusId}
+      />
+      {focusId != null && focusNode && ranked && (
+        <NodeSheet
+          songName={focusNode.name}
+          playCount={focusNode.playCount}
+          total={ranked.total}
+          bars={sheetBars}
+          onSelect={setFocusId}
+          onClose={() => setFocusId(null)}
+        />
+      )}
+    </>
   );
 }
