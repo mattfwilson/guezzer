@@ -13,9 +13,10 @@
  *      Changes fire IMMEDIATELY — the slider is a pure render-pass edge filter in
  *      the canvas, no simulation reheat (D-07/D-09). A tabular-nums readout tracks
  *      the thumb.
- *   3. A reserved slot for the dex-overlay switch — Slice 4 (07-06) fills it. It
- *      renders as a disabled row now (the label reads, the control is inert) so
- *      the layout is stable when the overlay wiring lands. No dead-but-live button.
+ *   3. The dex-overlay switch (DEX-05/D-10) — now wired live: ExploreView owns the
+ *      `dexOverlay`/`onDexOverlayChange` state, so the switch is fully interactive
+ *      and toggles the sky overlay. It only falls back to a disabled/inert row when
+ *      a parent omits the handler (`overlayReserved`), which no current caller does.
  *
  * NO scrim wraps this (the graph stays live while sliding, D-09) — that lives in
  * `ExploreFilterFab`. Every control is DOM + keyboard/AT operable with a gold
@@ -36,8 +37,9 @@ interface ExploreFilterPanelProps {
   /** Live edge-slider handler — applied immediately in the render pass. */
   onEdgeThresholdChange: (threshold: number) => void;
   /**
-   * Slice-4 (07-06) seam: the dex-overlay switch. Omitted this slice → the row
-   * renders disabled/inert so the slot is reserved without a live-but-dead control.
+   * The dex-overlay switch state + handler (DEX-05/D-10). ExploreView passes both
+   * live, so the switch is interactive. Kept optional only for the fallback: if a
+   * parent omits `onDexOverlayChange`, the row renders disabled/inert.
    */
   dexOverlay?: boolean;
   onDexOverlayChange?: (on: boolean) => void;
@@ -111,8 +113,9 @@ export function ExploreFilterPanel({
         />
       </div>
 
-      {/* 3. Dex-overlay switch — reserved for Slice 4 (07-06). Disabled/inert now
-             so the slot holds; the label still reads (My dex overlay). */}
+      {/* 3. Dex-overlay switch — wired live (DEX-05/D-10): toggles the sky overlay.
+             Only disabled/inert in the fallback where a parent omits the handler
+             (`overlayReserved`); the label always reads (My dex overlay). */}
       <div className="mt-4 flex min-h-11 items-center justify-between">
         <span className={`text-[14px] font-semibold ${overlayReserved ? "text-text-muted" : "text-text-primary"}`}>
           {copy.overlaySwitch}

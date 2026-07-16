@@ -14,9 +14,10 @@
  * Song names are kglw-derived and render as React text ONLY — never
  * `dangerouslySetInnerHTML` (T-07-05, inherited T-04-14, ASVS V5).
  *
- * The caught-tick (green Check / hollow circle) is a PROP SEAM for the Slice-4
- * dex overlay: it only renders when `caught` is explicitly passed. This slice
- * never passes it, so nothing draws yet.
+ * The caught-tick (green Check / hollow circle) is wired live for the dex overlay:
+ * ExploreView passes `caught` through when the overlay is active, so the tick
+ * draws. It only stays absent in the fallback — when `caught` is `undefined`
+ * (overlay off / not passed) — so no leading indicator renders.
  */
 import { Check, ChevronRight } from "lucide-react";
 import type { OutgoingBar, TuningFamily } from "@guezzer/core";
@@ -36,8 +37,9 @@ interface RankedBarProps {
   /** Target song tuning family → bar fill color (§B1). */
   targetTuningFamily: TuningFamily;
   /**
-   * Slice-4 dex-overlay seam (D-11): green Check when caught, hollow circle when
-   * not. `undefined` (this slice) → no leading indicator renders.
+   * Dex-overlay caught state (D-11): green Check when caught, hollow circle when
+   * not. Passed live by ExploreView when the overlay is active; `undefined`
+   * (overlay off / not passed) → no leading indicator renders.
    */
   caught?: boolean;
   /** Chain-hop (D-16): make this bar's target the new focus. */
@@ -82,7 +84,7 @@ export function RankedBar({
       />
 
       <span className="relative flex items-center gap-2">
-        {/* Slice-4 caught-tick seam — inert until the dex overlay wires `caught`. */}
+        {/* Caught-tick — drawn live when the dex overlay passes `caught`. */}
         {caught === true ? (
           <Check
             size={16}
