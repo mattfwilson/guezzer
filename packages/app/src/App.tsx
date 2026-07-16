@@ -5,6 +5,7 @@ import { InstallBanner } from "./components/InstallBanner";
 import { PlaceholderView } from "./components/PlaceholderView";
 import { UpdateToast } from "./components/UpdateToast";
 import { DexView } from "./dex/DexView.tsx";
+import { ExploreView } from "./explore/ExploreView.tsx";
 import { requestPersistenceOnce } from "./pwa/persist.ts";
 import { useHashRoute } from "./routing/useHashRoute";
 import { SettingsView } from "./settings/SettingsView.tsx";
@@ -39,14 +40,17 @@ export function App() {
   return (
     <>
       {/* Show Mode owns a full-height non-scrolling orbit (SHOW-13, Pitfall 5),
-          so `#/show` disables AppShell's `<main>` scroll. Dex scrolls (06-06);
-          Explore keeps the scrolling placeholder until Phase 7. */}
+          so `#/show` disables AppShell's `<main>` scroll. Explore's constellation
+          canvas owns all its gestures too (07-UI-SPEC §Layout region 1), so
+          `#/explore` also mounts non-scrolling. Dex scrolls (06-06). */}
       <AppShell
         onMenuClick={() => setMenuOpen(true)}
-        scroll={route !== "show"}
+        scroll={route !== "show" && route !== "explore"}
       >
         {route === "show" ? (
           <ShowView />
+        ) : route === "explore" ? (
+          <ExploreView />
         ) : route === "settings" ? (
           <SettingsView />
         ) : route === "dex" ? (
