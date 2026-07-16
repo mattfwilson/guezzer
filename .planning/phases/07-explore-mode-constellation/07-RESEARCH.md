@@ -381,17 +381,19 @@ Not applicable — this is a **pure read/derive/render phase**. Additive-only, w
 
 All D-06/D-07 data-driven defaults are `[VERIFIED]`, not assumed. Library API is `[VERIFIED]` against the official README. The only open items are physics/threshold *aesthetics*, all config-tunable and covered by the planned spike.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does `LABEL_AT_REST_TOP_K = 8` crowd small screens?**
    - What we know: D-15 zoom-gating is the decided strategy; UI-SPEC allows K=0.
    - What's unclear: whether even 8 at-rest labels jitter-crowd during settle on a 375px-wide screen.
    - Recommendation: run the canvas-label spike (early plan task) on a real phone; set K from the result. Not a blocker — start at 8, tune down.
+   - **RESOLVED:** wired into Plan 07-03 as the on-device canvas-label spike (`autonomous: false` device checkpoint); `LABEL_AT_REST_TOP_K` starts at 8 in config and is tuned from the spike result before the polish slices depend on it.
 
 2. **Filter-exempt focused-node injection mechanics (Pitfall 6).**
    - What we know: focused node must always render even when filtered out.
    - What's unclear: cleanest implementation — inject into `graphData.nodes` vs. an overlay draw.
    - Recommendation: inject the focused node (+ its neighbor edges) into the graphData the canvas receives; let the planner spec it as a derived "visible set = filtered ∪ {focus, neighbors}".
+   - **RESOLVED:** adopted by Plan 07-04 — the visible set is derived as `filtered ∪ {focus, neighbors}`, injecting the focused node and its neighbor edges into the graphData the canvas receives (see 07-04 focus-dim task).
 
 ## Environment Availability
 
