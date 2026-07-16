@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Show Mode** - The full one-thumb live loop: orbit predictions, logging, trail, tally, crash-proof persistence, wake lock (completed 2026-07-13)
 - [x] **Phase 5: Live Sync & Data Safety** - Polite 60s `latest` polling with suggest-only auto-fill, and prominent JSON export/import (plans complete; verification gaps_found 2026-07-13 — PWA-04 import-into-populated-DB data loss) (completed 2026-07-13)
 - [x] **Phase 6: Pokédex, History & Stats** - Derived dex, retroactive attendance, gap/rarity stats, post-show recap, dex sharing (completed 2026-07-16)
-- [ ] **Phase 7: Explore Mode Constellation** - Force-directed transition graph fed from the same matrix artifact, with dex overlay
+- [x] **Phase 7: Explore Mode Constellation** - Force-directed transition graph fed from the same matrix artifact, with dex overlay (completed 2026-07-16)
 
 ## Phase Details
 
@@ -245,7 +245,7 @@ Plans:
   4. Physics settles and freezes; labels never jitter permanently
   5. The dex overlays the constellation: unseen songs as dimmed silhouettes, seen songs at full color with sighting-count badges
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 **UI hint**: yes
 
 Plans:
@@ -276,7 +276,7 @@ Plans:
 
 **Wave 6** *(blocked on 07-06)*
 
-- [ ] 07-07-PLAN.md — Full Explore-loop device verification (checkpoint)
+- [x] 07-07-PLAN.md — Full Explore-loop device verification (checkpoint)
 
 ## Progress
 
@@ -293,7 +293,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. Show Mode | 7/7 | Complete    | 2026-07-13 |
 | 5. Live Sync & Data Safety | 6/6 | Complete    | 2026-07-14 |
 | 6. Pokédex, History & Stats | 12/12 | Complete    | 2026-07-16 |
-| 7. Explore Mode Constellation | 6/7 | In Progress|  |
+| 7. Explore Mode Constellation | 7/7 | Complete   | 2026-07-16 |
 
 ---
 *Roadmap created: 2026-07-08*
