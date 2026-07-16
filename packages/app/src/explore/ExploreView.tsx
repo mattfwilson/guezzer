@@ -51,8 +51,6 @@ export function ExploreView() {
   // Dex overlay is ON by default (D-10): the constellation opens as the Pokédex
   // made spatial. The switch (07-06 Task 2, via the filter panel) toggles it.
   const [dexOverlay, setDexOverlay] = useState(true);
-  // Silence "declared but unused" until the Task-2 filter switch wires setter.
-  void setDexOverlay;
 
   // The live dex — the SINGLE derivation path (useLiveQuery inside re-renders on a
   // Dex mark, recoloring the sky with zero second pipeline). Never blocks the
@@ -118,9 +116,13 @@ export function ExploreView() {
         bar,
         targetName: target?.name ?? "",
         targetTuningFamily: target?.tuningFamily ?? "other",
+        // Caught-tick (B2): only when the overlay is active, so the panel mirrors
+        // the sky's semantics (OFF → undefined → no leading indicator). Same
+        // single dex path as the canvas — no second derivation.
+        caught: dexOverlayActive ? sightingsFor(bar.songId) > 0 : undefined,
       };
     });
-  }, [ranked, nodeById]);
+  }, [ranked, nodeById, dexOverlayActive, sightingsFor]);
 
   // Guarded-load failure → the calm error state (never a throw). Split from the
   // success path so the discriminated union narrows cleanly.
@@ -191,6 +193,8 @@ export function ExploreView() {
         onViewChange={setView}
         edgeThreshold={edgeThreshold}
         onEdgeThresholdChange={setEdgeThreshold}
+        dexOverlay={dexOverlay}
+        onDexOverlayChange={setDexOverlay}
       />
 
       {focusId != null && focusNode && ranked && (

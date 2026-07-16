@@ -29,6 +29,9 @@ interface ExploreFilterFabProps {
   onViewChange: (view: ExploreView) => void;
   edgeThreshold: number;
   onEdgeThresholdChange: (threshold: number) => void;
+  /** Dex overlay on? (DEX-05/D-10, ON by default). Forwarded to the panel switch. */
+  dexOverlay: boolean;
+  onDexOverlayChange: (on: boolean) => void;
 }
 
 export function ExploreFilterFab({
@@ -38,6 +41,8 @@ export function ExploreFilterFab({
   onViewChange,
   edgeThreshold,
   onEdgeThresholdChange,
+  dexOverlay,
+  onDexOverlayChange,
 }: ExploreFilterFabProps) {
   // Clear the app BottomTabBar (h-16 = 64px) + a small gap + the home-indicator
   // inset. NO SUGGESTION_STRIP_HEIGHT term (Show-Mode-only chrome). The tab bar /
@@ -57,6 +62,8 @@ export function ExploreFilterFab({
           onViewChange={onViewChange}
           edgeThreshold={edgeThreshold}
           onEdgeThresholdChange={onEdgeThresholdChange}
+          dexOverlay={dexOverlay}
+          onDexOverlayChange={onDexOverlayChange}
         />
       )}
 

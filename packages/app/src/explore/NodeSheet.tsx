@@ -29,6 +29,12 @@ export interface SheetBar {
   bar: OutgoingBar;
   targetName: string;
   targetTuningFamily: TuningFamily;
+  /**
+   * Dex-overlay caught state (07-06/B2): `true`/`false` when the overlay is
+   * active (green Check / hollow circle), `undefined` when it's OFF so the row
+   * shows no leading indicator — the panel mirrors the sky's current semantics.
+   */
+  caught?: boolean;
 }
 
 interface NodeSheetProps {
@@ -171,6 +177,7 @@ export function NodeSheet({
               total={total}
               targetName={b.targetName}
               targetTuningFamily={b.targetTuningFamily}
+              caught={b.caught}
               onSelect={onSelect}
             />
           ))}
