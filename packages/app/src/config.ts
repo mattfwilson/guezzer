@@ -151,6 +151,43 @@ export const config = {
     OWNER_NAME_MAX_LENGTH: 40,
   },
 
+  /**
+   * Phase-7 Explore constellation RENDER constants (07-UI-SPEC §Config surface).
+   * All [ASSUMED] — spike-tunable starting points (the physics/label values are
+   * validated/tuned by the on-device canvas-label spike in plan 07-03). The
+   * pure-derivation constants (rotation window, edge threshold, bars top-N) live
+   * in @guezzer/core config; only canvas/render geometry lives here. Single
+   * source per CLAUDE.md — no Explore component hardcodes any of these.
+   */
+  explore: {
+    /** [ASSUMED] World-unit min node radius; radius = MIN + sqrt(playCount) clamped to MAX. */
+    NODE_RADIUS_MIN: 4,
+    /** [ASSUMED] World-unit max node radius (the biggest-playCount star). */
+    NODE_RADIUS_MAX: 14,
+    /** [ASSUMED] Screen-space pointer-area floor in px (÷ globalScale → world) — 44px tap equivalence regardless of visual radius (SHOW-02 orb-floor analog). */
+    NODE_HIT_MIN_RADIUS_PX: 22,
+    /** [ASSUMED] globalScale at which all zoom-gated labels fade in (D-15; spike-tunable). */
+    LABEL_ZOOM_THRESHOLD: 1.5,
+    /** [ASSUMED] globalScale at which sighting-count numbers draw inside rings (D-11). */
+    COUNT_ZOOM_THRESHOLD: 2.5,
+    /** [ASSUMED] Biggest nodes (by play count) labeled at rest (D-15; the spike may set this to 0). */
+    LABEL_AT_REST_TOP_K: 8,
+    /** [ASSUMED] Canvas label ellipsis point in chars — the focused node is exempt (renders its full name). */
+    LABEL_MAX_CHARS: 18,
+    /** [ASSUMED] Dex-dim (unseen silhouette) node fill opacity when overlay ON (§B4). */
+    DEX_DIM_OPACITY: 0.35,
+    /** [ASSUMED] Focus-dim opacity for everything outside the focused node's neighborhood (§B4/EXPL-05). */
+    FOCUS_DIM_OPACITY: 0.12,
+    /** [ASSUMED] Bars bottom-sheet partial peek height as a fraction of the viewport (D-14). */
+    SHEET_PEEK_FRACTION: 0.4,
+    /** [ASSUMED] d3AlphaDecay — settle-and-freeze physics (EXPL-06; spike-tunable). */
+    ALPHA_DECAY: 0.035,
+    /** [ASSUMED] d3VelocityDecay — settle-and-freeze physics (EXPL-06; spike-tunable). */
+    VELOCITY_DECAY: 0.45,
+    /** [ASSUMED] cooldownTicks before onEngineStop freezes every node's fx/fy (EXPL-06; spike-tunable). */
+    COOLDOWN_TICKS: 200,
+  },
+
   /** UI-SPEC §Copywriting Contract. */
   copy: {
     installBanner: {
@@ -527,6 +564,56 @@ export const config = {
         rarestLabel: "Rarest catch",
         latestLabel: "Latest show",
       },
+    },
+
+    /**
+     * Phase-7 Explore copy (07-UI-SPEC §Copywriting Contract) — verbatim. The
+     * throughline is "honest numbers, your sky": raw history with real counts
+     * and dates (D-01/D-02), never model-flavored pseudo-probabilities outside
+     * a show context. N is NEVER hardcoded — callers pass
+     * `config.explore.ROTATION_WINDOW_SHOWS` (core) into `rotationHelper`, and
+     * the bars collapse label interpolates `config.explore.BARS_TOP_N`. No
+     * component under packages/app/src/explore may hardcode a Phase-7 string —
+     * they READ these keys. kglw-derived song names render as escaped React
+     * text / canvas fillText only (never HTML injection).
+     */
+    explore: {
+      /** Filter FAB accessible label (the FAB is deliberately not an accent CTA — D-09). */
+      filterFabAria: "Explore filters",
+      /** Filter panel — segmented view toggle (Rotation default, D-03/D-12). */
+      toggleRotation: "Rotation",
+      toggleFull: "Full catalog",
+      /** Filter panel — rotation helper. N interpolated from config.explore.ROTATION_WINDOW_SHOWS (never hardcoded). */
+      rotationHelper: (n: number): string => `Songs from the last ${n} shows.`,
+      /** Filter panel — edge slider label; {x} is the live tabular-nums value readout beside the thumb. */
+      edgeSliderLabel: (x: number): string => `Played together ≥ ${x}×`,
+      /** Filter panel — dex-overlay switch (ON default, D-10). */
+      overlaySwitch: "My dex overlay",
+      /** Sheet header subline — all-time play count (Label, muted, tabular-nums). */
+      sheetSubline: (playCount: number): string => `Played ${playCount}× all-time`,
+      /**
+       * Bar "why" line (D-02) — straight off the edge record, zero new
+       * derivation. Appends the hard-segue clause ONLY when segueCount > 0.
+       */
+      barWhy: (count: number, total: number, lastDate: string, segueCount: number): string =>
+        `Played ${count} of ${total} times after this song · last ${lastDate}` +
+        (segueCount > 0 ? ` · ${segueCount} hard segues` : ""),
+      /** Bars expander (D-04) — reveals the long tail. {n} = full outgoing count. */
+      barsExpander: (n: number): string => `Show all ${n}`,
+      /** Bars collapse — {n} interpolated from config.explore.BARS_TOP_N (never hardcoded). */
+      barsCollapse: (n: number): string => `Show top ${n}`,
+      /** Sheet — no-outgoing-edges state (honest zero, not an error; node stays a free-floating star per D-08). */
+      noOutgoingHeading: "No next songs on record",
+      noOutgoingBody: (song: string): string =>
+        `Nothing has followed ${song} within a set — yet.`,
+      /** Sheet — muted one-line note under the bars (D-03): filters are visual-only. */
+      filtersNote: "Complete history — filters only shape the map.",
+      /** Empty state — rotation view yields zero nodes (corpus edge case). */
+      rotationEmptyHeading: "Nothing in rotation",
+      rotationEmptyBody: "No shows in the archive yet — switch to Full catalog.",
+      /** Error state — matrix load failure (mirrors the Phase-4 model-load pattern; blocks only this view). */
+      errorHeading: "Couldn't load the constellation.",
+      errorBody: "Reopen Guezzer to try again.",
     },
   },
 } as const;

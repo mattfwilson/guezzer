@@ -280,4 +280,51 @@ export const config = {
       "/albums/teenage-gizzard",
     ],
   },
+
+  // --- Phase 7: Explore Mode constellation — pure-derivation constants ---
+  // Data-driven defaults (D-06/D-07) measured against the shipped artifacts
+  // (07-RESEARCH §Data-Driven Defaults, recomputed 2026-07-16). Unlike the
+  // [ASSUMED] Phase-2 model knobs, these are [VERIFIED] against real corpus
+  // density — re-run the measurement if the corpus is refreshed. Derivation
+  // constants live in CORE (this file); rendering constants live app-side.
+  explore: {
+    /**
+     * [VERIFIED] D-05/D-06 (07-RESEARCH §Data-Driven Defaults): last-N-shows
+     * rotation window. Distinct songs in the last N shows of archive.json:
+     * N=4→40, N=5→56, N=6→71, N=7→84 (breaches the ~40–80 readable band).
+     * N=5 lands mid-band at 56 nodes and reads naturally ("the last five
+     * shows" ≈ the current tour leg). Config-only — no UI slider (D-12).
+     */
+    ROTATION_WINDOW_SHOWS: 5,
+
+    /**
+     * [VERIFIED] D-07 (07-RESEARCH §Data-Driven Defaults): edge slider default
+     * ("played together ≥ X times"). 1,946 of 2,987 corpus edges (65%) are
+     * one-play edges — exactly the misleading 100%-from-one-play class D-07
+     * exists to kill. Threshold ≥2 removes all of them by construction,
+     * leaving a legible 56-node / 174-edge default sky within the N=5
+     * rotation subgraph (≥3 would thin it to 103 edges).
+     */
+    EDGE_COUNT_THRESHOLD_DEFAULT: 2,
+
+    /**
+     * [VERIFIED] D-07: edge slider lower bound (count ≥ X). Minimum 1 restores
+     * the full truth — every observed transition — for whoever wants it.
+     */
+    EDGE_SLIDER_MIN: 1,
+
+    /**
+     * [VERIFIED] D-07: edge slider upper bound. Max observed count is 224, but
+     * ≥10 already thins to 133 edges catalog-wide — deeper cuts add nothing
+     * legible, so the slider caps at 10.
+     */
+    EDGE_SLIDER_MAX: 10,
+
+    /**
+     * [VERIFIED] D-04: ranked outgoing bars shown before the "Show all N"
+     * expander. rankOutgoing returns the COMPLETE history; the app slices to
+     * this top-N for the initial sheet view.
+     */
+    BARS_TOP_N: 10,
+  },
 } as const;
