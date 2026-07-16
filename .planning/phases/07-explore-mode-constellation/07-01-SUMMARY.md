@@ -118,7 +118,9 @@ None - no external service configuration required. This plan is pure read/derive
 - Core stays React/DOM-free (verified: `lib: ["ES2023"]` typecheck green, no react/window/document imports in `explore/`).
 - Real-corpus data-driven default (N=5 → 56) is guarded by a test — a corpus refresh that changes density will fail loudly.
 
-## Self-Check
+## Self-Check: PASSED
+
+All 6 created source/test files exist on disk; all task commits (`96f1833`, `7d99bf1`, `5f4c9dd`, `7c59ea0`, `18e3076`) plus the metadata commit (`44f2054`) are present in git history. Full suite green (480 tests, +10 new), core + app typecheck clean (exit 0), core purity verified (no react/window/document imports in `explore/`).
 
 ---
 *Phase: 07-explore-mode-constellation*
