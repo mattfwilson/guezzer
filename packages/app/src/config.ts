@@ -153,8 +153,10 @@ export const config = {
 
   /**
    * Phase-7 Explore constellation RENDER constants (07-UI-SPEC §Config surface).
-   * All [ASSUMED] — spike-tunable starting points (the physics/label values are
-   * validated/tuned by the on-device canvas-label spike in plan 07-03). The
+   * Label/zoom + settle-freeze values were validated on the owner's iPhone 16 Pro
+   * in the plan 07-03 device spike (2026-07-16) and carry a [VERIFIED] marker; the
+   * spike also surfaced that d3's tight force defaults clump ~264 nodes, so the
+   * CHARGE_STRENGTH / LINK_DISTANCE spacing levers were added and tuned there. The
    * pure-derivation constants (rotation window, edge threshold, bars top-N) live
    * in @guezzer/core config; only canvas/render geometry lives here. Single
    * source per CLAUDE.md — no Explore component hardcodes any of these.
@@ -166,11 +168,11 @@ export const config = {
     NODE_RADIUS_MAX: 14,
     /** [ASSUMED] Screen-space pointer-area floor in px (÷ globalScale → world) — 44px tap equivalence regardless of visual radius (SHOW-02 orb-floor analog). */
     NODE_HIT_MIN_RADIUS_PX: 22,
-    /** [ASSUMED] globalScale at which all zoom-gated labels fade in (D-15; spike-tunable). */
+    /** [VERIFIED: device spike 2026-07-16] globalScale at which all zoom-gated labels fade in (D-15) — confirmed comfortable on device. */
     LABEL_ZOOM_THRESHOLD: 1.5,
-    /** [ASSUMED] globalScale at which sighting-count numbers draw inside rings (D-11). */
+    /** [VERIFIED: device spike 2026-07-16] globalScale at which sighting-count numbers draw inside rings (D-11) — confirmed on device. */
     COUNT_ZOOM_THRESHOLD: 2.5,
-    /** [ASSUMED] Biggest nodes (by play count) labeled at rest (D-15; the spike may set this to 0). */
+    /** [VERIFIED: device spike 2026-07-16] Biggest nodes (by play count) labeled at rest (D-15) — top-8 confirmed legible, not crowding, at 375px. */
     LABEL_AT_REST_TOP_K: 8,
     /** [ASSUMED] Canvas label ellipsis point in chars — the focused node is exempt (renders its full name). */
     LABEL_MAX_CHARS: 18,
@@ -180,12 +182,33 @@ export const config = {
     FOCUS_DIM_OPACITY: 0.12,
     /** [ASSUMED] Bars bottom-sheet partial peek height as a fraction of the viewport (D-14). */
     SHEET_PEEK_FRACTION: 0.4,
-    /** [ASSUMED] d3AlphaDecay — settle-and-freeze physics (EXPL-06; spike-tunable). */
+    /** [VERIFIED: device spike 2026-07-16] d3AlphaDecay — settle-and-freeze confirmed smooth (motion stops & freezes) on device. */
     ALPHA_DECAY: 0.035,
-    /** [ASSUMED] d3VelocityDecay — settle-and-freeze physics (EXPL-06; spike-tunable). */
+    /** [VERIFIED: device spike 2026-07-16] d3VelocityDecay — settle-and-freeze confirmed smooth on device. */
     VELOCITY_DECAY: 0.45,
-    /** [ASSUMED] cooldownTicks before onEngineStop freezes every node's fx/fy (EXPL-06; spike-tunable). */
+    /** [VERIFIED: device spike 2026-07-16] cooldownTicks before onEngineStop freezes every node's fx/fy — settle completes on device. */
     COOLDOWN_TICKS: 200,
+    /**
+     * [device spike 2026-07-16] d3 many-body charge strength (negative = repulsion).
+     * d3's default (~-30) clumps ~264 nodes into an unreadable ball; this stronger
+     * repulsion spreads the sky so edges/connections are legible. Tuned on device.
+     */
+    CHARGE_STRENGTH: -400,
+    /**
+     * [device spike 2026-07-16] d3 link (edge) target distance in world units.
+     * d3's default (~30) pulls connected nodes tight; a longer rest length gives
+     * each transition edge room to read. Tuned on device.
+     */
+    LINK_DISTANCE: 90,
+    /**
+     * [device spike 2026-07-16] px padding around the connected main grouping when
+     * the constellation auto-frames on settle (zoomToFit). The frame targets nodes
+     * that carry at least one edge, so free-floating stars (common once the edge
+     * slider hides weak edges in a later slice) never drag the zoom out.
+     */
+    ZOOM_TO_FIT_PADDING_PX: 60,
+    /** [device spike 2026-07-16] ms ease for the on-load zoom-to-fit camera move (0 = instant). */
+    ZOOM_TO_FIT_DURATION_MS: 600,
   },
 
   /** UI-SPEC §Copywriting Contract. */

@@ -91,6 +91,40 @@ export function ConstellationCanvas({
     return () => ro.disconnect();
   }, []);
 
+  // Spread the sky (07-03 device spike): d3-force's tight defaults (charge ~-30,
+  // link distance ~30) clump ~264 nodes into an unreadable ball. Push the charge
+  // repulsion and link rest-length out — from config, no magic numbers — so edges
+  // and connections are legible. Configured imperatively via the sim's forces (the
+  // library exposes no charge/link-distance props) and reheated so it takes effect
+  // on the first settle. Once onEngineStop pins fx/fy, later reheats are inert, so
+  // a resize never reshuffles the frozen layout.
+  useEffect(() => {
+    const fg = fgRef.current;
+    if (!fg) return;
+    const charge = fg.d3Force("charge") as
+      | { strength(s: number): unknown }
+      | undefined;
+    charge?.strength(config.explore.CHARGE_STRENGTH);
+    const link = fg.d3Force("link") as
+      | { distance(d: number): unknown }
+      | undefined;
+    link?.distance(config.explore.LINK_DISTANCE);
+    fg.d3ReheatSimulation();
+  }, [graphData, size.width, size.height]);
+
+  // Node ids that carry at least one edge — the "main grouping" the on-load camera
+  // frames. Uses the immutable fromId/toId copies, never the post-tick-mutated
+  // source/target (Pitfall 1). Free-floating stars (common once the edge slider
+  // hides weak edges in a later slice) are excluded so they never drag the fit out.
+  const connectedIds = useMemo(() => {
+    const ids = new Set<number>();
+    for (const l of graphData.links) {
+      ids.add(l.fromId);
+      ids.add(l.toId);
+    }
+    return ids;
+  }, [graphData]);
+
   // Top-K-by-playCount label set computed ONCE (memoized off graphData), never per
   // draw call. These biggest nodes carry labels even at rest (D-15).
   const topKIds = useMemo(() => {
@@ -174,6 +208,11 @@ export function ConstellationCanvas({
           nodeCanvasObject={nodeCanvasObject}
           nodeCanvasObjectMode={() => "replace"}
           nodePointerAreaPaint={nodePointerAreaPaint}
+          // Freeze-and-explore, not rearrange: disable node dragging so a finger on
+          // an orb never grabs it. This also hands multi-touch straight to d3-zoom,
+          // so pinch-to-zoom works cleanly (node-drag was intercepting the gesture
+          // on touch). A tap still fires onNodeClick — tap behaviour is unchanged.
+          enableNodeDrag={false}
           // Directed, count-weighted neutral edges (§B3). Width clamps to 4px max.
           linkColor={() => EDGE_COLOR}
           linkWidth={(l: FgLink) =>
@@ -193,6 +232,14 @@ export function ConstellationCanvas({
               n.fx = n.x;
               n.fy = n.y;
             }
+            // Frame the connected main grouping cleanly on load (D-15 reads at this
+            // rest zoom). Falls back to fitting all nodes if there are no edges.
+            // Runs at settle; the layout is frozen so the frame never drifts after.
+            fgRef.current?.zoomToFit(
+              config.explore.ZOOM_TO_FIT_DURATION_MS,
+              config.explore.ZOOM_TO_FIT_PADDING_PX,
+              (n: FgNode) => connectedIds.size === 0 || connectedIds.has(n.id),
+            );
           }}
         />
       )}
