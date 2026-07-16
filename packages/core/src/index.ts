@@ -235,6 +235,29 @@ export {
 } from "./dex/search-archive.ts";
 
 /**
+ * Phase 7 Explore constellation core (plan 07-01). Three pure, DOM-free,
+ * fixture-tested derivations over the SAME `transition-matrix.json` / `archive`
+ * artifacts the predictor and dex already consume (one pipeline, CLAUDE.md):
+ * `deriveConstellation` reshapes the matrix into the force-graph `{nodes, links}`
+ * (mutation-safe fromId/toId, EXPL-01); `edgesAtThreshold` is the D-08 render-pass
+ * edge filter (node population preserved); `rankOutgoing` yields a node's complete
+ * raw outgoing history — never `predict()` (EXPL-02/D-01..D-04). The renderer
+ * (`react-force-graph-2d`) and rotation/dex wiring live app-side.
+ */
+export {
+  deriveConstellation,
+  edgesAtThreshold,
+  type ConstellationNode,
+  type ConstellationLink,
+  type ConstellationData,
+} from "./explore/derive-constellation.ts";
+export {
+  rankOutgoing,
+  type OutgoingBar,
+  type RankedOutgoing,
+} from "./explore/rank-outgoing.ts";
+
+/**
  * Phase 6 online recent-show fallback (plan 06-08). `fetchRecentShows` is the
  * polite, tolerant fetch for POST-corpus shows (mirrors pollLatest's never-throw
  * tier + reuses assertFilterApplied) — returns `{ shows, songs }` where the
