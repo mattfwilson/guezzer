@@ -1,15 +1,19 @@
 ---
 phase: 06-pok-dex-history-stats
-verified: 2026-07-16T15:10:00Z
-status: human_needed
-score: 9/9 must-have truths verified (automated); 2 narrow device re-UAT confirmations pending (deferred by plan 06-12 to the next UAT round)
+verified: 2026-07-16T16:40:00Z
+status: passed
+score: 9/9 must-have truths verified (automated); both device re-UAT confirmations passed on iOS (tests 8 & 9)
 overrides_applied: 0
+device_uat:
+  - "Test 8 (Phantom Island art): PASS — user approved the 2025 studio-album cover"
+  - "Test 9 (offline covers): PASS — all covers persist in airplane mode after the clientsClaim fix"
+  followup_fix: "8424e6e — device re-UAT of the 06-12 offline fix surfaced that the built SW had no clients.claim(); first-session cover fetches bypassed the precache offline (only the 2 sub-4KB Vite-inlined covers survived). Set workbox.clientsClaim=true (skipWaiting stays false, registerType 'prompt' preserved). Re-confirmed on device: all covers persist offline."
 re_verification:
   previous_status: human_needed
   previous_score: 5/5 (automated)
   gaps_closed:
-    - "Airplane-mode archive/dex browse works fully offline including album covers (06-HUMAN-UAT gap 1, major)"
-    - "Every studio album card shows its correct studio-release cover art (06-HUMAN-UAT gap 2, minor — Phantom Island)"
+    - "Airplane-mode archive/dex browse works fully offline including album covers (06-HUMAN-UAT gap 1, major) — confirmed on device (test 9)"
+    - "Every studio album card shows its correct studio-release cover art (06-HUMAN-UAT gap 2, minor — Phantom Island) — confirmed on device (test 8)"
   gaps_remaining: []
   regressions: []
 warnings:
@@ -33,9 +37,9 @@ human_verification:
 # Phase 6: Pokédex, History & Stats — Re-Verification Report
 
 **Phase Goal:** The user's live-show history becomes a browsable collection — every sighting count derived from attendance, every stat honest about sparse data, and the whole dex shareable with friends.
-**Verified:** 2026-07-16T15:10:00Z
-**Status:** human_needed (2 narrow device re-UAT items only; all automated must-haves pass)
-**Re-verification:** Yes — after human UAT (4 passed / 2 issues) and gap-closure plan 06-12
+**Verified:** 2026-07-16T16:40:00Z
+**Status:** passed (all automated must-haves pass; both device re-UAT items confirmed on iOS)
+**Re-verification:** Yes — after human UAT (4 passed / 2 issues), gap-closure plan 06-12, and follow-up SW fix 8424e6e (clientsClaim, surfaced by device re-UAT)
 
 ## Re-Verification Context
 

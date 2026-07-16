@@ -1,14 +1,14 @@
 ---
-status: partial
+status: complete
 phase: 06-pok-dex-history-stats
 source: [06-VERIFICATION.md]
 started: 2026-07-15T00:10:00Z
-updated: 2026-07-16T15:15:00Z
+updated: 2026-07-16T16:40:00Z
 ---
 
 ## Current Test
 
-[awaiting device re-test of the two 06-12 fixes]
+[testing complete — all gaps resolved and confirmed on device]
 
 ## Tests
 
@@ -68,14 +68,15 @@ note: "User: Phantom Island cover approved."
 
 ### 9. Re-test: offline covers after clientsClaim fix (8424e6e)
 expected: Open the app online (accept the update prompt if shown, otherwise reload once), then enable airplane mode and browse the dex shelf and an album drill-in — ALL album covers render, including in a first-ever browser session.
-result: [pending]
+result: pass
+note: "User: all covers persist in airplane mode, approved."
 
 ## Summary
 
 total: 9
-passed: 5
+passed: 6
 issues: 3
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 
@@ -83,8 +84,8 @@ blocked: 0
 
 - truth: "Airplane-mode archive/dex browse works fully offline including album covers"
   status: resolved
-  resolved_by: 06-12 (webp added to workbox globPatterns — 27 covers in SW precache manifest, 2 sub-4 KB covers inlined in JS bundle; CoverThumb onError → initials fallback)
-  pending_retest: test 7
+  resolved_by: 06-12 (webp in workbox globPatterns; CoverThumb onError → initials fallback) + 8424e6e (clientsClaim so first-session covers serve from SW cache offline)
+  confirmed_on_device: test 9 (all covers persist in airplane mode)
   reason: "User reported: when i went into airplane mode the album covers in dex didn't show properly/showed a ?"
   severity: major
   test: 2
@@ -94,7 +95,7 @@ blocked: 0
 - truth: "Every studio album card shows its correct studio-release cover art"
   status: resolved
   resolved_by: 06-12 (findReleaseGroupMbid prefers primary-type Album; phantom-island re-fetched from Album release group 716f0986-f131-4e3c-a140-55845bbded3c)
-  pending_retest: test 8
+  confirmed_on_device: test 8 (user approved Phantom Island cover)
   reason: "User reported: the 'Phantom Island' cover seems to be pulling possibly their older EP version, vs the studio released album cover"
   severity: minor
   test: 5
