@@ -1,6 +1,6 @@
 ---
 phase: 07-explore-mode-constellation
-reviewed: 2026-07-16T00:00:00Z
+reviewed: 2026-07-16T22:51:20Z
 depth: standard
 files_reviewed: 17
 files_reviewed_list:
@@ -22,169 +22,149 @@ files_reviewed_list:
   - packages/core/test/explore/rotation.test.ts
 findings:
   critical: 0
-  warning: 4
-  info: 4
-  total: 8
+  warning: 3
+  info: 3
+  total: 6
 status: issues_found
 ---
 
 # Phase 7: Code Review Report
 
-**Reviewed:** 2026-07-16
+**Reviewed:** 2026-07-16T22:51:20Z
 **Depth:** standard
 **Files Reviewed:** 17
 **Status:** issues_found
 
 ## Summary
 
-Phase 7 builds the Explore Mode constellation: three pure-core derivations
-(`deriveConstellation`, `rankOutgoing`, `rotationSongIds` + the `edgesAtThreshold`
-helper) and an app-side canvas render surface (`ConstellationCanvas`), filter FAB,
-ranked-bars `NodeSheet`, and dex overlay. The core purity constraint holds — the
-three derivations have zero React/DOM imports and read only injected data. The
-security posture is clean: every kglw-derived song name reaches the screen either
-as escaped React text (`RankedBar`, `NodeSheet`) or via `ctx.fillText` on the
-canvas (`ConstellationCanvas`), never `innerHTML`/`dangerouslySetInnerHTML`; there
-is no `eval`, no dynamic URL/path construction, and the view is pure read/derive/
-render with no Dexie writes. Config mirroring between `packages/app/src/config.ts`
-and `packages/core/src/config.ts` (BARS_TOP_N=10, ROTATION_WINDOW_SHOWS=5,
-EDGE_* bounds) is internally consistent — no drift bug.
+Reviewed the Phase-7 Explore constellation slice: three pure core derivations
+(`deriveConstellation`, `rankOutgoing`, `rotationSongIds`) plus their tests, and the
+app-tier render/interaction layer (canvas, filter FAB/panel, node sheet, ranked bars,
+`ExploreView` orchestration). Also spot-checked the two `config.ts` files and the core
+barrel.
 
-No BLOCKER-severity defects were proven. The findings are correctness/robustness
-edge cases (camera-vs-focus interaction on resize, rotation tie-break determinism)
-and accessibility/quality gaps (keyboard-inaccessible sheet dismissal, a covered
-FAB, a dead exported helper). Null/undefined guards, division-by-zero guards
-(`total ? ... : 0`), and the `fromId`/`toId` mutation-safety discipline (Pitfall 1)
-are all correctly applied.
+Overall the code is careful, well-typed, and defensive: the core functions correctly read
+immutable `fromId`/`toId` copies (Pitfall 1), handle zero-outgoing and empty-archive edge
+cases without throwing, sort deterministically, and hold to the pure-core/no-DOM boundary.
+Song names reach the canvas via `ctx.fillText` and reach the DOM via React text only — no
+`innerHTML`/`eval`/injection surface. React hooks are all called unconditionally before the
+early return. No security vulnerabilities, crashes, or data-loss paths were found —
+**no BLOCKER-tier findings.**
+
+The defects that remain are maintainability and silent-degradation risks: an unenforced
+app↔core config mirror that can drift, a couple of silent-fallback data-integrity gaps, and
+several stale docstrings that describe now-live controls as inert.
 
 ## Warnings
 
-### WR-01: NodeSheet has no keyboard/AT-accessible dismissal or focus-clear path
+### WR-01: App/core config mirror has no drift enforcement
 
-**File:** `packages/app/src/explore/NodeSheet.tsx:130-159`, `packages/app/src/explore/ExploreView.tsx:159-162`
-**Issue:** The sheet can only be dismissed by a pointer drag on the `<header>`
-grab surface (`onPointerDown/Move/Up`), and focus can only be cleared by an
-`onBackgroundClick` on the canvas. There is no close button, no `Escape` handler,
-and the grab handle is a non-focusable `<div>`/`<header>`. A keyboard or
-screen-reader user can Tab into the `RankedBar` buttons and chain-hop, but has no
-way to close the `role="dialog"` sheet or clear the focused node — the constellation
-canvas itself is not keyboard-reachable. Grep confirms zero `onKeyDown`/`Escape`
-handlers anywhere under `packages/app/src/explore`.
-**Fix:** Add a keyboard-operable dismissal, e.g. an Escape listener while the sheet
-is mounted plus a visually-hidden close button:
-```tsx
-useEffect(() => {
-  const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-  window.addEventListener("keydown", onKey);
-  return () => window.removeEventListener("keydown", onKey);
-}, [onClose]);
-```
-Consider also a focusable close control (`<button aria-label={copy.close}>`) in the
-header so the dismiss affordance isn't pointer-only.
-
-### WR-02: Resize/orientation change while a node is focused snaps the camera off the focused node
-
-**File:** `packages/app/src/explore/ConstellationCanvas.tsx:180-192, 251-270, 482-501`
-**Issue:** The charge/link force effect (line 180) re-runs on `size.width/size.height`
-change and calls `fg.d3ReheatSimulation()`. Because every node is pinned (`fx/fy`
-set at `onEngineStop`), the reheat settles quickly and fires `onEngineStop` again,
-which unconditionally calls `zoomToFit(...)`. When this happens while `focusId` is
-set (e.g. the user rotates the phone with the NodeSheet open), the fit override runs
-after the focus-camera effect and re-frames the whole connected/visible set, pulling
-the viewport off the focused node — the opposite of the D-13 "focused node sits at
-FOCUS_TARGET_TOP_FRACTION" contract. The focus-camera effect (line 251) does re-run
-on `size.height`, but `onEngineStop` fires asynchronously afterward and wins.
-**Fix:** Guard `zoomToFit` in `onEngineStop` so it only frames on the initial settle,
-not on post-focus reheats:
-```tsx
-onEngineStop={() => {
-  for (const raw of graphData.nodes) { const n = raw as FgNode; n.fx = n.x; n.fy = n.y; }
-  if (focusId != null) return; // a focused reheat must not steal the camera
-  fgRef.current?.zoomToFit(/* ... */);
-}}
-```
-(Track "has fit once" in a ref if you also want to suppress refit on every resize.)
-
-### WR-03: rotationSongIds tie-breaks equal dates by array order — the exact Pitfall-5 nondeterminism it claims to defend against
-
-**File:** `packages/core/src/explore/rotation.ts:18-21`
-**Issue:** The comparator `(a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)`
-returns `0` for two shows with the same `date`, so `.sort()` falls back to the
-archive's array order for ties. When same-date shows straddle the `slice(0, N)`
-window boundary, *which* same-date show is included becomes archive-order-dependent —
-precisely the "silently read a different show if ordering changes" failure the
-docstring says it prevents. Real corpus dates are usually unique so the practical
-risk is low, but the invariant the function advertises is not actually guaranteed.
-**Fix:** Add a deterministic secondary key (e.g. show `id`) to the comparator:
+**File:** `packages/app/src/config.ts:227-265` (and `packages/core/src/config.ts:290-329`)
+**Issue:** Five Explore constants (`BARS_TOP_N`, `ROTATION_WINDOW_SHOWS`,
+`EDGE_COUNT_THRESHOLD_DEFAULT`, `EDGE_SLIDER_MIN`, `EDGE_SLIDER_MAX`) plus
+`dex.OWNER_NAME_MAX_LENGTH` are duplicated between `packages/app/src/config.ts` and
+`packages/core/src/config.ts`, each annotated "MIRRORS ... the two MUST stay equal." No
+test or type binds them — no app or core test asserts equality (`packages/core/test/*`
+never imports the app config; `packages/app/test/` only touches `settingsOwner`). This is a
+real drift-to-bug path, not just cosmetics: e.g. if `core.dex.OWNER_NAME_MAX_LENGTH` is
+lowered but the app `maxLength` is not, the Settings input accepts a name the core schema
+then hard-rejects at import, and a legitimate backup fails to merge. CLAUDE.md's
+single-source-of-truth ethos is only partially honored — core's `config` is simply not
+re-exported from the barrel (`packages/core/src/index.ts`), which is what forced the copy.
+**Fix:** Either re-export the pure constants from `@guezzer/core` and import them app-side
+(preferred — kills the copy), or add a cross-package test that imports both configs and
+asserts each mirrored key is equal, so drift fails CI loudly:
 ```ts
-.sort((a, b) =>
-  a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id,
-)
+// packages/app/test/configMirror.test.ts
+import { config as core } from "@guezzer/core/config"; // (export it, or a thin re-export)
+import { config as app } from "../src/config.ts";
+it("explore + dex mirror keys stay equal", () => {
+  expect(app.explore.BARS_TOP_N).toBe(core.explore.BARS_TOP_N);
+  expect(app.explore.ROTATION_WINDOW_SHOWS).toBe(core.explore.ROTATION_WINDOW_SHOWS);
+  expect(app.explore.EDGE_COUNT_THRESHOLD_DEFAULT).toBe(core.explore.EDGE_COUNT_THRESHOLD_DEFAULT);
+  expect(app.explore.EDGE_SLIDER_MIN).toBe(core.explore.EDGE_SLIDER_MIN);
+  expect(app.explore.EDGE_SLIDER_MAX).toBe(core.explore.EDGE_SLIDER_MAX);
+  expect(app.dex.OWNER_NAME_MAX_LENGTH).toBe(core.dex.OWNER_NAME_MAX_LENGTH);
+});
 ```
 
-### WR-04: NodeSheet occludes the ExploreFilterFab while a node is focused
+### WR-02: `sheetBars` silently renders blank, dead bars for unresolved edge targets
 
-**File:** `packages/app/src/explore/ExploreView.tsx:189-209`, `packages/app/src/explore/ExploreFilterFab.tsx:50-57`, `packages/app/src/explore/NodeSheet.tsx:135`
-**Issue:** Both the FAB (`fixed z-30`, `bottom: calc(... + 64px + 8px)`, right-anchored)
-and the NodeSheet (`fixed inset-x-0 bottom-0 z-30`, peek height = 40% of viewport,
-full width) share `z-30`. The sheet is rendered later in `ExploreView`'s JSX, so it
-paints on top, and its 40%-of-viewport peek covers the FAB's ~72px bottom offset.
-Result: once a node is focused, the filter controls (view toggle, edge slider, dex
-overlay) are unreachable until the user dismisses the sheet — which per WR-01 is
-itself pointer-only. The two primary interaction surfaces of the view fight for the
-same corner.
-**Fix:** Either lift the FAB above the sheet (`z-40` on the FAB and/or offset it above
-the current sheet height) or intentionally suppress the FAB while a node is focused so
-the interaction model is explicit rather than an accidental overlap.
+**File:** `packages/app/src/explore/ExploreView.tsx:111-125`
+**Issue:** Each ranked bar's target is resolved via `nodeById.get(bar.songId)`, with
+`targetName: target?.name ?? ""` and `targetTuningFamily: target?.tuningFamily ?? "other"`.
+The inline comment asserts the invariant ("Every matrix edge target is a matrix node, so
+every bar resolves here"), but nothing validates it. `rankOutgoing` reads `matrix.edges`
+directly while `nodeById` is built from `matrix.nodes`; if a build artifact ever ships an
+edge whose `to` references a songId absent from `nodes`, the user gets a blank-named,
+still-tappable chain-hop bar that focuses a node the canvas can't resolve (`focusNode`
+becomes `undefined`, so the sheet then unmounts on the next focus — a confusing dead-end).
+The failure is silent, masked by the `?? ""` fallback.
+**Fix:** Make the invariant enforced or observable rather than silently swallowed — e.g.
+drop unresolved bars and surface the drift in dev:
+```ts
+return ranked.bars.flatMap((bar) => {
+  const target = nodeById.get(bar.songId);
+  if (!target) {
+    if (import.meta.env.DEV) console.warn(`Explore: edge target ${bar.songId} has no node`);
+    return [];
+  }
+  return [{ bar, targetName: target.name, targetTuningFamily: target.tuningFamily,
+    caught: dexOverlayActive ? sightingsFor(bar.songId) > 0 : undefined }];
+});
+```
+
+### WR-03: Stale docstrings describe now-live controls as inert/reserved
+
+**File:** `packages/app/src/explore/ExploreFilterPanel.tsx:14-19,38-44,114-115`; `packages/app/src/explore/ExploreFilterFab.tsx:32-34`; `packages/app/src/explore/RankedBar.tsx:16-19,84-85`
+**Issue:** Several docstrings still describe features that are now wired live.
+`ExploreFilterPanel` claims the dex-overlay row "renders as a disabled row now (the label
+reads, the control is inert)" and "Omitted this slice → the row renders disabled/inert,"
+and `RankedBar` states "This slice never passes it, so nothing draws yet" for the
+caught-tick. But `ExploreView` passes `onDexOverlayChange={setDexOverlay}` (so
+`overlayReserved` is always `false` and the switch is fully interactive) and passes `caught`
+through `sheetBars` when the overlay is active (so the tick does draw). A maintainer
+trusting these comments may treat a shipped, user-facing control as dead code and
+refactor/skip-test it. Comments that misstate live behavior are a latent-bug source, not a
+style nit.
+**Fix:** Update the three docstrings to describe the wired-live state (overlay switch and
+caught-tick are active; `overlayReserved` / `caught === undefined` are only the fallbacks
+when a parent omits the handler), or delete the now-obsolete "reserved slot" narration.
 
 ## Info
 
-### IN-01: Exported, tested `edgesAtThreshold` is dead in the app; the predicate is re-implemented inline
-
-**File:** `packages/core/src/explore/derive-constellation.ts:87-92`, `packages/app/src/explore/ConstellationCanvas.tsx:454-458`
-**Issue:** `edgesAtThreshold` is exported from the core barrel and covered by
-`derive-constellation.test.ts`, but the app never imports it (grep finds it only
-inside a code comment in `ConstellationCanvas.tsx`). The canvas instead inlines
-`l.count >= edgeThreshold` in `linkVisibility`. The array-returning helper and the
-per-link predicate can't literally be the same call, but the threshold comparison is
-duplicated and the exported function is currently unused product code.
-**Fix:** Either drop the export (keep it as an internal test-only helper) or refactor
-the shared predicate into a single `edgeAtThreshold(l, t)` used by both the array
-filter and the canvas `linkVisibility`, so the `>=` rule has one home.
-
-### IN-02: Unused `_cfg` parameter in deriveConstellation
+### IN-01: Unused `_cfg` parameter in `deriveConstellation`
 
 **File:** `packages/core/src/explore/derive-constellation.ts:55-58`
-**Issue:** `deriveConstellation(matrix, _cfg = config)` never reads `_cfg`. The
-docstring frames it as forward-compat scaffolding, and the `_` prefix signals
-intent, but it is dead surface today.
-**Fix:** Acceptable as-is given the stated convention; drop the parameter if the
-config-driven derivation isn't imminent, to keep the signature honest.
+**Issue:** `deriveConstellation(matrix, _cfg: typeof config = config)` never reads `_cfg`.
+It's an intentional forward-compat seam (underscore-prefixed, documented), but it's dead
+weight today and slightly misleads callers into thinking derivation is config-driven.
+**Fix:** Acceptable as an intentional seam; if YAGNI is preferred, drop the parameter until
+a config-driven derivation actually needs it.
 
-### IN-03: Focus camera never restores zoom/center on defocus
+### IN-02: `rotationSongIds` boundary is order-dependent for same-date shows
 
-**File:** `packages/app/src/explore/ConstellationCanvas.tsx:251-270, 459-461`
-**Issue:** Focusing a node eases the camera to `FOCUS_ZOOM_K` and re-centers it, but
-`onBackgroundClick` / clearing `focusId` only removes the dim — the effect early-returns
-when `focusId == null` and never zooms back out. The user is left magnified on the
-former focus with no automatic return to the settled overview.
-**Fix:** On `focusId → null`, ease back toward the settled frame (re-run `zoomToFit`
-with the same duration/padding, or cache and restore the pre-focus zoom/center).
+**File:** `packages/core/src/explore/rotation.ts:18-21`
+**Issue:** The sort comparator returns `0` for equal dates, so when the N-show window
+boundary falls between multiple shows on the *same* date, which show is included depends on
+the artifact's array order — the exact thing the sort was added to stop trusting. Low impact
+(only affects the marginal Nth show, and archive dates are usually distinct), but the
+"never trust array order" claim in the docstring isn't fully honored at ties.
+**Fix:** Add a deterministic tiebreak, e.g. fall back to `show.id` on equal dates so the
+window is fully deterministic regardless of input ordering.
 
-### IN-04: role="dialog" without focus management
+### IN-03: Focus camera effect omits `size.width` from its dependency array
 
-**File:** `packages/app/src/explore/NodeSheet.tsx:130-143`
-**Issue:** The sheet declares `role="dialog" aria-modal={false}` but does not move
-focus into the sheet on open or return it on close, and (per WR-01) exposes no
-focusable dismiss control. `aria-modal={false}` is the correct honest choice for a
-non-modal peek, but AT users get an announced dialog they cannot enter or leave by
-keyboard.
-**Fix:** Pair with the WR-01 Escape/close-button fix; optionally move focus to the
-sheet header (a focusable element) on open and restore focus to the previously
-focused node/control on close.
+**File:** `packages/app/src/explore/ConstellationCanvas.tsx:251-270`
+**Issue:** The focus pan/zoom effect lists `[focusId, graphData, size.height]` but reads
+only `size.height`, so it's currently correct. Flagged only because the sibling charge/link
+effect (line 192) tracks both dimensions — the asymmetry is easy to misread as a bug and
+could become one if the effect later starts using horizontal extent.
+**Fix:** None required today; add `size.width` if/when horizontal centering logic is added,
+to keep the two effects' dependency intent consistent.
 
 ---
 
-_Reviewed: 2026-07-16_
+_Reviewed: 2026-07-16T22:51:20Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
