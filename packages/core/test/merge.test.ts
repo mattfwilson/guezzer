@@ -309,6 +309,125 @@ describe("parseAndMergeImport — same-show dedupe (D-11)", () => {
   });
 });
 
+describe("parseAndMergeImport — same-night self-merge unions entries (CR-01 / D-10)", () => {
+  it("adopts local-unique songs onto the canonical session when the LOCAL session is the smaller one (multi-device self-merge)", () => {
+    // Device A (local) tracked night 999 with songs {1,2,3}; Device B
+    // (incoming, same owner) tracked the SAME night with songs {4,5,6,7}.
+    // D-11 collapses the night to ONE attendance (canonical = dev-b, richer),
+    // but D-10 demands every local sighting survive: the merged night must be
+    // the UNION {1..7}, exactly what deriveDex would produce were both
+    // sessions present.
+    const local: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "dev-a", showId: 999 })],
+      trackedEntries: [
+        entry({ sessionId: "dev-a", position: 1, songId: 1, songName: "L1" }),
+        entry({ sessionId: "dev-a", position: 2, songId: 2, songName: "L2" }),
+        entry({ sessionId: "dev-a", position: 3, songId: 3, songName: "L3" }),
+      ],
+    };
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "dev-b", showId: 999 })],
+      trackedEntries: [
+        entry({ sessionId: "dev-b", position: 1, songId: 4, songName: "B4" }),
+        entry({ sessionId: "dev-b", position: 2, songId: 5, songName: "B5" }),
+        entry({ sessionId: "dev-b", position: 3, songId: 6, songName: "B6" }),
+        entry({ sessionId: "dev-b", position: 4, songId: 7, songName: "B7" }),
+      ],
+    };
+    const result = parseAndMergeImport(rawExport(incoming), local, SCHEMA_VERSION);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // Still ONE attendance for the night (D-11), richer session canonical.
+      expect(result.merged.trackedShows).toHaveLength(1);
+      expect(result.merged.trackedShows[0].sessionId).toBe("dev-b");
+      // EVERY local sighting survives (D-10): union of both devices' songs.
+      const songIds = result.merged.trackedEntries
+        .map((e) => e.songId)
+        .sort((a, b) => (a ?? 0) - (b ?? 0));
+      expect(songIds).toEqual([1, 2, 3, 4, 5, 6, 7]);
+      // Adopted entries are re-stamped onto the canonical session…
+      expect(
+        result.merged.trackedEntries.every((e) => e.sessionId === "dev-b"),
+      ).toBe(true);
+      // …with UNIQUE positions (Dexie [sessionId+position] compound index).
+      const posKeys = new Set(
+        result.merged.trackedEntries.map((e) => `${e.sessionId} ${e.position}`),
+      );
+      expect(posKeys.size).toBe(7);
+      // Metrics: only the four incoming songs are "added" — re-stamped local
+      // entries are not new.
+      expect(result.added.songs).toBe(4);
+      expect(result.added.shows).toBe(0);
+    }
+  });
+
+  it("does NOT double-count a song both devices logged for the same night, keeping the canonical session's copy", () => {
+    const local: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "dev-a", showId: 999 })],
+      trackedEntries: [
+        entry({ sessionId: "dev-a", position: 1, songId: 1, songName: "OnlyLocal" }),
+        entry({ sessionId: "dev-a", position: 2, songId: 2, songName: "Shared (local copy)" }),
+      ],
+    };
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "dev-b", showId: 999 })],
+      trackedEntries: [
+        entry({ sessionId: "dev-b", position: 1, songId: 2, songName: "Shared (canonical copy)" }),
+        entry({ sessionId: "dev-b", position: 2, songId: 3, songName: "B3" }),
+        entry({ sessionId: "dev-b", position: 3, songId: 4, songName: "B4" }),
+      ],
+    };
+    const result = parseAndMergeImport(rawExport(incoming), local, SCHEMA_VERSION);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const songIds = result.merged.trackedEntries
+        .map((e) => e.songId)
+        .sort((a, b) => (a ?? 0) - (b ?? 0));
+      // Union without double-counting the shared song 2.
+      expect(songIds).toEqual([1, 2, 3, 4]);
+      // The canonical (richer) session's copy of the duplicate stands.
+      const shared = result.merged.trackedEntries.find((e) => e.songId === 2);
+      expect(shared?.songName).toBe("Shared (canonical copy)");
+    }
+  });
+
+  it("preserves a local placeholder (songId null) from the dropped session — never provably a duplicate", () => {
+    const local: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "dev-a", showId: 999 })],
+      trackedEntries: [
+        entry({
+          sessionId: "dev-a",
+          position: 1,
+          songId: null,
+          songName: "???",
+          isPlaceholder: true,
+        }),
+      ],
+    };
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "dev-b", showId: 999 })],
+      trackedEntries: [
+        entry({ sessionId: "dev-b", position: 1, songId: 5, songName: "B5" }),
+        entry({ sessionId: "dev-b", position: 2, songId: 6, songName: "B6" }),
+      ],
+    };
+    const result = parseAndMergeImport(rawExport(incoming), local, SCHEMA_VERSION);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.merged.trackedEntries).toHaveLength(3);
+      const placeholder = result.merged.trackedEntries.find((e) => e.isPlaceholder);
+      expect(placeholder).toBeDefined();
+      expect(placeholder?.sessionId).toBe("dev-b"); // re-stamped onto canonical
+    }
+  });
+});
+
 describe("parseAndMergeImport — migration chain + metrics", () => {
   it("merges a v1 file unchanged through the identity (v1→v1) chain", () => {
     const incoming: ExportSnapshot = {
