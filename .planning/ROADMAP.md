@@ -262,7 +262,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. App Shell & PWA Foundation | 4/4 | Complete    | 2026-07-09 |
 | 4. Show Mode | 7/7 | Complete    | 2026-07-13 |
 | 5. Live Sync & Data Safety | 6/6 | Complete    | 2026-07-14 |
-| 6. Pokédex, History & Stats | 12/12 | Complete   | 2026-07-16 |
+| 6. Pokédex, History & Stats | 12/12 | Complete    | 2026-07-16 |
 | 7. Explore Mode Constellation | 0/TBD | Not started | - |
 
 ---

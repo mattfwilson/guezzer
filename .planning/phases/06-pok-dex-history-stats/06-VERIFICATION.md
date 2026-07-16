@@ -25,13 +25,13 @@ warnings:
     affects: "Latent only. Both current call sites are safe: AlbumGrid keys cards by stable item.key; AlbumDetail fully unmounts between opens"
     severity: warning
     note: "Advisory. Fix suggested in 06-REVIEW.md (render-time failedSlug reset or key={slug} contract)."
-human_verification:
+human_verification_resolved:
   - test: "Re-UAT (UAT test 2 scope, fix confirmation): online-load the rebuilt PWA once, accept the SW update prompt, then enable airplane mode and browse #/dex shelf + album drill-in"
     expected: "All album covers render offline — no broken-image '?'; any cover that genuinely fails degrades to the initials placeholder"
-    why_human: "Service-worker precache behavior on a real installed device cannot be confirmed by grep/jsdom — the original gap was found on device despite a prior code-level pass. Deferred by plan 06-12 to the next UAT round."
+    result: "PASS on iOS (06-HUMAN-UAT test 9) after follow-up SW fix 8424e6e (clientsClaim)"
   - test: "Re-UAT (UAT test 5 scope, fix confirmation): view the Phantom Island card on the album shelf"
     expected: "The card shows the 2025 studio-album cover art, not the 2024 Single/EP art"
-    why_human: "Final art correctness is visual. Automated evidence is strong (manifest provenance points at the Album release group; re-encoded webp visually shows island-fortress album art) but the user is the arbiter of 'correct cover'. Deferred by plan 06-12 to the next UAT round."
+    result: "PASS on iOS (06-HUMAN-UAT test 8) — user approved the cover"
 ---
 
 # Phase 6: Pokédex, History & Stats — Re-Verification Report
