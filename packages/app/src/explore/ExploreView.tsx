@@ -15,7 +15,7 @@
  * FULL catalog; rotation-as-default and the edge slider arrive in later slices.
  * No Dexie writes (pure read/derive/render).
  */
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Telescope } from "lucide-react";
 import {
   deriveConstellation,
@@ -25,6 +25,7 @@ import {
 } from "@guezzer/core";
 import { config } from "../config.ts";
 import { loadArchive } from "../dex/archive-loader.ts";
+import { useDexStats } from "../dex/useDexStats.ts";
 import { loadMatrix } from "../show/matrix.ts";
 import { ConstellationCanvas } from "./ConstellationCanvas.tsx";
 import { ExploreFilterFab } from "./ExploreFilterFab.tsx";
@@ -47,9 +48,26 @@ export function ExploreView() {
   // Filter panel open? Owned HERE (not the FAB) so a canvas tap can collapse it
   // without a scrim — the graph must stay live while sliding (D-09).
   const [filterOpen, setFilterOpen] = useState(false);
+  // Dex overlay is ON by default (D-10): the constellation opens as the Pokédex
+  // made spatial. The switch (07-06 Task 2, via the filter panel) toggles it.
   const [dexOverlay, setDexOverlay] = useState(true);
-  // Silence "declared but unused" until the 07-06 dex overlay reads them.
-  void [dexOverlay, setDexOverlay];
+  // Silence "declared but unused" until the Task-2 filter switch wires setter.
+  void setDexOverlay;
+
+  // The live dex — the SINGLE derivation path (useLiveQuery inside re-renders on a
+  // Dex mark, recoloring the sky with zero second pipeline). Never blocks the
+  // constellation: a not-ready / errored dex degrades to the neutral view (D-10),
+  // so the overlay is only *active* once the derivation is genuinely ready.
+  const dexStats = useDexStats();
+  const dexReady = dexStats.ready && dexStats.error == null && dexStats.dex != null;
+  const dexOverlayActive = dexOverlay && dexReady;
+  const sightingsFor = useCallback(
+    (songId: number): number =>
+      dexReady && dexStats.dex
+        ? dexStats.dex.perSong.get(songId)?.sightings ?? 0
+        : 0,
+    [dexReady, dexStats.dex],
+  );
 
   // Derive once, keyed on the (stable, memoized) load result. Null unless the
   // matrix loaded — hooks must run unconditionally, so the branch lives inside.
@@ -149,6 +167,8 @@ export function ExploreView() {
         onFocus={handleFocus}
         visibleNodeIds={visibleNodeIds}
         edgeThreshold={edgeThreshold}
+        overlay={dexOverlayActive}
+        sightingsFor={sightingsFor}
       />
 
       {/* Rotation-empty corpus edge case — a calm overlay, not an error. The

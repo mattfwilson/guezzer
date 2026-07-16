@@ -57,6 +57,28 @@ const FOCUS_RING_COLOR = "#F2C14E";
 /** Focused node + neighbor labels render in text-primary (§Color, §Typography). */
 const FOCUS_LABEL_COLOR = "#F5F5F7";
 
+/** hit-green (§B2) — caught sighting ring + count pill; reused, never re-derived. */
+const SIGHTING_RING_COLOR = "#22C55E";
+
+/** Dark surface (#0C0C10) — the count-pill text on the green fill (clears 4.5:1). */
+const SIGHTING_COUNT_TEXT = "#0C0C10";
+
+/**
+ * Desaturate a `#RRGGBB` fill to its grayscale-luminance equivalent (§B4 dex-dim
+ * silhouette). Rec-601 luma so the unseen star keeps its relative brightness but
+ * loses all tuning hue — "dim = dex", unambiguous against the caught full-color
+ * sky. Non-hex input (never expected from `tuningColor`) falls through unchanged.
+ */
+function grayscaleOf(hex: string): string {
+  const h = hex.replace("#", "");
+  if (h.length !== 6) return hex;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  const luma = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+  return `rgb(${luma}, ${luma}, ${luma})`;
+}
+
 /** Fully-typed node/link the canvas callbacks receive after the engine augments them with x/y/fx/fy. */
 type FgNode = NodeObject<ConstellationNode>;
 type FgLink = LinkObject<ConstellationNode, ConstellationLink>;
@@ -83,6 +105,8 @@ export function ConstellationCanvas({
   onFocus,
   visibleNodeIds,
   edgeThreshold,
+  overlay = false,
+  sightingsFor,
 }: {
   /** The pure-core-derived `{nodes, links}` — owned by the graph once passed (Pitfall 1). */
   graphData: ConstellationData;
@@ -90,6 +114,23 @@ export function ConstellationCanvas({
   focusId: number | null;
   /** Tap a node → focus it; tap empty canvas → clear (passes null). */
   onFocus: (songId: number | null) => void;
+  /**
+   * DEX-05/D-10 dex overlay — ON by default in ExploreView (the constellation
+   * opens as the Pokédex made spatial). When ON, caught songs keep full tuning
+   * color + a green sighting ring, unseen songs render as `DEX_DIM_OPACITY`
+   * grayscale silhouettes. When OFF, every node is neutral full tuning color
+   * (dim = data, not dex). A PURE render-pass flag — toggling it never rebuilds
+   * `graphData` and never reheats (`useDexStats`/`useLiveQuery` already re-renders
+   * on a Dex mark, recoloring the sky live with zero second derivation).
+   */
+  overlay?: boolean;
+  /**
+   * Live sightings accessor from `useDexStats` (`dex.perSong.get(id)?.sightings`),
+   * the SINGLE dex derivation path. `> 0` → caught. Only read when `overlay` is
+   * ON; omitted/undefined behaves as "no sightings" so the canvas degrades to the
+   * neutral view if the dex derivation ever errors (never blocks the sky).
+   */
+  sightingsFor?: (songId: number) => number;
   /**
    * Slice-3 seam (Pitfall 6): the filtered node population to draw. `null`/omitted
    * draws the full catalog. The focused node + its neighbors are ALWAYS drawn
@@ -237,20 +278,46 @@ export function ConstellationCanvas({
     const r = radiusFor(node.playCount);
     const focused = node.id === focusId;
     const neighbor = focusId != null && neighborIds.has(node.id);
-    // Everything outside the focused neighborhood fades to 0.12 — fill, ring, and
-    // label alike (§B4). globalAlpha carries the dim through every draw below.
-    ctx.save();
-    ctx.globalAlpha = isInNeighborhood(node.id)
+
+    // Dex-overlay state (DEX-05/§B4). Only meaningful when `overlay` is ON; OFF →
+    // caught/unseen both false, so every node stays neutral full tuning color
+    // (dim = data, not dex). `sightingsFor` is the single dex path (useDexStats).
+    const sightings = overlay && sightingsFor ? sightingsFor(node.id) : 0;
+    const caught = overlay && sightings > 0;
+    const unseen = overlay && sightings === 0;
+
+    // Two-dim contract (§B4): focus-dim (0.12 outside the focused neighborhood)
+    // and dex-dim (0.35 unseen silhouette) combine by the MINIMUM opacity, NEVER
+    // by multiplication — an unseen non-neighbor reads at 0.12, not 0.35 × 0.12,
+    // so the two states never compound into an illegible mud. globalAlpha carries
+    // the resolved dim through every draw below (fill, rings, count, label).
+    const focusAlpha = isInNeighborhood(node.id)
       ? 1
       : config.explore.FOCUS_DIM_OPACITY;
+    const dexAlpha = unseen ? config.explore.DEX_DIM_OPACITY : 1;
+    ctx.save();
+    ctx.globalAlpha = Math.min(focusAlpha, dexAlpha);
 
-    // 1. Node fill — tuning-family data color (§B1), null → neutral fallback.
+    // 1. Node fill — full tuning-family color (§B1) when caught / overlay OFF; a
+    //    grayscale-luminance silhouette when unseen under the overlay (dex-dim).
     ctx.beginPath();
     ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
-    ctx.fillStyle = tuningColor(node.tuningFamily);
+    const baseColor = tuningColor(node.tuningFamily);
+    ctx.fillStyle = unseen ? grayscaleOf(baseColor) : baseColor;
     ctx.fill();
 
-    // 2. Focus ring (§Color reserved list): a 2px screen-space gold stroke on the
+    // 2. Sighting ring (§B2): a caught node wears a 1.5px screen-space green ring
+    //    just outside its fill — the "you've caught this live" signal. Unseen
+    //    nodes get no ring (their dimmed silhouette is the whole statement).
+    if (caught) {
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, r + 1.5 / globalScale, 0, 2 * Math.PI);
+      ctx.lineWidth = 1.5 / globalScale;
+      ctx.strokeStyle = SIGHTING_RING_COLOR;
+      ctx.stroke();
+    }
+
+    // 3. Focus ring (§Color reserved list): a 2px screen-space gold stroke on the
     //    focused node only — the constellation's one-active-selection signal.
     if (focused) {
       ctx.beginPath();
@@ -260,7 +327,39 @@ export function ConstellationCanvas({
       ctx.stroke();
     }
 
-    // 3. Label. The focused node + its neighbors are ALWAYS labeled regardless of
+    // 4. Sighting count (D-11): draw the number inside a small green pill above a
+    //    caught node ONLY past COUNT_ZOOM_THRESHOLD — no 264-badge soup at rest.
+    //    Reuses the 07-03-verified zoom gate (same globalScale mechanism labels
+    //    use). fillText only — canvas text is inherently non-executing (T-07-02).
+    if (caught && globalScale >= config.explore.COUNT_ZOOM_THRESHOLD) {
+      const label = String(sightings);
+      const fontPx = 11 / globalScale;
+      ctx.font = `600 ${fontPx}px ${FONT_STACK}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const padX = 4 / globalScale;
+      const padY = 2 / globalScale;
+      const textW = ctx.measureText(label).width;
+      const pillW = textW + padX * 2;
+      const pillH = fontPx + padY * 2;
+      const cx = node.x;
+      const cy = node.y - r - pillH / 2 - 2 / globalScale;
+      const rad = pillH / 2;
+      // Rounded-rect pill via arcTo (roundRect isn't universally available).
+      ctx.beginPath();
+      ctx.moveTo(cx - pillW / 2 + rad, cy - pillH / 2);
+      ctx.arcTo(cx + pillW / 2, cy - pillH / 2, cx + pillW / 2, cy + pillH / 2, rad);
+      ctx.arcTo(cx + pillW / 2, cy + pillH / 2, cx - pillW / 2, cy + pillH / 2, rad);
+      ctx.arcTo(cx - pillW / 2, cy + pillH / 2, cx - pillW / 2, cy - pillH / 2, rad);
+      ctx.arcTo(cx - pillW / 2, cy - pillH / 2, cx + pillW / 2, cy - pillH / 2, rad);
+      ctx.closePath();
+      ctx.fillStyle = SIGHTING_RING_COLOR;
+      ctx.fill();
+      ctx.fillStyle = SIGHTING_COUNT_TEXT;
+      ctx.fillText(label, cx, cy);
+    }
+
+    // 5. Label. The focused node + its neighbors are ALWAYS labeled regardless of
     //    zoom (§B4/D-15), in text-primary semibold; the focused node shows its
     //    FULL name (ellipsis-exempt). Otherwise the zoom-gated / top-K-at-rest
     //    muted label rule (D-15) applies. Constant screen size via fontPx/scale.
@@ -315,11 +414,21 @@ export function ConstellationCanvas({
       : rgbaMuted(config.explore.FOCUS_DIM_OPACITY);
   };
 
+  // The actually-drawn population for the a11y label — the filter draw-gate hides
+  // some nodes (rotation view / edge slider leave free-floating stars), so the
+  // full catalog count would over-report. Counts the same set `nodeVisibility`
+  // draws (filtered ∪ {focus, neighbors}); cheap linear scan, render-only.
+  let shownCount = graphData.nodes.length;
+  if (visibleNodeIds != null) {
+    shownCount = 0;
+    for (const n of graphData.nodes) if (isNodeVisible(n.id)) shownCount += 1;
+  }
+
   return (
     <div
       ref={stageRef}
       role="img"
-      aria-label={`Song transition constellation — ${graphData.nodes.length} songs shown`}
+      aria-label={`Song transition constellation — ${shownCount} songs shown`}
       className="relative flex-1 touch-none select-none overflow-hidden bg-surface"
       style={{ overscrollBehavior: "none" }}
     >
