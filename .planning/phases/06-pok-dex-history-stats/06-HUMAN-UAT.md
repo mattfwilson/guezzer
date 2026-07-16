@@ -45,18 +45,37 @@ result: pass
 
 ### 7. Re-test: offline covers after 06-12 fix
 expected: Load the deployed app online once and accept the SW update prompt, then enable airplane mode and browse the dex shelf and an album drill-in — all album covers render (no broken-image "?"); if any single image somehow fails, it degrades to the initials placeholder.
-result: [pending]
+result: issue
+reported: "only certain covers persist once I enable airplane mode. for instance Float Along - Fill Your Lungs and Infest The Rats' Nest both persist but all the other covers show the placeholder abbreviations letters"
+severity: major
+diagnosis: |
+  The two persisting covers are exactly the two sub-4 KB files Vite inlines as
+  data: URIs in the JS bundle (immune to network state). The other 27 covers WERE
+  precached by the SW, but the built sw.js had no clients.claim() — Workbox
+  generateSW defaults clientsClaim to false and vite.config.ts never set it. On
+  first visit the SW installs and precaches everything but never takes control of
+  the already-open page, so all first-session image fetches bypass the SW and fail
+  offline (CoverThumb initials fallback caught them — no broken "?", fallback
+  working as designed). Fixed in 8424e6e: clientsClaim: true (skipWaiting stays
+  false + registerType 'prompt' preserved, so updated SWs still wait for user
+  approval — never swaps mid-show).
+retest: test 9
 
 ### 8. Re-test: Phantom Island studio art after 06-12 fix
 expected: View the Phantom Island card on the album shelf — it shows the 2025 studio-album cover (island-fortress art), not the 2024 Single art.
+result: pass
+note: "User: Phantom Island cover approved."
+
+### 9. Re-test: offline covers after clientsClaim fix (8424e6e)
+expected: Open the app online (accept the update prompt if shown, otherwise reload once), then enable airplane mode and browse the dex shelf and an album drill-in — ALL album covers render, including in a first-ever browser session.
 result: [pending]
 
 ## Summary
 
-total: 8
-passed: 4
-issues: 2
-pending: 2
+total: 9
+passed: 5
+issues: 3
+pending: 1
 skipped: 0
 blocked: 0
 
