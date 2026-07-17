@@ -114,6 +114,27 @@ export const config = {
       /** Dark scrim opacity (0–1) over the cover, using --color-surface, so body stays legible. */
       DIM_OPACITY: 0.75,
     },
+
+    /**
+     * Phase-8 POLISH: orbit choreography (owner 2026-07-17, "cinematic & sequenced").
+     * Prediction orbs fan out from behind the centre on a new current song; each
+     * orb floats subtly in place; tapping one glides it to the centre while the
+     * rest dissolve, THEN the next fan spreads. Durations in ms (converted to the
+     * seconds `motion` wants at the call site). All honor prefers-reduced-motion.
+     */
+    orbitAnim: {
+      /** Fan-out duration in ms — orbs spread from the centre to their ring seats. */
+      FAN_OUT_MS: 620,
+      /** Per-rank stagger in ms so the fan opens sequentially (rank 0 first). */
+      FAN_OUT_STAGGER_MS: 70,
+      /** Collapse duration in ms — selected orb glides to centre, others dissolve;
+       *  the next fan is held until this elapses (sequential, owner choice). */
+      COLLAPSE_MS: 560,
+      /** Peak translate in px of an orb's subtle idle in-place float. */
+      FLOAT_PX: 6,
+      /** Idle-float loop period in ms (per-orb phase is offset so they don't sync). */
+      FLOAT_PERIOD_MS: 4200,
+    },
   },
 
   /**

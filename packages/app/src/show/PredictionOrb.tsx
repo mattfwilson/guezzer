@@ -112,20 +112,17 @@ export function PredictionOrb({
   };
 
   // The face-tap control and the "why" control are SIBLINGS inside a
-  // non-interactive positioning wrapper — never nested (WR-02). Nesting an
-  // interactive element inside the face <button> is invalid HTML and a WCAG
-  // name/role violation; as siblings each is a real, independently-labelled
-  // control (tap face → log SHOW-03; long-press face OR activate the sr-only
-  // why button → why, never logs, D-11).
+  // non-interactive wrapper — never nested (WR-02). Nesting an interactive
+  // element inside the face <button> is invalid HTML and a WCAG name/role
+  // violation; as siblings each is a real, independently-labelled control (tap
+  // face → log SHOW-03; long-press face OR activate the sr-only why button →
+  // why, never logs, D-11). Positioning + enter/exit motion is owned by the
+  // OrbitStage wrapper (this fills it, w-full/h-full); only the weak-fan
+  // softening (D-10) lives here.
   return (
     <div
-      className="absolute"
+      className="relative h-full w-full"
       style={{
-        left: layout.x,
-        top: layout.y,
-        width: layout.diameterPx,
-        height: layout.diameterPx,
-        transform: "translate(-50%, -50%)",
         opacity: isWeak ? 0.55 : 1,
         filter: isWeak ? "saturate(0.5)" : undefined,
       }}
