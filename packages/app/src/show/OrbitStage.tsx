@@ -29,6 +29,8 @@ import { PredictionOrb, type OrbitCandidate } from "./PredictionOrb.tsx";
 
 interface CurrentSong {
   songName: string;
+  /** Centre song's id — drives the CenterNode rarity-tier color (quick 260717-p4s). */
+  songId: number | null;
   tuningFamily: TuningFamily | null;
 }
 
@@ -242,7 +244,7 @@ export function OrbitStage({
         >
           <CenterNode
             songName={renderCenter?.songName ?? null}
-            tuningFamily={renderCenter?.tuningFamily ?? null}
+            songId={renderCenter?.songId ?? null}
             onOpenSearch={onOpenSearch}
           />
         </motion.div>

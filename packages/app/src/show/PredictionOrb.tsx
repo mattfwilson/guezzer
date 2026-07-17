@@ -6,7 +6,8 @@
  *   - Absolutely positioned at the layout's stage px, sized by `diameterPx`
  *     (≥ ORB_MIN_DIAMETER via layoutOrbs) with a `min-h-11 min-w-11` hit floor.
  *   - Face shows truncated song name + ABSOLUTE `formatOrbPercent(score)`
- *     (`tabular-nums`); family fill from `tuningColor`.
+ *     (`tabular-nums`); fill from the song's RARITY TIER (`rarityColor` via
+ *     `rarityTierForSong`, quick 260717-p4s) — no longer tuning family.
  *   - A quick face TAP → `onTap` (log path, SHOW-03). A LONG-PRESS on the face
  *     (config `ORB_LONG_PRESS_MS`) → `onWhy` and suppresses the trailing tap so a
  *     hold never also logs (D-11: the why path never logs). Native long-press
@@ -25,7 +26,7 @@ import { config } from "../config.ts";
 import type { OrbLayout } from "./orbitLayout.ts";
 import { formatOrbPercent } from "./confidence.ts";
 import { fitOrbLabel } from "./orbLabelFit.ts";
-import { ORB_TEXT_COLOR, tuningColor } from "./tuningColor.ts";
+import { RARITY_ORB_TEXT_COLOR, rarityColor, rarityTierForSong } from "../dex/rarityStyle.ts";
 
 /** A ranked candidate enriched with its tuning family (resolved from the matrix node in ShowView). */
 export interface OrbitCandidate extends PredictionCandidate {
@@ -54,7 +55,7 @@ export function PredictionOrb({
   onWhy,
   collapsing = false,
 }: PredictionOrbProps) {
-  const fill = tuningColor(candidate.tuningFamily);
+  const fill = rarityColor(rarityTierForSong(candidate.songId));
   const percent = formatOrbPercent(candidate.score);
 
   // D-21: wrap + scale-to-fit the full name to a config floor before ellipsis,
@@ -144,7 +145,7 @@ export function PredictionOrb({
         className="flex h-full w-full min-h-11 min-w-11 select-none flex-col items-center justify-center rounded-full px-1 text-center touch-manipulation motion-safe:transition-all motion-safe:duration-200"
         style={{
           backgroundColor: fill,
-          color: ORB_TEXT_COLOR,
+          color: RARITY_ORB_TEXT_COLOR,
           WebkitTouchCallout: "none",
         }}
       >

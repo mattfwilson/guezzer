@@ -25,9 +25,11 @@ import { selectFan } from "./orbitLayout.ts";
 import { isWeakFan } from "./confidence.ts";
 import type { OrbitCandidate } from "./PredictionOrb.tsx";
 
-/** The current centre song for the CenterNode — name + tuning family (null pre-opener). */
+/** The current centre song for the CenterNode — name, id (rarity color), + tuning family (null pre-opener). */
 export interface CurrentSong {
   songName: string;
+  /** The centre song's id — drives the CenterNode rarity-tier color (quick 260717-p4s). */
+  songId: number | null;
   tuningFamily: TuningFamily | null;
 }
 
@@ -97,6 +99,7 @@ export function useShowSession(): ShowSession {
     const currentSong: CurrentSong | null = currentEntry
       ? {
           songName: currentEntry.songName,
+          songId: currentEntry.songId ?? null,
           tuningFamily:
             index && currentEntry.songId != null
               ? (index.nodeById.get(currentEntry.songId)?.tuningFamily ?? null)

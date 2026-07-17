@@ -2,9 +2,9 @@
  * The comet trail (04-UI-SPEC §Layout region 2, SHOW-08). A fixed-height,
  * horizontally-scrollable strip below the header showing the most recent songs
  * as DIMINISHING nodes — the most recent nearest the orbit (rightmost + largest),
- * older ones smaller — each a SOLID dot filled with the song's TUNING-FAMILY
- * color (matching the main orbs, 04-UI-SPEC §Color B1) resolved from the bundled
- * matrix; a ??? / off-matrix entry falls back to the muted neutral. A hairline
+ * older ones smaller — each a SOLID dot filled with the song's RARITY-TIER
+ * color (matching the main orbs, quick 260717-p4s) resolved from the corpus
+ * rarity index; a ??? / off-matrix entry falls back to the debut gray. A hairline
  * timeline connects adjacent dots. The visible count FILLS the measured strip width
  * (ResizeObserver): many nodes on a wide desktop, ~`TRAIL_VISIBLE_RECENT` on a
  * narrow phone (also the fallback before the width is measured). The strip NEVER
@@ -26,22 +26,16 @@
 import { useCallback, useRef, useState } from "react";
 import { config } from "../config.ts";
 import type { TrackedEntry } from "../db/db.ts";
-import { tuningColor } from "./tuningColor.ts";
-import { getMatrixIndex, loadMatrix } from "./matrix.ts";
+import { rarityColor, rarityTierForSong } from "../dex/rarityStyle.ts";
 
 /**
- * The trail dot / sheet-ring fill for an entry: the song's TUNING-FAMILY color
- * (04-UI-SPEC §Color B1), matching the main orbs. Resolved from the bundled
- * matrix by songId; a ??? placeholder (songId null) or off-matrix song → null →
- * the muted neutral fallback. Never throws — guards `loadMatrix().ok` so
- * `getMatrixIndex()` is only called past the load guard.
+ * The trail dot / sheet-ring fill for an entry: the song's RARITY-TIER color
+ * (quick 260717-p4s), matching the main orbs. Resolved from the corpus rarity
+ * index by songId; a ??? placeholder (songId null) or off-matrix song → the
+ * neutral debut gray. Never throws — `rarityTierForSong` guards the index load.
  */
 function trailColor(entry: TrackedEntry): string {
-  const family =
-    entry.songId != null && loadMatrix().ok
-      ? (getMatrixIndex().nodeById.get(entry.songId)?.tuningFamily ?? null)
-      : null;
-  return tuningColor(family);
+  return rarityColor(rarityTierForSong(entry.songId));
 }
 
 interface CometTrailProps {
@@ -217,7 +211,7 @@ interface FullSetlistSheetProps {
 
 /**
  * The scrollable full-setlist sheet behind the "+N" chip (SHOW-08). Lists every
- * entry newest-first with its tuning-family ring + set number; each row taps through
+ * entry newest-first with its rarity-tier ring + set number; each row taps through
  * to the same TrailNodeSheet edit/delete/rename path. AppMenu overlay idiom.
  */
 function FullSetlistSheet({ entries, onClose, onNodeTap }: FullSetlistSheetProps) {
