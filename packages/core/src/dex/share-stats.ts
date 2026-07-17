@@ -11,8 +11,8 @@ import type { ArchiveArtifact } from "./archive-types.ts";
 import type { DexStats } from "./derive-dex.ts";
 import type { RarityTier } from "./rarity.ts";
 
-/** Tier render order — scarcest first (Legendary → Common), matching the card. */
-const TIER_ORDER: RarityTier[] = ["legendary", "rare", "uncommon", "common"];
+/** Tier render order — scarcest first (Legendary → Epic → Common), matching the card. */
+const TIER_ORDER: RarityTier[] = ["legendary", "epic", "rare", "uncommon", "common"];
 
 /** The flat, canvas-ready shape the share card draws — all figures pre-computed. */
 export interface ShareCardData {

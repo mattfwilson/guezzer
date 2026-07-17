@@ -41,13 +41,14 @@ export interface CompareResult {
 /** Rarest → least-rare, for trophy-first diff-list ordering; untiered sorts last. */
 const TIER_RARITY_RANK: Record<RarityTier, number> = {
   legendary: 0,
-  rare: 1,
-  uncommon: 2,
-  common: 3,
+  epic: 1,
+  rare: 2,
+  uncommon: 3,
+  common: 4,
 };
 
 function tierRank(tier: RarityTier | null): number {
-  return tier == null ? 4 : TIER_RARITY_RANK[tier];
+  return tier == null ? 5 : TIER_RARITY_RANK[tier];
 }
 
 /** The set of songIds a dex has actually caught (sightings > 0). */
@@ -60,7 +61,13 @@ function caughtSongIds(dex: DexStats): Set<number> {
 }
 
 function tierCounts(dex: DexStats, ids: Set<number>): Record<RarityTier, number> {
-  const counts: Record<RarityTier, number> = { common: 0, uncommon: 0, rare: 0, legendary: 0 };
+  const counts: Record<RarityTier, number> = {
+    common: 0,
+    uncommon: 0,
+    rare: 0,
+    epic: 0,
+    legendary: 0,
+  };
   for (const songId of ids) {
     const tier = dex.perSong.get(songId)?.tier ?? null;
     if (tier != null) counts[tier] += 1;

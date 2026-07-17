@@ -33,6 +33,7 @@ const TIER_COLOR: Record<RarityTier, string> = {
   common: "#A1A1AA",
   uncommon: "#60A5FA",
   rare: "#E879F9",
+  epic: "#FB923C", // NEW warm orange — between rare-magenta and legendary-gold; zero collision (matches TierBadge.tsx exactly)
   legendary: "#F2C14E",
 };
 

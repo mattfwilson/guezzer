@@ -558,6 +558,7 @@ export const config = {
         common: "Common",
         uncommon: "Uncommon",
         rare: "Rare",
+        epic: "Epic",
         legendary: "Legendary",
       },
       /** Debut-candidate pill (STAT-04, D-08) — replaces any tier/percentage for zero-history songs. */

@@ -37,8 +37,8 @@ const RING_COLOR: Record<string, string> = {
   miss: "#EF4444",
 };
 
-/** Tier-chip render order — scarcest first (Legendary → Common). */
-const TIER_ORDER: RarityTier[] = ["legendary", "rare", "uncommon", "common"];
+/** Tier-chip render order — scarcest first (Legendary → Epic → Common). */
+const TIER_ORDER: RarityTier[] = ["legendary", "epic", "rare", "uncommon", "common"];
 
 interface RecapViewProps {
   /** The finalized (or active-and-ending) session to score. */

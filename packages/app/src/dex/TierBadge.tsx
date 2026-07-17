@@ -17,6 +17,7 @@ const TIER_COLOR: Record<RarityTier | "debut", string> = {
   common: "#A1A1AA", // reuses text-muted — unremarkable by design
   uncommon: "#60A5FA", // NEW hue, zero collision elsewhere in the app
   rare: "#E879F9", // NEW hue, hotter than tuning C#-violet (never co-occur)
+  epic: "#FB923C", // NEW warm orange — sits between rare-magenta and legendary-gold; no collision with caught-green/tuning-violets
   legendary: "#F2C14E", // reuses accent gold — scarce by construction (D-15)
   debut: "#A1A1AA", // neutral — debut is a state, not a rarity
 };

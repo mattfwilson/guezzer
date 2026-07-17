@@ -19,9 +19,9 @@ import {
  *   show 300 (2020-03-01): 20,60
  * playCounts → 10:2 20:2 30:1 40:1 50:1 60:1 over 3 shows.
  *
- * With config quantiles { legendary: 0.05, rare: 0.20, uncommon: 0.50 } over
- * the 6 played songs (RARITY_MIN_PLAYS 3): rank0=30 would be legendary but is
- * capped to rare (playCount 1 < 3); 40=rare; 50=uncommon; 10/20/60=common.
+ * With tie-inclusive playCount bands (legendary=1, epic=2–3, rare=4–8, …):
+ * 30/40/50/60 (playCount 1) = legendary; 10/20 (playCount 2) = epic. The old
+ * min-plays cap is retired, so a single-play song is legendary now.
  */
 function baseArchive(): ArchiveArtifact {
   return syntheticArchive([
@@ -48,7 +48,7 @@ function derive(snapshot: Parameters<typeof deriveDex>[0]) {
 
 describe("buildShareStats — pure brag-card assembly (SHAR-02)", () => {
   it("pins every ShareCardData field for a fixture dex", () => {
-    // Attend show 100 → caught {10,20,30}; tiers 10/20 common, 30 rare (capped).
+    // Attend show 100 → caught {10,20,30}; tiers 10/20 epic (playCount 2), 30 legendary (playCount 1).
     const dex = derive(dexSnapshot({ attendedShows: [attendedShow({ show_id: 100, showDate: "2020-01-01" })] }));
     const card = buildShareStats(dex, archive);
 
@@ -57,13 +57,13 @@ describe("buildShareStats — pure brag-card assembly (SHAR-02)", () => {
     expect(card.total).toBe(6);
     expect(card.showCount).toBe(1);
 
-    // Rarest = lowest corpus play rate among caught {10:2,20:2,30:1} → song 30.
-    expect(card.rarestCatch).toEqual({ songName: "Song 30", tier: "rare" });
+    // Rarest = lowest playCount among caught {10:2,20:2,30:1} → song 30 (legendary).
+    expect(card.rarestCatch).toEqual({ songName: "Song 30", tier: "legendary" });
 
-    // Tier breakdown over CAUGHT songs, scarcest-first: rare×1, common×2.
+    // Tier breakdown over CAUGHT songs, scarcest-first: legendary×1, epic×2.
     expect(card.tierBreakdown).toEqual([
-      { tier: "rare", count: 1 },
-      { tier: "common", count: 2 },
+      { tier: "legendary", count: 1 },
+      { tier: "epic", count: 2 },
     ]);
 
     // Latest show = newest attended night; venue resolved from the archive.

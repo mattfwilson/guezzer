@@ -21,11 +21,10 @@ import {
  *   show 100 (2020-01-01): 10,20,30
  *   show 200 (2020-02-01): 10,40 | e:50
  *   show 300 (2020-03-01): 20,60
- * playCounts → 10:2 20:2 30:1 40:1 50:1 60:1. Rate-ascending ranks (songId
- * tie-break): 30,40,50,60 (rate .333), then 10,20 (rate .667).
- * Tiers (quantiles legendary .05 / rare .2 / uncommon .5 over 6 songs, MIN_PLAYS
- * 3 caps a 1-play song out of legendary): 30=rare, 40=rare, 50=uncommon,
- * 60=common, 10=common, 20=common.
+ * playCounts → 10:2 20:2 30:1 40:1 50:1 60:1.
+ * Tiers (tie-inclusive playCount bands legendary=1 / epic=2–3 / rare=4–8 / …):
+ * 30,40,50,60 (playCount 1) = legendary; 10,20 (playCount 2) = epic. Rarest-first
+ * ordering (rank legendary 0 < epic 1) then songId tie-break.
  */
 function baseArchive(): ArchiveArtifact {
   return syntheticArchive([
@@ -59,7 +58,7 @@ describe("compareDexes — pure friend-file diff (SHAR-01, D-17)", () => {
     const result = compareDexes(mine, theirs);
 
     // Diff lists are songId-keyed set differences, sorted rarest-tier-first then
-    // songId: onlyMine {10 common, 30 rare} → [30,10]; onlyTheirs {60}; shared {20}.
+    // songId: onlyMine {10 epic, 30 legendary} → [30,10]; onlyTheirs {60}; shared {20}.
     expect(result.onlyMine).toEqual([30, 10]);
     expect(result.onlyTheirs).toEqual([60]);
     expect(result.shared).toEqual([20]);
@@ -75,13 +74,15 @@ describe("compareDexes — pure friend-file diff (SHAR-01, D-17)", () => {
       completion: 50,
       caught: 3,
       shows: 1,
-      tierCounts: { common: 2, uncommon: 0, rare: 1, legendary: 0 },
+      // caught {10 epic, 20 epic, 30 legendary}
+      tierCounts: { common: 0, uncommon: 0, rare: 0, epic: 2, legendary: 1 },
     });
     expect(result.columns.theirs).toEqual({
       completion: 33,
       caught: 2,
       shows: 1,
-      tierCounts: { common: 2, uncommon: 0, rare: 0, legendary: 0 },
+      // caught {20 epic, 60 legendary}
+      tierCounts: { common: 0, uncommon: 0, rare: 0, epic: 1, legendary: 1 },
     });
   });
 
@@ -105,13 +106,13 @@ describe("compareDexes — pure friend-file diff (SHAR-01, D-17)", () => {
 
     expect(result.onlyMine).toEqual([]);
     expect(result.shared).toEqual([]);
-    // theirs {10 common, 20 common, 30 rare} → [30,10,20] (rare first, then songId).
+    // theirs {10 epic, 20 epic, 30 legendary} → [30,10,20] (legendary first, then songId).
     expect(result.onlyTheirs).toEqual([30, 10, 20]);
     expect(result.columns.mine).toEqual({
       completion: 0,
       caught: 0,
       shows: 0,
-      tierCounts: { common: 0, uncommon: 0, rare: 0, legendary: 0 },
+      tierCounts: { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0 },
     });
   });
 });
