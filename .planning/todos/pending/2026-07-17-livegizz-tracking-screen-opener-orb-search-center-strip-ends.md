@@ -63,17 +63,24 @@ bg-elevated`, rendered **even when empty**. The fixed height is deliberate
 
 ## 4. Move End Show from the header into the FAB
 
+**Owner-specified placement (re-confirmed 2026-07-17): End Show is the LAST item
+in the FAB list**, and all End Show functionality stays identical.
+
 - Remove the End Show button from the show sub-header (`ShowView.tsx:332-342` —
   the `CircleStop` + `copy.endCta` button). Header right side then holds just
   `SyncDot` + `TallyReadout`.
 - Add an **End Show** action to `FabMenu` (`FabMenu.tsx`): new `onEndShow` prop +
-  a 6th action row (`CircleStop`, `copy.endCta`). Place it at the **top** of the
-  speed-dial (farthest from the thumb) since it's rare + finalizing; the existing
-  `EndShowDialog` confirm still gates it (no accidental finalize). Consider a
-  subtle destructive tint (`--color-destructive`) vs the neutral rows, owner's
-  call — gold stays reserved.
+  a 6th action row (`CircleStop`, `copy.endCta`). **Append it as the FINAL entry
+  in the `actions` array** (`FabMenu.tsx:57-63`) so it renders as the bottom-most
+  (last) row of the expanded speed-dial — after Undo. (This is the owner's
+  explicit call; it puts End Show nearest the thumb, but the existing
+  `EndShowDialog` confirm still gates the finalize, so an accidental tap can't end
+  the show — "all functionality stays the same".) Optional: a subtle destructive
+  tint (`--color-destructive`) to set it apart from the neutral rows; gold stays
+  reserved.
 - `ShowView` wires `onEndShow={() => setEndOpen(true)}` into `<FabMenu>`
-  (`ShowView.tsx:~373`); `endOpen`/`EndShowDialog` state is unchanged.
+  (`ShowView.tsx:~397`); `endOpen`/`EndShowDialog` state + `endShow(sessionId)`
+  behavior are unchanged (functionality identical, only the entry point moves).
 
 ## Notes
 
