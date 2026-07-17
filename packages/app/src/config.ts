@@ -115,6 +115,10 @@ export const config = {
       DIM_OPACITY: 0.75,
       /** Crossfade duration in ms when the background swaps to a newly-selected song's album cover. */
       CROSSFADE_MS: 600,
+      /** Interval in ms between random-cover crossfades in the PRE-selection ambient
+       *  state (before any next song is picked); cycling stops once a song is selected,
+       *  and is suppressed entirely under prefers-reduced-motion or with <2 covers. */
+      PRESHOW_CYCLE_MS: 5000,
     },
 
     /**
