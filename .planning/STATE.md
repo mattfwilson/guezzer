@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 Phase: Not started — v1.1 roadmap defined (Phases 8–10)
 Plan: —
 Status: Roadmap complete; awaiting phase planning
-Last activity: 2026-07-17 — Made the pre-opener "Search for the opener" orb a prominent pulsing accent CTA via gsd-fast
+Last activity: 2026-07-17 — Removed the dead gap so body content sits flush with the bottom tab bar via gsd-fast
 
 ## Performance Metrics
 
@@ -145,6 +145,7 @@ Recent decisions affecting current work:
 | 260717-k1v | GizzDex shelf now responsive: DexView body + hold-frames widen `max-w-md sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl`; AlbumGrid `grid-cols-2` → `grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))]` (still exactly 2 cols ≤414px, adds columns on wider screens). Tailwind-only, no functionality change; covers stay 80px. Drill-in overlays (AlbumDetail/ArchiveBrowser) left full-width as possible follow-up | 2026-07-17 | afd9caf | [260717-k1v-make-gizzdex-layout-responsive-widen-alb](./quick/260717-k1v-make-gizzdex-layout-responsive-widen-alb/) |
 | 260717-hdr (fast) | Fix header-bar vertical centering: AppShell navbar + SearchSheet + ArchiveBrowser used bare `paddingTop:env(safe-area-inset-top)` which replaced the `py-3` top padding → 0 top / 12px bottom on desktop. Changed to `calc(env(safe-area-inset-top) + 12px)`, matching the 4 already-correct headers. Tailwind-only | 2026-07-17 | fe1d74b | — (gsd-fast) |
 | 260717-cta (fast) | Pre-opener "Search for the opener" center orb → prominent pulsing CTA: solid `bg-accent text-surface` fill (was dashed outline), `.orb-breathe` pulse (motion-safe), sized from new `config.show.ORB_PROMPT_DIAMETER = 150` (separate from 116px `ORB_CENTER_DIAMETER`) + `p-4`. **Note: adds a new accent-fill use — intentional owner-requested primary-CTA treatment** | 2026-07-17 | a667d1e | — (gsd-fast) |
+| 260717-flush (fast) | Body content now flush with the bottom tab bar (removed ~5px dead gap): BottomTabBar given a fixed `4rem` button-area height (safe-area gutter added below, border-box); AppShell `<main>` reservation made safe-area-aware `calc(4rem + env(safe-area-inset-bottom) + overlay)`. Flush on desktop + notched iOS; bottomOverlayInset.test green | 2026-07-17 | fd22b44 | — (gsd-fast) |
 
 ### Blockers/Concerns
 
