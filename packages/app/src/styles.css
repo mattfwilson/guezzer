@@ -98,6 +98,12 @@ body {
     opacity: 0;
   }
 }
+/* Invisible by default so that under prefers-reduced-motion (no animation) the
+   ring outlines don't render as static borders hugging the orb — the infinite
+   animation drives opacity whenever motion is allowed. */
+.orb-ripple {
+  opacity: 0;
+}
 @media (prefers-reduced-motion: no-preference) {
   .orb-ripple {
     animation: orb-ripple var(--ripple-period, 2600ms) ease-out infinite;
