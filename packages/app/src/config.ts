@@ -9,6 +9,8 @@
  * (02: install onboarding, 03: update prompt/version stamp, 04:
  * persistence) READ these keys — they do not re-add them.
  */
+import type { RarityTier } from "@guezzer/core";
+
 export const config = {
   /** D-08: Dexie/IndexedDB database name. */
   DB_NAME: "guezzer",
@@ -201,6 +203,13 @@ export const config = {
     CARD_WIDTH: 1080,
     /** Share-card canvas height in px (4:5 portrait, SHAR-02/D-18). */
     CARD_HEIGHT: 1350,
+    /**
+     * Fixed brand gold for the share-card wordmark ("Guezzer"), permanently
+     * decoupled from the legendary tier hue. Legendary is now orange
+     * (`config.dex.tierColors.legendary` = #FB923C); the wordmark keeps this
+     * gold regardless so the brand mark never inherits a tier recolor.
+     */
+    wordmarkGold: "#F2C14E",
   },
 
   /**
@@ -210,6 +219,34 @@ export const config = {
   dex: {
     /** Album-cover display size in px; the committed WebP assets are 2× (160px). */
     ALBUM_ART_DISPLAY_PX: 80,
+
+    /**
+     * THE single tier-color source of truth (06-UI-SPEC §B3). Both the
+     * TierBadge pill (text + 40%-opacity border) and the share card (rarest-catch
+     * tier + tier-breakdown segments) index this map — there is no second local
+     * `TIER_COLOR` map anywhere. It lives in `dex` because rarity is a dex
+     * concept, but the share card consumes it too (rarity is shared data
+     * semantics, not chrome). Color is reinforcement only — the tier WORD always
+     * renders regardless (WCAG 1.4.1). The `Record<RarityTier | "debut", string>`
+     * annotation makes a missing/extra tier a compile error.
+     *
+     * NOTE: the share-card wordmark is deliberately NOT in this map — it uses the
+     * fixed `config.share.wordmarkGold`, decoupled from `legendary` (now orange).
+     */
+    tierColors: {
+      /** Neutral gray — debut is a state, not a rarity (renders a DOTTED border). */
+      debut: "#A1A1AA",
+      /** Soft white — unremarkable by design. */
+      common: "#E4E4E7",
+      /** Emerald — deliberately distinct from the reserved caught-green #22C55E. */
+      uncommon: "#34D399",
+      /** Blue — reuses the old uncommon blue, now free. */
+      rare: "#60A5FA",
+      /** Purple — distinct from tuning C#-violet #B98CF2 (they never co-occur). */
+      epic: "#A855F7",
+      /** Orange — reuses the hue epic briefly held, now free. */
+      legendary: "#FB923C",
+    } satisfies Record<RarityTier | "debut", string>,
 
     /**
      * Plan 06-08: how long the "+{n} songs caught" retro-mark flash lingers in
