@@ -73,7 +73,7 @@ export function DexView() {
   // Loader-guard failure (T-06-12): a calm handled state, never a thrown crash.
   if (stats.error != null) {
     return (
-      <div className="mx-auto flex w-full max-w-md flex-col px-4 pt-16 text-center">
+      <div className="mx-auto flex w-full max-w-md sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl flex-col px-4 pt-16 text-center">
         <p className="text-base leading-normal text-text-muted">{stats.error}</p>
       </div>
     );
@@ -81,14 +81,14 @@ export function DexView() {
 
   // Still resolving the live reads — hold the frame (no NaN, no flicker).
   if (!stats.ready || stats.dex == null || stats.archive == null || stats.albums == null) {
-    return <div className="mx-auto w-full max-w-md" aria-hidden="true" />;
+    return <div className="mx-auto w-full max-w-md sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl" aria-hidden="true" />;
   }
 
   const { dex, archive, albums, rarity } = stats;
   const openAlbum = openAlbumKey != null ? resolveOpenAlbum(openAlbumKey, albums, copy) : null;
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col">
+    <div className="mx-auto flex w-full max-w-md sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl flex-col">
       <DexHeader dex={dex} archive={archive} onShare={() => setShareOpen(true)} />
 
       {/* Segment control — component state, not a route (no new hash routes). The
