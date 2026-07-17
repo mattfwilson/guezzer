@@ -1,0 +1,40 @@
+---
+created: 2026-07-17T03:30:14.557Z
+title: Blur a random album cover as the Show screen background
+area: ui
+files:
+  - packages/app/src/show/ShowView.tsx
+  - packages/app/src/dex/covers.ts
+  - packages/app/public/covers
+---
+
+## Problem
+
+The Show screen currently uses a flat background color, which reads as visually
+flat/plain. We want the Show page to feel more visual and alive without
+compromising legibility of the interactive body (prediction orbs, buttons, text)
+that the user taps one-thumb, in the dark, at a live show.
+
+## Solution
+
+Give the Show screen a background built from an album cover instead of a flat color:
+
+- On show start, pick a **random** album cover from the full catalog (source the
+  cover list from `packages/app/src/dex/covers.ts` / `packages/app/public/covers`).
+- Render that cover as the full-bleed page background, then **blur** and **dim**
+  it (heavy blur + dark overlay / reduced opacity) so it reads as ambient texture,
+  not foreground.
+- Ensure body content (buttons, prediction text, orbs) stays fully legible and
+  meets contrast/tap-target requirements — the dim/blur layer must sit behind an
+  accessible content layer.
+
+Open questions to resolve during planning:
+- Randomize once per show (stable for the session) vs. per app load — likely
+  once per show so the background doesn't flicker/change mid-show.
+- Whether to bias the pick toward covers already "caught" in the Pokédex, or
+  keep it fully random.
+- Offline: covers are already bundled, so the blurred background must work fully
+  offline like the rest of Show Mode.
+
+Approach: CSS `filter: blur()` + a dark gradient/overlay on an absolutely
+positioned background layer; keep it cheap enough for mobile GPUs.
