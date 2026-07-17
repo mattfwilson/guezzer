@@ -92,7 +92,7 @@ export function DexView() {
       <DexHeader dex={dex} archive={archive} onShare={() => setShareOpen(true)} />
 
       {/* Segment control — component state, not a route (no new hash routes). The
-          active half is accent-tinted (reserved accent use #4, §Color A). */}
+          active half is a solid accent fill (reserved accent use #4, §Color A). */}
       <div className="mx-4 mb-4 flex gap-1 rounded-md border border-hairline bg-elevated p-1">
         {(["albums", "shows"] as const).map((seg) => {
           const active = segment === seg;
@@ -104,7 +104,7 @@ export function DexView() {
               aria-pressed={active}
               onClick={() => setSegment(seg)}
               className={`flex min-h-11 flex-1 items-center justify-center rounded text-[14px] font-semibold touch-manipulation ${
-                active ? "bg-accent/20 text-text-primary" : "text-text-muted"
+                active ? "bg-accent text-surface" : "text-text-muted"
               }`}
             >
               {label}
