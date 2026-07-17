@@ -8,10 +8,16 @@ files:
   - packages/app/public/covers
 ---
 
+> **Naming update (2026-07-17):** bottom tabs rebranded (display labels only) —
+> **Show → LiveGizz**, **Explore → GizzVerse**, **Dex → GizzDex**. "Show screen /
+> Show page" below is the **LiveGizz** tab (formerly "Show"). Routes (`show`),
+> file paths (`src/show/*`, `ShowView.tsx`), and component names are unchanged, so
+> all code identifiers below still apply as-is.
+
 ## Problem
 
-The Show screen currently uses a flat background color, which reads as visually
-flat/plain. We want the Show page to feel more visual and alive without
+The LiveGizz screen (formerly "Show") currently uses a flat background color, which
+reads as visually flat/plain. We want the LiveGizz page to feel more visual and alive without
 compromising legibility of the interactive body (prediction orbs, buttons, text)
 that the user taps one-thumb, in the dark, at a live show.
 

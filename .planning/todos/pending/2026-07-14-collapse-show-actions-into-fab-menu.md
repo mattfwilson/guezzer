@@ -8,6 +8,12 @@ files:
   - packages/app/src/show/ShowView.tsx
 ---
 
+> **Naming update (2026-07-17):** bottom tabs rebranded (display labels only) —
+> **Show → LiveGizz**, **Explore → GizzVerse**, **Dex → GizzDex**. "Show Mode" /
+> "Show-Mode actions" below refer to the **LiveGizz** tab (formerly "Show").
+> Routes (`show`), file paths (`src/show/*`), and component names (`ShowView`,
+> `ActionBar`) are unchanged, so all code identifiers below still apply as-is.
+
 ## Problem
 
 While recording a show, the persistent two-row ActionBar

@@ -7,10 +7,16 @@ files:
   - packages/app/src/components/AppMenu.tsx:45
 ---
 
+> **Naming update (2026-07-17):** bottom tabs rebranded (display labels only) —
+> **Show → LiveGizz**, **Explore → GizzVerse**, **Dex → GizzDex**. This bug is on
+> the **GizzVerse** tab (formerly "Explore"). Routes (`explore`), file paths
+> (`src/explore/*`), and component names (`ExploreFilterFab`) are unchanged, so
+> all code identifiers below still apply as-is.
+
 ## Problem
 
-On the Explore tab, opening the main overflow menu (top-right) leaves the
-bottom-right FAB (rotation / full-catalog / etc. filter controls) stacked
+On the GizzVerse tab (route `explore`), opening the main overflow menu (top-right)
+leaves the bottom-right FAB (rotation / full-catalog / etc. filter controls) stacked
 **above** the overflow sheet and its dimming scrim. The FAB should always sit
 **under** the main overflow sheet when that sheet is open, so the menu reads as
 the top-most surface.

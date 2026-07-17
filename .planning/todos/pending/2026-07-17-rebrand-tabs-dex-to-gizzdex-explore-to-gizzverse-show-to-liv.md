@@ -6,6 +6,13 @@ files:
   - packages/app/src/components/BottomTabBar.tsx:5-7
 ---
 
+> **Status update (2026-07-17):** **Layer-1 (visible tab labels) is DONE** —
+> shipped in quick task `260716-wwj`, commit `ba775f0`. `BottomTabBar` now renders
+> **GizzDex / GizzVerse / LiveGizz**; routes and storage keys were left untouched.
+> Only **layer-2 (internal code-identifier consistency)** remains open below — an
+> optional pass, deliberately deferred (owner: leave for later unless it causes
+> problems; it does not).
+
 ## Problem
 
 The three main tabs are named with generic words. Owner wants themed names
