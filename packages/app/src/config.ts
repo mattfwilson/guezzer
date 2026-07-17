@@ -82,7 +82,7 @@ export const config = {
      */
     background: {
       /** Gaussian blur radius in px applied to the cover backdrop (heavy = ambient wash). */
-      BLUR_PX: 20,
+      BLUR_PX: 5,
       /** Dark scrim opacity (0–1) over the cover, using --color-surface, so body stays legible. */
       DIM_OPACITY: 0.9,
     },
