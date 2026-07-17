@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 Phase: Not started — v1.1 roadmap defined (Phases 8–10)
 Plan: —
 Status: Roadmap complete; awaiting phase planning
-Last activity: 2026-07-17 — Completed quick task 260717-0s3: GizzDex Albums always shows the full grayed shelf; Mark-attended is Shows-only
+Last activity: 2026-07-17 — Completed quick task 260717-0x9: GizzDex header share icon-button + brighter segment toggle
 
 ## Performance Metrics
 
@@ -128,7 +128,6 @@ Recent decisions affecting current work:
 - [ui] **GizzVerse** (Explore) constellation: animate directional flow along edges (react-force-graph `linkDirectionalParticles`) so it's clear which song leads to which — `.planning/todos/pending/2026-07-17-gizzverse-animate-directional-flow-particles-along-constella.md`. Owner idea 2026-07-17; **flag: conflicts with settle-and-freeze battery design (EXPL-06)** — recommend focus-only particles + honor prefers-reduced-motion.
 - [ui] **GizzVerse** (Explore) FAB (`z-30`) paints above the open main overflow menu (`AppMenu` scrim `z-20`) — bump the menu above the FAB so it's always under the overflow sheet — `.planning/todos/pending/2026-07-17-explore-fab-renders-above-the-main-overflow-menu.md`. Owner-reported bug 2026-07-17; z-index stacking, audit overlay tiers.
 - [ui] Recolor rarity tier tags: Common→light blue, Uncommon→green, Rare→medium purple, Legendary→copper orange — update BOTH duplicate `TIER_COLOR` maps (`TierBadge.tsx:16`, `shareCard.ts:32`; recommend consolidating to config) — `.planning/todos/pending/2026-07-17-recolor-rarity-tier-tags-common-uncommon-rare-legendary.md`. Owner idea 2026-07-17; **flag collisions: Uncommon-green vs reserved caught-green `#22C55E`, Legendary-copper vs accent gold (+ share-card wordmark uses legendary color)**.
-- [ui] **GizzDex** header: move the full-width Share CTA to an icon-only button top-right next to the `%` headline (`DexHeader.tsx`), and brighten the Albums/Shows toggle selected state from `bg-accent/20` to full accent `#f2c14e` (`DexView.tsx:108`) — `.planning/todos/pending/2026-07-17-gizzdex-header-share-icon-button-and-brighter-segment-toggle.md`. Owner idea 2026-07-17; keep ≥44px hit target + aria-label on icon button; single-config for any new color token.
 - [ui] Rebrand tabs: Dex→GizzDex, Explore→GizzVerse, Show→LiveGizz (`BottomTabBar.tsx:5-7`) — **layer-1 (visible labels) DONE (260716-wwj / `ba775f0`)**; only optional layer-2 (internal code-identifier consistency) remains, deferred — `.planning/todos/pending/2026-07-17-rebrand-tabs-dex-to-gizzdex-explore-to-gizzverse-show-to-liv.md`. **Do NOT blind-rename route strings or persisted Dexie/storage keys** (breaks nav + orphans saved data) — decouple display name from route/storage key.
 
 ### Quick Tasks Completed
@@ -141,6 +140,7 @@ Recent decisions affecting current work:
 | 260716-wwj | Rebrand bottom-tab display labels: Dex→GizzDex, Explore→GizzVerse, Show→LiveGizz (labels only, routes/storage untouched) | 2026-07-17 | ba775f0 | [260716-wwj-rebrand-tab-display-names-dex-gizzdex-ex](./quick/260716-wwj-rebrand-tab-display-names-dex-gizzdex-ex/) |
 | 260717-02n | LiveGizz page ambient background: blurred + dimmed randomized album cover (replaces flat color, body stays legible, offline) — resolves the blur-bg todo | 2026-07-17 | da50134 | [260717-02n-livegizz-page-blurred-dimmed-randomized-](./quick/260717-02n-livegizz-page-blurred-dimmed-randomized-/) |
 | 260717-0s3 | GizzDex Albums always shows the full grayed shelf at zero catches (§B4 dimming); Mark-attended CTA now Shows-only — resolves the grayed-grid todo | 2026-07-17 | 48c45e1 | [260717-0s3-gizzdex-albums-always-show-the-full-albu](./quick/260717-0s3-gizzdex-albums-always-show-the-full-albu/) |
+| 260717-0x9 | GizzDex header Share CTA → icon button top-right by the %; Albums/Shows toggle selected state brightened to full accent gold — resolves the header/toggle todo | 2026-07-17 | ed96dd8 | [260717-0x9-gizzdex-header-share-cta-icon-button-top](./quick/260717-0x9-gizzdex-header-share-cta-icon-button-top/) |
 
 ### Blockers/Concerns
 

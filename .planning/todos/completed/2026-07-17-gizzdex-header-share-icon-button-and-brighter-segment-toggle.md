@@ -2,6 +2,9 @@
 created: 2026-07-17T03:57:56.330Z
 title: GizzDex — share icon-button in header + brighter segment toggle
 area: ui
+status: done
+resolved_by: quick task 260717-0x9 (commit ed96dd8)
+resolved_date: 2026-07-17
 files:
   - packages/app/src/dex/DexHeader.tsx:35-68
   - packages/app/src/dex/DexView.tsx:97-115
