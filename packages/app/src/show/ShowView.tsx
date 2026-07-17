@@ -26,6 +26,7 @@
  * 04-05/04-06.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useReducedMotion } from "motion/react";
 import {
   bindShowFromLatest,
   diffLatestAgainstTrail,
@@ -79,12 +80,15 @@ export function ShowView() {
   const [wakeNoticeVisible, setWakeNoticeVisible] = useState(false);
   const wakeDismissedRef = useRef(false);
   const copy = config.copy.show;
+  const reduce = useReducedMotion() ?? false;
 
-  // POLISH (260717-02n): ambient LiveGizz background — one random bundled album
-  // cover, picked ONCE here in the always-mounted ShowView so it stays stable
-  // across the pre-show → active → end-show transitions (never flickers mid-show)
-  // and is shared by every page state below. null (no covers) → plain surface.
-  const [bgCoverUrl] = useState<string | null>(() => {
+  // POLISH (260717-02n / 260717-ij8): ambient LiveGizz background. Seeded with one
+  // random bundled album cover at mount (stable across the pre-show → active →
+  // end-show transitions). BEFORE any next song is selected, this now CYCLES to a
+  // different random cover every PRESHOW_CYCLE_MS (see the effect below) so the
+  // pre-show backdrop reads as living texture; the crossfade is ShowBackground's
+  // own (it fades whenever coverUrl changes). null (no covers) → plain surface.
+  const [ambientCover, setAmbientCover] = useState<string | null>(() => {
     const urls = coverUrlList();
     return urls.length > 0 ? urls[Math.floor(Math.random() * urls.length)] : null;
   });
@@ -103,7 +107,32 @@ export function ShowView() {
   useEffect(() => {
     if (selectedCover != null) setLastSelectedCover(selectedCover);
   }, [selectedCover]);
-  const targetCover = selectedCover ?? lastSelectedCover ?? bgCoverUrl;
+
+  // (260717-ij8) Cycle the ambient cover ONLY while no next song is selected —
+  // i.e. the true pre-opener state (selectedCover == null && lastSelectedCover ==
+  // null) — and not under reduced-motion. The instant a song is (or ever was)
+  // selected the gate flips false, the interval is cleaned up, and the fallback
+  // chain below locks the background to that album cover. <2 covers → no cycle.
+  const cycling = selectedCover == null && lastSelectedCover == null && !reduce;
+  useEffect(() => {
+    if (!cycling) return;
+    const urls = coverUrlList();
+    if (urls.length < 2) return;
+    const pickDifferent = (prev: string | null): string => {
+      // Offset a random index by 1..len-1 from prev so we never re-pick prev —
+      // ShowBackground no-ops identical URLs, so this guarantees a real crossfade.
+      const prevIdx = prev == null ? -1 : urls.indexOf(prev);
+      if (prevIdx < 0) return urls[Math.floor(Math.random() * urls.length)];
+      const offset = 1 + Math.floor(Math.random() * (urls.length - 1));
+      return urls[(prevIdx + offset) % urls.length];
+    };
+    const id = setInterval(() => {
+      setAmbientCover((prev) => pickDifferent(prev));
+    }, config.show.background.PRESHOW_CYCLE_MS);
+    return () => clearInterval(id);
+  }, [cycling]);
+
+  const targetCover = selectedCover ?? lastSelectedCover ?? ambientCover;
 
   // Wrap a page state in the blurred+dimmed cover backdrop. The frame is the
   // positioned parent (`relative`) the ShowBackground fills; content rides a
