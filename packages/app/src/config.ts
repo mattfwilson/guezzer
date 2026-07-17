@@ -265,17 +265,21 @@ export const config = {
     /** [VERIFIED: device spike 2026-07-16] cooldownTicks before onEngineStop freezes every node's fx/fy — settle completes on device. */
     COOLDOWN_TICKS: 200,
     /**
-     * [device spike 2026-07-16] d3 many-body charge strength (negative = repulsion).
-     * d3's default (~-30) clumps ~264 nodes into an unreadable ball; this stronger
-     * repulsion spreads the sky so edges/connections are legible. Tuned on device.
+     * [owner-set 2026-07-17, doubled from the device-tuned -400] d3 many-body
+     * charge strength (negative = repulsion). d3's default (~-30) clumps ~264
+     * nodes into an unreadable ball; this stronger repulsion spreads the sky so
+     * edges/connections are legible. Doubled from the 2026-07-16 device-verified
+     * -400 for a wider spread — NO LONGER the device-tuned figure.
      */
-    CHARGE_STRENGTH: -400,
+    CHARGE_STRENGTH: -800,
     /**
-     * [device spike 2026-07-16] d3 link (edge) target distance in world units.
-     * d3's default (~30) pulls connected nodes tight; a longer rest length gives
-     * each transition edge room to read. Tuned on device.
+     * [owner-set 2026-07-17, doubled from the device-tuned 90] d3 link (edge)
+     * target distance in world units. d3's default (~30) pulls connected nodes
+     * tight; a longer rest length gives each transition edge room to read. Doubled
+     * from the 2026-07-16 device-verified 90 for a wider spread — NO LONGER the
+     * device-tuned figure.
      */
-    LINK_DISTANCE: 90,
+    LINK_DISTANCE: 180,
     /**
      * [device spike 2026-07-16] px padding around the connected main grouping when
      * the constellation auto-frames on settle (zoomToFit). The frame targets nodes
