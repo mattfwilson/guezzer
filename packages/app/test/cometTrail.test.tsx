@@ -3,14 +3,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CometTrail, trailCapacity } from "../src/show/CometTrail.tsx";
 import { config } from "../src/config.ts";
 import type { EntryOutcome, TrackedEntry } from "../src/db/db.ts";
-import { getMatrixIndex, loadMatrix } from "../src/show/matrix.ts";
-import { tuningColor } from "../src/show/tuningColor.ts";
+import { getRarityIndex } from "../src/dex/rarityIndex.ts";
+import { rarityColor, rarityTierForSong } from "../src/dex/rarityStyle.ts";
 
 /**
  * CometTrail render contract (SHOW-08): the last TRAIL_VISIBLE_RECENT songs as
- * diminishing nodes with TUNING-FAMILY colored dots, +N compression at
- * TRAIL_COMPRESS_AT, and no strip pre-opener. All thresholds read from
- * config.show (no inline 4/30), so these assertions track the config defaults.
+ * diminishing nodes with RARITY-TIER colored dots (quick 260717-p4s), +N
+ * compression at TRAIL_COMPRESS_AT, and no strip pre-opener. All thresholds read
+ * from config.show (no inline 4/30), so these assertions track the config defaults.
  */
 function entry(
   position: number,
@@ -49,7 +49,7 @@ function normalizeColor(color: string): string {
   return bgColor(el);
 }
 
-const MUTED_FALLBACK = "#A1A1AA"; // tuningColor(null) — ??? / off-matrix
+const MUTED_FALLBACK = rarityColor("debut"); // ??? / off-matrix → debut gray (#A1A1AA)
 
 describe("CometTrail recent strip + rings + compression (SHOW-08)", () => {
   afterEach(cleanup);
@@ -77,25 +77,26 @@ describe("CometTrail recent strip + rings + compression (SHOW-08)", () => {
     expect(screen.getByText("Song 3")).toBeTruthy();
   });
 
-  it("dot fill derives from the song's tuning family; ??? / off-matrix → muted fallback (SHOW-08, B1)", () => {
-    // jsdom loads the REAL bundled matrix. Pick a real songId whose family maps
-    // to a NON-fallback color so the tuning-color path is visibly distinct from
-    // the muted fallback (the off-matrix / ??? case).
-    expect(loadMatrix().ok).toBe(true);
-    const realPair = [...getMatrixIndex().nodeById.entries()].find(
-      ([, node]) => tuningColor(node.tuningFamily) !== MUTED_FALLBACK,
+  it("dot fill derives from the song's rarity tier; ??? / off-matrix → debut gray (SHOW-08, p4s)", () => {
+    // jsdom loads the REAL bundled archive → corpus rarity index. Pick a real
+    // songId whose rarity tier color is NON-debut so the rarity path is visibly
+    // distinct from the debut-gray fallback (the off-matrix / ??? case).
+    const index = getRarityIndex();
+    expect(index).toBeTruthy();
+    const realPair = [...index!.entries()].find(
+      ([songId]) => rarityColor(rarityTierForSong(songId)) !== MUTED_FALLBACK,
     );
     expect(realPair).toBeTruthy();
-    const [realId, realNode] = realPair!;
+    const [realId] = realPair!;
     // Expected color derived from the SAME expression the component uses — robust
     // to palette changes (no hardcoded hex), normalized through jsdom.
-    const expectedReal = normalizeColor(tuningColor(realNode.tuningFamily));
+    const expectedReal = normalizeColor(rarityColor(rarityTierForSong(realId)));
 
     const { container } = render(
       <CometTrail
         entries={[
           entry(1, "hit", "RealSong", realId),
-          entry(2, "miss", "PlaceholderSong", null), // ??? placeholder → fallback
+          entry(2, "miss", "PlaceholderSong", null), // ??? placeholder → debut gray
         ]}
         onNodeTap={vi.fn()}
       />,
@@ -106,10 +107,10 @@ describe("CometTrail recent strip + rings + compression (SHOW-08)", () => {
     );
     expect(dots).toHaveLength(2);
 
-    // Nodes render oldest→newest: [real-family song, ??? placeholder].
+    // Nodes render oldest→newest: [real-tier song, ??? placeholder].
     expect(bgColor(dots[0])).toBe(expectedReal);
     expect(bgColor(dots[1])).toBe(normalizeColor(MUTED_FALLBACK));
-    // The tuning color is distinct from the muted fallback.
+    // The rarity color is distinct from the debut-gray fallback.
     expect(bgColor(dots[0])).not.toBe(bgColor(dots[1]));
   });
 
