@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 Phase: Not started — v1.1 roadmap defined (Phases 8–10)
 Plan: —
 Status: Roadmap complete; awaiting phase planning
-Last activity: 2026-07-17 — Completed quick task 260716-wwj: rebranded bottom-tab labels to GizzDex/GizzVerse/LiveGizz
+Last activity: 2026-07-17 — Completed quick task 260717-02n: ambient blurred album-cover background on the LiveGizz page
 
 ## Performance Metrics
 
@@ -125,7 +125,6 @@ Recent decisions affecting current work:
 - [ui] Fix truncated/oversized song-name text inside prediction orbs (esp. center current-song orb) on the **LiveGizz** (Show Mode) screen — `.planning/todos/pending/2026-07-11-orb-song-name-text-truncated-and-oversized.md`. Non-blocking UI-polish; found on-device during Phase 04 device gate. **→ v1.1 POLISH-01 (Phase 8).**
 - [ui/pwa] InstallBanner should show once per app version, not on every reload — `.planning/todos/pending/2026-07-14-install-banner-reappears-every-reload.md`. Non-blocking; owner-reported during Phase 05 UAT Test 3 setup. (No tab-name references.) **→ v1.1 POLISH-02 (Phase 8).**
 - [ui] Consolidate **LiveGizz** (Show Mode) actions (Search/Unknown/Set break/Encore/Undo) into a collapsed-by-default bottom-right FAB menu to free vertical space for the orbit — `.planning/todos/pending/2026-07-14-collapse-show-actions-into-fab-menu.md`. Owner idea 2026-07-14; note the zero-tap ???/Undo trade-off flagged inside. **→ v1.1 POLISH-02 (Phase 8, verify-and-resolve).**
-- [ui] Blur + dim a randomized album cover as the **LiveGizz** (Show) screen background (replace flat color) while keeping body buttons/text legible — `.planning/todos/pending/2026-07-17-blur-a-random-album-cover-as-the-show-screen-background.md`. Owner idea 2026-07-17; visual-polish, must stay offline + accessible.
 - [ui] **GizzVerse** (Explore) FAB (`z-30`) paints above the open main overflow menu (`AppMenu` scrim `z-20`) — bump the menu above the FAB so it's always under the overflow sheet — `.planning/todos/pending/2026-07-17-explore-fab-renders-above-the-main-overflow-menu.md`. Owner-reported bug 2026-07-17; z-index stacking, audit overlay tiers.
 - [ui] **GizzDex** header: move the full-width Share CTA to an icon-only button top-right next to the `%` headline (`DexHeader.tsx`), and brighten the Albums/Shows toggle selected state from `bg-accent/20` to full accent `#f2c14e` (`DexView.tsx:108`) — `.planning/todos/pending/2026-07-17-gizzdex-header-share-icon-button-and-brighter-segment-toggle.md`. Owner idea 2026-07-17; keep ≥44px hit target + aria-label on icon button; single-config for any new color token.
 - [ui] Rebrand tabs: Dex→GizzDex, Explore→GizzVerse, Show→LiveGizz (`BottomTabBar.tsx:5-7`) — **layer-1 (visible labels) DONE (260716-wwj / `ba775f0`)**; only optional layer-2 (internal code-identifier consistency) remains, deferred — `.planning/todos/pending/2026-07-17-rebrand-tabs-dex-to-gizzdex-explore-to-gizzverse-show-to-liv.md`. **Do NOT blind-rename route strings or persisted Dexie/storage keys** (breaks nav + orphans saved data) — decouple display name from route/storage key.
@@ -138,6 +137,7 @@ Recent decisions affecting current work:
 | 260713-wjd | ?mockLatest=1 UAT harness for the suggestion strip (found+fixed dismissal slot bug) | 2026-07-14 | (multiple) | [260713-wjd-add-mocklatest-1-url-flag-that-feeds-the](./quick/260713-wjd-add-mocklatest-1-url-flag-that-feeds-the/) |
 | 260716-vw2 | Fix WARNING-1: own-backup restore misroutes to friend-compare on evicted DB (milestone audit) | 2026-07-17 | fcbfbdc | [260716-vw2-fix-warning-1-own-backup-restore-misrout](./quick/260716-vw2-fix-warning-1-own-backup-restore-misrout/) |
 | 260716-wwj | Rebrand bottom-tab display labels: Dex→GizzDex, Explore→GizzVerse, Show→LiveGizz (labels only, routes/storage untouched) | 2026-07-17 | ba775f0 | [260716-wwj-rebrand-tab-display-names-dex-gizzdex-ex](./quick/260716-wwj-rebrand-tab-display-names-dex-gizzdex-ex/) |
+| 260717-02n | LiveGizz page ambient background: blurred + dimmed randomized album cover (replaces flat color, body stays legible, offline) — resolves the blur-bg todo | 2026-07-17 | da50134 | [260717-02n-livegizz-page-blurred-dimmed-randomized-](./quick/260717-02n-livegizz-page-blurred-dimmed-randomized-/) |
 
 ### Blockers/Concerns
 

@@ -2,11 +2,19 @@
 created: 2026-07-17T03:30:14.557Z
 title: Blur a random album cover as the Show screen background
 area: ui
+status: done
+resolved_by: quick task 260717-02n (commit da50134)
+resolved_date: 2026-07-17
 files:
   - packages/app/src/show/ShowView.tsx
   - packages/app/src/dex/covers.ts
   - packages/app/public/covers
 ---
+
+> **DONE (2026-07-17):** Implemented in quick task `260717-02n` (commit `da50134`).
+> Fully random bundled cover, blurred (`config.show.background.BLUR_PX`) + dimmed
+> (`DIM_OPACITY`), stable per ShowView mount, shown across pre-show + orbit states
+> (RecapView excluded). See `.planning/quick/260717-02n-*/260717-02n-SUMMARY.md`.
 
 > **Naming update (2026-07-17):** bottom tabs rebranded (display labels only) —
 > **Show → LiveGizz**, **Explore → GizzVerse**, **Dex → GizzDex**. "Show screen /
