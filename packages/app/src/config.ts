@@ -51,6 +51,11 @@ export const config = {
     /** Current-song CENTER node diameter in px — a fixed circle (owner 2026-07-17);
      *  also the clearance the ring solver leaves so no prediction orb overlaps it. */
     ORB_CENTER_DIAMETER: 116,
+    /** Pre-opener "Search for the opener" CTA prompt circle diameter in px — LARGER
+     *  than ORB_CENTER_DIAMETER so the primary call-to-action reads as prominent and
+     *  the prompt text has breathing room. Separate from ORB_CENTER_DIAMETER, which
+     *  the playing-song orb, collapse-glide scale, and label-fit all depend on. */
+    ORB_PROMPT_DIAMETER: 150,
     /** Minimum gap in px between adjacent prediction orbs and between an orb and the
      *  centre node — the ring solver guarantees this, so orbs never overlap (SHOW-02). */
     ORB_RING_GAP_PX: 10,

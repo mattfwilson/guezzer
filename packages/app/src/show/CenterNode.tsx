@@ -3,8 +3,10 @@
  * Component Inventory). Presentational only. Tuning-family colored, Heading-size
  * name, NO percentage. A fixed CIRCLE (owner 2026-07-17), not a stadium pill, and
  * once a song is playing it PULSES — a slow living/breathing scale (`.orb-breathe`
- * in styles.css, motion-safe). Before the opener is seeded it shows the static
- * "Search for the opener" prompt circle (config.copy.show.centerPrompt).
+ * in styles.css, motion-safe). Before the opener is seeded it shows the "Search
+ * for the opener" prompt (config.copy.show.centerPrompt) — the screen's primary
+ * CTA, so it's a LARGER accent-filled circle that also PULSES (`.orb-breathe`) to
+ * draw the eye; tapping it opens the catalog Search to seed the opener.
  */
 import type { TuningFamily } from "@guezzer/core";
 import { config } from "../config.ts";
@@ -25,17 +27,19 @@ export function CenterNode({ songName, tuningFamily, onOpenSearch }: CenterNodeP
 
   if (songName == null) {
     // Pre-opener: the prompt IS the search affordance — tapping opens the catalog
-    // SearchSheet so the user selects the opener (same seed path as the FAB). A
-    // dashed circle, NOT pulsing (no song is playing yet).
+    // SearchSheet so the user selects the opener (same seed path as the FAB). As the
+    // screen's primary CTA it's a LARGER accent-filled circle that PULSES
+    // (`.orb-breathe`, motion-safe) to draw the eye.
+    const promptDiameter = config.show.ORB_PROMPT_DIAMETER;
     return (
       <button
         type="button"
         onClick={onOpenSearch}
         aria-label={config.copy.show.centerPrompt}
-        style={{ width: diameter, height: diameter }}
-        className="flex items-center justify-center rounded-full border border-dashed border-hairline p-3 text-center touch-manipulation"
+        style={{ width: promptDiameter, height: promptDiameter }}
+        className="orb-breathe flex items-center justify-center rounded-full bg-accent p-4 text-center text-surface touch-manipulation"
       >
-        <span className="text-[14px] font-semibold leading-tight text-text-muted">
+        <span className="text-[14px] font-semibold leading-tight">
           {config.copy.show.centerPrompt}
         </span>
       </button>
