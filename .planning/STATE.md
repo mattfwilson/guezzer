@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 Phase: Not started — v1.1 roadmap defined (Phases 8–10)
 Plan: —
 Status: Roadmap complete; awaiting phase planning
-Last activity: 2026-07-17 — Removed the dead gap so body content sits flush with the bottom tab bar via gsd-fast
+Last activity: 2026-07-17 — Vertically centered the orbit group + recolored the comet trail by tuning family (quick 260717-kxs)
 
 ## Performance Metrics
 
@@ -146,6 +146,7 @@ Recent decisions affecting current work:
 | 260717-hdr (fast) | Fix header-bar vertical centering: AppShell navbar + SearchSheet + ArchiveBrowser used bare `paddingTop:env(safe-area-inset-top)` which replaced the `py-3` top padding → 0 top / 12px bottom on desktop. Changed to `calc(env(safe-area-inset-top) + 12px)`, matching the 4 already-correct headers. Tailwind-only | 2026-07-17 | fe1d74b | — (gsd-fast) |
 | 260717-cta (fast) | Pre-opener "Search for the opener" center orb → prominent pulsing CTA: solid `bg-accent text-surface` fill (was dashed outline), `.orb-breathe` pulse (motion-safe), sized from new `config.show.ORB_PROMPT_DIAMETER = 150` (separate from 116px `ORB_CENTER_DIAMETER`) + `p-4`. **Note: adds a new accent-fill use — intentional owner-requested primary-CTA treatment** | 2026-07-17 | a667d1e | — (gsd-fast) |
 | 260717-flush (fast) | Body content now flush with the bottom tab bar (removed ~5px dead gap): BottomTabBar given a fixed `4rem` button-area height (safe-area gutter added below, border-box); AppShell `<main>` reservation made safe-area-aware `calc(4rem + env(safe-area-inset-bottom) + overlay)`. Flush on desktop + notched iOS; bottomOverlayInset.test green | 2026-07-17 | fd22b44 | — (gsd-fast) |
+| 260717-kxs | Two orbit-view fixes: (1) vertically center the orbit GROUP — `orbitGroupOffset` in OrbitStage derives a `translateY` centering the center-orb+fan bounding box on cy (fixes the pentagon's top-heavy bbox / lopsided empty band below); orbitLayout.ts untouched, collapse-glide preserved, offset 0 pre-opener. (2) Comet-trail dots + FullSetlistSheet rings now colored by `tuningColor(family)` (matrix-resolved) to match the main orbs instead of hit-green/miss-red; ???/off-matrix → muted #A1A1AA. Main-view weak-fan dimming unchanged | 2026-07-17 | 16d4613 | [260717-kxs-center-the-orbit-group-vertically-recolo](./quick/260717-kxs-center-the-orbit-group-vertically-recolo/) |
 
 ### Blockers/Concerns
 
