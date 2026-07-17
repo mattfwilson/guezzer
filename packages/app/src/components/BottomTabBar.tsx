@@ -2,9 +2,9 @@ import { BookOpen, Compass, Music } from "lucide-react";
 import { navigate, useHashRoute, type Route } from "../routing/useHashRoute";
 
 const TABS: { route: Route; label: string; Icon: typeof Music }[] = [
-  { route: "show", label: "Show", Icon: Music },
-  { route: "explore", label: "Explore", Icon: Compass },
-  { route: "dex", label: "Dex", Icon: BookOpen },
+  { route: "show", label: "LiveGizz", Icon: Music },
+  { route: "explore", label: "GizzVerse", Icon: Compass },
+  { route: "dex", label: "GizzDex", Icon: BookOpen },
 ];
 
 export function BottomTabBar() {
