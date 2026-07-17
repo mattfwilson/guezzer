@@ -12,7 +12,7 @@
  */
 import type { AlbumTrack, DexAlbumsArtifact } from "@guezzer/core";
 import { Plus } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { config } from "../config.ts";
 import { AlbumDetail } from "./AlbumDetail.tsx";
 import { AlbumGrid } from "./AlbumGrid.tsx";
@@ -85,7 +85,6 @@ export function DexView() {
   }
 
   const { dex, archive, albums, rarity } = stats;
-  const emptyDex = dex.completion.caught === 0;
   const openAlbum = openAlbumKey != null ? resolveOpenAlbum(openAlbumKey, albums, copy) : null;
 
   return (
@@ -115,13 +114,11 @@ export function DexView() {
       </div>
 
       {segment === "albums" ? (
-        emptyDex ? (
-          <EmptyState heading={copy.emptyHeading} body={copy.emptyBody}>
-            <MarkCta label={archiveCopy.cta} onClick={() => setBrowserOpen(true)} />
-          </EmptyState>
-        ) : (
-          <AlbumGrid dex={dex} albums={albums} onOpen={setOpenAlbumKey} />
-        )
+        // Always render the full shelf — AlbumGrid dims zero-catch covers (§B4),
+        // so an empty dex reads as a "collection to fill", not a barren empty
+        // state. The Mark-attended CTA is Shows-only (it lived in the old empty
+        // branch); no CTA on Albums.
+        <AlbumGrid dex={dex} albums={albums} onOpen={setOpenAlbumKey} />
       ) : (
         <div className="flex flex-col">
           {/* Shows segment header — the Mark attended shows CTA (neutral, Plus). */}
@@ -170,24 +167,6 @@ export function DexView() {
 
       {/* Share-card preview sheet (SHAR-02) — self-sources the live dex. */}
       <ShareCardSheet open={shareOpen} onClose={() => setShareOpen(false)} />
-    </div>
-  );
-}
-
-interface EmptyStateProps {
-  heading: string;
-  body: string;
-  children?: ReactNode;
-}
-
-function EmptyState({ heading, body, children }: EmptyStateProps) {
-  return (
-    <div className="flex flex-col items-center gap-2 px-4 pt-16 pb-16 text-center">
-      <p className="text-[20px] font-semibold leading-tight text-text-primary">
-        {heading}
-      </p>
-      <p className="text-base leading-normal text-text-muted">{body}</p>
-      {children != null && <div className="mt-4 w-full max-w-xs">{children}</div>}
     </div>
   );
 }

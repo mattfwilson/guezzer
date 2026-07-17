@@ -209,9 +209,22 @@ describe("DexView: the album shelf (06-06, D-01/D-02/D-07)", () => {
     await waitFor(() => expect(screen.getAllByTestId("album-card").length).toBe(5));
   });
 
-  it("renders the 'No catches yet' empty state when nothing is caught", async () => {
+  it("renders the full album shelf grayed when nothing is caught (no empty state)", async () => {
     render(<DexView />);
-    await screen.findByText(copy.emptyHeading);
+
+    // Even at zero catches the whole shelf renders — every cover dimmed (§B4) —
+    // so the collection reads as a Pokédex to fill, not a barren empty state.
+    await waitFor(() => expect(screen.getAllByTestId("album-card").length).toBe(5));
+    for (const card of screen.getAllByTestId("album-card")) {
+      expect(within(card).getByTestId("album-cover").className).toContain("opacity-40");
+    }
+
+    // The old empty-state heading is gone, and the Mark-attended CTA is NOT on
+    // the Albums toggle (it is Shows-only now).
+    expect(screen.queryByText(copy.emptyHeading)).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: config.copy.archive.cta }),
+    ).toBeNull();
   });
 });
 
