@@ -26,7 +26,6 @@
  * 04-05/04-06.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { CircleStop } from "lucide-react";
 import {
   bindShowFromLatest,
   diffLatestAgainstTrail,
@@ -314,6 +313,11 @@ export function ShowView() {
   const visibleSuggestions = suggestions;
   const visibleFillHints = fillHints.filter((h) => !dismissedIds.has(h.songId));
 
+  // Opener seeded ⇒ a fan is live. Drives the SuggestionStrip slot reservation
+  // (SHOW-02 no-relayout mid-show) and the matching FAB bottom offset. Pre-opener
+  // both collapse so the "Search for the opener" orb centers with no blank bar.
+  const openerSeeded = session.currentSongId !== null;
+
   return withBackground(
     <>
       {/* Region 1 — Show-Mode header slot extending the AppShell chrome: the
@@ -326,20 +330,11 @@ export function ShowView() {
           {session.active.date}
         </span>
         <div className="flex items-center gap-3">
-          {/* Quiet online/offline indicator (D-08) — passive, next to the tally. */}
+          {/* Quiet online/offline indicator (D-08) — passive, next to the tally.
+              End Show moved into the FAB speed-dial (last item) — the header now
+              carries only passive status (SyncDot + tally). */}
           <SyncDot online={online} />
           <TallyReadout tally={session.tally} />
-          {/* End Show finalize control (D-04) — opens a destructive confirm; it
-              never ends the show on this tap. Required before the next night can
-              start (D-03/D-04). Never accent (gold is Start Show only). */}
-          <button
-            type="button"
-            onClick={() => setEndOpen(true)}
-            className="flex min-h-11 items-center gap-1 rounded-md border border-hairline px-2 text-[14px] font-semibold text-text-primary touch-manipulation"
-          >
-            <CircleStop size={18} />
-            {copy.endCta}
-          </button>
         </div>
       </div>
 
@@ -374,6 +369,7 @@ export function ShowView() {
         candidates={session.currentSongId === null ? [] : session.fan}
         onTapOrb={handleTapOrb}
         onWhy={setWhyCandidate}
+        onOpenSearch={() => setSearchOpen(true)}
       />
 
       {/* SuggestionStrip (05-04, D-01): the advisory editor songs + fill-???
@@ -387,6 +383,7 @@ export function ShowView() {
         onAdopt={handleAdopt}
         onDismiss={handleDismiss}
         onFill={handleFill}
+        reserveSpace={openerSeeded}
       />
 
       {/* Region 4 — the D-20 Show-Mode FAB speed-dial (supersedes the Phase-4
@@ -400,6 +397,8 @@ export function ShowView() {
         onSetBreak={handleSetBreak}
         onEncore={handleEncore}
         onUndo={handleUndo}
+        onEndShow={() => setEndOpen(true)}
+        stripReserved={openerSeeded}
       />
 
       {/* Fuzzy catalog search over core searchCatalog — opener-seed + mid-show

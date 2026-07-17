@@ -17,16 +17,25 @@ interface CenterNodeProps {
   songName: string | null;
   /** Tuning family for the ring/fill color; null falls back to muted. */
   tuningFamily: TuningFamily | null;
+  /** Pre-opener only: tapping the prompt opens the catalog Search to seed the opener (SHOW-04). */
+  onOpenSearch?: () => void;
 }
 
-export function CenterNode({ songName, tuningFamily }: CenterNodeProps) {
+export function CenterNode({ songName, tuningFamily, onOpenSearch }: CenterNodeProps) {
   if (songName == null) {
+    // Pre-opener: the prompt IS the search affordance — tapping opens the catalog
+    // SearchSheet so the user selects the opener (same seed path as the FAB).
     return (
-      <div className="flex min-h-11 max-w-[70%] items-center justify-center rounded-full border border-dashed border-hairline px-6 py-4 text-center">
+      <button
+        type="button"
+        onClick={onOpenSearch}
+        aria-label={config.copy.show.centerPrompt}
+        className="flex min-h-11 max-w-[70%] items-center justify-center rounded-full border border-dashed border-hairline px-6 py-4 text-center touch-manipulation"
+      >
         <span className="text-[20px] font-semibold leading-tight text-text-muted">
           {config.copy.show.centerPrompt}
         </span>
-      </div>
+      </button>
     );
   }
 

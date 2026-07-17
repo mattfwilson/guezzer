@@ -34,6 +34,14 @@ interface SuggestionStripProps {
   onDismiss: (songId: number) => void;
   /** Fill a `???` placeholder → routes through the Phase-4 rename path (D-04). */
   onFill: (hint: FillHint) => void;
+  /**
+   * Reserve the fixed slot height even when empty. TRUE once the opener is
+   * seeded (a fan exists to protect) so a suggestion appearing/dismissing never
+   * re-lays-out the orbit (SHOW-02). FALSE pre-opener → the slot collapses to
+   * zero height so the centered "Search for the opener" orb isn't pushed up and
+   * no blank bar shows above the tab bar.
+   */
+  reserveSpace: boolean;
 }
 
 /** Horizontal-swipe distance (px) past which a row is dismissed (05-UI-SPEC). */
@@ -119,15 +127,25 @@ export function SuggestionStrip({
   onAdopt,
   onDismiss,
   onFill,
+  reserveSpace,
 }: SuggestionStripProps) {
   const copy = config.copy.live;
+  const hasContent = suggestions.length > 0 || fillHints.length > 0;
 
   return (
-    // The slot is ALWAYS this fixed height so the orbit above never re-lays-out
-    // (SHOW-02). Empty → blank calm space, no card.
+    // Reserve the fixed height whenever content is shown OR the fan is live
+    // (reserveSpace) so a suggestion appearing/dismissing never re-lays-out the
+    // orbit (SHOW-02). Pre-opener (reserveSpace false, empty) → zero height so the
+    // orb centers and there's no bar. Visible chrome (border/bg) only when there's
+    // actual content — an empty reserved slot is invisible calm space, not a bar.
     <div
-      className="flex shrink-0 flex-col justify-center overflow-hidden border-t border-hairline bg-elevated"
-      style={{ height: config.ui.SUGGESTION_STRIP_HEIGHT }}
+      className={`flex shrink-0 flex-col justify-center overflow-hidden ${
+        hasContent ? "border-t border-hairline bg-elevated" : ""
+      }`}
+      style={{
+        height:
+          reserveSpace || hasContent ? config.ui.SUGGESTION_STRIP_HEIGHT : 0,
+      }}
     >
       {suggestions.map((suggestion) => (
         <StripRow

@@ -30,6 +30,8 @@ interface OrbitStageProps {
   onTapOrb: (candidate: OrbitCandidate) => void;
   /** Why path: the orb's Info dot opens the reason — never logs (D-11). */
   onWhy: (candidate: OrbitCandidate) => void;
+  /** Pre-opener: tapping the center prompt opens Search to seed the opener (SHOW-04). */
+  onOpenSearch: () => void;
 }
 
 export function OrbitStage({
@@ -37,6 +39,7 @@ export function OrbitStage({
   candidates,
   onTapOrb,
   onWhy,
+  onOpenSearch,
 }: OrbitStageProps) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -70,6 +73,7 @@ export function OrbitStage({
           <CenterNode
             songName={currentSong?.songName ?? null}
             tuningFamily={currentSong?.tuningFamily ?? null}
+            onOpenSearch={onOpenSearch}
           />
         </div>
       </div>

@@ -329,8 +329,8 @@ export const config = {
         "Tap Start Show when the first song kicks in. Everything logs offline — no signal needed.",
       /** Finalize control (D-04). */
       endCta: "End Show",
-      /** Center node prompt before the opener is seeded. */
-      centerPrompt: "Tap the opener",
+      /** Center node prompt before the opener is seeded — tap to open Search. */
+      centerPrompt: "Search for the opener",
       /** Fuzzy search sheet (SHOW-04). */
       searchCta: "Search",
       searchPlaceholder: "Search the catalog",

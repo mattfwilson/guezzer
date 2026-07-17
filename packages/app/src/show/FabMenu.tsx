@@ -25,7 +25,7 @@
  * home indicator (T-06-05 / RESEARCH Pitfall 10). Never accent — gold is
  * reserved for Start Show / focus ring (UI-SPEC §Color).
  */
-import { CircleHelp, Minus, Plus, Search, Star, Undo2 } from "lucide-react";
+import { CircleHelp, CircleStop, Minus, Plus, Search, Star, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { config } from "../config.ts";
 
@@ -40,6 +40,14 @@ interface FabMenuProps {
   onEncore: () => void;
   /** Remove the most recent entry in one tap, NO confirm (D-15/SHOW-07). */
   onUndo: () => void;
+  /** Open the End Show finalize confirm (D-04) — the LAST FAB item; the dialog
+   *  still gates the actual finalize, so functionality is unchanged from the old
+   *  header button. */
+  onEndShow: () => void;
+  /** Whether the SuggestionStrip slot is reserved below (opener seeded). When
+   *  false (pre-opener) the FAB drops the strip's height from its bottom offset so
+   *  it sits just above the tab bar instead of floating over the collapsed slot. */
+  stripReserved: boolean;
 }
 
 export function FabMenu({
@@ -48,18 +56,23 @@ export function FabMenu({
   onSetBreak,
   onEncore,
   onUndo,
+  onEndShow,
+  stripReserved,
 }: FabMenuProps) {
   const [open, setOpen] = useState(false);
   const copy = config.copy.show;
 
-  // Rendered top→bottom, so the on-screen column reads Encore (top) …
-  // Undo (bottom, nearest the thumb) per the UI-SPEC hottest-nearest order.
+  // Rendered top→bottom. Encore (top) … Undo per the UI-SPEC hottest-nearest
+  // order; End Show is appended as the LAST (bottom-most) item per owner request.
+  // End Show still opens the EndShowDialog confirm, so its bottom placement can't
+  // accidentally finalize the show.
   const actions = [
     { key: "encore", label: copy.encoreCta, Icon: Star, onClick: onEncore },
     { key: "setBreak", label: copy.setBreakCta, Icon: Minus, onClick: onSetBreak },
     { key: "search", label: copy.searchCta, Icon: Search, onClick: onSearch },
     { key: "unknown", label: copy.unknownCta, Icon: CircleHelp, onClick: onUnknown },
     { key: "undo", label: copy.undoCta, Icon: Undo2, onClick: onUndo },
+    { key: "endShow", label: copy.endCta, Icon: CircleStop, onClick: onEndShow },
   ] as const;
 
   // Auto-collapse-then-act: close first so one tap = one action, then run the
@@ -69,10 +82,15 @@ export function FabMenu({
     fn();
   };
 
-  // Clear the SuggestionStrip slot + the app BottomTabBar (h-16 = 64px) + a small
-  // gap + the home-indicator inset. The tab bar / gap / inset are layout offsets,
-  // not model tunables; the strip height and FAB size come from config.
-  const bottomOffset = `calc(env(safe-area-inset-bottom) + 64px + ${config.ui.SUGGESTION_STRIP_HEIGHT}px + 8px)`;
+  // Clear the app BottomTabBar (h-16 = 64px) + a small gap + the home-indicator
+  // inset, PLUS the SuggestionStrip slot ONLY when it's reserved (opener seeded).
+  // Pre-opener the strip collapses to 0, so dropping its term keeps the FAB just
+  // above the tab bar instead of floating over empty space. The tab bar / gap /
+  // inset are layout offsets; the strip height and FAB size come from config.
+  const stripTerm = stripReserved
+    ? ` + ${config.ui.SUGGESTION_STRIP_HEIGHT}px`
+    : "";
+  const bottomOffset = `calc(env(safe-area-inset-bottom) + 64px${stripTerm} + 8px)`;
   const rightOffset = "calc(env(safe-area-inset-right) + 16px)";
 
   return (

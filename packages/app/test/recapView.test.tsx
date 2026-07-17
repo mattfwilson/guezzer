@@ -172,7 +172,9 @@ describe("End Show → recap seam (D-13, RESEARCH Pattern 6)", () => {
     const { ShowView } = await import("../src/show/ShowView.tsx");
     render(<ShowView />);
 
-    // Active show → the End Show control is present; confirm it.
+    // Active show → End Show now lives in the FAB speed-dial (last item). Open the
+    // FAB, tap End Show, then confirm.
+    fireEvent.click(await screen.findByRole("button", { name: showCopy.fabLabel }));
     fireEvent.click(await screen.findByRole("button", { name: showCopy.endCta }));
     fireEvent.click(await screen.findByRole("button", { name: showCopy.endConfirm }));
 

@@ -16,6 +16,7 @@ const actionLabels = [
   config.copy.show.setBreakCta,
   config.copy.show.encoreCta,
   config.copy.show.undoCta,
+  config.copy.show.endCta, // End Show — the last FAB item (moved from the header)
 ];
 
 function renderMenu() {
@@ -25,8 +26,11 @@ function renderMenu() {
     onSetBreak: vi.fn(),
     onEncore: vi.fn(),
     onUndo: vi.fn(),
+    onEndShow: vi.fn(),
   };
-  render(<FabMenu {...handlers} />);
+  // stripReserved is a layout flag, not a callback — pass it separately so the
+  // handler spies (asserted "not called") stay callback-only.
+  render(<FabMenu {...handlers} stripReserved={true} />);
   return handlers;
 }
 
@@ -49,7 +53,7 @@ describe("FabMenu (D-20 speed-dial replacing ActionBar)", () => {
     }
   });
 
-  it("expands to five action rows when the FAB is tapped", () => {
+  it("expands to six action rows when the FAB is tapped", () => {
     renderMenu();
     openMenu();
     for (const label of actionLabels) {
@@ -90,6 +94,7 @@ describe("FabMenu (D-20 speed-dial replacing ActionBar)", () => {
       { label: config.copy.show.setBreakCta, key: "onSetBreak" },
       { label: config.copy.show.encoreCta, key: "onEncore" },
       { label: config.copy.show.undoCta, key: "onUndo" },
+      { label: config.copy.show.endCta, key: "onEndShow" },
     ] as const;
 
     for (const { label, key } of cases) {
