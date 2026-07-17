@@ -170,6 +170,7 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 | verification | Phase 01 tuning-tag spot-check (DATA-04 human_needed; ~10-song sanity pass) | human_needed | 2026-07-17 | VALID-01 (Phase 10) |
 | todo/ui | orb song-name text truncated/oversized (esp. center orb) | pending | 2026-07-17 | POLISH-01 (Phase 8) |
 | todo/ui | collapse Show-Mode actions into FAB menu | pending | 2026-07-17 | POLISH-02 (Phase 8) |
+| research/ui-model | Reconcile orb % (prediction confidence) vs rarity color (global frequency) — legendary orb can out-% a common one. Mechanics + option space parked, no change decided. See [260717-p4s-FOLLOWUP-orb-percent-vs-rarity.md](./quick/260717-p4s-map-rarity-colors-to-prediction-orbs-and/260717-p4s-FOLLOWUP-orb-percent-vs-rarity.md) | parked | 2026-07-17 | TBD |
 | todo/pwa | InstallBanner should show once per version, not every reload | pending | 2026-07-17 | POLISH-02 (Phase 8) |
 | integration/warning | WARNING-1 own-backup restore fork — **FIXED** in quick 260716-vw2 (not deferred) | resolved | 2026-07-17 | PWA-05 polishes it (Phase 9) |
 
