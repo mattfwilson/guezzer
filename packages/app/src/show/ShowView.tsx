@@ -25,7 +25,7 @@
  * `flex-1` child that never overflows. The ActionBar + CometTrail slots land in
  * 04-05/04-06.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CircleStop } from "lucide-react";
 import {
   bindShowFromLatest,
@@ -52,8 +52,10 @@ import { useOnlineStatus } from "../live/useOnlineStatus.ts";
 import { SuggestionStrip } from "../live/SuggestionStrip.tsx";
 import { SyncDot } from "../live/SyncDot.tsx";
 import { RecapView } from "../dex/RecapView.tsx";
+import { coverUrlList } from "../dex/covers.ts";
 import { classifyOutcome } from "./scoring.ts";
 import { FabMenu } from "./FabMenu.tsx";
+import { ShowBackground } from "./ShowBackground.tsx";
 import { CometTrail } from "./CometTrail.tsx";
 import { EndShowDialog } from "./EndShowDialog.tsx";
 import { OrbitStage } from "./OrbitStage.tsx";
@@ -77,6 +79,28 @@ export function ShowView() {
   const [wakeNoticeVisible, setWakeNoticeVisible] = useState(false);
   const wakeDismissedRef = useRef(false);
   const copy = config.copy.show;
+
+  // POLISH (260717-02n): ambient LiveGizz background — one random bundled album
+  // cover, picked ONCE here in the always-mounted ShowView so it stays stable
+  // across the pre-show → active → end-show transitions (never flickers mid-show)
+  // and is shared by every page state below. null (no covers) → plain surface.
+  const [bgCoverUrl] = useState<string | null>(() => {
+    const urls = coverUrlList();
+    return urls.length > 0 ? urls[Math.floor(Math.random() * urls.length)] : null;
+  });
+
+  // Wrap a page state in the blurred+dimmed cover backdrop. The frame is the
+  // positioned parent (`relative`) the ShowBackground fills; content rides a
+  // `z-10` column that reproduces the page's full-height non-scrolling flex
+  // layout (SHOW-13). Reused by all three in-page states (recap is excluded).
+  const withBackground = (content: ReactNode) => (
+    <div className="relative flex h-full min-h-0 flex-1 flex-col">
+      <ShowBackground coverUrl={bgCoverUrl} />
+      <div className="relative z-10 flex h-full min-h-0 flex-1 flex-col">
+        {content}
+      </div>
+    </div>
+  );
 
   // ── Live sync (Plan 05-04) ─────────────────────────────────────────────────
   // The one poll timer is owned here: gated on active-show + online + visible
@@ -176,14 +200,14 @@ export function ShowView() {
 
   // No active show → the pre-show launcher (D-01/D-03).
   if (!session.active) {
-    return <PreShowLauncher />;
+    return withBackground(<PreShowLauncher />);
   }
 
   // Bundled matrix failed its schemaVersion guard → a calm full-stage failure
   // state instead of a crash (T-04-09, ASVS V7). Blocks only the orbit; the
   // AppShell header + bottom nav stay usable.
   if (!session.matrixOk) {
-    return (
+    return withBackground(
       <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
         <h1 className="text-[20px] font-semibold leading-tight text-text-primary">
           {copy.modelLoadFailureHeading}
@@ -191,7 +215,7 @@ export function ShowView() {
         <p className="mt-2 text-base leading-normal text-text-muted">
           {copy.modelLoadFailureBody}
         </p>
-      </div>
+      </div>,
     );
   }
 
@@ -290,8 +314,8 @@ export function ShowView() {
   const visibleSuggestions = suggestions;
   const visibleFillHints = fillHints.filter((h) => !dismissedIds.has(h.songId));
 
-  return (
-    <div className="flex h-full min-h-0 flex-1 flex-col">
+  return withBackground(
+    <>
       {/* Region 1 — Show-Mode header slot extending the AppShell chrome: the
           auto-stamped date (D-01) left, the persistent hit/miss tally right
           (SHOW-09, always visible incl. the 0/0 · — zero-state). text-primary,
@@ -404,6 +428,6 @@ export function ShowView() {
       />
 
       <WhyDetail candidate={whyCandidate} onClose={() => setWhyCandidate(null)} />
-    </div>
+    </>,
   );
 }

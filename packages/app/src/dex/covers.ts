@@ -31,3 +31,12 @@ const coverUrlBySlug: Record<string, string> = Object.fromEntries(
 export function coverUrlFor(slug: string): string | null {
   return coverUrlBySlug[slug] ?? null;
 }
+
+/**
+ * Every bundled cover URL (order = glob order). Used by the LiveGizz ambient
+ * background (quick task 260717-02n) to pick a random cover without needing to
+ * know slugs. Empty array if no covers are committed (background then no-ops).
+ */
+export function coverUrlList(): string[] {
+  return Object.values(coverUrlBySlug);
+}

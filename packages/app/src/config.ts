@@ -73,6 +73,19 @@ export const config = {
     /** Nominal center-pill text-width budget in px fed to fitOrbLabel (the pill is
      *  max-w-[70%] of the stage and receives no px size; this is the wrap heuristic). */
     ORB_LABEL_CENTER_WIDTH_PX: 220,
+
+    /**
+     * Phase-8 POLISH: LiveGizz page ambient background — a randomized bundled
+     * album cover, blurred + dark-dimmed behind the page body so it reads as
+     * texture, never foreground (single-config ethos; no magic numbers in the
+     * component). Body content (orbit, buttons, header, text) must stay legible.
+     */
+    background: {
+      /** Gaussian blur radius in px applied to the cover backdrop (heavy = ambient wash). */
+      BLUR_PX: 40,
+      /** Dark scrim opacity (0–1) over the cover, using --color-surface, so body stays legible. */
+      DIM_OPACITY: 0.72,
+    },
   },
 
   /**
