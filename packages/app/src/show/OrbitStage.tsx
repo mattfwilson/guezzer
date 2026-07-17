@@ -59,6 +59,37 @@ interface CollapseState {
 const EASE_FAN_OUT = [0.22, 1, 0.36, 1] as const; // easeOutQuint-ish — a lively open
 const EASE_COLLAPSE = [0.4, 0, 0.2, 1] as const; // standard — a settled glide
 
+/**
+ * Vertical offset that centers the orbit group's BOUNDING BOX on `cy`.
+ *
+ * The radial layout centers the ring geometrically at `cy`, but an N-orb polygon
+ * (e.g. a 5-orb pentagon: one vertex up, two at the bottom) puts the group's bbox
+ * off-centre, leaving a lopsided empty band. We measure the group's true top/bottom
+ * — every rendered orb's `[y ± d/2]` PLUS the centre node's `[cy ± ORB_CENTER/2]` —
+ * and translate so its midpoint lands on `cy`. DERIVED from the rendered layout
+ * (no config constant, honoring the single-config rule). Returns 0 when there are
+ * no orbs (pre-opener) so the centred "Search for the opener" prompt stays centred.
+ */
+function orbitGroupOffset(
+  layouts: ReturnType<typeof layoutOrbs>,
+  orbs: OrbitCandidate[],
+  cy: number,
+  centerDiameter: number,
+): number {
+  if (orbs.length === 0) return 0;
+  // Seed the bbox with the centre node's extent so the group accounts for it.
+  let groupTop = cy - centerDiameter / 2;
+  let groupBottom = cy + centerDiameter / 2;
+  for (let i = 0; i < orbs.length; i++) {
+    const layout = layouts[i];
+    if (!layout) continue;
+    const half = layout.diameterPx / 2;
+    groupTop = Math.min(groupTop, layout.y - half);
+    groupBottom = Math.max(groupBottom, layout.y + half);
+  }
+  return cy - (groupTop + groupBottom) / 2;
+}
+
 /** Deterministic per-orb idle-float CSS vars (varied by song id so orbs desync). */
 function floatVars(songId: number): React.CSSProperties {
   const { FLOAT_PX, FLOAT_PERIOD_MS } = config.show.orbitAnim;
@@ -154,12 +185,37 @@ export function OrbitStage({
   const cy = size.height / 2;
   const dur = (ms: number) => (reduce ? 0 : ms / 1000);
 
+  // Static layout transform: shift the whole orbit group (centre + fan) so its
+  // bounding box centres on `cy`, removing the lopsided empty band below the
+  // polygon. Derived from the currently-rendered layout (frozen during a collapse,
+  // so it stays stable within a fan). 0 pre-opener / before measurement. Applied
+  // regardless of prefers-reduced-motion — it's a layout offset, not an animation.
+  const orbitOffset = laidOut
+    ? orbitGroupOffset(
+        renderLayouts,
+        renderOrbs,
+        cy,
+        config.show.ORB_CENTER_DIAMETER,
+      )
+    : 0;
+
   return (
     <div
       ref={stageRef}
       className="orbit-stage relative flex-1 touch-none select-none overflow-hidden"
       style={{ overscrollBehavior: "none" }}
     >
+      {/* Orbit group wrapper — carries the static translateY that centres the
+          centre-orb + fan bounding box on `cy` (see orbitGroupOffset). `absolute
+          inset-0` so the orbs' absolute `left/top` resolve against it exactly as
+          they would against the full stage. Excludes the bottom-anchored weak-fan
+          hint and the outer stageRef (which the ResizeObserver measures whole). */}
+      <div
+        className="absolute inset-0"
+        style={{
+          transform: orbitOffset ? `translateY(${orbitOffset}px)` : undefined,
+        }}
+      >
       {/* Centre node — absolutely centred over the stage. During a collapse the
           OUTGOING song shrinks + fades out (making room for the arriving orb);
           the tapped orb then glides on top and PERSISTS as the new centre, so when
@@ -263,6 +319,7 @@ export function OrbitStage({
             </motion.div>
           );
         })}
+      </div>
 
       {weak && !inCollapse && fan.length > 0 && (
         <div className="pointer-events-none absolute inset-x-0 bottom-2 flex flex-col items-center px-4 text-center">
