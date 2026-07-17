@@ -2,6 +2,9 @@
 created: 2026-07-17T04:50:35.637Z
 title: LiveGizz tracking screen — center opener orb, search-to-seed, kill blank strip, End Show in FAB
 area: ui
+status: done
+resolved_by: quick task 260717-1k3 (commit 8049e0a)
+resolved_date: 2026-07-17
 files:
   - packages/app/src/show/CenterNode.tsx
   - packages/app/src/show/OrbitStage.tsx:67-75
