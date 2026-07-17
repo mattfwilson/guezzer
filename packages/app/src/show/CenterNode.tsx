@@ -1,7 +1,8 @@
 /**
  * The current-song node at the centre of the orbit (04-UI-SPEC §Layout region 3,
- * Component Inventory). Presentational only. Tuning-family colored, Heading-size
- * name, NO percentage. A fixed CIRCLE (owner 2026-07-17), not a stadium pill, and
+ * Component Inventory). Presentational only. RARITY-TIER colored (quick
+ * 260717-p4s, via `rarityColor`/`rarityTierForSong` — no longer tuning family),
+ * Heading-size name, NO percentage. A fixed CIRCLE (owner 2026-07-17), not a stadium pill, and
  * once a song is playing it PULSES — a slow living/breathing scale (`.orb-breathe`
  * in styles.css, motion-safe). Before the opener is seeded it shows the "Search
  * for the opener" prompt (config.copy.show.centerPrompt) — the screen's primary
@@ -11,18 +12,20 @@
 import type { TuningFamily } from "@guezzer/core";
 import { config } from "../config.ts";
 import { fitOrbLabel } from "./orbLabelFit.ts";
-import { ORB_TEXT_COLOR, tuningColor } from "./tuningColor.ts";
+import { RARITY_ORB_TEXT_COLOR, rarityColor, rarityTierForSong } from "../dex/rarityStyle.ts";
 
 interface CenterNodeProps {
   /** Current song name, or null before the opener is seeded. */
   songName: string | null;
-  /** Tuning family for the ring/fill color; null falls back to muted. */
-  tuningFamily: TuningFamily | null;
+  /** Current song id — drives the RARITY-TIER fill/ring color; null → debut gray. */
+  songId: number | null;
+  /** Tuning family (kept for now; no longer used for color, quick 260717-p4s). */
+  tuningFamily?: TuningFamily | null;
   /** Pre-opener only: tapping the prompt opens the catalog Search to seed the opener (SHOW-04). */
   onOpenSearch?: () => void;
 }
 
-export function CenterNode({ songName, tuningFamily, onOpenSearch }: CenterNodeProps) {
+export function CenterNode({ songName, songId, onOpenSearch }: CenterNodeProps) {
   const diameter = config.show.ORB_CENTER_DIAMETER;
 
   if (songName == null) {
@@ -46,7 +49,7 @@ export function CenterNode({ songName, tuningFamily, onOpenSearch }: CenterNodeP
     );
   }
 
-  const fill = tuningColor(tuningFamily);
+  const fill = rarityColor(rarityTierForSong(songId));
 
   // D-21: wrap + scale-to-fit the full current-song name. Fit against the padded
   // CONTENT width (the circle's `p-3` = 12px inset each side), not the raw
@@ -80,7 +83,7 @@ export function CenterNode({ songName, tuningFamily, onOpenSearch }: CenterNodeP
         style={{ borderColor: fill, ["--ripple-delay"]: "1300ms" } as React.CSSProperties}
       />
       <div
-        style={{ width: diameter, height: diameter, backgroundColor: fill, color: ORB_TEXT_COLOR }}
+        style={{ width: diameter, height: diameter, backgroundColor: fill, color: RARITY_ORB_TEXT_COLOR }}
         className="orb-breathe relative flex select-none items-center justify-center rounded-full p-3 text-center"
       >
         <span
