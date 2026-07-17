@@ -2,10 +2,19 @@
 created: 2026-07-17T04:28:54.150Z
 title: GizzDex — Albums always shows the full grayed grid; Mark-attended only on Shows
 area: ui
+status: done
+resolved_by: quick task 260717-0s3 (commit 48c45e1)
+resolved_date: 2026-07-17
 files:
   - packages/app/src/dex/DexView.tsx:117-139
   - packages/app/src/dex/AlbumGrid.tsx
 ---
+
+> **DONE (2026-07-17):** Implemented in quick task `260717-0s3` (commit `48c45e1`).
+> Albums toggle always renders `<AlbumGrid>` (zero-catch shelf grayed via §B4);
+> Mark-attended CTA is Shows-only; orphaned `emptyDex`/`EmptyState` removed; dex
+> test updated. Verified with an empty dex (31/31 covers dimmed, no CTA on Albums).
+> See `.planning/quick/260717-0s3-*/260717-0s3-SUMMARY.md`.
 
 ## Problem
 
