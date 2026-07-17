@@ -124,6 +124,7 @@ Recent decisions affecting current work:
 - [ui/pwa] InstallBanner should show once per app version, not on every reload — `.planning/todos/pending/2026-07-14-install-banner-reappears-every-reload.md`. Non-blocking; owner-reported during Phase 05 UAT Test 3 setup. **→ v1.1 POLISH-02 (Phase 8).**
 - [ui] Consolidate Show-Mode actions (Search/Unknown/Set break/Encore/Undo) into a collapsed-by-default bottom-right FAB menu to free vertical space for the orbit — `.planning/todos/pending/2026-07-14-collapse-show-actions-into-fab-menu.md`. Owner idea 2026-07-14; note the zero-tap ???/Undo trade-off flagged inside. **→ v1.1 POLISH-02 (Phase 8, verify-and-resolve).**
 - [ui] Blur + dim a randomized album cover as the Show screen background (replace flat color) while keeping body buttons/text legible — `.planning/todos/pending/2026-07-17-blur-a-random-album-cover-as-the-show-screen-background.md`. Owner idea 2026-07-17; visual-polish for Show Mode, must stay offline + accessible.
+- [ui] Explore FAB (`z-30`) paints above the open main overflow menu (`AppMenu` scrim `z-20`) — bump the menu above the FAB so it's always under the overflow sheet — `.planning/todos/pending/2026-07-17-explore-fab-renders-above-the-main-overflow-menu.md`. Owner-reported bug 2026-07-17; z-index stacking, audit overlay tiers.
 
 ### Quick Tasks Completed
 
