@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 Phase: Not started — v1.1 roadmap defined (Phases 8–10)
 Plan: —
 Status: Roadmap complete; awaiting phase planning
-Last activity: 2026-07-17 — Doubled the GizzVerse constellation node spread (CHARGE_STRENGTH/LINK_DISTANCE) via gsd-fast
+Last activity: 2026-07-17 — Completed quick task 260717-n6a: added Epic rarity tier + tie-inclusive playCount rarity bands
 
 ## Performance Metrics
 
@@ -151,6 +151,7 @@ Recent decisions affecting current work:
 | 260717-kxs | Two orbit-view fixes: (1) vertically center the orbit GROUP — `orbitGroupOffset` in OrbitStage derives a `translateY` centering the center-orb+fan bounding box on cy (fixes the pentagon's top-heavy bbox / lopsided empty band below); orbitLayout.ts untouched, collapse-glide preserved, offset 0 pre-opener. (2) Comet-trail dots + FullSetlistSheet rings now colored by `tuningColor(family)` (matrix-resolved) to match the main orbs instead of hit-green/miss-red; ???/off-matrix → muted #A1A1AA. Main-view weak-fan dimming unchanged | 2026-07-17 | 16d4613 | [260717-kxs-center-the-orbit-group-vertically-recolo](./quick/260717-kxs-center-the-orbit-group-vertically-recolo/) |
 
 | 260717-spread (fast) | Doubled the GizzVerse constellation spread per owner request: `config.explore.CHARGE_STRENGTH` -400→-800, `LINK_DISTANCE` 90→180. Overrides the 2026-07-16 device-tuned values (comments updated to reflect they're no longer device-verified) | 2026-07-17 | 6be13ca | — (gsd-fast) |
+| 260717-n6a | Added **Epic** rarity tier + switched rarity from play-rate quantiles to **tie-inclusive playCount bands** (`config.dex.RARITY_BANDS`: legendary=1×, epic=2–3×, rare=4–8×, uncommon=9–23×, common=24×+). Retired `RARITY_QUANTILES` + `RARITY_MIN_PLAYS` (1-play songs are now Legendary — the old cap made Legendary structurally empty). Rippled Epic through all exhaustive consumers (compare.ts rank, share-stats/RecapView TIER_ORDER, tierLabels, both TIER_COLOR maps @ `#FB923C`). Real-corpus tally 32/29/32/62/109=264 verified; 498 tests green. **Deferred: the two `TIER_COLOR` maps stay duplicated — folds into the pending recolor todo** | 2026-07-17 | 4cd2f31 | [260717-n6a-add-epic-rarity-tier-switch-rarity-from-](./quick/260717-n6a-add-epic-rarity-tier-switch-rarity-from-/) |
 
 ### Blockers/Concerns
 
