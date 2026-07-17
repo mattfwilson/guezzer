@@ -9,7 +9,8 @@ import { buildShareCardFile, drawShareCard, shareOrDownload } from "../src/dex/s
  * pin the app draw + Web-Share/download flow:
  *  - `drawShareCard` is a pure (ctx, data) draw — asserted against a recorded
  *    mock ctx (jsdom has no canvas — Pitfall 8): the #0C0C10 background fillRect,
- *    the hero percentage string, and the gold Legendary tier-breakdown segment.
+ *    the hero percentage string, the orange Legendary tier-breakdown segment, and
+ *    the brand-gold wordmark (decoupled from the legendary tier hue).
  *  - `buildShareCardFile` returns a calm { ok: false } when getContext is null
  *    (the jsdom default — the natural never-throw test, T-06-27).
  *  - `shareOrDownload` gates on canShare: share when supported, anchor download
@@ -68,7 +69,7 @@ afterEach(() => {
 });
 
 describe("drawShareCard — pure (ctx, data) canvas draw (Pitfall 8)", () => {
-  it("paints the #0C0C10 background, the hero %, and the gold Legendary segment", () => {
+  it("paints the #0C0C10 background, the hero %, the orange Legendary segment, and the gold wordmark", () => {
     const { ctx, calls } = makeMockCtx();
 
     drawShareCard(ctx as unknown as CanvasRenderingContext2D, sampleData(), {
@@ -84,12 +85,19 @@ describe("drawShareCard — pure (ctx, data) canvas draw (Pitfall 8)", () => {
     // Hero completion percentage rendered as text.
     expect(calls.some((c) => c.fn === "fillText" && String(c.args[0]).includes("42%"))).toBe(true);
 
-    // Tier breakdown: the Legendary segment is drawn in accent gold (§B3).
+    // Tier breakdown: the Legendary segment follows the tier map — now orange (§B3).
     const legendary = calls.find(
       (c) => c.fn === "fillText" && String(c.args[0]).includes("Legendary"),
     );
     expect(legendary).toBeTruthy();
-    expect(legendary?.fillStyle.toUpperCase()).toBe("#F2C14E");
+    expect(legendary?.fillStyle.toUpperCase()).toBe("#FB923C");
+
+    // Wordmark: fixed brand gold, decoupled from the (now orange) legendary tier.
+    const wordmark = calls.find(
+      (c) => c.fn === "fillText" && String(c.args[0]) === config.copy.share.card.wordmark,
+    );
+    expect(wordmark).toBeTruthy();
+    expect(wordmark?.fillStyle.toUpperCase()).toBe("#F2C14E");
   });
 });
 

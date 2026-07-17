@@ -21,21 +21,13 @@ import { config } from "../config.ts";
 /** System-font stack (05/06-UI-SPEC) — no web-font download; matches the app chrome. */
 const FONT_STACK = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
-/** Chrome + rarity data colors (06-UI-SPEC §Color) — contract hexes only. */
+/** Chrome-only card colors (06-UI-SPEC §Color) — contract hexes only. Tier hues
+ *  come from the shared `config.dex.tierColors` map (no local duplicate). */
 const COLOR = {
   bg: "#0C0C10",
   primary: "#F5F5F7",
   muted: "#A1A1AA",
 } as const;
-
-/** Rarity-tier ramp (§B3) — Legendary reuses accent gold. Data semantics only. */
-const TIER_COLOR: Record<RarityTier, string> = {
-  common: "#A1A1AA",
-  uncommon: "#60A5FA",
-  rare: "#E879F9",
-  epic: "#FB923C", // NEW warm orange — between rare-magenta and legendary-gold; zero collision (matches TierBadge.tsx exactly)
-  legendary: "#F2C14E",
-};
 
 /** The pre-built share result — a File ready to hand to the OS + a preview URL. */
 export type ShareCardFile =
@@ -83,8 +75,8 @@ export function drawShareCard(
   ctx.fillStyle = COLOR.bg;
   ctx.fillRect(0, 0, width, height);
 
-  // Wordmark (accent gold — the payoff surface).
-  centerText(ctx, cardCopy.wordmark, cx, height * 0.13, 68, TIER_COLOR.legendary);
+  // Wordmark (fixed brand gold — decoupled from the legendary tier, now orange).
+  centerText(ctx, cardCopy.wordmark, cx, height * 0.13, 68, config.share.wordmarkGold);
 
   // Completion % hero (Display — the collection's biggest number).
   centerText(ctx, `${data.completionPct}%`, cx, height * 0.34, 240, COLOR.primary);
@@ -93,7 +85,7 @@ export function drawShareCard(
   centerText(ctx, cardCopy.caught(data.caught, data.total), cx, height * 0.42, 52, COLOR.muted);
   centerText(ctx, cardCopy.shows(data.showCount), cx, height * 0.47, 46, COLOR.muted);
 
-  // Rarest catch + tier word (tier in its ramp color; Legendary → gold).
+  // Rarest catch + tier word (tier in its ramp color; Legendary → orange).
   if (data.rarestCatch != null) {
     centerText(ctx, cardCopy.rarestLabel, cx, height * 0.58, 40, COLOR.muted);
     centerText(ctx, data.rarestCatch.songName, cx, height * 0.63, 56, COLOR.primary);
@@ -103,11 +95,11 @@ export function drawShareCard(
       cx,
       height * 0.67,
       44,
-      TIER_COLOR[data.rarestCatch.tier],
+      config.dex.tierColors[data.rarestCatch.tier],
     );
   }
 
-  // Tier breakdown — segmented so each tier keeps its ramp color (Legendary gold).
+  // Tier breakdown — segmented so each tier keeps its ramp color (Legendary orange).
   if (data.tierBreakdown.length > 0) {
     drawTierBreakdown(ctx, data.tierBreakdown, cx, height * 0.78, tierWord);
   }
@@ -123,8 +115,9 @@ export function drawShareCard(
 
 /**
  * Draw the `3 Legendary · 12 Rare · …` breakdown centered on `centerX`, each
- * tier segment in its ramp color and the ` · ` separators muted. Uses
- * measureText to lay the segments out left-to-right from a centered origin.
+ * tier segment in its ramp color (from the shared `config.dex.tierColors`) and
+ * the ` · ` separators muted. Uses measureText to lay the segments out
+ * left-to-right from a centered origin.
  */
 function drawTierBreakdown(
   ctx: CanvasRenderingContext2D,
@@ -153,7 +146,7 @@ function drawTierBreakdown(
       x += ctx.measureText(sep).width;
     }
     const seg = segments[i];
-    ctx.fillStyle = TIER_COLOR[b.tier];
+    ctx.fillStyle = config.dex.tierColors[b.tier];
     ctx.fillText(seg, x, y);
     x += ctx.measureText(seg).width;
   });
