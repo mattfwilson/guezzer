@@ -252,7 +252,7 @@ export function ArchiveBrowser({ archive, onClose }: ArchiveBrowserProps) {
       {/* Title + close. */}
       <div
         className="flex items-center gap-2 border-b border-hairline bg-elevated px-4 py-3"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
       >
         <p className="min-h-11 flex flex-1 items-center text-[20px] font-semibold leading-tight text-text-primary">
           {copy.title}

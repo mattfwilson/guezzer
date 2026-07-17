@@ -88,7 +88,7 @@ export function SearchSheet({
       {/* Search field row — Body typography (text-base = 16px) avoids iOS zoom. */}
       <div
         className="flex items-center gap-2 border-b border-hairline bg-elevated px-4 py-3"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
       >
         <Search size={22} className="text-text-muted" />
         <input

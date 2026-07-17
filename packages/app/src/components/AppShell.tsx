@@ -38,7 +38,7 @@ export function AppShell({
     <div className="flex h-full flex-col bg-surface text-text-primary">
       <header
         className="flex items-center justify-between border-b border-hairline bg-elevated px-4 py-3"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
       >
         <span className="text-[20px] font-semibold leading-tight">
           Guezzer
