@@ -28,9 +28,7 @@ function renderMenu() {
     onUndo: vi.fn(),
     onEndShow: vi.fn(),
   };
-  // stripReserved is a layout flag, not a callback — pass it separately so the
-  // handler spies (asserted "not called") stay callback-only.
-  render(<FabMenu {...handlers} stripReserved={true} />);
+  render(<FabMenu {...handlers} />);
   return handlers;
 }
 

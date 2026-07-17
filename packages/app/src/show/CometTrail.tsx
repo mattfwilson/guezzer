@@ -79,29 +79,51 @@ export function CometTrail({ entries, onNodeTap }: CometTrailProps) {
           </button>
         )}
 
-        {visible.map((entry, i) => {
-          const diameter = nodeDiameter(i, visible.length);
-          return (
-            <button
-              key={entry.id ?? `pos-${entry.position}`}
-              type="button"
-              onClick={() => onNodeTap(entry)}
-              className="flex min-h-11 min-w-11 shrink-0 flex-col items-center justify-end gap-1 touch-manipulation"
-            >
-              <span
-                className="rounded-full border-2 bg-surface"
-                style={{
-                  width: diameter,
-                  height: diameter,
-                  borderColor: RING_COLOR[entry.outcome],
-                }}
-              />
-              <span className="max-w-[64px] truncate text-[14px] leading-tight text-text-muted">
-                {entry.songName}
-              </span>
-            </button>
-          );
-        })}
+        {/* Nodes region — kept separate from the "+N" chip so the connector
+            baseline spans only the dot timeline (not behind the chip). Relative so
+            the absolute baseline anchors to it; every dot sits in a fixed
+            MAX-tall band, so all dot CENTRES align at one y even as the dots
+            diminish, and the hairline reads as one left→right timeline. */}
+        {visible.length > 0 && (
+          <div className="relative flex shrink-0 items-end gap-2">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-0 right-0 h-px -translate-y-1/2 bg-hairline"
+              style={{ top: config.show.TRAIL_NODE_MAX_DIAMETER / 2 }}
+            />
+            {visible.map((entry, i) => {
+              const diameter = nodeDiameter(i, visible.length);
+              return (
+                <button
+                  key={entry.id ?? `pos-${entry.position}`}
+                  type="button"
+                  onClick={() => onNodeTap(entry)}
+                  className="relative flex min-h-11 min-w-11 shrink-0 flex-col items-center justify-start gap-1 touch-manipulation"
+                >
+                  {/* Fixed MAX-tall band centres the (diminishing) solid dot so
+                      the connector passes through every centre at the same y. */}
+                  <span
+                    className="flex items-center justify-center"
+                    style={{ height: config.show.TRAIL_NODE_MAX_DIAMETER }}
+                  >
+                    <span
+                      data-testid="trail-dot"
+                      className="rounded-full"
+                      style={{
+                        width: diameter,
+                        height: diameter,
+                        backgroundColor: RING_COLOR[entry.outcome],
+                      }}
+                    />
+                  </span>
+                  <span className="max-w-[64px] truncate text-[14px] leading-tight text-text-muted">
+                    {entry.songName}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {expanded && (

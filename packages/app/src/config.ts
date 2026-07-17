@@ -51,10 +51,10 @@ export const config = {
     TRAIL_VISIBLE_RECENT: 4,
     /** Set length that triggers the "+N" trail compression chip (SHOW-08). */
     TRAIL_COMPRESS_AT: 30,
-    /** Smallest (oldest) comet-trail node circle diameter in px — the hit area stays ≥44px regardless (SHOW-08). */
-    TRAIL_NODE_MIN_DIAMETER: 24,
-    /** Largest (most-recent) comet-trail node circle diameter in px — nodes diminish from this toward MIN by age (SHOW-08). */
-    TRAIL_NODE_MAX_DIAMETER: 40,
+    /** Smallest (oldest) comet-trail node dot diameter in px — solid-filled; the hit area stays ≥44px via the wrapper button regardless (SHOW-08). */
+    TRAIL_NODE_MIN_DIAMETER: 12,
+    /** Largest (most-recent) comet-trail node dot diameter in px — solid-filled; nodes diminish from this toward MIN by age (SHOW-08). */
+    TRAIL_NODE_MAX_DIAMETER: 20,
 
     /**
      * Phase-6 D-21 orb-label fit (fitOrbLabel). Names wrap + scale-to-fit down to
@@ -73,6 +73,17 @@ export const config = {
     /** Nominal center-pill text-width budget in px fed to fitOrbLabel (the pill is
      *  max-w-[70%] of the stage and receives no px size; this is the wrap heuristic). */
     ORB_LABEL_CENTER_WIDTH_PX: 220,
+
+    /**
+     * Phase-8 POLISH: prediction-orb info gesture. Long-pressing an orb opens its
+     * "why" sheet (replacing the old visible (i) dot, which is now sr-only for AT);
+     * a quick tap still logs the orb (SHOW-03). Tuned so a deliberate-but-slow log
+     * tap doesn't accidentally trip the info sheet.
+     */
+    /** Hold duration in ms before an orb press opens the info sheet instead of logging. */
+    ORB_LONG_PRESS_MS: 500,
+    /** Pointer travel in px that cancels a pending long-press (treat as a scroll/drag, not a hold). */
+    ORB_LONG_PRESS_MOVE_PX: 10,
 
     /**
      * Phase-8 POLISH: LiveGizz page ambient background — a randomized bundled

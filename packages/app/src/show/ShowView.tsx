@@ -398,7 +398,6 @@ export function ShowView() {
         onEncore={handleEncore}
         onUndo={handleUndo}
         onEndShow={() => setEndOpen(true)}
-        stripReserved={openerSeeded}
       />
 
       {/* Fuzzy catalog search over core searchCatalog — opener-seed + mid-show

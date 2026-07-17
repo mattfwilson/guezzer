@@ -19,10 +19,13 @@
  *   - Tapping any action row auto-collapses THEN fires exactly its callback
  *     once (auto-collapse-then-act).
  *
- * Fixed-position anchor (unlike the in-flow ActionBar): the bottom offset clears
- * the app BottomTabBar + the fixed SuggestionStrip slot + a small gap + the
- * home-indicator inset so the FAB never overlaps the strip's dismiss X or the
- * home indicator (T-06-05 / RESEARCH Pitfall 10). Never accent — gold is
+ * Fixed-position anchor (unlike the in-flow ActionBar): symmetric 16px inset —
+ * the FAB sits 16px above the app BottomTabBar and 16px in from the right edge
+ * (plus the safe-area insets) so it reads as evenly inset from both edges (owner,
+ * 2026-07-17). It no longer reserves the SuggestionStrip slot: mid-show the
+ * transient strip can appear behind the FAB, but each strip row still swipes to
+ * dismiss even if its X is briefly overlapped, and the strip is usually empty —
+ * the clean symmetric look wins over the rare overlap. Never accent — gold is
  * reserved for Start Show / focus ring (UI-SPEC §Color).
  */
 import { CircleHelp, CircleStop, Minus, Plus, Search, Star, Undo2 } from "lucide-react";
@@ -44,10 +47,6 @@ interface FabMenuProps {
    *  still gates the actual finalize, so functionality is unchanged from the old
    *  header button. */
   onEndShow: () => void;
-  /** Whether the SuggestionStrip slot is reserved below (opener seeded). When
-   *  false (pre-opener) the FAB drops the strip's height from its bottom offset so
-   *  it sits just above the tab bar instead of floating over the collapsed slot. */
-  stripReserved: boolean;
 }
 
 export function FabMenu({
@@ -57,7 +56,6 @@ export function FabMenu({
   onEncore,
   onUndo,
   onEndShow,
-  stripReserved,
 }: FabMenuProps) {
   const [open, setOpen] = useState(false);
   const copy = config.copy.show;
@@ -82,15 +80,11 @@ export function FabMenu({
     fn();
   };
 
-  // Clear the app BottomTabBar (h-16 = 64px) + a small gap + the home-indicator
-  // inset, PLUS the SuggestionStrip slot ONLY when it's reserved (opener seeded).
-  // Pre-opener the strip collapses to 0, so dropping its term keeps the FAB just
-  // above the tab bar instead of floating over empty space. The tab bar / gap /
-  // inset are layout offsets; the strip height and FAB size come from config.
-  const stripTerm = stripReserved
-    ? ` + ${config.ui.SUGGESTION_STRIP_HEIGHT}px`
-    : "";
-  const bottomOffset = `calc(env(safe-area-inset-bottom) + 64px${stripTerm} + 8px)`;
+  // Symmetric 16px inset (owner, 2026-07-17): the same 16px gap above the app
+  // BottomTabBar (h-16 = 64px) as in from the right edge, each atop its safe-area
+  // inset, so the FAB reads as evenly inset from both edges. No SuggestionStrip
+  // term — the strip is not reserved into the offset (see the header note).
+  const bottomOffset = "calc(env(safe-area-inset-bottom) + 64px + 16px)";
   const rightOffset = "calc(env(safe-area-inset-right) + 16px)";
 
   return (

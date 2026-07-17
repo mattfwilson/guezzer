@@ -7,10 +7,18 @@
  *     (≥ ORB_MIN_DIAMETER via layoutOrbs) with a `min-h-11 min-w-11` hit floor.
  *   - Face shows truncated song name + ABSOLUTE `formatOrbPercent(score)`
  *     (`tabular-nums`); family fill from `tuningColor`.
- *   - The whole face taps → `onTap` (log path, SHOW-03). A SEPARATE `Info` dot
- *     taps → `onWhy` ONLY (D-11: Info never logs) via stopPropagation.
+ *   - A quick face TAP → `onTap` (log path, SHOW-03). A LONG-PRESS on the face
+ *     (config `ORB_LONG_PRESS_MS`) → `onWhy` and suppresses the trailing tap so a
+ *     hold never also logs (D-11: the why path never logs). Native long-press
+ *     side effects (iOS callout, context menu, selection) are suppressed.
+ *   - The old visible (i) dot is now `sr-only`: long-press is a hidden gesture
+ *     with no keyboard/AT equivalent (WCAG 2.5.1/2.1.1), so a real, focusable
+ *     "Why {song}?" button stays in the tree for keyboard + screen readers while
+ *     the sighted-touch affordance becomes the hold. Owner accepts the hidden
+ *     gesture for this personal tool; the AT button preserves the a11y contract.
  *   - Weak-fan softening (D-10): reduced opacity + desaturation when `isWeak`.
  */
+import { useEffect, useRef } from "react";
 import { Info } from "lucide-react";
 import type { PredictionCandidate, TuningFamily } from "@guezzer/core";
 import { config } from "../config.ts";
@@ -56,12 +64,62 @@ export function PredictionOrb({
     maxLines: config.show.ORB_LABEL_MAX_LINES,
   });
 
-  // The face-tap control and the Info "why" control are SIBLINGS inside a
+  // Long-press → why; quick tap → log. A pointerdown arms a timer; if it fires
+  // before release (and the pointer hasn't drifted past the move threshold, which
+  // reads as a scroll/drag) we open the why sheet and flag the gesture so the
+  // trailing click does NOT also log. Timer is cleared on any release/leave/cancel
+  // or drift, and on unmount so a held-then-unmounted orb can't fire late.
+  const longPressTimer = useRef<number | null>(null);
+  const longPressFired = useRef(false);
+  const pressStart = useRef<{ x: number; y: number } | null>(null);
+
+  const clearLongPress = () => {
+    if (longPressTimer.current !== null) {
+      window.clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+  useEffect(() => clearLongPress, []);
+
+  const handlePointerDown = (event: React.PointerEvent) => {
+    longPressFired.current = false;
+    pressStart.current = { x: event.clientX, y: event.clientY };
+    clearLongPress();
+    longPressTimer.current = window.setTimeout(() => {
+      longPressFired.current = true;
+      onWhy(candidate);
+    }, config.show.ORB_LONG_PRESS_MS);
+  };
+  const handlePointerMove = (event: React.PointerEvent) => {
+    const start = pressStart.current;
+    if (!start) return;
+    const moved = config.show.ORB_LONG_PRESS_MOVE_PX;
+    if (
+      Math.abs(event.clientX - start.x) > moved ||
+      Math.abs(event.clientY - start.y) > moved
+    ) {
+      clearLongPress();
+    }
+  };
+  const handlePointerEnd = () => {
+    clearLongPress();
+    pressStart.current = null;
+  };
+  const handleTap = () => {
+    // Swallow the click that trails a fired long-press so a hold never logs.
+    if (longPressFired.current) {
+      longPressFired.current = false;
+      return;
+    }
+    onTap(candidate);
+  };
+
+  // The face-tap control and the "why" control are SIBLINGS inside a
   // non-interactive positioning wrapper — never nested (WR-02). Nesting an
   // interactive element inside the face <button> is invalid HTML and a WCAG
   // name/role violation; as siblings each is a real, independently-labelled
-  // control (tap face → log SHOW-03; tap Info → why, never logs, D-11). Because
-  // they no longer nest, the Info tap needs no stopPropagation to avoid logging.
+  // control (tap face → log SHOW-03; long-press face OR activate the sr-only
+  // why button → why, never logs, D-11).
   return (
     <div
       className="absolute"
@@ -77,12 +135,19 @@ export function PredictionOrb({
     >
       <button
         type="button"
-        onClick={() => onTap(candidate)}
+        onClick={handleTap}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerLeave={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onContextMenu={(event) => event.preventDefault()}
         aria-label={`Log ${candidate.songName}, ${percent} confidence`}
         className="flex h-full w-full min-h-11 min-w-11 select-none flex-col items-center justify-center rounded-full px-1 text-center touch-manipulation motion-safe:transition-all motion-safe:duration-200"
         style={{
           backgroundColor: fill,
           color: ORB_TEXT_COLOR,
+          WebkitTouchCallout: "none",
         }}
       >
         <span
@@ -100,13 +165,15 @@ export function PredictionOrb({
         </span>
       </button>
 
-      {/* Separate "why" affordance (D-11) — a real sibling <button>, so it is
-          valid DOM and never logs (its tap can't bubble to the face button). */}
+      {/* Why affordance (D-11) — now sr-only: the sighted-touch path is the
+          face long-press, but this real, focusable button keeps the "why" path
+          reachable by keyboard + screen readers (WCAG 2.5.1/2.1.1). It never
+          logs (a sibling of the face button, not nested). */}
       <button
         type="button"
         aria-label={`Why ${candidate.songName}?`}
         onClick={() => onWhy(candidate)}
-        className="absolute -right-1 -top-1 flex min-h-8 min-w-8 items-center justify-center rounded-full bg-surface/80 text-text-muted"
+        className="sr-only"
       >
         <Info size={16} />
       </button>

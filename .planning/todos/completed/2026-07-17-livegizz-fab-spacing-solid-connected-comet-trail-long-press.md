@@ -77,3 +77,33 @@ Owner wants: **long-press the orb → info sheet**, replacing the (i)-dot tap.
   timeline, tap targets still ≥44px. Long-pressing a prediction orb opens its info
   sheet without logging; a quick tap still logs; native callout/menu suppressed;
   a11y decision made. Typecheck + tests + a device look pass.
+
+---
+
+## Resolved (2026-07-17)
+
+Implemented all three edits.
+
+1. **FAB spacing** — chose option (a): symmetric 16px inset always
+   (`bottom: env(safe-area-inset-bottom) + 64px + 16px`, matching the 16px right
+   inset). Dropped the `stripReserved` prop/plumbing entirely (FabMenu, ShowView,
+   test). Tradeoff accepted: a transient SuggestionStrip can appear behind the
+   FAB mid-show, but each strip row still swipe-to-dismisses even if its X is
+   briefly overlapped, and the strip is usually empty — the clean symmetric look
+   wins. Documented in the FabMenu header.
+2. **Comet trail** — dots now solid-filled with `RING_COLOR[outcome]` (hit
+   `#22C55E` / miss `#EF4444`); `TRAIL_NODE_MIN/MAX_DIAMETER` 24/40 → 12/20; a
+   hairline timeline baseline connects the dot centres (each dot centred in a
+   fixed MAX-tall band so centres align despite diminishing sizes). Tap targets
+   stay ≥44px via the wrapper button. Baseline spans only the nodes region, not
+   the "+N" chip.
+3. **Orb info gesture** — long-press (config `ORB_LONG_PRESS_MS` = 500ms,
+   `ORB_LONG_PRESS_MOVE_PX` = 10 cancel-on-drift) on the face opens the why sheet
+   and suppresses the trailing tap so a hold never logs; quick tap still logs.
+   Native callout/context-menu/selection suppressed. **a11y decision:** the (i)
+   dot is kept but made `sr-only` — visually gone (owner's clean look) yet still
+   a real, focusable "Why {song}?" button for keyboard + screen readers,
+   preserving the WCAG 2.5.1/2.1.1 contract the long-press alone would break.
+
+Gates: `tsc -p packages/app` clean, full suite 485/485 (added `predictionOrb.test.tsx`,
+updated `cometTrail`/`fabMenu` tests), `vite build` clean. Device look: owner.

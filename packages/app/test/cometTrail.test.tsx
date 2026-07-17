@@ -30,9 +30,9 @@ function entry(
   };
 }
 
-/** Normalize a border color to a compact lowercase form (jsdom may emit rgb()). */
-function borderColor(el: HTMLElement): string {
-  return el.style.borderColor.replace(/\s+/g, "").toLowerCase();
+/** Normalize a background color to a compact lowercase form (jsdom may emit rgb()). */
+function bgColor(el: HTMLElement): string {
+  return el.style.backgroundColor.replace(/\s+/g, "").toLowerCase();
 }
 
 const HIT_FORMS = ["#22c55e", "rgb(34,197,94)"];
@@ -64,7 +64,7 @@ describe("CometTrail recent strip + rings + compression (SHOW-08)", () => {
     expect(screen.getByText("Song 3")).toBeTruthy();
   });
 
-  it("ring color derives from entry.outcome — hit green / miss red (D-06/D-08)", () => {
+  it("dot fill derives from entry.outcome — solid hit green / miss red (D-06/D-08)", () => {
     const { container } = render(
       <CometTrail
         entries={[entry(1, "hit", "HitSong"), entry(2, "miss", "MissSong")]}
@@ -72,15 +72,15 @@ describe("CometTrail recent strip + rings + compression (SHOW-08)", () => {
       />,
     );
 
-    const circles = Array.from(
-      container.querySelectorAll<HTMLElement>("span.border-2"),
+    const dots = Array.from(
+      container.querySelectorAll<HTMLElement>('[data-testid="trail-dot"]'),
     );
-    expect(circles).toHaveLength(2);
+    expect(dots).toHaveLength(2);
 
-    // Nodes render oldest→newest: [hit, miss].
-    expect(HIT_FORMS).toContain(borderColor(circles[0]));
-    expect(MISS_FORMS).toContain(borderColor(circles[1]));
-    expect(borderColor(circles[0])).not.toBe(borderColor(circles[1]));
+    // Nodes render oldest→newest: [hit, miss]; solid-filled, not ringed.
+    expect(HIT_FORMS).toContain(bgColor(dots[0]));
+    expect(MISS_FORMS).toContain(bgColor(dots[1]));
+    expect(bgColor(dots[0])).not.toBe(bgColor(dots[1]));
   });
 
   it("compresses older history into a tappable +N chip at TRAIL_COMPRESS_AT", () => {
