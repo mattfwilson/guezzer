@@ -57,7 +57,7 @@ export function AlbumGrid({ dex, albums, onOpen }: AlbumGridProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-2 px-4 pb-16">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-2 px-4 pb-16">
       {shelf.map((item) => (
         <AlbumCard key={item.key} item={item} dex={dex} onOpen={onOpen} />
       ))}
