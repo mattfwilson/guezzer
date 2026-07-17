@@ -22,7 +22,7 @@
  * kglw-origin song names render as React text only — never
  * `dangerouslySetInnerHTML` (T-04-14, ASVS V5).
  */
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { config } from "../config.ts";
 import type { EntryOutcome, TrackedEntry } from "../db/db.ts";
 
@@ -76,21 +76,26 @@ export function CometTrail({ entries, onNodeTap }: CometTrailProps) {
   } = config.show;
 
   // Measure the strip's own width so the visible node count FILLS it (SHOW-08):
-  // a wide desktop shows many nodes, a phone the recent few. Mirrors OrbitStage's
-  // ResizeObserver container-measuring idiom; jsdom (unit tests) has no layout and
-  // no ResizeObserver, so clientWidth stays 0 and trailCapacity falls back to
-  // TRAIL_VISIBLE_RECENT — the pre-responsive window.
-  const stripRef = useRef<HTMLDivElement | null>(null);
+  // a wide desktop shows many nodes, a phone the recent few. Falls back to
+  // TRAIL_VISIBLE_RECENT until measured (jsdom has no layout / no ResizeObserver).
+  //
+  // This is a CALLBACK ref, not a []-effect: the trail first mounts EMPTY
+  // (entries === 0 → renders null → the strip div isn't in the DOM), so a mount
+  // effect would run once with a null ref and never re-fire when songs later
+  // arrive, freezing the width at 0 and capping the count at the fallback. A
+  // callback ref instead runs exactly when the strip element attaches (and
+  // detaches), so the first logged song measures the real width immediately.
+  const observerRef = useRef<ResizeObserver | null>(null);
   const [stripWidth, setStripWidth] = useState(0);
-  useEffect(() => {
-    const el = stripRef.current;
+  const setStripRef = useCallback((el: HTMLDivElement | null) => {
+    observerRef.current?.disconnect();
+    observerRef.current = null;
     if (!el) return;
-    const measure = () => setStripWidth(el.clientWidth);
-    measure();
+    setStripWidth(el.clientWidth);
     if (typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(measure);
+    const ro = new ResizeObserver(() => setStripWidth(el.clientWidth));
     ro.observe(el);
-    return () => ro.disconnect();
+    observerRef.current = ro;
   }, []);
 
   // Pre-opener / empty → no strip at all (no empty band above the orbit).
@@ -113,7 +118,7 @@ export function CometTrail({ entries, onNodeTap }: CometTrailProps) {
   return (
     <>
       <div
-        ref={stripRef}
+        ref={setStripRef}
         className="flex shrink-0 items-end gap-2 overflow-x-auto border-b border-hairline bg-elevated px-4 py-2 [scrollbar-width:none] touch-manipulation"
         style={{ overscrollBehavior: "none" }}
       >

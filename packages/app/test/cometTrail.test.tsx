@@ -154,4 +154,33 @@ describe("CometTrail fit-to-width capacity (SHOW-08)", () => {
       delete proto.clientWidth;
     }
   });
+
+  it("measures width even when it first mounts EMPTY, then populates (regression)", () => {
+    // The trail mounts pre-opener (entries=[]) → renders null → the strip div is
+    // not in the DOM. A []-mount-effect would measure a null ref once and never
+    // re-fire, freezing the count at the fallback (the on-device bug). The
+    // callback ref must instead measure when the strip attaches on the first song.
+    const proto = HTMLElement.prototype as unknown as Record<string, unknown>;
+    Object.defineProperty(proto, "clientWidth", {
+      configurable: true,
+      get: () => widthFor(10) + 32,
+    });
+    try {
+      const { container, rerender } = render(
+        <CometTrail entries={[]} onNodeTap={vi.fn()} />,
+      );
+      expect(
+        container.querySelectorAll('[data-testid="trail-dot"]'),
+      ).toHaveLength(0); // pre-opener: nothing
+
+      const entries = Array.from({ length: 14 }, (_, i) => entry(i + 1, "hit"));
+      rerender(<CometTrail entries={entries} onNodeTap={vi.fn()} />);
+      // Fills the width (10), NOT the fallback window (4).
+      expect(
+        container.querySelectorAll('[data-testid="trail-dot"]'),
+      ).toHaveLength(10);
+    } finally {
+      delete proto.clientWidth;
+    }
+  });
 });
