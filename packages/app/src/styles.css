@@ -42,6 +42,30 @@ body {
   overscroll-behavior-y: none;
 }
 
+/* Show-page ambient background crossfade (quick task 260717-gvm): the incoming
+   album cover fades in over the settled one when a next song is selected.
+   DEFAULT is opacity:1 so under prefers-reduced-motion the new cover appears
+   instantly (no fade); motion turns the fade ON below, mirroring the
+   orb-breathe/orb-float/orb-ripple idiom already in this file. Duration is
+   config-driven via the --show-bg-crossfade-ms custom property. */
+@keyframes show-bg-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.show-bg-fade-layer {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .show-bg-fade-layer {
+    animation: show-bg-fade-in var(--show-bg-crossfade-ms, 600ms) ease forwards;
+    will-change: opacity;
+  }
+}
+
 /* Living/breathing pulse on the current-song centre orb (owner 2026-07-17): a
    slow, subtle scale loop so the playing song reads as alive. transform-only (no
    layout reflow — the fan clears the centre with gap for the max scale), and

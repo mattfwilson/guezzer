@@ -113,6 +113,8 @@ export const config = {
       BLUR_PX: 5,
       /** Dark scrim opacity (0–1) over the cover, using --color-surface, so body stays legible. */
       DIM_OPACITY: 0.75,
+      /** Crossfade duration in ms when the background swaps to a newly-selected song's album cover. */
+      CROSSFADE_MS: 600,
     },
 
     /**
