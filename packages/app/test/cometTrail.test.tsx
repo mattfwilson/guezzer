@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CometTrail } from "../src/show/CometTrail.tsx";
+import { CometTrail, trailCapacity } from "../src/show/CometTrail.tsx";
 import { config } from "../src/config.ts";
 import type { EntryOutcome, TrackedEntry } from "../src/db/db.ts";
 
@@ -108,5 +108,50 @@ describe("CometTrail recent strip + rings + compression (SHOW-08)", () => {
     );
     const expectedOlder = TRAIL_COMPRESS_AT - TRAIL_VISIBLE_RECENT;
     expect(screen.getByText(`+${expectedOlder}`)).toBeTruthy();
+  });
+});
+
+describe("CometTrail fit-to-width capacity (SHOW-08)", () => {
+  afterEach(cleanup);
+
+  const { TRAIL_NODE_SLOT_WIDTH: slot, TRAIL_NODE_GAP_PX: gap } = config.show;
+  /** Exact px width that fits `n` fixed-width nodes: n*slot + (n-1)*gap. */
+  const widthFor = (n: number) => n * slot + (n - 1) * gap;
+
+  it("falls back to TRAIL_VISIBLE_RECENT when width is unknown / non-positive", () => {
+    expect(trailCapacity(0)).toBe(config.show.TRAIL_VISIBLE_RECENT);
+    expect(trailCapacity(-100)).toBe(config.show.TRAIL_VISIBLE_RECENT);
+    // A narrow phone that only fits ~3 still never drops below the floor.
+    expect(trailCapacity(widthFor(3))).toBe(config.show.TRAIL_VISIBLE_RECENT);
+  });
+
+  it("accumulates more nodes as the strip widens (desktop » mobile)", () => {
+    expect(trailCapacity(widthFor(5))).toBe(5);
+    expect(trailCapacity(widthFor(10))).toBe(10);
+    expect(trailCapacity(widthFor(18))).toBe(18);
+    // Monotonic: a wider strip never shows fewer nodes.
+    expect(trailCapacity(1200)).toBeGreaterThan(trailCapacity(360));
+  });
+
+  it("renders more than the fallback window when the measured strip is wide", () => {
+    // Force a wide measured clientWidth so the ResizeObserver-less jsdom path
+    // still exercises the fit-to-width branch (capacity 10 for a 632px node area
+    // = widthFor(10) inside 32px of px-4 padding). Define an own getter on the
+    // prototype, then remove it to restore jsdom's inherited 0.
+    const proto = HTMLElement.prototype as unknown as Record<string, unknown>;
+    Object.defineProperty(proto, "clientWidth", {
+      configurable: true,
+      get: () => widthFor(10) + 32,
+    });
+    try {
+      const entries = Array.from({ length: 14 }, (_, i) => entry(i + 1, "hit"));
+      const { container } = render(
+        <CometTrail entries={entries} onNodeTap={vi.fn()} />,
+      );
+      const dots = container.querySelectorAll('[data-testid="trail-dot"]');
+      expect(dots).toHaveLength(10);
+    } finally {
+      delete proto.clientWidth;
+    }
   });
 });

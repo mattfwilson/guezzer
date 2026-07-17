@@ -47,8 +47,16 @@ export const config = {
     RING_INSET_PX: 24,
     /** Inner-radius ratio (fraction of the outer radius) that clears the centre node before the nearest orb (SHOW-01). */
     ORB_INNER_RADIUS_RATIO: 0.42,
-    /** Number of recent trail nodes shown diminishing before compression (SHOW-08). */
+    /** Floor / fallback count of recent trail nodes (SHOW-08). The trail now fills
+     *  the measured strip width — MORE nodes on a wide desktop, fewer on mobile —
+     *  but never fewer than this, and this is the count used before the width is
+     *  measured (SSR / unit tests with no layout). */
     TRAIL_VISIBLE_RECENT: 4,
+    /** Fixed comet-trail node slot width in px — uniform so the connector baseline
+     *  hits every dot centre exactly and the fit-to-width count is deterministic. */
+    TRAIL_NODE_SLOT_WIDTH: 56,
+    /** Horizontal gap in px between trail nodes (mirrors the `gap-2` on the row). */
+    TRAIL_NODE_GAP_PX: 8,
     /** Set length that triggers the "+N" trail compression chip (SHOW-08). */
     TRAIL_COMPRESS_AT: 30,
     /** Smallest (oldest) comet-trail node dot diameter in px — solid-filled; the hit area stays ≥44px via the wrapper button regardless (SHOW-08). */
