@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 Phase: Not started — v1.1 roadmap defined (Phases 8–10)
 Plan: —
 Status: Roadmap complete; awaiting phase planning
-Last activity: 2026-07-17 — Completed quick task 260717-gvm: LiveGizz background crossfades to the selected next song's album cover
+Last activity: 2026-07-17 — Completed quick task 260717-ij8: pre-show LiveGizz background cycles random album covers every 5s
 
 ## Performance Metrics
 
@@ -141,6 +141,7 @@ Recent decisions affecting current work:
 | 260717-0x9 | GizzDex header Share CTA → icon button top-right by the %; Albums/Shows toggle selected state brightened to full accent gold — resolves the header/toggle todo | 2026-07-17 | ed96dd8 | [260717-0x9-gizzdex-header-share-cta-icon-button-top](./quick/260717-0x9-gizzdex-header-share-cta-icon-button-top/) |
 | 260717-1k3 | LiveGizz tracking screen: centered "Search for the opener" orb (tappable→Search), removed the blank strip bar (SHOW-02 preserved), End Show moved into the FAB as the last item — resolves the 4-tweak todo | 2026-07-17 | 8049e0a | [260717-1k3-livegizz-tracking-screen-center-opener-o](./quick/260717-1k3-livegizz-tracking-screen-center-opener-o/) |
 | 260717-gvm | LiveGizz background crossfades to the selected next song's album cover (driven off `session.currentSongId`, covers orb-tap + search-select); art-less picks hold the current cover, pre-opener keeps the random ambient, reduced-motion swaps instantly, offline-safe | 2026-07-17 | e6f4cb0 | [260717-gvm-show-page-crossfade-blurred-background-t](./quick/260717-gvm-show-page-crossfade-blurred-background-t/) |
+| 260717-ij8 | Pre-selection LiveGizz background cycles through DIFFERENT random album covers every 5s (`config.show.background.PRESHOW_CYCLE_MS`), reusing ShowBackground's crossfade; gated on no-song-selected + `!useReducedMotion()` + ≥2 covers, interval cleaned up the instant a song is picked | 2026-07-17 | f767a6d | [260717-ij8-pre-show-livegizz-background-cycles-rand](./quick/260717-ij8-pre-show-livegizz-background-cycles-rand/) |
 
 ### Blockers/Concerns
 
