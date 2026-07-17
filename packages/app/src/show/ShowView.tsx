@@ -52,6 +52,7 @@ import { SuggestionStrip } from "../live/SuggestionStrip.tsx";
 import { SyncDot } from "../live/SyncDot.tsx";
 import { RecapView } from "../dex/RecapView.tsx";
 import { coverUrlList } from "../dex/covers.ts";
+import { coverUrlForSong } from "../dex/song-cover.ts";
 import { classifyOutcome } from "./scoring.ts";
 import { FabMenu } from "./FabMenu.tsx";
 import { ShowBackground } from "./ShowBackground.tsx";
@@ -88,13 +89,29 @@ export function ShowView() {
     return urls.length > 0 ? urls[Math.floor(Math.random() * urls.length)] : null;
   });
 
+  // (260717-gvm) Drive the ambient background off the currently-selected next
+  // song — BOTH selection paths (tap-orb, search-select) funnel through
+  // session.currentSongId, so this one value covers them with no handler edits.
+  // selectedCover is the album cover of the current song, or null when that song
+  // has no committed art (or is pre-opener). To avoid an art-less selection
+  // reverting to the random ambient cover (or flashing empty), remember the last
+  // REAL album cover shown and fall back to it; only the random cover backstops
+  // the true pre-opener / no-covers-bundled state.
+  const selectedCover =
+    session.currentSongId != null ? coverUrlForSong(session.currentSongId) : null;
+  const [lastSelectedCover, setLastSelectedCover] = useState<string | null>(null);
+  useEffect(() => {
+    if (selectedCover != null) setLastSelectedCover(selectedCover);
+  }, [selectedCover]);
+  const targetCover = selectedCover ?? lastSelectedCover ?? bgCoverUrl;
+
   // Wrap a page state in the blurred+dimmed cover backdrop. The frame is the
   // positioned parent (`relative`) the ShowBackground fills; content rides a
   // `z-10` column that reproduces the page's full-height non-scrolling flex
   // layout (SHOW-13). Reused by all three in-page states (recap is excluded).
   const withBackground = (content: ReactNode) => (
     <div className="relative flex h-full min-h-0 flex-1 flex-col">
-      <ShowBackground coverUrl={bgCoverUrl} />
+      <ShowBackground coverUrl={targetCover} />
       <div className="relative z-10 flex h-full min-h-0 flex-1 flex-col">
         {content}
       </div>
