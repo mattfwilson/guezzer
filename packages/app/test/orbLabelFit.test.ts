@@ -46,6 +46,24 @@ describe("fitOrbLabel (D-21 wrap/scale-to-fit)", () => {
     expect(result.ellipsized).toBe(false);
   });
 
+  it("shrinks a long ONE-WORD title to keep it whole on a single line (no break, no ellipsis)", () => {
+    // "Consciousness" (13) overflows one line at base 14 but fits whole once shrunk.
+    const result = fitOrbLabel("Consciousness", 88, orbOpts);
+    expect(result.lines).toEqual(["Consciousness"]);
+    expect(result.fontPx).toBeLessThan(orbOpts.baseFontPx);
+    expect(result.fontPx).toBeGreaterThanOrEqual(orbOpts.minFontPx);
+    expect(result.ellipsized).toBe(false);
+  });
+
+  it("hard-breaks a single word too long for any line, preserving the FULL word (no ellipsis)", () => {
+    // Longer than a line even at the floor → broken across lines rather than clipped.
+    const result = fitOrbLabel("Interdimensional", 88, orbOpts);
+    expect(result.ellipsized).toBe(false);
+    expect(result.lines.length).toBeGreaterThan(1);
+    expect(result.lines.length).toBeLessThanOrEqual(orbOpts.maxLines);
+    expect(result.lines.join("")).toBe("Interdimensional");
+  });
+
   it("never shrinks below minFontPx and ellipsizes only at the floor when over budget", () => {
     const result = fitOrbLabel(
       "Supercalifragilistic Antidisestablishmentarian",

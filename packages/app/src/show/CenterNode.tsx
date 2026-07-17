@@ -44,9 +44,13 @@ export function CenterNode({ songName, tuningFamily, onOpenSearch }: CenterNodeP
 
   const fill = tuningColor(tuningFamily);
 
-  // D-21: wrap + scale-to-fit the full current-song name to the center floor
-  // before ellipsis, sized to the circle's own diameter.
-  const fit = fitOrbLabel(songName, diameter, {
+  // D-21: wrap + scale-to-fit the full current-song name. Fit against the padded
+  // CONTENT width (the circle's `p-3` = 12px inset each side), not the raw
+  // diameter, so the chosen font genuinely fits inside the orb — otherwise long
+  // one-word titles are sized too large and spill past the padding. The label also
+  // hard-breaks such words (fitOrbLabel) + `break-words` below as a CSS backstop.
+  const CENTER_LABEL_PADDING_PX = 12; // matches the `p-3` on the orb below
+  const fit = fitOrbLabel(songName, diameter - CENTER_LABEL_PADDING_PX * 2, {
     baseFontPx: config.show.ORB_LABEL_BASE_FONT_PX_CENTER,
     minFontPx: config.show.ORB_LABEL_MIN_FONT_PX_CENTER,
     maxLines: config.show.ORB_LABEL_MAX_LINES_CENTER,
@@ -80,7 +84,7 @@ export function CenterNode({ songName, tuningFamily, onOpenSearch }: CenterNodeP
           style={{ fontSize: fit.fontPx }}
         >
           {fit.lines.map((line, i) => (
-            <span key={i} className="max-w-full">
+            <span key={i} className="max-w-full break-words">
               {line}
             </span>
           ))}
