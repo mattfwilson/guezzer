@@ -74,8 +74,13 @@ describe("classifyImport — the D-17 compare-vs-merge fork (Pattern 5)", () => 
     if (result.kind === "friend") expect(result.envelope.owner).toBe("Alice");
   });
 
-  it("kind=friend when the file is owned but the local owner is unset", () => {
-    expect(classifyImport(jsonOf(envelope({ owner: "Alice" })), null).kind).toBe("friend");
+  it("kind=unowned when the file is owned but the local owner is unset (WARNING-1: evicted-DB restore must reach the 'Whose dex is this?' prompt, not silent friend-compare)", () => {
+    const result = classifyImport(jsonOf(envelope({ owner: "Alice" })), null);
+    expect(result.kind).toBe("unowned");
+    // Envelope carries through so the prompt's "It's mine, restore it" path works.
+    if (result.kind === "unowned") expect(result.envelope.owner).toBe("Alice");
+    // A blank/whitespace local owner is treated the same as null.
+    expect(classifyImport(jsonOf(envelope({ owner: "Alice" })), "   ").kind).toBe("unowned");
   });
 
   it("kind=unowned when the file owner is null", () => {

@@ -30,8 +30,9 @@ import { importSnapshot, snapshot } from "../db/db.ts";
  *   - `mine`    — owner matches the local name → the Phase-5 merge path VERBATIM.
  *   - `friend`  — owner names someone else → route the PARSED envelope to the
  *                 read-only CompareView (structurally never reaches a write).
- *   - `unowned` — owner is null (a v1 file, or never stamped) → the app prompts
- *                 "Whose dex is this?" and the answer routes to mine or friend.
+ *   - `unowned` — owner is null (a v1/unstamped file) OR the file is owned but the
+ *                 LOCAL owner is unknown (e.g. an evicted DB — WARNING-1) → the app
+ *                 prompts "Whose dex is this?"; the answer routes to mine or friend.
  */
 export type ImportClassification =
   | { kind: "invalid"; error: string }
@@ -67,10 +68,15 @@ export function classifyImport(
   const fileOwner = envelope.owner?.trim();
   if (!fileOwner) return { kind: "unowned", envelope };
 
+  // No local identity to compare against — e.g. an iOS-eviction reinstall wiped
+  // the `ownerName` meta row (WARNING-1). We CANNOT tell an own-backup from a
+  // friend's file, so route to the "Whose dex is this?" prompt rather than
+  // silently assuming `friend` (which opens read-only compare and skips the
+  // restore this export exists for, PWA-04). The prompt's "It's mine, restore
+  // it" button reaches the merge path.
   const local = localOwnerName?.trim().toLowerCase();
-  if (local && local === fileOwner.toLowerCase()) {
-    return { kind: "mine", rawJson };
-  }
+  if (!local) return { kind: "unowned", envelope };
+  if (local === fileOwner.toLowerCase()) return { kind: "mine", rawJson };
   return { kind: "friend", envelope };
 }
 
