@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Awaiting next milestone
-stopped_at: v1.0 milestone audit PASSED; WARNING-1 fixed (quick 260716-vw2); ready to complete milestone
-last_updated: "2026-07-17T03:01:19.336Z"
-last_activity: 2026-07-17 — Milestone v1.0 completed and archived
+milestone: v1.1
+milestone_name: Polish & Pre-Show Hardening
+status: planning
+last_updated: "2026-07-17T03:19:53.864Z"
+last_activity: 2026-07-17
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 46
-  completed_plans: 46
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 
 ## Current Position
 
-Phase: Milestone v1.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-17 — Milestone v1.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-07-17 — Milestone v1.1 started
 
 ## Performance Metrics
 

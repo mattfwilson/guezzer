@@ -12,7 +12,17 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 
 **Shipped v1.0 MVP (2026-07-17)** — all 60 v1 requirements delivered across 7 phases (46 plans, ~26,600 LOC TypeScript). The full Show Mode loop is device-verified on iPhone 16 Pro; the model trust gate holds (backtest top-5 66.9% overall / 68.6% free-choice on the held-out 2025 tour). Milestone audit PASSED: 6/6 cross-phase integration seams WIRED, 4/4 E2E flows PASS, 0 critical blockers. The app is installable, fully offline-capable, and ready for the first show (late Aug/Sep 2026).
 
-**Next up:** `/gsd-new-milestone` to scope v1.1+ (candidate work: v2 signals like set-position awareness, the Explore era-slider, and the deferred UI-polish todos).
+## Current Milestone: v1.1 Polish & Pre-Show Hardening
+
+**Goal:** Close the v1.0 audit's non-blocking gaps and prove the app show-ready on real hardware before show #1 (late Aug/Sep 2026).
+
+**Target features:**
+- On-device Show-Mode UI polish — orb/center song-name legibility; verify & close the FAB-consolidation and once-per-version InstallBanner todos (both implemented in Phase 6, D-20/D-22)
+- Accessibility — Escape/keyboard dismissal + focus management on every sheet/dialog; fix NodeSheet occluding the FilterFab and the resize-while-focused camera snap
+- Data integrity — carry `shownotes` through normalization per SCHEMA.md §12 (with a survival test); polish the own-backup restore name-match path (PWA-05)
+- Pre-show validation — owner tuning-tag spot-check (DATA-04); a full real-device dry-run of the show loop (Android if available)
+
+**Key context:** Small, low-risk hardening milestone — no new user-facing features. Deferred v2 work (set-position signal, album-genre experiment, Explore era-slider, shared setlists) is out of scope for v1.1 and remains in the v2 backlog.
 
 ## Requirements
 
