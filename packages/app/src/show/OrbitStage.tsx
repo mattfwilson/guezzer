@@ -150,17 +150,32 @@ export function OrbitStage({
       className="orbit-stage relative flex-1 touch-none select-none overflow-hidden"
       style={{ overscrollBehavior: "none" }}
     >
-      {/* Centre node — absolutely centred over the stage. Content swaps to the new
-          song as the tapped orb finishes gliding onto it (see the collapse clock),
-          so it reads as the orb "becoming" the current song. */}
+      {/* Centre node — absolutely centred over the stage. During a collapse the
+          OUTGOING song shrinks + fades out (making room for the arriving orb);
+          when the collapse clock clears, the content swaps to the new song and it
+          scales back in — so the tapped orb reads as "becoming" the current song. */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div className="pointer-events-auto">
+        <motion.div
+          className="pointer-events-auto"
+          initial={false}
+          animate={
+            !reduce && inCollapse
+              ? { scale: 0.3, opacity: 0 }
+              : { scale: 1, opacity: 1 }
+          }
+          transition={{
+            duration: inCollapse
+              ? dur(config.show.orbitAnim.COLLAPSE_MS)
+              : dur(config.show.orbitAnim.CENTER_IN_MS),
+            ease: inCollapse ? EASE_COLLAPSE : EASE_FAN_OUT,
+          }}
+        >
           <CenterNode
             songName={renderCenter?.songName ?? null}
             tuningFamily={renderCenter?.tuningFamily ?? null}
             onOpenSearch={onOpenSearch}
           />
-        </div>
+        </motion.div>
       </div>
 
       {laidOut &&

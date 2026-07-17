@@ -84,6 +84,28 @@ body {
   }
 }
 
+/* Ripple emanating from the current-song centre orb (owner 2026-07-17) so it
+   reads as alive/playing — concentric rings expand past the orb edge and fade.
+   Rendered as siblings BEHIND the orb; two rings offset by half the period give a
+   steady pulse. Decorative (pointer-events-none) and off under reduced-motion. */
+@keyframes orb-ripple {
+  0% {
+    transform: scale(1);
+    opacity: var(--ripple-opacity, 0.45);
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .orb-ripple {
+    animation: orb-ripple var(--ripple-period, 2600ms) ease-out infinite;
+    animation-delay: var(--ripple-delay, 0ms);
+    will-change: transform, opacity;
+  }
+}
+
 body {
   margin: 0;
   background-color: var(--color-surface);

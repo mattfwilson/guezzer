@@ -53,22 +53,39 @@ export function CenterNode({ songName, tuningFamily, onOpenSearch }: CenterNodeP
   });
 
   return (
-    // A living/breathing pulse (owner 2026-07-17) — `.orb-breathe` is a slow
-    // scale loop, disabled under prefers-reduced-motion (styles.css).
+    // A living/breathing pulse + emanating ripple (owner 2026-07-17) so the
+    // playing song reads as alive. Both are CSS loops disabled under
+    // prefers-reduced-motion (styles.css). The two ripple rings are offset by
+    // half the period for a steady pulse and sit BEHIND the orb.
     <div
-      style={{ width: diameter, height: diameter, backgroundColor: fill, color: ORB_TEXT_COLOR }}
-      className="orb-breathe flex select-none items-center justify-center rounded-full p-3 text-center"
+      className="relative flex items-center justify-center"
+      style={{ width: diameter, height: diameter }}
     >
       <span
-        className="flex max-w-full flex-col items-center font-semibold leading-tight"
-        style={{ fontSize: fit.fontPx }}
+        aria-hidden="true"
+        className="orb-ripple pointer-events-none absolute inset-0 rounded-full border-2"
+        style={{ borderColor: fill }}
+      />
+      <span
+        aria-hidden="true"
+        className="orb-ripple pointer-events-none absolute inset-0 rounded-full border-2"
+        style={{ borderColor: fill, ["--ripple-delay"]: "1300ms" } as React.CSSProperties}
+      />
+      <div
+        style={{ width: diameter, height: diameter, backgroundColor: fill, color: ORB_TEXT_COLOR }}
+        className="orb-breathe relative flex select-none items-center justify-center rounded-full p-3 text-center"
       >
-        {fit.lines.map((line, i) => (
-          <span key={i} className="max-w-full">
-            {line}
-          </span>
-        ))}
-      </span>
+        <span
+          className="flex max-w-full flex-col items-center font-semibold leading-tight"
+          style={{ fontSize: fit.fontPx }}
+        >
+          {fit.lines.map((line, i) => (
+            <span key={i} className="max-w-full">
+              {line}
+            </span>
+          ))}
+        </span>
+      </div>
     </div>
   );
 }

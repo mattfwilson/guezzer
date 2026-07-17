@@ -127,9 +127,12 @@ export const config = {
       FAN_OUT_MS: 620,
       /** Per-rank stagger in ms so the fan opens sequentially (rank 0 first). */
       FAN_OUT_STAGGER_MS: 70,
-      /** Collapse duration in ms — selected orb glides to centre, others dissolve;
-       *  the next fan is held until this elapses (sequential, owner choice). */
+      /** Collapse duration in ms — selected orb glides to centre, others dissolve,
+       *  AND the outgoing centre song shrinks/fades out to make room; the next fan
+       *  is held until this elapses (sequential, owner choice). */
       COLLAPSE_MS: 560,
+      /** Scale/fade-in duration in ms for the new centre song after a collapse. */
+      CENTER_IN_MS: 320,
       /** Peak translate in px of an orb's subtle idle in-place float. */
       FLOAT_PX: 6,
       /** Idle-float loop period in ms (per-orb phase is offset so they don't sync). */
