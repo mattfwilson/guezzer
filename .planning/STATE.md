@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 7 UI-SPEC approved
-last_updated: "2026-07-16T22:01:19.704Z"
-last_activity: 2026-07-16
+status: Awaiting next milestone
+stopped_at: v1.0 milestone audit PASSED; WARNING-1 fixed (quick 260716-vw2); ready to complete milestone
+last_updated: "2026-07-17T03:01:19.336Z"
+last_activity: 2026-07-17 — Milestone v1.0 completed and archived
 progress:
   total_phases: 7
   completed_phases: 7
@@ -18,19 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-08)
+See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 07 — explore-mode-constellation
+**Current focus:** v1.0 MVP shipped & archived — planning next milestone (`/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 07
-Plan: Not started
-Status: Executing Phase 07
-Last activity: 2026-07-16
-
-Progress: [███████░░░] 71% (5/7 phases complete)
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-17 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -142,14 +140,23 @@ Recent decisions affecting current work:
 
 ## Deferred Items
 
-Items acknowledged and carried forward from previous milestone close:
+Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-approved):
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| *(none)* | | | |
+| debug | knowledge-base (resolved-sessions index, not an open session — false alarm) | not-a-defect | 2026-07-17 |
+| verification | Phase 01 tuning-tag spot-check (DATA-04 human_needed; ~10-song sanity pass) | human_needed | 2026-07-17 |
+| todo/ui | orb song-name text truncated/oversized (esp. center orb) | pending | 2026-07-17 |
+| todo/ui | collapse Show-Mode actions into FAB menu | pending | 2026-07-17 |
+| todo/pwa | InstallBanner should show once per version, not every reload | pending | 2026-07-17 |
+| integration/warning | WARNING-1 own-backup restore fork — **FIXED** in quick 260716-vw2 (not deferred) | resolved | 2026-07-17 |
 
 ## Session Continuity
 
 Last session: 2026-07-17T02:57:40.986Z
 Stopped at: v1.0 milestone audit PASSED; WARNING-1 fixed (quick 260716-vw2); ready to complete milestone
 Resume file: .planning/v1.0-MILESTONE-AUDIT.md
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

@@ -8,6 +8,12 @@ A mobile-friendly PWA that predicts the next song King Gizzard and the Lizard Wi
 
 At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
 
+## Current State
+
+**Shipped v1.0 MVP (2026-07-17)** — all 60 v1 requirements delivered across 7 phases (46 plans, ~26,600 LOC TypeScript). The full Show Mode loop is device-verified on iPhone 16 Pro; the model trust gate holds (backtest top-5 66.9% overall / 68.6% free-choice on the held-out 2025 tour). Milestone audit PASSED: 6/6 cross-phase integration seams WIRED, 4/4 E2E flows PASS, 0 critical blockers. The app is installable, fully offline-capable, and ready for the first show (late Aug/Sep 2026).
+
+**Next up:** `/gsd-new-milestone` to scope v1.1+ (candidate work: v2 signals like set-position awareness, the Explore era-slider, and the deferred UI-polish todos).
+
 ## Requirements
 
 ### Validated
@@ -54,25 +60,25 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 - [x] Physics settles and freezes; labels never jitter permanently; device-tuned spacing + on-load auto-frame + clean pinch-to-zoom (EXPL-06)
 - [x] Pokédex overlays the constellation: unseen songs as dimmed silhouettes, seen at full color with a green sighting ring + zoom-gated count; live cross-tab recolor via useLiveQuery (DEX-05)
 
+**Live sync & data safety (Validated in Phase 5: Live Sync & Data Safety):**
+- [x] Live sync from kglw.net — polite ≤1/60s `latest`-only poll during an active show, editor songs offered as dismissible suggestions (deduped by song ID, never auto-merged), fully offline once loaded and resuming silently on reconnect (SYNC-01/02/03)
+- [x] Attended-show list + live-tracked setlists in IndexedDB, with prominent JSON export/import so a lost phone never means a lost dex — round-trips every table; own-backup restore on an evicted DB routes to the "Whose dex is this?" prompt (WARNING-1 fixed, quick 260716-vw2) (PWA-04)
+- [x] Honest uncertainty — free-choice accuracy measured at 68.6% top-5 (well above the ~25% floor); weak-fan softening surfaces wider framing when a fan is low-confidence (EVAL-04)
+- [x] On-device confirmation of the dark-venue survivability layer (Wake Lock hold/fallback, silent reacquire, gesture suppression, force-quit restore, End Show) — PASSED on iPhone 16 Pro, iOS 26.3.1 (04-HUMAN-UAT.md)
+
 ### Active
 
-**Show Mode (core loop validated in Phase 4 — see Validated; remaining open items):**
-- [ ] Live sync from kglw.net: poll `latest` every 60s during an active show, offer to auto-fill editor-logged songs; manual entry is primary; fully offline once loaded, syncs when signal returns (Phase 5)
-- [ ] On-device confirmation of the dark-venue survivability layer (Wake Lock hold/fallback, silent reacquire, gesture suppression, force-quit restore, End Show) on the oldest installed-PWA iOS device — tracked in `04-HUMAN-UAT.md`, run before show #1
+_All v1.0 requirements shipped and validated above. The items below are deliberately-deferred stretch work for a future milestone — scope via `/gsd-new-milestone`._
 
-**Prediction model (core scoring validated in Phase 2; UI surfacing is Show Mode's job):**
-- [ ] Signal 7 (nice-to-have): set-position awareness (opener/closer/encore distributions) if the data supports it cleanly — not attempted in Phase 2, still open
-- [ ] Honest uncertainty: if free-choice top-5 accuracy < ~25%, surface it in the UI (wider confidence framing), don't imply false precision — Phase 2 backtest measured free-choice top-5 at 68.6% (well above the floor), but the UI surfacing itself is unbuilt
+**Prediction model:**
+- [ ] Signal 7 — set-position awareness (opener/closer/encore distributions). Set-structure data is captured in v1 (SHOW-06, DATA-01) so it's purely additive (v2: MODL-V2-01)
 
-**Data ingestion:**
-- [ ] Live polling limited to lightweight `latest` endpoint, ≤ once per 60s. Never hammer full `setlists` from client devices
+**Explore Mode:**
+- [ ] Era slider (2010 → present) scrubbing the constellation through time — v1.5 stretch, deliberately deferred (v2: EXPL-V2-01)
 
-**Explore Mode (validated in Phase 7 — see Validated; remaining stretch item):**
-- [ ] Era slider (2010 → present) — v1.5 stretch, not MVP; deliberately deferred, not built in Phase 7
-
-**Persistence & platform:**
-- [x] PWA installable, offline-capable — validated in Phase 3 (see Validated section above); shareable via URL still open (no sharing UI built yet)
-- [ ] Attended-show list and live-tracked setlists in IndexedDB (persistence mechanism validated in Phase 3); JSON export/import as backup/transfer; export surfaced prominently (losing a phone must not mean losing a dex; iOS Safari eviction risk makes this extra important)
+**UI polish (deferred at v1.0 close — see STATE.md Deferred Items):**
+- [ ] Orb/center song-name text sizing on small screens; consolidate the "Whose dex is this?" restore affordance; InstallBanner once-per-version (todos in `.planning/todos/pending/`)
+- [ ] Phase 01 tuning-tag human spot-check (DATA-04) — ~10-song musical sanity pass; owner-only, non-defect
 
 ### Out of Scope
 
@@ -121,16 +127,16 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| PWA, not native | App Store/TestFlight are pure overhead for <10 users on a deadline; URL-shareable, home-screen installable | — Pending |
+| PWA, not native | App Store/TestFlight are pure overhead for <10 users on a deadline; URL-shareable, home-screen installable | ✓ Validated v1.0 — installable + fully offline, confirmed live on iPhone Safari (Phase 3); Android via code + unit tests |
 | kglw.net JSON API exclusively, no scraping | Free public API exists; volunteer-run site deserves polite usage | Validated Phase 1 — paced fetcher (2s delay, no retries, descriptive User-Agent) pulled the full 2010–2026 corpus |
 | Weighted Markov model, not black-box ML | Must be inspectable, deterministic, backtestable; fancier approaches must beat it in backtest to displace it | Validated Phase 2 — `buildMatrix`/`predict` are pure, deterministic, config-driven; backtest top-5 66.9% overall / 68.6% free-choice on the held-out tour |
 | Tuning family replaces key signature | Key data unavailable/garbage for microtonal catalog; tuning is mechanically causal (instrument swaps) and hand-taggable | Validated Phase 2 — `tuningAffinity` backoff tier consumes `MatrixNode.tuningFamily` baked at build time |
 | Tuning family only in backoff tier | Transition matrix already encodes tuning clustering implicitly for observed pairs | Validated Phase 2 — `predict.ts` reads `tuningFamily` only inside the sparse-data backoff blend, never as a top-level multiplier |
-| No force simulation in Show Mode | Tap targets must never move on their own in a live-venue context | — Pending |
-| Client-side model, no backend | ~900 shows / ~250 songs fits client-side; backend requires explicit justification during planning | — Pending |
-| Pokédex counts derived, never hand-tallied | Attendance marking is the single source of truth; sighting counts computed from it | — Pending |
+| No force simulation in Show Mode | Tap targets must never move on their own in a live-venue context | ✓ Validated v1.0 (Phase 4) — deterministic `layoutOrbs` radial math; force sim confined to Explore Mode (Phase 7) |
+| Client-side model, no backend | ~900 shows / ~250 songs fits client-side; backend requires explicit justification during planning | ✓ Validated v1.0 — entire app is static/offline-first, zero backend; 738-show corpus + matrix bundled as static JSON |
+| Pokédex counts derived, never hand-tallied | Attendance marking is the single source of truth; sighting counts computed from it | ✓ Validated v1.0 (Phase 6) — `deriveDex` is the single derivation entry point; unmark is free, friend files get full stats, nothing stored |
 | Schema verification before extraction code | Segue notation/set delimiting must be documented empirically, not assumed | Validated Phase 1 — `docs/SCHEMA.md` committed before any normalize/extraction code existed (git history confirms ordering) |
-| Show-#1 bar = MVP features 1–4 | Full Show Mode loop incl. live sync; Explore Mode may ship after show #1 but matrix feeds it from day one | — Pending |
+| Show-#1 bar = MVP features 1–4 | Full Show Mode loop incl. live sync; Explore Mode may ship after show #1 but matrix feeds it from day one | ✓ Validated v1.0 — all 7 phases shipped before show #1; Explore + Dex fed from the same frozen matrix, no data-loss risk |
 
 ## Evolution
 
@@ -150,4 +156,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-16 after Phase 7: Explore Mode Constellation — milestone v1.0 feature-complete (all 7 phases done)*
+*Last updated: 2026-07-17 after v1.0 MVP milestone — shipped, audited (PASSED), and archived. All 60 v1 requirements validated.*
