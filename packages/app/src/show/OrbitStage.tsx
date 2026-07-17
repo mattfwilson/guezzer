@@ -140,6 +140,16 @@ export function OrbitStage({
   // Remount-on-centre-change → guarantees a fresh fan-out for every new song.
   const centerKey = renderCenter?.songName ?? "pre-opener";
 
+  // Did a collapse end on THIS render? If so the tapped orb has just finished
+  // gliding onto the centre and now persists AS it — so the centre node must
+  // appear at full size instantly (no separate scale/fade re-entrance) for a
+  // seamless hand-off, rather than the orb fading out and the centre re-entering.
+  const prevInCollapse = useRef(false);
+  const justEndedCollapse = prevInCollapse.current && !inCollapse;
+  useEffect(() => {
+    prevInCollapse.current = inCollapse;
+  }, [inCollapse]);
+
   const cx = size.width / 2;
   const cy = size.height / 2;
   const dur = (ms: number) => (reduce ? 0 : ms / 1000);
@@ -152,8 +162,10 @@ export function OrbitStage({
     >
       {/* Centre node — absolutely centred over the stage. During a collapse the
           OUTGOING song shrinks + fades out (making room for the arriving orb);
-          when the collapse clock clears, the content swaps to the new song and it
-          scales back in — so the tapped orb reads as "becoming" the current song. */}
+          the tapped orb then glides on top and PERSISTS as the new centre, so when
+          the collapse clock clears the centre node snaps to full size instantly
+          (`justEndedCollapse`) — a direct hand-off, no fade-out/re-enter. A centre
+          that appears without a collapse (opener seed) still scales in gently. */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <motion.div
           className="pointer-events-auto"
@@ -166,7 +178,9 @@ export function OrbitStage({
           transition={{
             duration: inCollapse
               ? dur(config.show.orbitAnim.COLLAPSE_MS)
-              : dur(config.show.orbitAnim.CENTER_IN_MS),
+              : justEndedCollapse
+                ? 0
+                : dur(config.show.orbitAnim.CENTER_IN_MS),
             ease: inCollapse ? EASE_COLLAPSE : EASE_FAN_OUT,
           }}
         >
@@ -196,12 +210,14 @@ export function OrbitStage({
           let animate: Record<string, number>;
           let transition: Record<string, unknown>;
           if (inCollapse && isSelected) {
-            // Glide the tapped orb onto the centre, growing to its size, fading out.
+            // Glide the tapped orb onto the centre, growing to its size, and hold it
+            // there at full opacity — it PERSISTS as the new centre (the centre node
+            // snaps in beneath it on the same frame), instead of fading out.
             animate = {
               x: -dx,
               y: -dy,
               scale: config.show.ORB_CENTER_DIAMETER / d,
-              opacity: 0,
+              opacity: 1,
             };
             transition = { duration: dur(config.show.orbitAnim.COLLAPSE_MS), ease: EASE_COLLAPSE };
           } else if (inCollapse) {
