@@ -1,8 +1,9 @@
 /**
  * The rarity/debut pill (06-06, D-15 / §B3). A Label-size pill whose WORD always
  * renders — color is reinforcement only (color-blind safety, WCAG 1.4.1). The
- * pill reads its hue from the single `config.dex.tierColors` source of truth
- * (shared with the share card — no second map to drift); the hue colors the text
+ * pill reads its hue from the shared `rarityColor` primitive (the single index
+ * into `config.dex.tierColors` — shared with the orbs, trail, and share card, no
+ * second map to drift); the hue colors the text
  * and a 40%-opacity border while the fill stays transparent on the secondary
  * surface. The ramp is data semantics, never chrome (never a button/surface/focus
  * color).
@@ -14,13 +15,14 @@
  */
 import type { RarityTier } from "@guezzer/core";
 import { config } from "../config.ts";
+import { rarityColor } from "./rarityStyle.ts";
 
 interface TierBadgeProps {
   tier: RarityTier | "debut";
 }
 
 export function TierBadge({ tier }: TierBadgeProps) {
-  const color = config.dex.tierColors[tier];
+  const color = rarityColor(tier);
   const label =
     tier === "debut" ? config.copy.dex.debutBadge : config.copy.dex.tierLabels[tier];
 

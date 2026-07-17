@@ -17,12 +17,13 @@
  */
 import type { RarityTier, ShareCardData } from "@guezzer/core";
 import { config } from "../config.ts";
+import { rarityColor } from "./rarityStyle.ts";
 
 /** System-font stack (05/06-UI-SPEC) — no web-font download; matches the app chrome. */
 const FONT_STACK = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
 /** Chrome-only card colors (06-UI-SPEC §Color) — contract hexes only. Tier hues
- *  come from the shared `config.dex.tierColors` map (no local duplicate). */
+ *  come from the shared `rarityColor` primitive (no local duplicate). */
 const COLOR = {
   bg: "#0C0C10",
   primary: "#F5F5F7",
@@ -95,7 +96,7 @@ export function drawShareCard(
       cx,
       height * 0.67,
       44,
-      config.dex.tierColors[data.rarestCatch.tier],
+      rarityColor(data.rarestCatch.tier),
     );
   }
 
@@ -115,7 +116,7 @@ export function drawShareCard(
 
 /**
  * Draw the `3 Legendary · 12 Rare · …` breakdown centered on `centerX`, each
- * tier segment in its ramp color (from the shared `config.dex.tierColors`) and
+ * tier segment in its ramp color (from the shared `rarityColor` primitive) and
  * the ` · ` separators muted. Uses measureText to lay the segments out
  * left-to-right from a centered origin.
  */
@@ -146,7 +147,7 @@ function drawTierBreakdown(
       x += ctx.measureText(sep).width;
     }
     const seg = segments[i];
-    ctx.fillStyle = config.dex.tierColors[b.tier];
+    ctx.fillStyle = rarityColor(b.tier);
     ctx.fillText(seg, x, y);
     x += ctx.measureText(seg).width;
   });
