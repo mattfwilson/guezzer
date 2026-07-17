@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-07-17T03:19:53.864Z"
 last_activity: 2026-07-17
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** v1.0 MVP shipped & archived — planning next milestone (`/gsd-new-milestone`)
+**Current focus:** v1.1 Polish & Pre-Show Hardening roadmapped (Phases 8–10) — ready to plan Phase 8 (`/gsd-plan-phase 8`)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started — v1.1 roadmap defined (Phases 8–10)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-17 — Milestone v1.1 started
+Status: Roadmap complete; awaiting phase planning
+Last activity: 2026-07-17 — Milestone v1.1 roadmapped (9 requirements → Phases 8–10)
 
 ## Performance Metrics
 
@@ -78,6 +78,7 @@ Last activity: 2026-07-17 — Milestone v1.1 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- Roadmap (v1.1): 9 hardening requirements grouped into 3 phases by theme — Phase 8 (UI polish + a11y, frontend), Phase 9 (data integrity + restore UX, core/data), Phase 10 (human/device pre-show validation). VALID-01/VALID-02 are human/device checkpoints, isolated in the final verification phase which depends on 8 and 9.
 - Roadmap: 🎯 (show-#1) requirements confined to Phases 1–5; Phases 6–7 may ship after show #1 without data loss (attendance auto-mark in Phase 4, export in Phase 5)
 - Roadmap: DATA-05 (set-boundary exclusion) mapped to Phase 2 with the matrix builder, not Phase 1 ingestion — the exclusion decision lives where edges are emitted
 - Roadmap: EVAL-04 (honest confidence framing) mapped to Phase 4 — it is a Show Mode UI behavior conditioned on Phase 2's backtest output
@@ -119,9 +120,9 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- [ui] Fix truncated/oversized song-name text inside prediction orbs (esp. center current-song orb) — `.planning/todos/pending/2026-07-11-orb-song-name-text-truncated-and-oversized.md`. Non-blocking UI-polish; found on-device during Phase 04 device gate.
-- [ui/pwa] InstallBanner should show once per app version, not on every reload — `.planning/todos/pending/2026-07-14-install-banner-reappears-every-reload.md`. Non-blocking; owner-reported during Phase 05 UAT Test 3 setup.
-- [ui] Consolidate Show-Mode actions (Search/Unknown/Set break/Encore/Undo) into a collapsed-by-default bottom-right FAB menu to free vertical space for the orbit — `.planning/todos/pending/2026-07-14-collapse-show-actions-into-fab-menu.md`. Owner idea 2026-07-14; note the zero-tap ???/Undo trade-off flagged inside.
+- [ui] Fix truncated/oversized song-name text inside prediction orbs (esp. center current-song orb) — `.planning/todos/pending/2026-07-11-orb-song-name-text-truncated-and-oversized.md`. Non-blocking UI-polish; found on-device during Phase 04 device gate. **→ v1.1 POLISH-01 (Phase 8).**
+- [ui/pwa] InstallBanner should show once per app version, not on every reload — `.planning/todos/pending/2026-07-14-install-banner-reappears-every-reload.md`. Non-blocking; owner-reported during Phase 05 UAT Test 3 setup. **→ v1.1 POLISH-02 (Phase 8).**
+- [ui] Consolidate Show-Mode actions (Search/Unknown/Set break/Encore/Undo) into a collapsed-by-default bottom-right FAB menu to free vertical space for the orbit — `.planning/todos/pending/2026-07-14-collapse-show-actions-into-fab-menu.md`. Owner idea 2026-07-14; note the zero-tap ???/Undo trade-off flagged inside. **→ v1.1 POLISH-02 (Phase 8, verify-and-resolve).**
 
 ### Quick Tasks Completed
 
@@ -139,23 +140,23 @@ Recent decisions affecting current work:
 
 ## Deferred Items
 
-Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-approved):
+Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-approved). The four non-blocking items below are now scoped into v1.1 (Phases 8–10):
 
-| Category | Item | Status | Deferred At |
-|----------|------|--------|-------------|
-| debug | knowledge-base (resolved-sessions index, not an open session — false alarm) | not-a-defect | 2026-07-17 |
-| verification | Phase 01 tuning-tag spot-check (DATA-04 human_needed; ~10-song sanity pass) | human_needed | 2026-07-17 |
-| todo/ui | orb song-name text truncated/oversized (esp. center orb) | pending | 2026-07-17 |
-| todo/ui | collapse Show-Mode actions into FAB menu | pending | 2026-07-17 |
-| todo/pwa | InstallBanner should show once per version, not every reload | pending | 2026-07-17 |
-| integration/warning | WARNING-1 own-backup restore fork — **FIXED** in quick 260716-vw2 (not deferred) | resolved | 2026-07-17 |
+| Category | Item | Status | Deferred At | v1.1 Mapping |
+|----------|------|--------|-------------|--------------|
+| debug | knowledge-base (resolved-sessions index, not an open session — false alarm) | not-a-defect | 2026-07-17 | — |
+| verification | Phase 01 tuning-tag spot-check (DATA-04 human_needed; ~10-song sanity pass) | human_needed | 2026-07-17 | VALID-01 (Phase 10) |
+| todo/ui | orb song-name text truncated/oversized (esp. center orb) | pending | 2026-07-17 | POLISH-01 (Phase 8) |
+| todo/ui | collapse Show-Mode actions into FAB menu | pending | 2026-07-17 | POLISH-02 (Phase 8) |
+| todo/pwa | InstallBanner should show once per version, not every reload | pending | 2026-07-17 | POLISH-02 (Phase 8) |
+| integration/warning | WARNING-1 own-backup restore fork — **FIXED** in quick 260716-vw2 (not deferred) | resolved | 2026-07-17 | PWA-05 polishes it (Phase 9) |
 
 ## Session Continuity
 
 Last session: 2026-07-17T02:57:40.986Z
-Stopped at: v1.0 milestone audit PASSED; WARNING-1 fixed (quick 260716-vw2); ready to complete milestone
-Resume file: .planning/v1.0-MILESTONE-AUDIT.md
+Stopped at: v1.1 roadmap created — 9 requirements mapped to Phases 8–10; ROADMAP.md, REQUIREMENTS.md traceability, and STATE.md counters updated
+Resume file: .planning/ROADMAP.md
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan the first v1.1 phase with `/gsd-plan-phase 8`

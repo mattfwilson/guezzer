@@ -60,21 +60,22 @@ Which phases cover which requirements. Filled by the roadmapper.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| POLISH-01 | TBD | Pending |
-| POLISH-02 | TBD | Pending |
-| A11Y-01 | TBD | Pending |
-| A11Y-02 | TBD | Pending |
-| A11Y-03 | TBD | Pending |
-| DATA-06 | TBD | Pending |
-| PWA-05 | TBD | Pending |
-| VALID-01 | TBD | Pending |
-| VALID-02 | TBD | Pending |
+| POLISH-01 | Phase 8 | Planned |
+| POLISH-02 | Phase 8 | Planned |
+| A11Y-01 | Phase 8 | Planned |
+| A11Y-02 | Phase 8 | Planned |
+| A11Y-03 | Phase 8 | Planned |
+| DATA-06 | Phase 9 | Planned |
+| PWA-05 | Phase 9 | Planned |
+| VALID-01 | Phase 10 | Planned |
+| VALID-02 | Phase 10 | Planned |
 
 **Coverage:**
 
 - v1.1 requirements: 9 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 9
+- Mapped to phases: 9 (Phase 8: 5, Phase 9: 2, Phase 10: 2)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-17 for milestone v1.1 Polish & Pre-Show Hardening*
+*Traceability filled: 2026-07-17 — all 9 requirements mapped across Phases 8–10*

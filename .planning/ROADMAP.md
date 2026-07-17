@@ -3,6 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1–7 (shipped 2026-07-17) — [archived roadmap](./milestones/v1.0-ROADMAP.md) · [requirements](./milestones/v1.0-REQUIREMENTS.md) · [audit](./milestones/v1.0-MILESTONE-AUDIT.md)
+- 🚧 **v1.1 Polish & Pre-Show Hardening** — Phases 8–10 (planned 2026-07-17) — close the v1.0 audit's non-blocking gaps and prove the app show-ready on real hardware before show #1
 
 ## Phases
 
@@ -21,11 +22,48 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.0-ROADM
 
 </details>
 
-### 🚧 Next Milestone (Planned)
+### 🚧 v1.1 Polish & Pre-Show Hardening (Phases 8–10)
 
-_Not yet scoped. Run `/gsd-new-milestone` to define v1.1+ requirements and roadmap._
+Small, low-risk hardening milestone — no new user-facing features. Close the v1.0 audit's non-blocking gaps (UI polish, accessibility, data integrity, restore UX) and prove the app show-ready on real hardware before show #1 (late Aug/Sep 2026). Bias toward shipping the hardening quickly.
 
-Candidate work (deferred from v1.0 — see PROJECT.md Active): set-position prediction signal (MODL-V2-01), Explore era-slider (EXPL-V2-01), and the deferred UI-polish todos.
+- [ ] **Phase 8: On-Device UI Polish & Accessibility** — Legible labels + Escape/focus-managed sheets and dialogs across Show and Explore
+- [ ] **Phase 9: Data Integrity & Restore UX** — `shownotes` survives normalization; owner can always recover their own backup
+- [ ] **Phase 10: Pre-Show Validation & Device Dry-Run** — Owner tuning-tag spot-check + full real-device show-loop rehearsal before show #1
+
+## Phase Details
+
+### Phase 8: On-Device UI Polish & Accessibility
+**Goal**: Every on-screen label is legible and every sheet/dialog is keyboard- and focus-accessible on real phone hardware — closing the v1.0 audit's UI-polish and accessibility gaps.
+**Depends on**: v1.0 MVP (Phases 1–7, shipped)
+**Requirements**: POLISH-01, POLISH-02, A11Y-01, A11Y-02, A11Y-03
+**Success Criteria** (what must be TRUE):
+  1. On a small phone screen, every prediction-orb and center-node song name renders fully — no truncation, overflow, or oversizing (POLISH-01).
+  2. The Show-Mode FAB speed-dial (D-20) and once-per-version InstallBanner (D-22) behave as their originating todos intended, and those todos are formally moved to resolved (POLISH-02).
+  3. Every bottom sheet and modal dialog (NodeSheet, AppMenu, TrailNodeSheet, EndShowDialog, ShareCardSheet, "Whose dex is this?" prompt, CompareView) dismisses with Escape, traps focus while open, and restores focus to its trigger on close (A11Y-01).
+  4. While a constellation node is focused, the NodeSheet and the Explore FilterFab are both fully usable — no occlusion (A11Y-02).
+  5. Resizing the viewport with a node focused keeps the camera framed on that node — no snap-off (A11Y-03).
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 9: Data Integrity & Restore UX
+**Goal**: Ingested show data preserves everything a future feature will need, and an owner can never fail to recover their own backup on a fresh or evicted database.
+**Depends on**: v1.0 MVP (Phases 1–7, shipped)
+**Requirements**: DATA-06, PWA-05
+**Success Criteria** (what must be TRUE):
+  1. `shownotes` is carried verbatim through ingestion AND normalization into the domain model per `docs/SCHEMA.md` §12, so a future show-level-prose feature needs no full re-normalize (DATA-06).
+  2. An automated test asserts `shownotes` survives normalization end-to-end (DATA-06).
+  3. On a fresh/evicted DB with the owner name unset, typing your own owner name into the "Whose dex is this?" prompt reaches the merge/restore path — not only the explicit "It's mine, restore it" button — and merges the backup without dropping local data (PWA-05).
+**Plans**: TBD
+
+### Phase 10: Pre-Show Validation & Device Dry-Run
+**Goal**: The owner has hands-on proof the app is show-ready before show #1 — the tuning model is musically sane and the full show loop survives a real-device rehearsal.
+**Depends on**: Phase 8, Phase 9 (validation exercises the polished, hardened app)
+**Requirements**: VALID-01, VALID-02
+**Success Criteria** (what must be TRUE):
+  1. The owner completes the tuning-family tag spot-check (DATA-04) — ~10 well-known songs verified musically sensible and the `needsReview` subset hand-filled as needed, so predictions aren't skewed by silent tuning misclassification (VALID-01).
+  2. A full show-loop dry-run passes on a real device: start → predictions → log hits/misses → set break → encore → End Show → recap → dex credit → JSON export/import round-trip (VALID-02).
+  3. Android is exercised in the dry-run if a device is available (VALID-02).
+**Plans**: TBD
 
 ## Progress
 
@@ -38,7 +76,11 @@ Candidate work (deferred from v1.0 — see PROJECT.md Active): set-position pred
 | 5. Live Sync & Data Safety | v1.0 | 6/6 | Complete | 2026-07-14 |
 | 6. Pokédex, History & Stats | v1.0 | 12/12 | Complete | 2026-07-16 |
 | 7. Explore Mode Constellation | v1.0 | 7/7 | Complete | 2026-07-16 |
+| 8. On-Device UI Polish & Accessibility | v1.1 | 0/? | Not started | - |
+| 9. Data Integrity & Restore UX | v1.1 | 0/? | Not started | - |
+| 10. Pre-Show Validation & Device Dry-Run | v1.1 | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-07-08*
 *v1.0 MVP milestone archived: 2026-07-17 (7 phases, 46 plans, all shipped)*
+*v1.1 Polish & Pre-Show Hardening added: 2026-07-17 (Phases 8–10, 9 requirements)*
