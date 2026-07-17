@@ -32,81 +32,115 @@ function firstNArchive(
 }
 
 describe("buildRarityIndex — corpus-honest tiers/gap/play-count (D-15, STAT-01)", () => {
-  // 10 played songs over 20 shows, play counts strictly increasing so ranks are
-  // unambiguous. Quantiles {legendary:0.05, rare:0.2, uncommon:0.5} over M=10:
-  //   legendary  rank < 0.5  → rank 0        (1 song)
-  //   rare       rank < 2.0  → rank 1        (1 song)
-  //   uncommon   rank < 5.0  → ranks 2,3,4   (3 songs)
-  //   common     rank >= 5   → ranks 5..9    (5 songs)
+  // Tie-inclusive playCount bands (config.dex.RARITY_BANDS), evaluated low→high
+  // with `common` as the implicit tail:
+  //   legendary  playCount === 1
+  //   epic       playCount 2–3
+  //   rare       playCount 4–8
+  //   uncommon   playCount 9–23
+  //   common     playCount 24+
+  // One song per tier + every boundary, over totalShows = 24 (so 24-plays common
+  // is reachable). firstNArchive gives corpusGap = totalShows - plays.
   const MAIN_SPECS = [
-    { songId: 10, plays: 3 }, // rank 0 → legendary (playCount 3 ≥ min-plays)
-    { songId: 20, plays: 5 }, // rank 1 → rare
-    { songId: 30, plays: 7 }, // rank 2 → uncommon
-    { songId: 40, plays: 9 }, // rank 3 → uncommon
-    { songId: 50, plays: 11 }, // rank 4 → uncommon
-    { songId: 60, plays: 13 }, // rank 5 → common
-    { songId: 70, plays: 15 }, // rank 6 → common
-    { songId: 80, plays: 17 }, // rank 7 → common
-    { songId: 90, plays: 19 }, // rank 8 → common
-    { songId: 100, plays: 20 }, // rank 9 → common
+    { songId: 10, plays: 1 }, // legendary (exactly one play)
+    { songId: 20, plays: 3 }, // epic (upper boundary 3)
+    { songId: 30, plays: 4 }, // rare (lower boundary 4)
+    { songId: 40, plays: 8 }, // rare (upper boundary 8)
+    { songId: 50, plays: 9 }, // uncommon (lower boundary 9)
+    { songId: 60, plays: 23 }, // uncommon (upper boundary 23)
+    { songId: 70, plays: 24 }, // common (lower boundary 24)
   ];
 
   it("pins the hand-computed tier table (every tier represented)", () => {
-    const index = buildRarityIndex(firstNArchive(MAIN_SPECS, 20, { withSentinel: true }));
+    const index = buildRarityIndex(firstNArchive(MAIN_SPECS, 24, { withSentinel: true }));
     const tierOf = (id: number) => index.get(id)?.tier;
 
     expect(tierOf(10)).toBe("legendary");
-    expect(tierOf(20)).toBe("rare");
-    expect(tierOf(30)).toBe("uncommon");
-    expect(tierOf(40)).toBe("uncommon");
+    expect(tierOf(20)).toBe("epic");
+    expect(tierOf(30)).toBe("rare");
+    expect(tierOf(40)).toBe("rare");
     expect(tierOf(50)).toBe("uncommon");
-    expect(tierOf(60)).toBe("common");
+    expect(tierOf(60)).toBe("uncommon");
     expect(tierOf(70)).toBe("common");
-    expect(tierOf(80)).toBe("common");
-    expect(tierOf(90)).toBe("common");
-    expect(tierOf(100)).toBe("common");
   });
 
-  it("computes playCount, lastPlayedDate, and corpusGap exactly", () => {
-    const index = buildRarityIndex(firstNArchive(MAIN_SPECS, 20));
-
-    const song10 = index.get(10);
-    expect(song10?.playCount).toBe(3);
-    expect(song10?.lastPlayedDate).toBe("2020-01-03"); // last of the first 3 shows
-    expect(song10?.corpusGap).toBe(17); // 20 - 3 shows after its last play
-
-    const song100 = index.get(100);
-    expect(song100?.playCount).toBe(20);
-    expect(song100?.lastPlayedDate).toBe("2020-01-20");
-    expect(song100?.corpusGap).toBe(0); // played in the newest show
-  });
-
-  it("excludes sentinel song ids from the index entirely", () => {
-    const index = buildRarityIndex(firstNArchive(MAIN_SPECS, 20, { withSentinel: true }));
-    expect(index.has(1)).toBe(false);
-  });
-
-  it("caps a tiny-sample bottom-quantile song at rare (RARITY_MIN_PLAYS, Pitfall 12)", () => {
-    // 3 songs / 8 shows. Rank 0 (song 1010, playCount 2) would be legendary by
-    // quantile but is capped to rare because 2 < RARITY_MIN_PLAYS (3).
+  it("pins the band boundaries: 1→legendary, 3→epic vs 4→rare, 23→uncommon vs 24→common", () => {
     const index = buildRarityIndex(
       firstNArchive(
         [
-          { songId: 1010, plays: 2 },
+          { songId: 201, plays: 1 }, // legendary
+          { songId: 203, plays: 3 }, // epic (band closes at 3)
+          { songId: 204, plays: 4 }, // rare (band opens at 4)
+          { songId: 223, plays: 23 }, // uncommon (band closes at 23)
+          { songId: 224, plays: 24 }, // common (band opens at 24)
+        ],
+        24,
+      ),
+    );
+    const tierOf = (id: number) => index.get(id)?.tier;
+    expect(tierOf(201)).toBe("legendary");
+    expect(tierOf(203)).toBe("epic");
+    expect(tierOf(204)).toBe("rare");
+    expect(tierOf(223)).toBe("uncommon");
+    expect(tierOf(224)).toBe("common");
+  });
+
+  it("is tie-inclusive: two different songIds with the same playCount share a tier", () => {
+    // Two distinct songs, each played exactly once → BOTH legendary. Proves there
+    // is no songId tie-break splitting equally-rare songs across tiers.
+    const index = buildRarityIndex(
+      firstNArchive(
+        [
+          { songId: 111, plays: 1 },
+          { songId: 222, plays: 1 },
+        ],
+        24,
+      ),
+    );
+    expect(index.get(111)?.tier).toBe("legendary");
+    expect(index.get(222)?.tier).toBe("legendary");
+  });
+
+  it("makes a single-play song legendary (the retired min-plays cap no longer demotes it)", () => {
+    // Formerly RARITY_MIN_PLAYS capped a tiny-sample song at rare; that cap is
+    // gone by design — a played-once-ever song is the ultimate catch.
+    const index = buildRarityIndex(
+      firstNArchive(
+        [
+          { songId: 1010, plays: 1 },
           { songId: 1020, plays: 5 },
           { songId: 1030, plays: 8 },
         ],
         8,
       ),
     );
-    expect(index.get(1010)?.playCount).toBe(2);
-    expect(index.get(1010)?.tier).toBe("rare"); // capped, not legendary
+    expect(index.get(1010)?.playCount).toBe(1);
+    expect(index.get(1010)?.tier).toBe("legendary"); // NOT capped to rare anymore
     // A song last played in show 5 of 8 has corpusGap 3.
     expect(index.get(1020)?.corpusGap).toBe(3);
   });
 
+  it("computes playCount, lastPlayedDate, and corpusGap exactly", () => {
+    const index = buildRarityIndex(firstNArchive(MAIN_SPECS, 24));
+
+    const song20 = index.get(20);
+    expect(song20?.playCount).toBe(3);
+    expect(song20?.lastPlayedDate).toBe("2020-01-03"); // last of the first 3 shows
+    expect(song20?.corpusGap).toBe(21); // 24 - 3 shows after its last play
+
+    const song70 = index.get(70);
+    expect(song70?.playCount).toBe(24);
+    expect(song70?.lastPlayedDate).toBe("2020-01-24");
+    expect(song70?.corpusGap).toBe(0); // played in the newest show
+  });
+
+  it("excludes sentinel song ids from the index entirely", () => {
+    const index = buildRarityIndex(firstNArchive(MAIN_SPECS, 24, { withSentinel: true }));
+    expect(index.has(1)).toBe(false);
+  });
+
   it("is deterministic (pure — no Date.now / I/O)", () => {
-    const archive = firstNArchive(MAIN_SPECS, 20);
+    const archive = firstNArchive(MAIN_SPECS, 24);
     expect(buildRarityIndex(archive)).toEqual(buildRarityIndex(archive));
   });
 });
