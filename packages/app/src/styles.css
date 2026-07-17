@@ -42,6 +42,26 @@ body {
   overscroll-behavior-y: none;
 }
 
+/* Living/breathing pulse on the current-song centre orb (owner 2026-07-17): a
+   slow, subtle scale loop so the playing song reads as alive. transform-only (no
+   layout reflow — the fan clears the centre with gap for the max scale), and
+   fully disabled under prefers-reduced-motion. */
+@keyframes orb-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .orb-breathe {
+    animation: orb-breathe 2.6s ease-in-out infinite;
+    will-change: transform;
+  }
+}
+
 body {
   margin: 0;
   background-color: var(--color-surface);

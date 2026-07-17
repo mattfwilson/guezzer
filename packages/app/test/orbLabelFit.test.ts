@@ -38,8 +38,8 @@ describe("fitOrbLabel (D-21 wrap/scale-to-fit)", () => {
     expect(result.lines.join(" ")).toBe("The Dripping Tap");
   });
 
-  it("shrinks toward the floor when two lines at base font aren't enough", () => {
-    const result = fitOrbLabel("Nonagon Infinity Opens", 88, orbOpts);
+  it("shrinks toward the floor when the wrap at base font overflows the line budget", () => {
+    const result = fitOrbLabel("Nonagon Infinity Opens The Door Again", 88, orbOpts);
     expect(result.fontPx).toBeGreaterThanOrEqual(orbOpts.minFontPx);
     expect(result.fontPx).toBeLessThan(orbOpts.baseFontPx);
     expect(result.lines.length).toBeLessThanOrEqual(orbOpts.maxLines);
@@ -64,7 +64,7 @@ describe("fitOrbLabel (D-21 wrap/scale-to-fit)", () => {
     expect(a).toEqual(b);
   });
 
-  it("honors the wider center budget (3 lines, 14px floor)", () => {
+  it("honors the wider center budget (3 lines, config floor)", () => {
     const short = fitOrbLabel("Rattlesnake", 220, centerOpts);
     expect(short.fontPx).toBe(20);
     expect(short.lines).toEqual(["Rattlesnake"]);

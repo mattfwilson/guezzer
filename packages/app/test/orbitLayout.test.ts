@@ -15,7 +15,8 @@ const CFG: OrbLayoutConfig = {
   orbMinDiameter: config.show.ORB_MIN_DIAMETER,
   orbMaxDiameter: config.show.ORB_MAX_DIAMETER,
   ringInsetPx: config.show.RING_INSET_PX,
-  innerRadiusRatio: config.show.ORB_INNER_RADIUS_RATIO,
+  centerDiameter: config.show.ORB_CENTER_DIAMETER,
+  orbGapPx: config.show.ORB_RING_GAP_PX,
 };
 
 const STAGE = { width: 360, height: 640 };
@@ -55,21 +56,42 @@ describe("orbitLayout.layoutOrbs", () => {
     }
   });
 
-  it("orbitLayout places rank 0 at the top (-90°) and higher scores nearer the centre", () => {
-    const input = fan(6);
+  it("orbitLayout places rank 0 at the top (-90°) on a single evenly-spread ring", () => {
+    const input = fan(5);
     const layout = layoutOrbs(input, STAGE, CFG);
     const cx = STAGE.width / 2;
     const cy = STAGE.height / 2;
     // Rank 0 sits directly above centre.
     expect(layout[0].x).toBeCloseTo(cx, 5);
     expect(layout[0].y).toBeLessThan(cy);
-    // Top score sits nearer the centre than the weakest score.
-    const rTop = Math.hypot(layout[0].x - cx, layout[0].y - cy);
-    const rWeak = Math.hypot(
-      layout[layout.length - 1].x - cx,
-      layout[layout.length - 1].y - cy,
+    // Every orb is EQUIDISTANT from the centre (one shared ring = even spread)…
+    const radii = layout.map((o) => Math.hypot(o.x - cx, o.y - cy));
+    for (const r of radii) expect(r).toBeCloseTo(radii[0], 5);
+    // …and UNIFORM in size (no score-driven radius/diameter variation anymore).
+    for (const o of layout) expect(o.diameterPx).toBeCloseTo(layout[0].diameterPx, 5);
+    // Angular step is even: 360°/n between adjacent orbs.
+    const angle = (o: (typeof layout)[number]) => Math.atan2(o.y - cy, o.x - cx);
+    const step = 2 * Math.PI / layout.length;
+    for (let i = 1; i < layout.length; i++) {
+      let delta = angle(layout[i]) - angle(layout[i - 1]);
+      delta = ((delta % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      expect(delta).toBeCloseTo(step, 5);
+    }
+  });
+
+  it("orbitLayout keeps orbs clear of the centre node and each other (no overlap)", () => {
+    const layout = layoutOrbs(fan(5), STAGE, CFG);
+    const cx = STAGE.width / 2;
+    const cy = STAGE.height / 2;
+    const r = Math.hypot(layout[0].x - cx, layout[0].y - cy);
+    const d = layout[0].diameterPx;
+    // Inner edge clears the centre node + gap.
+    expect(r - d / 2).toBeGreaterThanOrEqual(
+      CFG.centerDiameter / 2 + CFG.orbGapPx - 1e-6,
     );
-    expect(rTop).toBeLessThan(rWeak);
+    // Adjacent chord ≥ diameter + gap (no orb–orb overlap).
+    const chord = 2 * r * Math.sin(Math.PI / layout.length);
+    expect(chord).toBeGreaterThanOrEqual(d + CFG.orbGapPx - 1e-6);
   });
 
   it("orbitLayout does not renormalize — equal scores never divide-by-zero", () => {
@@ -122,8 +144,8 @@ describe("orbitLayout.selectFan — adaptive 5–8 fan (D-12)", () => {
       { songId: 9, score: 0.001 },
     ];
     const kept = selectFan(candidates);
-    // 6 clear drop → count 6 (between MIN 5 and MAX 8); the 3 negligible dropped.
-    expect(kept).toHaveLength(6);
+    // 6 clear drop but MAX is 5 → count clamps to 5; the kept 5 all clear drop.
+    expect(kept).toHaveLength(config.show.ORB_COUNT_MAX);
     expect(kept.every((c) => c.score >= config.show.ORB_DROP_SCORE)).toBe(true);
   });
 });

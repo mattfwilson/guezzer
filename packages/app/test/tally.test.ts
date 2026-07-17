@@ -61,7 +61,7 @@ describe("tally config surface: config.show + config.copy.show (single-config-fi
     expect(config.show.WEAK_FAN_THRESHOLD).toBe(0.15);
     expect(config.show.TRAIL_COMPRESS_AT).toBe(30);
     expect(config.show.ORB_COUNT_MIN).toBe(5);
-    expect(config.show.ORB_COUNT_MAX).toBe(8);
+    expect(config.show.ORB_COUNT_MAX).toBe(5);
     expect(config.show.ORB_DROP_SCORE).toBe(0.02);
     expect(config.show.ORB_MIN_DIAMETER).toBe(56);
     expect(config.show.TRAIL_VISIBLE_RECENT).toBe(4);

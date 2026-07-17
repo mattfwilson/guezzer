@@ -44,3 +44,36 @@ center-node rendering in `OrbitStage.tsx`. Coordinate with the `ORB_MIN_DIAMETER
 clamp and the ≥56px visual / ≥44px hit-area constraint (SHOW-02) so any sizing
 change keeps tap targets compliant. Keep model constants in `config.ts` per the
 project's single-config rule rather than inlining new magic numbers.
+
+---
+
+## Resolved (2026-07-17)
+
+Fixed the truncation/oversized-text problem AND the owner's 5 companion asks in
+one orbit-stage pass:
+
+1. **Center orb is a circle** — `CenterNode` is now a fixed `ORB_CENTER_DIAMETER`
+   (116px) circle instead of a stadium pill (both the seeded song and the
+   pre-opener prompt).
+2. **Cap 5 predictive orbs** — `ORB_COUNT_MAX` 8 → 5 (MIN stays 5 ⇒ always a clean
+   5-orb pentagon). selectFan/tally tests updated.
+3. **Bigger orbs, smaller text, less truncation** — the ring solver grows a uniform
+   orb diameter toward `ORB_MAX_DIAMETER` 88 → 112; label base font 14 → 13 and
+   max wrap lines 2 → 3 (center base 20 → 18, floor 14 → 12). The center label now
+   fits to the real circle diameter, not a nominal 220px pill budget.
+4. **No overlap + even spread** — rewrote `layoutOrbs` from score-varied radii to a
+   single evenly-spaced ring (regular polygon, rank 0 at top). A closed-form solver
+   sizes the uniform orb as large as fits WITHOUT overlapping ring neighbours or the
+   centre node (`ORB_RING_GAP_PX` = 10 clearance). Score now reads from rank order +
+   the % label, not radius. New tests assert equidistance, even angular step, and
+   the no-overlap invariants.
+5. **Center pulsates** — a slow living/breathing scale loop (`.orb-breathe`,
+   styles.css), transform-only (no reflow; the ring clears the centre even at max
+   scale) and disabled under `prefers-reduced-motion`.
+
+Config churn (single-config ethos): +ORB_CENTER_DIAMETER, +ORB_RING_GAP_PX,
++ORB_LABEL_BASE_FONT_PX(_CENTER); removed ORB_INNER_RADIUS_RATIO and
+ORB_LABEL_CENTER_WIDTH_PX (obsolete under the ring solver / circle fit).
+
+Gates: `tsc -p packages/app` clean, full suite 490/490 (4× stable), `vite build`
+clean. Device look: owner.

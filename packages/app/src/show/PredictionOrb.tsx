@@ -27,9 +27,6 @@ import { formatOrbPercent } from "./confidence.ts";
 import { fitOrbLabel } from "./orbLabelFit.ts";
 import { ORB_TEXT_COLOR, tuningColor } from "./tuningColor.ts";
 
-/** Existing orb Label role size (04-UI-SPEC §Typography) — the fit base font. */
-const ORB_LABEL_BASE_FONT_PX = 14;
-
 /** A ranked candidate enriched with its tuning family (resolved from the matrix node in ShowView). */
 export interface OrbitCandidate extends PredictionCandidate {
   tuningFamily: TuningFamily | null;
@@ -59,7 +56,7 @@ export function PredictionOrb({
   // D-21: wrap + scale-to-fit the full name to a config floor before ellipsis,
   // sized to this orb's rendered diameter. Pure — no re-layout of the fan.
   const fit = fitOrbLabel(candidate.songName, layout.diameterPx, {
-    baseFontPx: ORB_LABEL_BASE_FONT_PX,
+    baseFontPx: config.show.ORB_LABEL_BASE_FONT_PX,
     minFontPx: config.show.ORB_LABEL_MIN_FONT_PX,
     maxLines: config.show.ORB_LABEL_MAX_LINES,
   });

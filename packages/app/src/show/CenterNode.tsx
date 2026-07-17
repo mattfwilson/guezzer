@@ -1,16 +1,15 @@
 /**
  * The current-song node at the centre of the orbit (04-UI-SPEC §Layout region 3,
  * Component Inventory). Presentational only. Tuning-family colored, Heading-size
- * name, NO percentage. Before the opener is seeded (no current song) it shows the
- * "Tap the opener" prompt state (config.copy.show.centerPrompt).
+ * name, NO percentage. A fixed CIRCLE (owner 2026-07-17), not a stadium pill, and
+ * once a song is playing it PULSES — a slow living/breathing scale (`.orb-breathe`
+ * in styles.css, motion-safe). Before the opener is seeded it shows the static
+ * "Search for the opener" prompt circle (config.copy.show.centerPrompt).
  */
 import type { TuningFamily } from "@guezzer/core";
 import { config } from "../config.ts";
 import { fitOrbLabel } from "./orbLabelFit.ts";
 import { ORB_TEXT_COLOR, tuningColor } from "./tuningColor.ts";
-
-/** Existing center Heading role size (04-UI-SPEC §Typography) — the fit base font. */
-const CENTER_LABEL_BASE_FONT_PX = 20;
 
 interface CenterNodeProps {
   /** Current song name, or null before the opener is seeded. */
@@ -22,17 +21,21 @@ interface CenterNodeProps {
 }
 
 export function CenterNode({ songName, tuningFamily, onOpenSearch }: CenterNodeProps) {
+  const diameter = config.show.ORB_CENTER_DIAMETER;
+
   if (songName == null) {
     // Pre-opener: the prompt IS the search affordance — tapping opens the catalog
-    // SearchSheet so the user selects the opener (same seed path as the FAB).
+    // SearchSheet so the user selects the opener (same seed path as the FAB). A
+    // dashed circle, NOT pulsing (no song is playing yet).
     return (
       <button
         type="button"
         onClick={onOpenSearch}
         aria-label={config.copy.show.centerPrompt}
-        className="flex min-h-11 max-w-[70%] items-center justify-center rounded-full border border-dashed border-hairline px-6 py-4 text-center touch-manipulation"
+        style={{ width: diameter, height: diameter }}
+        className="flex items-center justify-center rounded-full border border-dashed border-hairline p-3 text-center touch-manipulation"
       >
-        <span className="text-[20px] font-semibold leading-tight text-text-muted">
+        <span className="text-[14px] font-semibold leading-tight text-text-muted">
           {config.copy.show.centerPrompt}
         </span>
       </button>
@@ -42,17 +45,19 @@ export function CenterNode({ songName, tuningFamily, onOpenSearch }: CenterNodeP
   const fill = tuningColor(tuningFamily);
 
   // D-21: wrap + scale-to-fit the full current-song name to the center floor
-  // (3 lines / 14px) before ellipsis, using the nominal center-pill width budget.
-  const fit = fitOrbLabel(songName, config.show.ORB_LABEL_CENTER_WIDTH_PX, {
-    baseFontPx: CENTER_LABEL_BASE_FONT_PX,
+  // before ellipsis, sized to the circle's own diameter.
+  const fit = fitOrbLabel(songName, diameter, {
+    baseFontPx: config.show.ORB_LABEL_BASE_FONT_PX_CENTER,
     minFontPx: config.show.ORB_LABEL_MIN_FONT_PX_CENTER,
     maxLines: config.show.ORB_LABEL_MAX_LINES_CENTER,
   });
 
   return (
+    // A living/breathing pulse (owner 2026-07-17) — `.orb-breathe` is a slow
+    // scale loop, disabled under prefers-reduced-motion (styles.css).
     <div
-      className="flex min-h-11 max-w-[70%] select-none items-center justify-center rounded-full px-6 py-4 text-center"
-      style={{ backgroundColor: fill, color: ORB_TEXT_COLOR }}
+      style={{ width: diameter, height: diameter, backgroundColor: fill, color: ORB_TEXT_COLOR }}
+      className="orb-breathe flex select-none items-center justify-center rounded-full p-3 text-center"
     >
       <span
         className="flex max-w-full flex-col items-center font-semibold leading-tight"

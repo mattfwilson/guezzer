@@ -4,15 +4,18 @@
  * tunable is passed in as `cfg`, so the same `(rank, score, count, stage)` input
  * always produces the same orb positions (no drift between repredicts, SHOW-02).
  *
- * Placement rules (RESEARCH §Pattern 3):
- *   - angle: even by RANK, rank 0 at the top (-90°) — independent of score value.
- *   - radius: higher score → nearer the centre (equal-score divide-by-zero guarded).
- *   - diameter: higher score → larger, clamped to `cfg.orbMinDiameter` (never below
- *     the 44px hit floor, which ORB_MIN_DIAMETER=56 already clears).
+ * Placement rules (owner 2026-07-17 — evenly-spread non-overlapping ring):
+ *   - angle: even by RANK, rank 0 at the top (-90°), every 360°/n clockwise —
+ *     so the orbs sit at the vertices of a regular polygon around the centre.
+ *   - radius: a SINGLE shared ring radius (equidistant orbs = maximally even
+ *     spread) — score is conveyed by rank order + the % label, not by radius.
+ *   - diameter: a SINGLE uniform diameter, grown as large as will fit the stage
+ *     WITHOUT overlapping ring neighbours or the centre node, then clamped to
+ *     [orbMinDiameter, orbMaxDiameter] (never below the 44px hit floor, which
+ *     ORB_MIN_DIAMETER=56 already clears). Closed-form solver — see layoutOrbs.
  *
- * The displayed % is the ABSOLUTE score (see confidence.ts); only the geometry
- * here uses within-fan relative scaling so a fan of small scores still reads
- * sensibly. Scores are NEVER renormalized to sum to 1 (D-09).
+ * The displayed % is the ABSOLUTE score (see confidence.ts). Scores are NEVER
+ * renormalized to sum to 1 (D-09).
  */
 import { config } from "../config.ts";
 
@@ -41,7 +44,10 @@ export interface OrbLayoutConfig {
   orbMinDiameter: number;
   orbMaxDiameter: number;
   ringInsetPx: number;
-  innerRadiusRatio: number;
+  /** Centre-node diameter the ring must clear so no orb overlaps the current song. */
+  centerDiameter: number;
+  /** Min gap between adjacent orbs AND between an orb and the centre node. */
+  orbGapPx: number;
 }
 
 /** Adaptive-fan tunables (D-12). */
@@ -51,15 +57,14 @@ export interface FanConfig {
   dropScore: number;
 }
 
-/** Guards the equal-score span against a divide-by-zero. */
-const SPAN_EPSILON = 1e-6;
 
 /** Default layout cfg, sourced from `config.show` (no scattered magic numbers, CLAUDE.md). */
 export const defaultOrbLayoutConfig: OrbLayoutConfig = {
   orbMinDiameter: config.show.ORB_MIN_DIAMETER,
   orbMaxDiameter: config.show.ORB_MAX_DIAMETER,
   ringInsetPx: config.show.RING_INSET_PX,
-  innerRadiusRatio: config.show.ORB_INNER_RADIUS_RATIO,
+  centerDiameter: config.show.ORB_CENTER_DIAMETER,
+  orbGapPx: config.show.ORB_RING_GAP_PX,
 };
 
 /** Default adaptive-fan cfg, sourced from `config.show`. */
@@ -88,8 +93,17 @@ export function selectFan<T extends OrbLayoutInput>(
 }
 
 /**
- * Place `candidates` (5–8, sorted desc) around the centre node. Pure and
- * deterministic — identical input yields deep-equal output.
+ * Place `candidates` (≤5, sorted desc) evenly around the centre node on a single
+ * ring. Pure and deterministic — identical input yields deep-equal output.
+ *
+ * The uniform orb diameter D and shared ring radius R are chosen so orbs are as
+ * LARGE as possible while (a) staying inside the stage, (b) not overlapping ring
+ * neighbours, and (c) clearing the centre node. With orbs pushed to the outer
+ * edge R = outer − D/2 (outer = the max orb-EDGE distance from centre), the three
+ * constraints reduce to two upper bounds on D:
+ *   - fit + no-overlap: chord 2·R·sin(π/n) ≥ D + gap  ⇒  D ≤ (2·sin(π/n)·outer − gap)/(1 + sin(π/n))
+ *   - fit + clear-centre: R − D/2 ≥ centreRadius + gap ⇒  D ≤ outer − (centreDiameter/2 + gap)
+ * Take the smaller, clamp to [min, max], then R = outer − D/2.
  */
 export function layoutOrbs(
   candidates: readonly OrbLayoutInput[],
@@ -101,20 +115,24 @@ export function layoutOrbs(
 
   const cx = stage.width / 2;
   const cy = stage.height / 2;
-  const top = candidates[0].score;
-  const min = candidates[n - 1].score;
-  const span = Math.max(top - min, SPAN_EPSILON); // guard equal-score divide-by-zero
-  const rMax = Math.min(cx, cy) - cfg.ringInsetPx; // outer bound keeps orbs off edges/notches
-  const rMin = rMax * cfg.innerRadiusRatio; // inner bound clears the centre node
-  const diaSpan = cfg.orbMaxDiameter - cfg.orbMinDiameter;
+  const outer = Math.min(cx, cy) - cfg.ringInsetPx; // max orb-EDGE distance from centre
+  const centerClear = cfg.centerDiameter / 2 + cfg.orbGapPx; // min orb-EDGE distance (inner)
+  const s = Math.sin(Math.PI / n); // half the angular step between adjacent orbs
+
+  // Upper bounds on a uniform diameter (see the doc-comment derivation); a single
+  // orb has no ring neighbour, so only the centre-clearance bound applies.
+  const overlapBound =
+    n > 1 ? (2 * s * outer - cfg.orbGapPx) / (1 + s) : Number.POSITIVE_INFINITY;
+  const centerBound = outer - centerClear;
+  const diameterPx = Math.max(
+    cfg.orbMinDiameter,
+    Math.min(cfg.orbMaxDiameter, overlapBound, centerBound),
+  );
+  const r = outer - diameterPx / 2; // push orbs to the outer edge
 
   return candidates.map((c, i) => {
-    // angle: even by RANK, rank 0 at the top (-90°); deterministic, score-independent.
+    // angle: even by RANK, rank 0 at the top (-90°), clockwise; score-independent.
     const angle = -Math.PI / 2 + (i * 2 * Math.PI) / n;
-    // t: 0 for the top score, 1 for the weakest — drives radius + diameter together.
-    const t = (top - c.score) / span;
-    const r = rMin + t * (rMax - rMin);
-    const diameterPx = Math.max(cfg.orbMinDiameter, cfg.orbMaxDiameter - t * diaSpan);
     return {
       songId: c.songId,
       x: cx + r * Math.cos(angle),

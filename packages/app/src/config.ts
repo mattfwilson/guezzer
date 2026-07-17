@@ -33,20 +33,27 @@ export const config = {
   show: {
     /** Adaptive fan lower bound — always ≥5 orbs (D-12). */
     ORB_COUNT_MIN: 5,
-    /** Adaptive fan upper bound — up to 8 orbs (D-12). */
-    ORB_COUNT_MAX: 8,
+    /** Adaptive fan upper bound (owner 2026-07-17: capped at 5 so the fan stays a
+     *  clean, non-overlapping pentagon around the centre — MIN==MAX ⇒ always 5). */
+    ORB_COUNT_MAX: 5,
     /** Drop orbs below this absolute score before enforcing ORB_COUNT_MIN (D-12). */
     ORB_DROP_SCORE: 0.02,
     /** Top-orb score below which the whole fan softens visually (D-10 / SHOW-08 / EVAL-04). */
     WEAK_FAN_THRESHOLD: 0.15,
     /** Visual minimum orb diameter in px; hit area stays ≥44px regardless (SHOW-02). */
     ORB_MIN_DIAMETER: 56,
-    /** Visual maximum orb diameter in px — the top-score orb; scales down to ORB_MIN_DIAMETER by rank (SHOW-01). */
-    ORB_MAX_DIAMETER: 88,
+    /** Visual maximum (uniform) prediction-orb diameter in px — the ring solver
+     *  grows orbs toward this to fill the stage; bigger = more legible (owner
+     *  2026-07-17, SHOW-01). */
+    ORB_MAX_DIAMETER: 112,
     /** Outer radial inset in px keeping orbs clear of notches/safe-area edges (SHOW-02, no orb under an inset). */
     RING_INSET_PX: 24,
-    /** Inner-radius ratio (fraction of the outer radius) that clears the centre node before the nearest orb (SHOW-01). */
-    ORB_INNER_RADIUS_RATIO: 0.42,
+    /** Current-song CENTER node diameter in px — a fixed circle (owner 2026-07-17);
+     *  also the clearance the ring solver leaves so no prediction orb overlaps it. */
+    ORB_CENTER_DIAMETER: 116,
+    /** Minimum gap in px between adjacent prediction orbs and between an orb and the
+     *  centre node — the ring solver guarantees this, so orbs never overlap (SHOW-02). */
+    ORB_RING_GAP_PX: 10,
     /** Floor / fallback count of recent trail nodes (SHOW-08). The trail now fills
      *  the measured strip width — MORE nodes on a wide desktop, fewer on mobile —
      *  but never fewer than this, and this is the count used before the width is
@@ -70,17 +77,19 @@ export const config = {
      * base sizes stay the existing role sizes (14px orb Label / 20px center
      * Heading). SHOW-02 hit targets are untouched — this only affects text.
      */
+    /** Base (largest) prediction-orb label font in px — smaller than before so the
+     *  bigger orbs read with breathing room, wrapping/shrinking only as needed (owner 2026-07-17). */
+    ORB_LABEL_BASE_FONT_PX: 13,
     /** Max wrapped lines for a prediction-orb label before shrinking (D-21). */
-    ORB_LABEL_MAX_LINES: 2,
+    ORB_LABEL_MAX_LINES: 3,
     /** Font-size floor in px for a prediction-orb label before ellipsis (D-21). */
     ORB_LABEL_MIN_FONT_PX: 11,
+    /** Base (largest) center-node label font in px. */
+    ORB_LABEL_BASE_FONT_PX_CENTER: 18,
     /** Max wrapped lines for the larger center-node label (D-21). */
     ORB_LABEL_MAX_LINES_CENTER: 3,
     /** Font-size floor in px for the center-node label before ellipsis (D-21). */
-    ORB_LABEL_MIN_FONT_PX_CENTER: 14,
-    /** Nominal center-pill text-width budget in px fed to fitOrbLabel (the pill is
-     *  max-w-[70%] of the stage and receives no px size; this is the wrap heuristic). */
-    ORB_LABEL_CENTER_WIDTH_PX: 220,
+    ORB_LABEL_MIN_FONT_PX_CENTER: 12,
 
     /**
      * Phase-8 POLISH: prediction-orb info gesture. Long-pressing an orb opens its
