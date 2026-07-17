@@ -257,6 +257,7 @@ export function OrbitStage({
                   isWeak={weak}
                   onTap={handleTap}
                   onWhy={onWhy}
+                  collapsing={isSelected}
                 />
               </div>
             </motion.div>

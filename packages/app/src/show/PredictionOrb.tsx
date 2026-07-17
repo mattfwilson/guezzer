@@ -41,6 +41,9 @@ interface PredictionOrbProps {
   onTap: (candidate: OrbitCandidate) => void;
   /** Why path: the Info dot opens the verbatim reason — NEVER logs (D-11). */
   onWhy: (candidate: OrbitCandidate) => void;
+  /** True while this orb is the one gliding to the centre (collapse): its confidence
+   *  %, no longer a prediction, fades out over the glide so it's gone as it lands. */
+  collapsing?: boolean;
 }
 
 export function PredictionOrb({
@@ -49,6 +52,7 @@ export function PredictionOrb({
   isWeak,
   onTap,
   onWhy,
+  collapsing = false,
 }: PredictionOrbProps) {
   const fill = tuningColor(candidate.tuningFamily);
   const percent = formatOrbPercent(candidate.score);
@@ -154,7 +158,13 @@ export function PredictionOrb({
             </span>
           ))}
         </span>
-        <span className="text-[14px] font-semibold leading-tight tabular-nums">
+        <span
+          className="text-[14px] font-semibold leading-tight tabular-nums motion-safe:transition-opacity"
+          style={{
+            opacity: collapsing ? 0 : 1,
+            transitionDuration: `${config.show.orbitAnim.COLLAPSE_MS}ms`,
+          }}
+        >
           {percent}
         </span>
       </button>
