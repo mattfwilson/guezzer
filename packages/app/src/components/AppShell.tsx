@@ -59,7 +59,9 @@ export function AppShell({
             ? "flex-1 overflow-y-auto"
             : "flex min-h-0 flex-1 flex-col overflow-hidden"
         }
-        style={{ paddingBottom: `calc(4rem + ${overlayInset}px)` }}
+        style={{
+          paddingBottom: `calc(4rem + env(safe-area-inset-bottom) + ${overlayInset}px)`,
+        }}
       >
         {children}
       </main>

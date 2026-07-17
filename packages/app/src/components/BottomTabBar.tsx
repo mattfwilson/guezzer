@@ -13,7 +13,13 @@ export function BottomTabBar() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 flex items-stretch justify-around border-t border-hairline bg-elevated"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      // Fixed 4rem button-area height (matches AppShell's <main> bottom reservation
+      // so body content sits flush with the top of the tabs — no dead gap), with the
+      // iOS home-indicator safe-area gutter ADDED below it (border-box).
+      style={{
+        height: "calc(4rem + env(safe-area-inset-bottom))",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
     >
       {TABS.map(({ route, label, Icon }) => {
         const isActive = active === route;
