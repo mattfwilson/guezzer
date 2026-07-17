@@ -132,6 +132,7 @@ Recent decisions affecting current work:
 |---|-------------|------|--------|-----------|
 | 260713-w1c | SyncDot online state → hit-green (owner override of 05-UI-SPEC B3) | 2026-07-14 | c99ea42 | [260713-w1c-make-the-syncdot-render-green-22c55e-whe](./quick/260713-w1c-make-the-syncdot-render-green-22c55e-whe/) |
 | 260713-wjd | ?mockLatest=1 UAT harness for the suggestion strip (found+fixed dismissal slot bug) | 2026-07-14 | (multiple) | [260713-wjd-add-mocklatest-1-url-flag-that-feeds-the](./quick/260713-wjd-add-mocklatest-1-url-flag-that-feeds-the/) |
+| 260716-vw2 | Fix WARNING-1: own-backup restore misroutes to friend-compare on evicted DB (milestone audit) | 2026-07-17 | fcbfbdc | [260716-vw2-fix-warning-1-own-backup-restore-misrout](./quick/260716-vw2-fix-warning-1-own-backup-restore-misrout/) |
 
 ### Blockers/Concerns
 
@@ -149,6 +150,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-16T17:45:32.007Z
-Stopped at: Phase 7 UI-SPEC approved
-Resume file: .planning/phases/07-explore-mode-constellation/07-UI-SPEC.md
+Last session: 2026-07-17T02:57:40.986Z
+Stopped at: v1.0 milestone audit PASSED; WARNING-1 fixed (quick 260716-vw2); ready to complete milestone
+Resume file: .planning/v1.0-MILESTONE-AUDIT.md
