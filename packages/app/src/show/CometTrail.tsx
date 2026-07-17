@@ -2,9 +2,10 @@
  * The comet trail (04-UI-SPEC §Layout region 2, SHOW-08). A fixed-height,
  * horizontally-scrollable strip below the header showing the most recent songs
  * as DIMINISHING nodes — the most recent nearest the orbit (rightmost + largest),
- * older ones smaller — each a SOLID hit (green) / miss (red) dot derived from
- * `entry.outcome` (D-06/D-08, 04-UI-SPEC §Color B2) with a hairline timeline
- * connecting adjacent dots. The visible count FILLS the measured strip width
+ * older ones smaller — each a SOLID dot filled with the song's TUNING-FAMILY
+ * color (matching the main orbs, 04-UI-SPEC §Color B1) resolved from the bundled
+ * matrix; a ??? / off-matrix entry falls back to the muted neutral. A hairline
+ * timeline connects adjacent dots. The visible count FILLS the measured strip width
  * (ResizeObserver): many nodes on a wide desktop, ~`TRAIL_VISIBLE_RECENT` on a
  * narrow phone (also the fallback before the width is measured). The strip NEVER
  * wraps into the orbit fan; it scrolls horizontally instead.
@@ -24,17 +25,24 @@
  */
 import { useCallback, useRef, useState } from "react";
 import { config } from "../config.ts";
-import type { EntryOutcome, TrackedEntry } from "../db/db.ts";
+import type { TrackedEntry } from "../db/db.ts";
+import { tuningColor } from "./tuningColor.ts";
+import { getMatrixIndex, loadMatrix } from "./matrix.ts";
 
 /**
- * Hit/miss ring hexes (04-UI-SPEC §Color B2). Kept beside the trail (mirroring
- * tuningColor.ts) rather than in config.show — these are semantic data colors,
- * not model tunables. Miss reuses the inherited Destructive red by design.
+ * The trail dot / sheet-ring fill for an entry: the song's TUNING-FAMILY color
+ * (04-UI-SPEC §Color B1), matching the main orbs. Resolved from the bundled
+ * matrix by songId; a ??? placeholder (songId null) or off-matrix song → null →
+ * the muted neutral fallback. Never throws — guards `loadMatrix().ok` so
+ * `getMatrixIndex()` is only called past the load guard.
  */
-const RING_COLOR: Record<EntryOutcome, string> = {
-  hit: "#22C55E", // green — the confirmed song WAS in the shown fan (D-06)
-  miss: "#EF4444", // red — logged via Search/??? / off-catalog (D-08)
-};
+function trailColor(entry: TrackedEntry): string {
+  const family =
+    entry.songId != null && loadMatrix().ok
+      ? (getMatrixIndex().nodeById.get(entry.songId)?.tuningFamily ?? null)
+      : null;
+  return tuningColor(family);
+}
 
 interface CometTrailProps {
   /** The show's entries ordered by position (from useShowSession's live query). */
@@ -173,7 +181,7 @@ export function CometTrail({ entries, onNodeTap }: CometTrailProps) {
                       style={{
                         width: diameter,
                         height: diameter,
-                        backgroundColor: RING_COLOR[entry.outcome],
+                        backgroundColor: trailColor(entry),
                       }}
                     />
                   </span>
@@ -209,7 +217,7 @@ interface FullSetlistSheetProps {
 
 /**
  * The scrollable full-setlist sheet behind the "+N" chip (SHOW-08). Lists every
- * entry newest-first with its hit/miss ring + set number; each row taps through
+ * entry newest-first with its tuning-family ring + set number; each row taps through
  * to the same TrailNodeSheet edit/delete/rename path. AppMenu overlay idiom.
  */
 function FullSetlistSheet({ entries, onClose, onNodeTap }: FullSetlistSheetProps) {
@@ -237,7 +245,7 @@ function FullSetlistSheet({ entries, onClose, onNodeTap }: FullSetlistSheetProps
           >
             <span
               className="h-3 w-3 shrink-0 rounded-full border-2"
-              style={{ borderColor: RING_COLOR[entry.outcome] }}
+              style={{ borderColor: trailColor(entry) }}
             />
             <span className="tabular-nums text-[14px] text-text-muted">
               {entry.position}

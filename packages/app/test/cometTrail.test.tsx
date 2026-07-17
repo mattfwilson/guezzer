@@ -3,23 +3,26 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CometTrail, trailCapacity } from "../src/show/CometTrail.tsx";
 import { config } from "../src/config.ts";
 import type { EntryOutcome, TrackedEntry } from "../src/db/db.ts";
+import { getMatrixIndex, loadMatrix } from "../src/show/matrix.ts";
+import { tuningColor } from "../src/show/tuningColor.ts";
 
 /**
  * CometTrail render contract (SHOW-08): the last TRAIL_VISIBLE_RECENT songs as
- * diminishing nodes with hit/miss rings, +N compression at TRAIL_COMPRESS_AT,
- * and no strip pre-opener. All thresholds read from config.show (no inline
- * 4/30), so these assertions track the config defaults.
+ * diminishing nodes with TUNING-FAMILY colored dots, +N compression at
+ * TRAIL_COMPRESS_AT, and no strip pre-opener. All thresholds read from
+ * config.show (no inline 4/30), so these assertions track the config defaults.
  */
 function entry(
   position: number,
   outcome: EntryOutcome,
   songName = `Song ${position}`,
+  songId: number | null = 100 + position,
 ): TrackedEntry {
   return {
     id: position,
     sessionId: "s",
     position,
-    songId: 100 + position,
+    songId,
     songName,
     setNumber: "1",
     outcome,
@@ -35,8 +38,18 @@ function bgColor(el: HTMLElement): string {
   return el.style.backgroundColor.replace(/\s+/g, "").toLowerCase();
 }
 
-const HIT_FORMS = ["#22c55e", "rgb(34,197,94)"];
-const MISS_FORMS = ["#ef4444", "rgb(239,68,68)"];
+/**
+ * Normalize an expected hex through jsdom the SAME way the rendered dot's inline
+ * style is read back (jsdom serializes `backgroundColor` to `rgb(...)`), so the
+ * comparison is form-agnostic (hex vs rgb).
+ */
+function normalizeColor(color: string): string {
+  const el = document.createElement("div");
+  el.style.backgroundColor = color;
+  return bgColor(el);
+}
+
+const MUTED_FALLBACK = "#A1A1AA"; // tuningColor(null) — ??? / off-matrix
 
 describe("CometTrail recent strip + rings + compression (SHOW-08)", () => {
   afterEach(cleanup);
@@ -64,10 +77,26 @@ describe("CometTrail recent strip + rings + compression (SHOW-08)", () => {
     expect(screen.getByText("Song 3")).toBeTruthy();
   });
 
-  it("dot fill derives from entry.outcome — solid hit green / miss red (D-06/D-08)", () => {
+  it("dot fill derives from the song's tuning family; ??? / off-matrix → muted fallback (SHOW-08, B1)", () => {
+    // jsdom loads the REAL bundled matrix. Pick a real songId whose family maps
+    // to a NON-fallback color so the tuning-color path is visibly distinct from
+    // the muted fallback (the off-matrix / ??? case).
+    expect(loadMatrix().ok).toBe(true);
+    const realPair = [...getMatrixIndex().nodeById.entries()].find(
+      ([, node]) => tuningColor(node.tuningFamily) !== MUTED_FALLBACK,
+    );
+    expect(realPair).toBeTruthy();
+    const [realId, realNode] = realPair!;
+    // Expected color derived from the SAME expression the component uses — robust
+    // to palette changes (no hardcoded hex), normalized through jsdom.
+    const expectedReal = normalizeColor(tuningColor(realNode.tuningFamily));
+
     const { container } = render(
       <CometTrail
-        entries={[entry(1, "hit", "HitSong"), entry(2, "miss", "MissSong")]}
+        entries={[
+          entry(1, "hit", "RealSong", realId),
+          entry(2, "miss", "PlaceholderSong", null), // ??? placeholder → fallback
+        ]}
         onNodeTap={vi.fn()}
       />,
     );
@@ -77,9 +106,10 @@ describe("CometTrail recent strip + rings + compression (SHOW-08)", () => {
     );
     expect(dots).toHaveLength(2);
 
-    // Nodes render oldest→newest: [hit, miss]; solid-filled, not ringed.
-    expect(HIT_FORMS).toContain(bgColor(dots[0]));
-    expect(MISS_FORMS).toContain(bgColor(dots[1]));
+    // Nodes render oldest→newest: [real-family song, ??? placeholder].
+    expect(bgColor(dots[0])).toBe(expectedReal);
+    expect(bgColor(dots[1])).toBe(normalizeColor(MUTED_FALLBACK));
+    // The tuning color is distinct from the muted fallback.
     expect(bgColor(dots[0])).not.toBe(bgColor(dots[1]));
   });
 
