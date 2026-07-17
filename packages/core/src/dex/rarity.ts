@@ -7,13 +7,14 @@
  *
  * Zero I/O, no `Date.now()` — mirrors model/matrix.ts's "pure module, one
  * top-level fn, Map-keyed accumulation, explicit sort comparators" shape. All
- * tunables (quantile boundaries, min-plays cap) come from config.dex.
+ * tunables (the tie-inclusive playCount band boundaries) come from config.dex —
+ * this module holds zero numeric tier literals (single-config rule, CLAUDE.md).
  */
 import { config } from "../config.ts";
 import type { ArchiveArtifact } from "./archive-types.ts";
 
-/** Game-style rarity tiers, most-rare → least-rare: legendary > rare > uncommon > common. */
-export type RarityTier = "common" | "uncommon" | "rare" | "legendary";
+/** Game-style rarity tiers, most-rare → least-rare: legendary > epic > rare > uncommon > common. */
+export type RarityTier = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
 /** Everything a dex song row / WhyDetail needs about one song's corpus rarity. */
 export interface SongRarity {
@@ -38,11 +39,14 @@ interface RarityAccumulator {
 /**
  * `buildRarityIndex(archive, cfg) -> RarityIndex`. Single pass over the
  * date-sorted archive accumulating per-song playCount and last-played show
- * position; corpusGap = shows-after-last-play. Tiers are assigned by sorting
- * played songs on play RATE (playCount / total shows) ascending and cutting at
- * the config quantile boundaries, then applying the RARITY_MIN_PLAYS cap (a
- * tiny-sample song can never exceed rare — defeats the "fake Legendary" of a
- * single-play-in-2011 song, Pitfall 12). Sentinel song ids are excluded.
+ * position; corpusGap = shows-after-last-play. Tiers are assigned by a
+ * tie-inclusive lookup of each song's total corpus playCount against
+ * `cfg.dex.RARITY_BANDS` (first band whose `maxPlays >= playCount` wins; songs
+ * past the last band fall through to `common`). Two songs with the same
+ * playCount ALWAYS get the same tier — there is no songId tie-break, so equal
+ * rarity is never split across tiers. The old RARITY_MIN_PLAYS "fake Legendary"
+ * cap is retired by design: a played-once-ever song IS legendary (accepted
+ * trade-off — corpus is curated + sentinel-filtered). Sentinel ids are excluded.
  */
 export function buildRarityIndex(
   archive: ArchiveArtifact,
@@ -75,36 +79,29 @@ export function buildRarityIndex(
     }
   }
 
-  const quantiles = cfg.dex.RARITY_QUANTILES;
-  const minPlays = cfg.dex.RARITY_MIN_PLAYS;
+  const bands = cfg.dex.RARITY_BANDS;
 
-  // Rank played songs by play rate ascending (tie-break by songId for
-  // determinism). Rate uses a constant denominator, so rank order equals
-  // playCount order — but rate keeps the quantile math self-documenting.
-  const ranked = [...acc.entries()]
-    .map(([songId, entry]) => ({ songId, entry, rate: entry.playCount / totalShows }))
-    .sort((x, y) => (x.rate !== y.rate ? x.rate - y.rate : x.songId - y.songId));
+  // Tie-inclusive band lookup: tier is a pure function of playCount, so equal
+  // playCounts always share a tier (no songId tie-break). Iterate the
+  // accumulator in ascending songId order for a deterministic index.
+  const tierForPlayCount = (playCount: number): RarityTier => {
+    for (const band of bands) {
+      if (playCount <= band.maxPlays) return band.tier;
+    }
+    return "common";
+  };
 
-  const total = ranked.length;
   const index: RarityIndex = new Map();
-  ranked.forEach(({ songId, entry }, rank) => {
-    let tier: RarityTier;
-    if (rank < quantiles.legendary * total) tier = "legendary";
-    else if (rank < quantiles.rare * total) tier = "rare";
-    else if (rank < quantiles.uncommon * total) tier = "uncommon";
-    else tier = "common";
-
-    // RARITY_MIN_PLAYS cap: a sparse song can never be Legendary.
-    if (tier === "legendary" && entry.playCount < minPlays) tier = "rare";
-
+  const entries = [...acc.entries()].sort((a, b) => a[0] - b[0]);
+  for (const [songId, entry] of entries) {
     index.set(songId, {
       songId,
       playCount: entry.playCount,
       lastPlayedDate: entry.lastPlayedDate,
       corpusGap: totalShows - 1 - entry.lastIndex,
-      tier,
+      tier: tierForPlayCount(entry.playCount),
     });
-  });
+  }
 
   return index;
 }

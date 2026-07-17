@@ -194,21 +194,29 @@ export const config = {
   // allowlist — no allowlist ever lives in derivation code (dex/albums.ts).
   dex: {
     /**
-     * [ASSUMED] A5 (06-RESEARCH.md), D-15: corpus play-rate quantile cut-points
-     * for the game-style rarity tiers. A song in the bottom `legendary` fraction
-     * of catalog play-rate is Legendary; below `rare` is Rare; below `uncommon`
-     * is Uncommon; `>= uncommon` (i.e. ≥0.50) is Common. Tunable — the build
-     * prints the tier histogram so the distribution can be eyeballed.
+     * [ASSUMED] D-15: tie-inclusive corpus-playCount bands for the game-style
+     * rarity tiers. A song's tier is a pure function of its total corpus
+     * playCount — the first band (low→high) whose `maxPlays >= playCount` wins;
+     * anything past the last band falls through to `common`. Bands are inclusive
+     * of their upper bound, so two songs at the same playCount ALWAYS share a
+     * tier (no songId tie-break splitting equal-rarity songs across tiers).
+     *
+     * Modeled against the real 738-show corpus with the owner:
+     *   legendary = 1 play · epic = 2–3 · rare = 4–8 · uncommon = 9–23 · common = 24+.
+     *
+     * The former RARITY_MIN_PLAYS "fake Legendary" cap (RESEARCH Pitfall 12) is
+     * intentionally RETIRED: a played-once-ever song IS the ultimate catch, and
+     * that is exactly what legendary should mean here. Accepted trade-off — a
+     * mislabeled one-off reads legendary, but the corpus is curated and
+     * sentinel-filtered, so the epistemic risk is acceptable for this personal
+     * tool. Tunable — the build prints the tier histogram to eyeball the split.
      */
-    RARITY_QUANTILES: { legendary: 0.05, rare: 0.2, uncommon: 0.5 },
-
-    /**
-     * [ASSUMED] D-15, RESEARCH Pitfall 12: a played song with fewer than this
-     * many corpus plays caps at Rare — guards the "fake Legendary" a
-     * single-play-in-2011 song would otherwise earn (epistemically garbage on a
-     * tiny sample).
-     */
-    RARITY_MIN_PLAYS: 3,
+    RARITY_BANDS: [
+      { tier: "legendary", maxPlays: 1 },
+      { tier: "epic", maxPlays: 3 },
+      { tier: "rare", maxPlays: 8 },
+      { tier: "uncommon", maxPlays: 23 },
+    ],
 
     /**
      * D-17 (plan 06-07): max length of the export-envelope `owner` identity

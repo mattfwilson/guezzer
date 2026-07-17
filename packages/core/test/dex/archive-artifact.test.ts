@@ -63,14 +63,20 @@ function minimalDexAlbums(): DexAlbumsArtifact {
 }
 
 describe("config.dex block (D-15 / UI-SPEC defaults)", () => {
-  it("Test 1: RARITY_QUANTILES pins legendary/rare/uncommon cut-points", () => {
-    expect(config.dex.RARITY_QUANTILES.legendary).toBe(0.05);
-    expect(config.dex.RARITY_QUANTILES.rare).toBe(0.2);
-    expect(config.dex.RARITY_QUANTILES.uncommon).toBe(0.5);
+  it("Test 1: RARITY_BANDS pins the tie-inclusive playCount tier boundaries", () => {
+    // Ordered low→high; each band is inclusive of its maxPlays upper bound;
+    // common is the implicit tail past the last band.
+    expect(config.dex.RARITY_BANDS).toEqual([
+      { tier: "legendary", maxPlays: 1 },
+      { tier: "epic", maxPlays: 3 },
+      { tier: "rare", maxPlays: 8 },
+      { tier: "uncommon", maxPlays: 23 },
+    ]);
   });
 
-  it("Test 2: RARITY_MIN_PLAYS guards tiny-sample fake Legendary (Pitfall 12)", () => {
-    expect(config.dex.RARITY_MIN_PLAYS).toBe(3);
+  it("Test 2: the retired quantile cap keys are gone (min-plays cap intentionally dropped)", () => {
+    expect(config.dex).not.toHaveProperty("RARITY_QUANTILES");
+    expect(config.dex).not.toHaveProperty("RARITY_MIN_PLAYS");
   });
 
   it("Test 3: artifact paths are config-resident", () => {
