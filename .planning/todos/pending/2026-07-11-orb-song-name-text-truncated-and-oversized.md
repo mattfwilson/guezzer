@@ -2,6 +2,7 @@
 created: 2026-07-11T20:18:45.242Z
 title: Fix truncated/oversized song-name text inside prediction orbs
 area: ui
+resolves_phase: 8
 files:
   - packages/app/src/show/PredictionOrb.tsx
   - packages/app/src/show/OrbitStage.tsx

@@ -2,6 +2,7 @@
 created: 2026-07-14T04:20:00Z
 title: Consolidate Show-Mode actions into a collapsed FAB menu (bottom-right)
 area: ui
+resolves_phase: 8
 files:
   - packages/app/src/show/ActionBar.tsx
   - packages/app/src/show/ShowView.tsx
