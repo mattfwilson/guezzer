@@ -131,8 +131,12 @@ export function ExploreFilterPanel({
           } ${overlayReserved ? "opacity-40" : ""}`}
         >
           <span
-            className={`absolute top-0.5 h-4 w-4 rounded-full bg-text-primary transition-transform ${
-              dexOverlay ? "translate-x-6" : "translate-x-1"
+            // Pin the thumb to an EDGE rather than computing translate travel: 4px
+            // inside the left edge when OFF, 4px inside the right edge when ON. This is
+            // geometry-independent (immune to the track's border / box-sizing), so the
+            // thumb can never spill past the track in either state. Vertically centered.
+            className={`pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-text-primary transition-all ${
+              dexOverlay ? "right-1" : "left-1"
             }`}
           />
         </button>
