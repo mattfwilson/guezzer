@@ -392,6 +392,49 @@ export const config = {
     TOP_K_PER_NODE_MAX: 5,
 
     /**
+     * Quick task 260717-ual: 2D depth for the GizzVerse constellation (Tier-1
+     * spherical shading + synthetic-z depth-scaling). All [ASSUMED] — tune on
+     * device (single-config ethos; NO magic numbers in ConstellationCanvas). The
+     * synthetic `z ∈ [0,1]` (1 = nearest) is derived in pure core
+     * (`deriveConstellation`); these constants shape how much of the near/far
+     * contrast reads. Every effect is baked into the canvas draw pass — NONE is a
+     * continuous/per-frame animation (EXPL-06 low-power; the canvas repaints only
+     * on interaction via force-graph's autoPauseRedraw).
+     */
+    depth: {
+      /** [ASSUMED] Visual radius multiplier for the NEAREST node (z=1) — bigger = advances. */
+      DEPTH_RADIUS_NEAR: 1.25,
+      /** [ASSUMED] Visual radius multiplier for the FARTHEST node (z=0) — smaller = recedes. */
+      DEPTH_RADIUS_FAR: 0.7,
+      /** [ASSUMED] Depth opacity (globalAlpha factor) for the nearest node (z=1). */
+      DEPTH_OPACITY_NEAR: 1.0,
+      /** [ASSUMED] Depth opacity factor for the farthest node (z=0) — dimmer, still legible. */
+      DEPTH_OPACITY_FAR: 0.6,
+      /** [ASSUMED] Max color-fade toward the surface (#0C0C10) for the farthest node — near stays saturated. */
+      DEPTH_FADE_MAX: 0.55,
+      /**
+       * [ASSUMED] Hard floor on combined node alpha (D-D). Depth alpha multiplies
+       * the existing min(focus,dex) dim; this clamp keeps a far + focus-dimmed node
+       * from vanishing entirely (the spike's naked-multiply risk).
+       */
+      DEPTH_ALPHA_FLOOR: 0.1,
+      /** [ASSUMED] Spherical-shading highlight center offset as a fraction of r (upper-left light). */
+      GRAD_HIGHLIGHT_OFFSET: 0.35,
+      /** [ASSUMED] How far the highlight stop lightens the base toward white (0..1). */
+      GRAD_HIGHLIGHT_LIGHTEN: 0.5,
+      /** [ASSUMED] How far the rim shadow stop darkens the base toward black (0..1). */
+      GRAD_SHADOW_DARKEN: 0.45,
+      /** [ASSUMED] Depth edge-width multiplier when both endpoints are NEAR (avg z=1). */
+      DEPTH_EDGE_WIDTH_NEAR: 1.15,
+      /** [ASSUMED] Depth edge-width multiplier when both endpoints are FAR (avg z=0). */
+      DEPTH_EDGE_WIDTH_FAR: 0.75,
+      /** [ASSUMED] Depth edge-opacity multiplier for NEAR edges (avg z=1) — advance. */
+      DEPTH_EDGE_OPACITY_NEAR: 1.0,
+      /** [ASSUMED] Depth edge-opacity multiplier for FAR edges (avg z=0) — recede. */
+      DEPTH_EDGE_OPACITY_FAR: 0.55,
+    },
+
+    /**
      * Quick task 260717-sjg: GizzVerse (Explore) ambient galaxy backdrop — a
      * PURELY decorative CSS radial-gradient nebula rendered on a DOM layer BEHIND
      * the <ForceGraph2D> canvas (ExploreBackground.tsx). The canvas is made

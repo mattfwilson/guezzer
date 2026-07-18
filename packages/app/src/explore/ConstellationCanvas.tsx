@@ -36,6 +36,11 @@ import {
 import { config } from "../config.ts";
 import { tuningColor } from "../show/tuningColor.ts";
 import { ExploreBackground } from "./ExploreBackground.tsx";
+// Depth draw-pass color helpers (quick task 260717-ual). The format-agnostic
+// parseColor / mixColor / fadeToward / sphereGradient live in depthColor.ts so the
+// spike-001 bug #1 blend (hex AND rgb() inputs, never NaN) is unit-tested in
+// isolation; the canvas draw pass below consumes them.
+import { fadeToward, lerp, sphereGradient } from "./depthColor.ts";
 
 /** System font stack (inherited, 07-UI-SPEC §Typography) — also the canvas font. */
 const FONT_STACK =
@@ -44,8 +49,9 @@ const FONT_STACK =
 /** Neutral edge stroke — text-muted (#A1A1AA), alpha varies with focus state (§B3). */
 const rgbaMuted = (alpha: number) => `rgba(161, 161, 170, ${alpha})`;
 
-/** Base edge stroke — text-muted at 20% opacity (§B3, never tuning-colored). */
-const EDGE_COLOR = rgbaMuted(0.2);
+/** Base edge stroke opacity — text-muted at 20% (§B3, never tuning-colored). The
+ *  depth pass modulates this base by the edge's endpoint-avg z (quick task 260717-ual). */
+const EDGE_BASE_OPACITY = 0.2;
 
 /** Focus state: neighborhood edges lift to 70% opacity, same hue (§B3/§B4). */
 const EDGE_HIGHLIGHT_COLOR = rgbaMuted(0.7);
@@ -64,6 +70,14 @@ const SIGHTING_RING_COLOR = "#22C55E";
 
 /** Dark surface (#0C0C10) — the count-pill text on the green fill (clears 4.5:1). */
 const SIGHTING_COUNT_TEXT = "#0C0C10";
+
+/**
+ * Depth-fade target (#0C0C10) — the far end of the synthetic-z axis fades node
+ * base colors toward the deep-space surface (quick task 260717-ual). Same value as
+ * SIGHTING_COUNT_TEXT / the wrapper's bg-surface; named separately so the depth
+ * pass reads intent, not a re-derived literal (single-config ethos).
+ */
+const DEPTH_SURFACE = "#0C0C10";
 
 /**
  * Desaturate a `#RRGGBB` fill to its grayscale-luminance equivalent (§B4 dex-dim
@@ -247,6 +261,26 @@ export function ConstellationCanvas({
     return ids;
   }, [graphData, focusId]);
 
+  // Depth lookup (quick task 260717-ual): songId → synthetic z (0..1, 1=nearest),
+  // derived in pure core (`deriveConstellation`). Keyed on the immutable node id so
+  // the depth-weighted edge pass can read BOTH endpoints' z by fromId/toId (Pitfall
+  // 1 — never the post-tick-mutated source/target). Memoized off graphData; pure
+  // render data, so building it never rebuilds graphData or reheats the sim.
+  const nodeZById = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const n of graphData.nodes) m.set(n.id, n.z);
+    return m;
+  }, [graphData]);
+
+  // Per-edge depth = the average z of its two endpoints (missing → 0 = far). Drives
+  // the subtle depth width/opacity weighting layered under the count width + focus
+  // tint. Reads the immutable fromId/toId copies (Pitfall 1).
+  const edgeZ = (l: FgLink): number => {
+    const zf = nodeZById.get(l.fromId) ?? 0;
+    const zt = nodeZById.get(l.toId) ?? 0;
+    return (zf + zt) / 2;
+  };
+
   // Visible-set rule (Pitfall 6): a node is drawn if it's in the filtered set OR
   // it's the focus / a neighbor (temporary filter exemption while focused, D-03).
   // `visibleNodeIds == null` (this slice) → everything visible. The focus node
@@ -293,9 +327,18 @@ export function ConstellationCanvas({
     globalScale: number,
   ) => {
     if (node.x == null || node.y == null) return;
-    const r = radiusFor(node.playCount);
     const focused = node.id === focusId;
     const neighbor = focusId != null && neighborIds.has(node.id);
+
+    // Depth (quick task 260717-ual): synthetic z ∈ [0,1] (1 = nearest), pure-core
+    // derived. VISUAL radius is scaled by z (near advances, far recedes) — the hit
+    // area in nodePointerAreaPaint keeps the UNSCALED radiusFor so the 22px tap floor
+    // is never shrunk by depth. `depthAlpha` and the color-fade toward the surface
+    // give near/far contrast even under the uniform dex-dim veil (spike finding #2).
+    const dz = config.explore.depth;
+    const z = node.z;
+    const r = radiusFor(node.playCount) * lerp(dz.DEPTH_RADIUS_FAR, dz.DEPTH_RADIUS_NEAR, z);
+    const depthAlpha = lerp(dz.DEPTH_OPACITY_FAR, dz.DEPTH_OPACITY_NEAR, z);
 
     // Dex-overlay state (DEX-05/§B4). Only meaningful when `overlay` is ON; OFF →
     // caught/unseen both false, so every node stays neutral full tuning color
@@ -314,14 +357,27 @@ export function ConstellationCanvas({
       : config.explore.FOCUS_DIM_OPACITY;
     const dexAlpha = unseen ? config.explore.DEX_DIM_OPACITY : 1;
     ctx.save();
-    ctx.globalAlpha = Math.min(focusAlpha, dexAlpha);
+    // D-D: fold depth into the existing dim contract by a GENTLE multiply, clamped
+    // to DEPTH_ALPHA_FLOOR so a far + focus-dimmed node never fully vanishes (the
+    // spike's naked-multiply risk). Radius scaling + color-fade are NOT alpha-gated,
+    // so near/far contrast still reads under the uniform dex-dim veil.
+    ctx.globalAlpha = Math.max(
+      dz.DEPTH_ALPHA_FLOOR,
+      Math.min(focusAlpha, dexAlpha) * depthAlpha,
+    );
 
-    // 1. Node fill — full tuning-family color (§B1) when caught / overlay OFF; a
-    //    grayscale-luminance silhouette when unseen under the overlay (dex-dim).
+    // 1. Node fill — a spherical-shaded ball (offset highlight → base → rim shadow)
+    //    over the depth-faded base color. The base is full tuning color (§B1) when
+    //    caught / overlay OFF, or a grayscale-luminance silhouette when unseen under
+    //    the overlay (dex-dim); EITHER is then faded toward the surface #0C0C10 by
+    //    depth ((1-z)·DEPTH_FADE_MAX) so far stars recede in BOTH paths (spike finding
+    //    #2). Preserves the tuning HUE — only shaded/scaled/faded.
+    const baseColor = tuningColor(node.tuningFamily);
+    const rawBase = unseen ? grayscaleOf(baseColor) : baseColor;
+    const depthBase = fadeToward(rawBase, DEPTH_SURFACE, (1 - z) * dz.DEPTH_FADE_MAX);
     ctx.beginPath();
     ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
-    const baseColor = tuningColor(node.tuningFamily);
-    ctx.fillStyle = unseen ? grayscaleOf(baseColor) : baseColor;
+    ctx.fillStyle = sphereGradient(ctx, node.x, node.y, r, depthBase);
     ctx.fill();
 
     // 2. Sighting ring (§B2): a caught node wears a 1.5px screen-space green ring
@@ -424,8 +480,19 @@ export function ConstellationCanvas({
   // Edge tint by focus state (§B3/§B4): no focus → base 20%; focus → edges on the
   // focused node lift to 70%, every other edge dims to FOCUS_DIM_OPACITY. Reads
   // the immutable fromId/toId (Pitfall 1), shared by stroke + directional arrow.
+  // Depth (quick task 260717-ual): in the NO-FOCUS base case, the 20% opacity is
+  // subtly modulated by the edge's endpoint-avg z so near edges advance and far
+  // edges recede. Focus highlight/dim precedence still WINS — depth only shapes the
+  // resting sky, never overrides the focus contract.
   const edgeColor = (l: FgLink): string => {
-    if (focusId == null) return EDGE_COLOR;
+    if (focusId == null) {
+      const mul = lerp(
+        config.explore.depth.DEPTH_EDGE_OPACITY_FAR,
+        config.explore.depth.DEPTH_EDGE_OPACITY_NEAR,
+        edgeZ(l),
+      );
+      return rgbaMuted(EDGE_BASE_OPACITY * mul);
+    }
     const touchesFocus = l.fromId === focusId || l.toId === focusId;
     return touchesFocus
       ? EDGE_HIGHLIGHT_COLOR
@@ -511,8 +578,16 @@ export function ConstellationCanvas({
           // On focus, edges touching the focused node lift to 70% (EDGE_HIGHLIGHT);
           // all other edges drop to FOCUS_DIM_OPACITY, same hue (§B4).
           linkColor={edgeColor}
+          // Count-based width (§B3) layered with a SUBTLE depth weight (quick task
+          // 260717-ual): near edges (high endpoint-avg z) advance slightly wider,
+          // far edges recede. Kept gentle so the count hierarchy still dominates.
           linkWidth={(l: FgLink) =>
-            Math.min(4, 0.5 + Math.sqrt(l.count ?? 0) * 0.5)
+            Math.min(4, 0.5 + Math.sqrt(l.count ?? 0) * 0.5) *
+            lerp(
+              config.explore.depth.DEPTH_EDGE_WIDTH_FAR,
+              config.explore.depth.DEPTH_EDGE_WIDTH_NEAR,
+              edgeZ(l),
+            )
           }
           linkDirectionalArrowLength={3.5}
           linkDirectionalArrowRelPos={0.9}
