@@ -96,7 +96,8 @@ export function SearchSheet({
       role="dialog"
       aria-modal="true"
       aria-label={copy.searchPlaceholder}
-      className="fixed inset-0 z-30 flex flex-col bg-surface"
+      className="fixed inset-0 flex flex-col bg-surface"
+      style={{ zIndex: config.ui.z.sheet }}
     >
       {/* Search field row — Body typography (text-base = 16px) avoids iOS zoom. */}
       <div

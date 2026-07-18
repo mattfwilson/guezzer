@@ -222,7 +222,8 @@ function FullSetlistSheet({ entries, onClose, onNodeTap }: FullSetlistSheetProps
       role="dialog"
       aria-modal="true"
       aria-label="Full setlist"
-      className="fixed inset-0 z-30 flex flex-col justify-end bg-black/50"
+      className="fixed inset-0 flex flex-col justify-end bg-black/50"
+      style={{ zIndex: config.ui.z.sheetScrim }}
       onClick={onClose}
     >
       <div

@@ -102,3 +102,20 @@ Consider whether the full-screen "views" (AlbumDetail, SetlistView, RecapView,
 CompareView, ArchiveBrowser root) count as sheets for the animation pass or should
 keep their current instant/fade behavior — they slide/cover differently from the
 bottom sheets, so scope them explicitly during planning.
+
+## Update (2026-07-18) — z-index half DONE (Phase 8, D-04)
+
+**Solution step 1 (centralized z-index scale) is COMPLETE.** Phase 8 introduced
+`config.ui.z` (single source of truth per CLAUDE.md) with named tiers —
+`content` < `toast` < `fab` < `fabScrim` < `sheetScrim` < `sheet`, plus a
+`focusedFab` exception (D-03). **All 24 raw `z-*` Tailwind literals across the 20
+files listed above were migrated** to inline `style={{ zIndex: config.ui.z.X }}`
+(plans 08-01 through 08-05). Every FAB tier now sits strictly below `sheet`, so no
+FAB can ever paint over an open sheet — the GizzVerse FAB-over-menu instance
+(step 3 acceptance check) is resolved. `rg 'z-\[?[0-9]' packages/app/src` returns
+zero stacking-z matches.
+
+**Solution step 2 (shared slide-up/down + scrim cross-fade ANIMATION) remains
+DEFERRED** to a later polish pass — the sheets still pop in/out instantly. This
+todo stays `pending` to track that remaining animation work; the layering /
+always-on-top half is done.
