@@ -23,6 +23,15 @@ export interface ConstellationNode {
   name: string;
   playCount: number;
   tuningFamily: TuningFamily;
+  /**
+   * Synthetic depth 0..1, 1 = nearest camera. `z = √playCount / √maxPlayCount`
+   * (guarded to 0 when maxPlayCount === 0 — never NaN). Drives the app-side
+   * spherical depth-scaling (radius/opacity/color-fade) AND the occlusion draw
+   * order: the returned `nodes` array is sorted FAR→NEAR (ascending z) so the
+   * renderer — which paints in `graphData.nodes` array order — draws the nearest
+   * node LAST, on top. See `deriveConstellation`.
+   */
+  z: number;
 }
 
 /**
@@ -47,23 +56,41 @@ export interface ConstellationData {
 }
 
 /**
- * Reshape a `TransitionMatrix` into `{nodes, links}`. Nodes are sorted by
- * `songId` ascending for deterministic output (fixture-stable, stable initial
- * simulation seeding). The `cfg` param mirrors the core pure-fn idiom and keeps
- * the door open for config-driven derivation without a signature change.
+ * Reshape a `TransitionMatrix` into `{nodes, links}`. Each node carries a
+ * synthetic depth `z = √playCount / √maxPlayCount` ∈ [0,1] (1 = nearest), and the
+ * `nodes` array is sorted FAR→NEAR — ascending `z`, then ascending `songId` as a
+ * deterministic tie-break (fixture-stable, stable initial simulation seeding).
+ *
+ * Far→near ordering is load-bearing for OCCLUSION: `react-force-graph-2d` paints
+ * in `graphData.nodes` array order (its paint loop is
+ * `state.graphData.nodes.filter(getVisibility).forEach(...)`, verified in
+ * `force-graph` source — `.filter` preserves order, `.forEach` iterates it), so
+ * the nearest node is drawn LAST and overpaints the far nodes behind it. Sorting
+ * once here keeps depth ordering in the single pure pipeline (CLAUDE.md); all
+ * VISUAL depth shaping stays app-side in `config.explore`. The `cfg` param mirrors
+ * the core pure-fn idiom and keeps the door open for config-driven derivation
+ * without a signature change.
  */
 export function deriveConstellation(
   matrix: TransitionMatrix,
   _cfg: typeof config = config,
 ): ConstellationData {
+  // Depth normalization needs only data (largest playCount) — no tunable constant,
+  // so `config.explore` (core) and the configMirror are untouched. Guard maxPlay===0
+  // (empty/degenerate corpus) so z is 0, never NaN (spike bug #1 class).
+  const maxPlayCount = matrix.nodes.reduce((m, n) => (n.playCount > m ? n.playCount : m), 0);
+  const sqrtMax = Math.sqrt(maxPlayCount);
+
   const nodes: ConstellationNode[] = matrix.nodes
     .map((n) => ({
       id: n.songId,
       name: n.songName,
       playCount: n.playCount,
       tuningFamily: n.tuningFamily,
+      z: sqrtMax === 0 ? 0 : Math.sqrt(n.playCount) / sqrtMax,
     }))
-    .sort((a, b) => a.id - b.id);
+    // Far→near: ascending z (nearest painted last for occlusion), songId tie-break.
+    .sort((a, b) => a.z - b.z || a.id - b.id);
 
   const links: ConstellationLink[] = matrix.edges.map((e) => ({
     source: e.from,
