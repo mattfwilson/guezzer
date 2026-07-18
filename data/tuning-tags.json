@@ -137,9 +137,9 @@
     {
       "songId": 26,
       "name": "Automation",
-      "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "family": "microtonal",
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 28,
@@ -530,8 +530,8 @@
       "songId": 100,
       "name": "Honey",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 101,
@@ -572,8 +572,8 @@
       "songId": 106,
       "name": "If Not Now, Then When?",
       "family": "microtonal",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 107,
@@ -614,8 +614,8 @@
       "songId": 116,
       "name": "Intrasport",
       "family": "microtonal",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 117,
@@ -739,9 +739,9 @@
     {
       "songId": 135,
       "name": "Minimum Brain Size",
-      "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "family": "microtonal",
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 136,
@@ -802,16 +802,16 @@
     {
       "songId": 147,
       "name": "O.N.E.",
-      "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "family": "microtonal",
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 148,
       "name": "Oddlife",
       "family": "microtonal",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 150,
@@ -824,8 +824,8 @@
       "songId": 151,
       "name": "Open Water",
       "family": "microtonal",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 152,
@@ -879,9 +879,9 @@
     {
       "songId": 162,
       "name": "Pleura",
-      "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "family": "microtonal",
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 163,
@@ -1048,8 +1048,8 @@
       "songId": 193,
       "name": "Some of Us",
       "family": "microtonal",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 194,
@@ -1075,9 +1075,9 @@
     {
       "songId": 197,
       "name": "Straws In The Wind",
-      "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "family": "microtonal",
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 198,
@@ -1201,9 +1201,9 @@
     {
       "songId": 220,
       "name": "The Hungry Wolf of Fate",
-      "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "family": "microtonal",
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 224,

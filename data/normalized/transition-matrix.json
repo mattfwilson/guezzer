@@ -144,7 +144,7 @@
       "songName": "Automation",
       "playCount": 30,
       "eraPlayCount": 0,
-      "tuningFamily": "standard"
+      "tuningFamily": "microtonal"
     },
     {
       "songId": 28,
@@ -746,7 +746,7 @@
       "songName": "Minimum Brain Size",
       "playCount": 41,
       "eraPlayCount": 3,
-      "tuningFamily": "standard"
+      "tuningFamily": "microtonal"
     },
     {
       "songId": 136,
@@ -809,7 +809,7 @@
       "songName": "O.N.E.",
       "playCount": 43,
       "eraPlayCount": 2,
-      "tuningFamily": "standard"
+      "tuningFamily": "microtonal"
     },
     {
       "songId": 148,
@@ -886,7 +886,7 @@
       "songName": "Pleura",
       "playCount": 47,
       "eraPlayCount": 2,
-      "tuningFamily": "standard"
+      "tuningFamily": "microtonal"
     },
     {
       "songId": 163,
@@ -1082,7 +1082,7 @@
       "songName": "Straws In The Wind",
       "playCount": 45,
       "eraPlayCount": 3,
-      "tuningFamily": "standard"
+      "tuningFamily": "microtonal"
     },
     {
       "songId": 198,
@@ -1208,7 +1208,7 @@
       "songName": "The Hungry Wolf of Fate",
       "playCount": 4,
       "eraPlayCount": 0,
-      "tuningFamily": "standard"
+      "tuningFamily": "microtonal"
     },
     {
       "songId": 224,
