@@ -43,7 +43,8 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
   2. The Show-Mode FAB speed-dial (D-20) and once-per-version InstallBanner (D-22) behave as their originating todos intended, and those todos are formally moved to resolved (POLISH-02).
   3. Every bottom sheet and modal dialog (NodeSheet, AppMenu, TrailNodeSheet, EndShowDialog, ShareCardSheet, "Whose dex is this?" prompt, CompareView) dismisses with Escape, traps focus while open, and restores focus to its trigger on close (A11Y-01).
   4. While a constellation node is focused, the NodeSheet and the Explore FilterFab are both fully usable — no occlusion (A11Y-02).
-  5. Resizing the viewport with a node focused keeps the camera framed on that node — no snap-off (A11Y-03).**Plans**: 8 plans (7 + 1 gap-closure)
+  5. Resizing the viewport with a node focused keeps the camera framed on that node — no snap-off (A11Y-03).
+**Plans**: 8 plans (7 + 1 gap-closure)
 
 **Wave 1**
 
@@ -75,7 +76,11 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
   2. An automated test asserts `shownotes` survives normalization end-to-end (DATA-06).
   3. On a fresh/evicted DB with the owner name unset, typing your own owner name into the "Whose dex is this?" prompt reaches the merge/restore path — not only the explicit "It's mine, restore it" button — and merges the backup without dropping local data (PWA-05).
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — DATA-06: carry `shownotes` verbatim through normalization (position-1-wins + stats counter), end-to-end tests, regenerate corpus.json with byte-stable downstream artifacts
+- [ ] 09-02-PLAN.md — PWA-05: extract pure `isTypedNameMine` helper + unit tests, component test for typed-name→merge on evicted DB, real-Dexie union-merge proof
 
 ### Phase 10: Pre-Show Validation & Device Dry-Run
 
@@ -102,7 +107,7 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
 | 6. Pokédex, History & Stats | v1.0 | 12/12 | Complete | 2026-07-16 |
 | 7. Explore Mode Constellation | v1.0 | 7/7 | Complete | 2026-07-16 |
 | 8. On-Device UI Polish & Accessibility | v1.1 | 8/8 | Complete    | 2026-07-18 |
-| 9. Data Integrity & Restore UX | v1.1 | 0/? | Not started | - |
+| 9. Data Integrity & Restore UX | v1.1 | 0/2 | Planned | - |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 0/? | Not started | - |
 
 ---
