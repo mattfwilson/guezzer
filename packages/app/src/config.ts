@@ -485,6 +485,19 @@ export const config = {
       /** [ASSUMED] Per-speck diameter randomized in [MIN, MAX] px for size variety. */
       SPECK_SIZE_MIN_PX: 0.7,
       SPECK_SIZE_MAX_PX: 1.9,
+
+      /**
+       * Quick task 260717-ual: motion parallax. On pan/zoom the nebula follows the
+       * graph transform by a DAMPED fraction so the sky moves slower than the
+       * constellation, reading as a distant backdrop. Applied as a GPU compositor
+       * transform on the nebula layer, driven by `<ForceGraph2D onZoom>` ONLY —
+       * interaction-driven, no continuous per-frame loop, no d3 reheat, frozen fx/fy
+       * survive (EXPL-06). Static under prefers-reduced-motion. Both [ASSUMED].
+       */
+      /** [ASSUMED] Fraction of the graph PAN (translate) the sky follows (0 = fixed sky, 1 = locked to graph). Low = subtle, distant. */
+      PARALLAX_TRANSLATE_DAMP: 0.15,
+      /** [ASSUMED] Fraction of the graph ZOOM the sky scales with, applied as `1 + (k-1)*damp`. Low = the sky barely zooms. */
+      PARALLAX_ZOOM_DAMP: 0.05,
     },
   },
 

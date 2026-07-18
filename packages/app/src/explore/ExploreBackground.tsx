@@ -25,7 +25,7 @@
  *    never touch/reheat the d3 sim (EXPL-06).
  *  - CSS gradients only — no external images (offline-safe).
  */
-import { useMemo, type CSSProperties } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { config } from "../config.ts";
 
 const {
@@ -79,15 +79,48 @@ function buildSpeckStyle(): CSSProperties {
   };
 }
 
-export function ExploreBackground() {
+export function ExploreBackground({
+  parallax,
+}: {
+  /**
+   * Quick task 260717-ual: damped motion-parallax transform sourced from the
+   * constellation's `onZoom` (ConstellationCanvas). `undefined` → no transform
+   * (byte-identical to the pre-parallax behavior). `x`/`y` are the already-damped
+   * translate in px; `k` is the already-damped scale. Applied as a GPU compositor
+   * transform on THIS root, composing ABOVE the per-bloom drift keyframes — the
+   * blooms keep their own independent drift transforms.
+   */
+  parallax?: { x: number; y: number; k: number };
+} = {}) {
   // Fresh random speck field per mount (stable across re-renders so specks never
   // jump; different each visit for an "alive" sky). No RNG in render — memoized once.
   const speckStyle = useMemo(buildSpeckStyle, []);
+
+  // Reduced-motion gate (read once, no per-frame check): mirrors the nebula's
+  // existing prefers-reduced-motion gating — a reduced-motion user keeps a STATIC
+  // sky, so ignore the parallax transform entirely.
+  const [reducedMotion] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true,
+  );
+
+  // Compositor transform (translate3d + scale) driven by the damped parallax. GPU
+  // layer (willChange) so it never repaints per-frame. Omitted under reduced motion
+  // or when no parallax is supplied → the layer stays exactly as before.
+  const transformStyle: CSSProperties =
+    parallax && !reducedMotion
+      ? {
+          transform: `translate3d(${parallax.x}px, ${parallax.y}px, 0) scale(${parallax.k})`,
+          willChange: "transform",
+        }
+      : {};
 
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
+      style={transformStyle}
     >
       {blooms.map((b, i) => (
         <div

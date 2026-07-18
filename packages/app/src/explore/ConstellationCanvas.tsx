@@ -174,6 +174,18 @@ export function ConstellationCanvas({
   const fgRef = useRef<FgMethods | undefined>(undefined);
   const [size, setSize] = useState({ width: 0, height: 0 });
 
+  // Nebula motion-parallax (quick task 260717-ual): the DAMPED graph transform the
+  // sky follows, sourced from `<ForceGraph2D onZoom>` (interaction-driven only —
+  // respects force-graph's autoPauseRedraw / EXPL-06). null until the first
+  // pan/zoom → the nebula renders static (byte-identical to before). Setting this is
+  // a pure sibling CSS transform: it never rebuilds graphData, never reheats d3, and
+  // never touches fx/fy.
+  const [bgParallax, setBgParallax] = useState<{
+    x: number;
+    y: number;
+    k: number;
+  } | null>(null);
+
   // OrbitStage's ResizeObserver container-sizing pattern (Pitfall 2): measure the
   // real px box and feed width/height to ForceGraph2D so the canvas never defaults
   // to window dims and overflows under the BottomTabBar.
@@ -522,7 +534,7 @@ export function ConstellationCanvas({
           canvas in z-order. aria-hidden + pointer-events-none, so it never intercepts
           the canvas's pan/zoom/tap. Requires the transparent `backgroundColor` below —
           the wrapper KEEPS `bg-surface` (#0C0C10) as the opaque base so nothing flashes. */}
-      <ExploreBackground />
+      <ExploreBackground parallax={bgParallax ?? undefined} />
       {size.width > 0 && size.height > 0 && (
         <ForceGraph2D<ConstellationNode, ConstellationLink>
           ref={fgRef}
@@ -565,6 +577,18 @@ export function ConstellationCanvas({
             l.fromId < l.toId
               ? config.explore.LINK_CURVATURE
               : -config.explore.LINK_CURVATURE
+          }
+          // Nebula parallax (quick task 260717-ual): on pan/zoom, translate + scale
+          // the DOM nebula by a DAMPED fraction of the graph transform so the sky
+          // moves slower than the constellation. Fires ONLY during interaction
+          // (autoPauseRedraw / EXPL-06) — a pure sibling state set: no graphData
+          // rebuild, no d3 reheat, fx/fy untouched. Damping keeps it a distant backdrop.
+          onZoom={(t: { k: number; x: number; y: number }) =>
+            setBgParallax({
+              x: t.x * config.explore.background.PARALLAX_TRANSLATE_DAMP,
+              y: t.y * config.explore.background.PARALLAX_TRANSLATE_DAMP,
+              k: 1 + (t.k - 1) * config.explore.background.PARALLAX_ZOOM_DAMP,
+            })
           }
           // Tap a node → focus it (D-13); tap empty canvas → clear focus + dim.
           onNodeClick={(n: FgNode) => onFocus(n.id)}
