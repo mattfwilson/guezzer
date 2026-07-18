@@ -795,9 +795,9 @@
     {
       "songId": 146,
       "name": "Nuclear Fusion",
-      "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "family": "microtonal",
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 147,
@@ -914,9 +914,9 @@
     {
       "songId": 168,
       "name": "Rattlesnake",
-      "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "family": "microtonal",
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 169,
@@ -1012,9 +1012,9 @@
     {
       "songId": 187,
       "name": "Sleep Drifter",
-      "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "family": "microtonal",
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 189,
