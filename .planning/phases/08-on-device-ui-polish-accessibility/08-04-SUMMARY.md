@@ -111,3 +111,9 @@ No new security-relevant surface. The focused song name still renders as React t
 ---
 *Phase: 08-on-device-ui-polish-accessibility*
 *Completed: 2026-07-18*
+
+## Self-Check: PASSED
+
+- Both created files present on disk (`useVisibleViewportHeight.ts`, `filterFabLift.test.tsx`).
+- SUMMARY.md present.
+- All task commits (`8540c8f`, `33f6707`, `b632dc4`) + docs commit (`18932fe`) present in git history.
