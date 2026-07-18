@@ -43,9 +43,56 @@ export interface FitOrbLabelResult {
  * lower 10px floor so every real catalog name still fits without ellipsis
  * (locked by orbLabelFit.catalog.test.ts, confirmed on-device via #/dev/orb-fit).
  */
-const CHAR_WIDTH_FACTOR = 0.55;
+export const CHAR_WIDTH_FACTOR = 0.55;
 /** Fraction of the diameter usable as a per-line text chord. */
 const USABLE_WIDTH_FACTOR = 1;
+
+/** Tiny slack (px) so exact-fit chord/height comparisons don't fail on float error. */
+const FIT_EPSILON = 0.01;
+
+/**
+ * POLISH-01 (plan 08-08) — the GEOMETRIC circular-fit predicate. Pure, no DOM/React
+ * (mirrors the orbitLayout pure-helper idiom). Given a `fitOrbLabel` result and the
+ * CONTENT circle diameter, it answers: do the wrapped name lines (plus the reserved
+ * percent-line height) all fit INSIDE the circle — no line wider than the circle
+ * chord at its vertical offset, and the whole stacked block no taller than the
+ * circle? This is the honest circle model the old rectangular heuristic lacked; the
+ * catalog test and `fitOrbLabel` share it as the single source of fit truth.
+ *
+ *  - r          = contentDiameterPx / 2
+ *  - lineHeight = result.fontPx × lineHeightFactor
+ *  - blockH     = result.lines.length × lineHeight + reservedHeightPx   (must ≤ 2r)
+ *  - the block is vertically centered (topY = −blockH/2); line i spans
+ *    [topY + i·lineHeight, topY + (i+1)·lineHeight]; its worst (widest-needed)
+ *    vertical offset is the edge farther from center, so chord = 2·√(r² − worstY²)
+ *    and the line's estimated glyph width (len × CHAR_WIDTH_FACTOR × fontPx) must
+ *    not exceed that chord.
+ */
+export function labelFitsCircle(
+  result: FitOrbLabelResult,
+  contentDiameterPx: number,
+  { lineHeightFactor, reservedHeightPx }: {
+    lineHeightFactor: number;
+    reservedHeightPx: number;
+  },
+): boolean {
+  const r = contentDiameterPx / 2;
+  const lineHeight = result.fontPx * lineHeightFactor;
+  const blockH = result.lines.length * lineHeight + reservedHeightPx;
+  // Height: the stacked name lines + reserved percent line must fit the circle.
+  if (blockH > contentDiameterPx + FIT_EPSILON) return false;
+  const topY = -blockH / 2;
+  for (let i = 0; i < result.lines.length; i += 1) {
+    const worstY = Math.max(
+      Math.abs(topY + i * lineHeight),
+      Math.abs(topY + (i + 1) * lineHeight),
+    );
+    const chord = 2 * Math.sqrt(Math.max(0, r * r - worstY * worstY));
+    const estWidth = result.lines[i].length * CHAR_WIDTH_FACTOR * result.fontPx;
+    if (estWidth > chord + FIT_EPSILON) return false;
+  }
+  return true;
+}
 
 /** Approximate characters that fit on one line at `fontPx` inside `diameterPx`. */
 function charsPerLine(diameterPx: number, fontPx: number): number {

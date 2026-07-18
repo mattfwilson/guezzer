@@ -113,6 +113,30 @@ export const config = {
     ORB_LABEL_MIN_FONT_PX_CENTER: 12,
 
     /**
+     * POLISH-01 gap-closure (plan 08-08) — CIRCLE-AWARE fit geometry. These three
+     * drive the GEOMETRY of the circular fit (chord-per-line + total-height budget),
+     * not chrome: `fitOrbLabel`/`labelFitsCircle` model the orb as a CIRCLE, so each
+     * wrapped line's usable width is the circle chord at that line's vertical offset
+     * (chord = 2·√(r²−y²)) and the stacked name lines + the reserved percent line must
+     * fit the circle's vertical extent. Single-config ethos (CLAUDE.md) — no magic
+     * numbers in orbLabelFit.ts or the callers. Confirmed on-device via #/dev/orb-fit.
+     */
+    /** Line-box height as a multiple of the font px (the vertical space each wrapped
+     *  line occupies in the fit model, i.e. a tight `leading` proxy). TUNABLE: a
+     *  tighter box lets more lines stack inside the circle's vertical extent. */
+    ORB_LABEL_LINE_HEIGHT_FACTOR: 1.15,
+    /** Reserved vertical px for the always-present prediction-orb percent line
+     *  (`text-[14px]` below the name). The fitter subtracts this from the circle's
+     *  vertical budget so the name never collides with the percent (center node
+     *  passes 0 — it has no percent line). */
+    ORB_LABEL_PERCENT_LINE_PX: 16,
+    /** The prediction-orb face-button `px-1` padding (4px) subtracted PER SIDE from
+     *  the orb diameter before fitting, so the label fits the CONTENT circle — mirrors
+     *  CenterNode's inline 12px padding subtraction (the drift this closes: the orb
+     *  previously passed its raw diameter, over-granting width). */
+    ORB_LABEL_FACE_PADDING_PX: 4,
+
+    /**
      * Phase-8 POLISH: prediction-orb info gesture. Long-pressing an orb opens its
      * "why" sheet (replacing the old visible (i) dot, which is now sr-only for AT);
      * a quick tap still logs the orb (SHOW-03). Tuned so a deliberate-but-slow log
