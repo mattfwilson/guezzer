@@ -13,24 +13,30 @@ import { SettingsView } from "../src/settings/SettingsView.tsx";
 // Drive the D-17 import fork deterministically: the file picker fires immediately
 // with a stub file and the classifier returns an UNOWNED envelope, so the
 // "Whose dex is this?" <Sheet> prompt opens without a real native picker.
-const { pickAndImportMock, unownedEnvelope } = vi.hoisted(() => ({
-  pickAndImportMock: vi.fn(),
-  unownedEnvelope: {
-    schemaVersion: 2,
-    exportedAt: "2026-07-14T00:00:00.000Z",
-    owner: null,
-    meta: [],
-    attendedShows: [],
-    archiveShows: [],
-    trackedShows: [],
-    trackedEntries: [],
-  },
-}));
+const { pickAndImportMock, classifyImportMock, unownedEnvelope } = vi.hoisted(
+  () => ({
+    pickAndImportMock: vi.fn(),
+    // Configurable so a test can override the classification per-case (e.g. the
+    // PWA-05 evicted-DB shape: an owned envelope classified `unowned` because the
+    // local owner meta row is unset). Defaults to the plain unowned envelope.
+    classifyImportMock: vi.fn(),
+    unownedEnvelope: {
+      schemaVersion: 2,
+      exportedAt: "2026-07-14T00:00:00.000Z",
+      owner: null,
+      meta: [],
+      attendedShows: [],
+      archiveShows: [],
+      trackedShows: [],
+      trackedEntries: [],
+    },
+  }),
+);
 
 vi.mock("../src/settings/importPicker.ts", () => ({
   openBackupFilePicker: (onFile: (file: File) => void) =>
     onFile(new File(["{}"], "backup.json", { type: "application/json" })),
-  classifyImport: () => ({ kind: "unowned", envelope: unownedEnvelope }),
+  classifyImport: (...args: unknown[]) => classifyImportMock(...args),
   pickAndImport: (...args: unknown[]) => pickAndImportMock(...args),
 }));
 
@@ -145,6 +151,13 @@ describe("SettingsView — 'Whose dex is this?' prompt (A11Y-01, 08-03)", () => 
       ok: true,
       added: { shows: 2, songs: 5 },
     });
+    // Default classification for the prompt tests: an unowned envelope opens the
+    // "Whose dex is this?" <Sheet>. Individual tests override with mockReturnValueOnce.
+    classifyImportMock.mockReset();
+    classifyImportMock.mockReturnValue({
+      kind: "unowned",
+      envelope: unownedEnvelope,
+    });
     await clearTables();
   });
   afterEach(async () => {
@@ -205,5 +218,33 @@ describe("SettingsView — 'Whose dex is this?' prompt (A11Y-01, 08-03)", () => 
       expect(screen.getByText(compareCopy.banner("Alice"))).toBeTruthy(),
     );
     expect(pickAndImportMock).not.toHaveBeenCalled();
+  });
+
+  it("typing the file's own owner name routes to the restore/merge path — PWA-05", async () => {
+    // The evicted-DB WARNING-1 shape: the file is OWNED by "Matt", but the local
+    // owner meta row is unset (clearTables() guarantees it), so classifyImport
+    // returns `unowned` and the prompt opens. Typing the file's own owner name
+    // must reach the merge path — NOT dead-end in read-only compare (PWA-05).
+    classifyImportMock.mockReturnValueOnce({
+      kind: "unowned",
+      envelope: { ...unownedEnvelope, owner: "Matt" },
+    });
+
+    const input = await openPrompt();
+
+    // Lowercase vs the file owner "Matt" — one representative case variant at the
+    // component level; the full edge matrix lives in ownerMatch.test.ts.
+    fireEvent.change(input, { target: { value: "matt" } });
+    fireEvent.click(screen.getByText(compareCopy.namePromptConfirm));
+
+    // Merge fires exactly once and the success heading renders...
+    expect(pickAndImportMock).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(
+        screen.getByText(config.copy.settings.importSuccessHeading),
+      ).toBeTruthy(),
+    );
+    // ...and NO compare banner renders (this is a restore, not a friend compare).
+    expect(screen.queryByText(compareCopy.banner("matt"))).toBeNull();
   });
 });
