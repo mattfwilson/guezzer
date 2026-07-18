@@ -12,12 +12,18 @@ const orbOpts = {
   baseFontPx: 14,
   minFontPx: config.show.ORB_LABEL_MIN_FONT_PX,
   maxLines: config.show.ORB_LABEL_MAX_LINES,
+  lineHeightFactor: config.show.ORB_LABEL_LINE_HEIGHT_FACTOR,
+  // Synthetic boundary pins exercise the raw wrap/shrink/break/ellipsis branches —
+  // no reserved percent line here (that's the catalog test's job, 08-08).
+  reservedHeightPx: 0,
 };
 
 const centerOpts = {
   baseFontPx: 20,
   minFontPx: config.show.ORB_LABEL_MIN_FONT_PX_CENTER,
   maxLines: config.show.ORB_LABEL_MAX_LINES_CENTER,
+  lineHeightFactor: config.show.ORB_LABEL_LINE_HEIGHT_FACTOR,
+  reservedHeightPx: 0,
 };
 
 describe("fitOrbLabel (D-21 wrap/scale-to-fit)", () => {
@@ -72,10 +78,14 @@ describe("fitOrbLabel (D-21 wrap/scale-to-fit)", () => {
   });
 
   it("never shrinks below minFontPx and ellipsizes only at the floor when over budget", () => {
-    // Two words that hard-break past maxLines even in a tight orb — the only path
-    // that reaches the (real-name-unreachable) ellipsis safety net.
+    // Two absurdly long words that hard-break past maxLines even at the floor in a
+    // tight orb — more chars than the circle's 5 lines can hold at 7px, so this is
+    // the only path that reaches the (real-name-unreachable) ellipsis safety net.
+    // POLISH-01 08-08 realignment: under the stricter circular fit the old
+    // 46-char input now hard-breaks and FITS without ellipsis, so a longer input is
+    // needed to still exercise the safety-net branch (intent preserved).
     const result = fitOrbLabel(
-      "Supercalifragilistic Antidisestablishmentarian",
+      "Pneumonoultramicroscopicsilicovolcanoconiosis Floccinaucinihilipilification",
       56,
       orbOpts,
     );

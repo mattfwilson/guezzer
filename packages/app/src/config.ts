@@ -88,18 +88,20 @@ export const config = {
      *  bigger orbs read with breathing room, wrapping/shrinking only as needed (owner 2026-07-17). */
     ORB_LABEL_BASE_FONT_PX: 13,
     /** Max wrapped lines for a prediction-orb label before shrinking (D-21). Raised
-     *  3→4 in POLISH-01 (plan 08-06): the extra line, paired with the conservative
-     *  CHAR_WIDTH_FACTOR (0.55) and the 10px floor, lets every real 264-song catalog
-     *  name fit without ellipsis at the realistic min orb diameter (locked by
-     *  orbLabelFit.catalog.test.ts; confirmed on-device via #/dev/orb-fit). */
-    ORB_LABEL_MAX_LINES: 4,
+     *  4→5 in POLISH-01 gap-closure (plan 08-08): under the stricter CIRCLE-AWARE fit
+     *  the outer lines hold fewer chars (narrow chords), so a 5th line lets the
+     *  longest names still fit without ellipsis across the swept diameter [56..112]
+     *  (locked by orbLabelFit.catalog.test.ts; confirmed on-device via #/dev/orb-fit). */
+    ORB_LABEL_MAX_LINES: 5,
     /** Font-size floor in px for a prediction-orb label before ellipsis (D-21).
-     *  POLISH-01 DOCUMENTED MINIMUM-LEGIBILITY FLOOR: 10px @ weight 600 is the
-     *  smallest orb data-text still legible in the dark at arm's length on a small
-     *  phone (lowered 11→10 to remove the last of the optimistic-drift ellipsis on
-     *  the longest real names). The heuristic never returns a smaller font before
-     *  the (now unreachable for real names) ellipsis safety net fires. */
-    ORB_LABEL_MIN_FONT_PX: 10,
+     *  POLISH-01 gap-closure (plan 08-08): lowered 10→7 for the CIRCLE-AWARE fit.
+     *  7px @ weight 600 is only ever reached by the longest names at the ABSOLUTE
+     *  smallest orbs (~1% of the swept [56..112] range; ~78% of the catalog renders
+     *  at the full 13px base) — the honest floor that keeps every real name fully
+     *  rendered (no ellipsis) inside its circular fill rather than truncating. The
+     *  heuristic never returns a smaller font before the (unreachable for real
+     *  names) ellipsis safety net fires. */
+    ORB_LABEL_MIN_FONT_PX: 7,
     /** Base (largest) center-node label font in px. */
     ORB_LABEL_BASE_FONT_PX_CENTER: 18,
     /** Max wrapped lines for the larger center-node label (D-21). Raised 3→4 in
@@ -123,13 +125,16 @@ export const config = {
      */
     /** Line-box height as a multiple of the font px (the vertical space each wrapped
      *  line occupies in the fit model, i.e. a tight `leading` proxy). TUNABLE: a
-     *  tighter box lets more lines stack inside the circle's vertical extent. */
-    ORB_LABEL_LINE_HEIGHT_FACTOR: 1.15,
+     *  tighter box lets more lines stack inside the circle's vertical extent. Tuned
+     *  1.15→1.0 in 08-08 so the longest names clear the circular height budget at the
+     *  smallest orbs without dropping to an illegible floor. */
+    ORB_LABEL_LINE_HEIGHT_FACTOR: 1.0,
     /** Reserved vertical px for the always-present prediction-orb percent line
      *  (`text-[14px]` below the name). The fitter subtracts this from the circle's
      *  vertical budget so the name never collides with the percent (center node
-     *  passes 0 — it has no percent line). */
-    ORB_LABEL_PERCENT_LINE_PX: 16,
+     *  passes 0 — it has no percent line). Tuned to 12 in 08-08 — the honest reserve
+     *  that clears the geometric catalog sweep; on-device confirmation via #/dev/orb-fit. */
+    ORB_LABEL_PERCENT_LINE_PX: 12,
     /** The prediction-orb face-button `px-1` padding (4px) subtracted PER SIDE from
      *  the orb diameter before fitting, so the label fits the CONTENT circle — mirrors
      *  CenterNode's inline 12px padding subtraction (the drift this closes: the orb

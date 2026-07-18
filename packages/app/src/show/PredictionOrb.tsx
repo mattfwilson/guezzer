@@ -58,13 +58,22 @@ export function PredictionOrb({
   const fill = rarityColor(rarityTierForSong(candidate.songId));
   const percent = formatOrbPercent(candidate.score);
 
-  // D-21: wrap + scale-to-fit the full name to a config floor before ellipsis,
-  // sized to this orb's rendered diameter. Pure — no re-layout of the fan.
-  const fit = fitOrbLabel(candidate.songName, layout.diameterPx, {
-    baseFontPx: config.show.ORB_LABEL_BASE_FONT_PX,
-    minFontPx: config.show.ORB_LABEL_MIN_FONT_PX,
-    maxLines: config.show.ORB_LABEL_MAX_LINES,
-  });
+  // D-21 + POLISH-01 (08-08): wrap + scale-to-fit the full name inside this orb's
+  // CIRCLE. Fit against the CONTENT diameter (raw diameter minus the `px-1` face
+  // padding per side) and reserve vertical room for the always-present percent line
+  // below, so the circle-aware fitter never over-grants width/height. Pure — no
+  // re-layout of the fan.
+  const fit = fitOrbLabel(
+    candidate.songName,
+    layout.diameterPx - 2 * config.show.ORB_LABEL_FACE_PADDING_PX,
+    {
+      baseFontPx: config.show.ORB_LABEL_BASE_FONT_PX,
+      minFontPx: config.show.ORB_LABEL_MIN_FONT_PX,
+      maxLines: config.show.ORB_LABEL_MAX_LINES,
+      lineHeightFactor: config.show.ORB_LABEL_LINE_HEIGHT_FACTOR,
+      reservedHeightPx: config.show.ORB_LABEL_PERCENT_LINE_PX,
+    },
+  );
 
   // Long-press → why; quick tap → log. A pointerdown arms a timer; if it fires
   // before release (and the pointer hasn't drifted past the move threshold, which

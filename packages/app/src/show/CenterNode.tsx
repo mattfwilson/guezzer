@@ -61,6 +61,9 @@ export function CenterNode({ songName, songId, onOpenSearch }: CenterNodeProps) 
     baseFontPx: config.show.ORB_LABEL_BASE_FONT_PX_CENTER,
     minFontPx: config.show.ORB_LABEL_MIN_FONT_PX_CENTER,
     maxLines: config.show.ORB_LABEL_MAX_LINES_CENTER,
+    lineHeightFactor: config.show.ORB_LABEL_LINE_HEIGHT_FACTOR,
+    // No percent line under the center-node name — reserve nothing (08-08).
+    reservedHeightPx: 0,
   });
 
   return (
