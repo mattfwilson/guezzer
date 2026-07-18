@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Polish & Pre-Show Hardening
 status: planning
-stopped_at: Phase 8 context gathered
-last_updated: "2026-07-18T06:53:55.319Z"
+stopped_at: Phase 8 UI-SPEC approved
+last_updated: "2026-07-18T08:01:34.429Z"
 last_activity: "2026-07-18 — Completed quick task 260718-1no: pre-opener "Search for the opener" now auto-populates the SearchSheet with the top-5 recency-weighted popular show openers (new pure core `deriveTopOpeners` from archive Set-1 first songs, anchored on latestShowDate + reusing decayedWeight; pre-opener only, typing runs normal fuzzy search). Real top-5: Phantom Island / The Dripping Tap / Mars For the Rich / Gaia / Theia. 527 tests green (incl. 8 new), both tsc clean. Prior: Completed quick task 260718-12j: GizzVerse constellation song-name labels now always render on top of the edge/path lines (moved label draw into an onRenderFramePost top pass; pure render-layering change, app tsc clean). Prior: Closed tuning review (needsReview now 0/264: cleared 24 covers + 13 early/jam originals, all standard — bb92192) and hardened WARNING-1 (e08ceee): verified vw2 already closed the core evicted-DB restore (the "It's mine, restore it" button works), then fixed a residual footgun where the name-field path dead-ended in Compare on a reinstall — resolveNamePrompt now also matches the FILE's owner → restore. Prior: owner tuning-tag review applied (9 tracks→microtonal); show-day validation prepped; MODEL TRUST SIGN-OFF recorded"
 progress:
   total_phases: 3
@@ -186,9 +186,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-18T06:53:55.314Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-on-device-ui-polish-accessibility/08-CONTEXT.md
+Last session: 2026-07-18T07:30:50.368Z
+Stopped at: Phase 8 UI-SPEC approved
+Resume file: .planning/phases/08-on-device-ui-polish-accessibility/08-UI-SPEC.md
 
 ## Operator Next Steps
 

@@ -417,7 +417,12 @@ The pure heuristic cannot be trusted for the "fully legible on real hardware" ba
 | A5 | jsdom + `@testing-library/react` (installed) cannot assert real Tab-wrap focus movement; needs `user-event`. | Validation Architecture | If a `fireEvent`-based assertion suffices for the team's bar, the optional dep is unneeded. |
 | A6 | WhyDetail is in-scope for the migration (D-02 says "confirm"). | Migration map | Out of scope if the planner/owner excludes it — trivial to add later, same idiom. |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> All three questions were resolved at planning (2026-07-18) per the recommendations below and are implemented across plans 08-01…08-06:
+> - **Q1 — RESOLVED:** WhyDetail is IN scope for the `<Sheet>` migration (plan 08-02).
+> - **Q2 — RESOLVED:** All 24 raw `z-*` literals migrate to `config.ui.z` tiers (plans 08-02…08-05); `<Sheet>` adoption is scoped to the audited 7 sheets only.
+> - **Q3 — RESOLVED:** NodeSheet peek, FilterFab lift, and camera reframe share one source — `window.visualViewport?.height ?? window.innerHeight` (plan 08-04).
 
 1. **Is WhyDetail one of the audited dialogs (A11Y-01)?**
    - What we know: it uses the identical hand-rolled `role="dialog"` + `bg-black/50` + `z-20` idiom (`WhyDetail.tsx:37`) and opens from a PredictionOrb long-press.
