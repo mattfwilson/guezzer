@@ -44,6 +44,7 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
   3. Every bottom sheet and modal dialog (NodeSheet, AppMenu, TrailNodeSheet, EndShowDialog, ShareCardSheet, "Whose dex is this?" prompt, CompareView) dismisses with Escape, traps focus while open, and restores focus to its trigger on close (A11Y-01).
   4. While a constellation node is focused, the NodeSheet and the Explore FilterFab are both fully usable — no occlusion (A11Y-02).
   5. Resizing the viewport with a node focused keeps the camera framed on that node — no snap-off (A11Y-03).
+
 **Plans**: 8 plans (7 + 1 gap-closure)
 
 **Wave 1**
@@ -77,8 +78,8 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
   3. On a fresh/evicted DB with the owner name unset, typing your own owner name into the "Whose dex is this?" prompt reaches the merge/restore path — not only the explicit "It's mine, restore it" button — and merges the backup without dropping local data (PWA-05).
 
 **Plans**: 2 plans
-
 Plans:
+
 - [ ] 09-01-PLAN.md — DATA-06: carry `shownotes` verbatim through normalization (position-1-wins + stats counter), end-to-end tests, regenerate corpus.json with byte-stable downstream artifacts
 - [ ] 09-02-PLAN.md — PWA-05: extract pure `isTypedNameMine` helper + unit tests, component test for typed-name→merge on evicted DB, real-Dexie union-merge proof
 
