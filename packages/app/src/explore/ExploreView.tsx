@@ -211,6 +211,9 @@ export function ExploreView() {
         onTopKChange={setTopK}
         dexOverlay={dexOverlay}
         onDexOverlayChange={setDexOverlay}
+        // A11Y-02 / D-03: while a node is focused (the NodeSheet peek is up), lift
+        // the FAB above the sheet's top edge so both stay usable (no occlusion).
+        lifted={focusId != null}
       />
 
       {focusId != null && focusNode && ranked && (
