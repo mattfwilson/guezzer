@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 Phase: Not started — v1.1 roadmap defined (Phases 8–10)
 Plan: —
 Status: Roadmap complete; awaiting phase planning
-Last activity: 2026-07-18 — Applied the owner tuning-tag review (DATA-04): hand-tagged 9 microtonal-album tracks standard→microtonal (3 FMB + 6 K.G./L.W.), confirmed 5 microtonal + Honey standard; matrix rebuilt, 519 tests green (commits 474f54e, 59b05cf). 37 cover flags remain (all correctly standard — optional bulk-clear). Prior: show-day validation prepped in `.planning/validation/`; MODEL TRUST SIGN-OFF recorded (36-tour overfitting check → all signals retained)
+Last activity: 2026-07-18 — Closed tuning review (needsReview now 0/264: cleared 24 covers + 13 early/jam originals, all standard — bb92192) and hardened WARNING-1 (e08ceee): verified vw2 already closed the core evicted-DB restore (the "It's mine, restore it" button works), then fixed a residual footgun where the name-field path dead-ended in Compare on a reinstall — resolveNamePrompt now also matches the FILE's owner → restore. Prior: owner tuning-tag review applied (9 tracks→microtonal); show-day validation prepped; MODEL TRUST SIGN-OFF recorded
 
 ## Performance Metrics
 
