@@ -109,6 +109,11 @@ export const config = {
     /** Pointer travel in px that cancels a pending long-press (treat as a scroll/drag, not a hold). */
     ORB_LONG_PRESS_MOVE_PX: 10,
 
+    /** Pre-opener SearchSheet auto-populates this many recency-weighted openers
+     *  (QUICK-260718-1no). App-only tunable — the ranking itself is a pure core
+     *  derivation (deriveTopOpeners); no core-config mirror. */
+    OPENER_SUGGESTION_COUNT: 5,
+
     /**
      * Phase-8 POLISH: LiveGizz page ambient background — a randomized bundled
      * album cover, blurred + dark-dimmed behind the page body so it reads as
@@ -566,6 +571,8 @@ export const config = {
       /** Fuzzy search sheet (SHOW-04). */
       searchCta: "Search",
       searchPlaceholder: "Search the catalog",
+      /** Heading over the pre-opener recency-weighted opener suggestions (QUICK-260718-1no). */
+      openerSuggestionsHeading: "Popular openers",
       searchNoMatchHeading: "No match.",
       searchNoMatchBody: "Log it as ??? and rename it later.",
       /** Unknown-song control (D-14). */
