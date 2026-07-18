@@ -19,6 +19,7 @@
  */
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
+import { Sheet } from "../components/Sheet.tsx";
 import { config } from "../config.ts";
 import { deleteEntry, renameEntry, type TrackedEntry } from "../db/db.ts";
 import { classifyOutcome } from "./scoring.ts";
@@ -79,83 +80,82 @@ export function TrailNodeSheet({ entry, onClose }: TrailNodeSheetProps) {
     );
   }
 
+  // A11Y-01 (D-01/D-02): the trail-node editor is now the shared modal <Sheet>.
+  // Escape is centralized in the plan-01 dialogStack LIFO — we add NO bespoke
+  // `document` keydown listener here, so when this sheet swaps to the SearchSheet
+  // only the topmost dialog dismisses (RESEARCH Pitfall 2). The one-tap Undo lives
+  // elsewhere (04-06); the confirm-gated deleteEntry split (D-15) is unchanged.
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={entry.songName}
-      className="fixed inset-0 z-30 flex flex-col justify-end bg-black/50"
-      onClick={close}
+    <Sheet
+      open
+      onClose={close}
+      modal
+      variant="bottom-sheet"
+      ariaLabel={entry.songName}
     >
-      <div
-        className="rounded-t-2xl border-t border-hairline bg-elevated px-4 pt-4"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 32px)" }}
-        onClick={(event) => event.stopPropagation()}
-      >
-        {confirmingDelete ? (
-          // Destructive confirm (D-15) — the split from one-tap Undo.
-          <>
-            <p className="text-[20px] font-semibold leading-tight text-text-primary">
-              {copy.deleteHeading}
-            </p>
-            <p className="mt-2 text-base leading-normal text-text-muted">
-              {copy.deleteBody}
-            </p>
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md bg-destructive px-4 text-[14px] font-semibold text-surface touch-manipulation"
-            >
-              {copy.deleteConfirm}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(false)}
-              className="mt-2 flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
-            >
-              {copy.deleteCancel}
-            </button>
-          </>
-        ) : (
-          <>
-            <span className="block truncate text-[20px] font-semibold leading-tight text-text-primary">
-              {entry.songName}
-            </span>
+      {confirmingDelete ? (
+        // Destructive confirm (D-15) — the split from one-tap Undo.
+        <>
+          <p className="text-[20px] font-semibold leading-tight text-text-primary">
+            {copy.deleteHeading}
+          </p>
+          <p className="mt-2 text-base leading-normal text-text-muted">
+            {copy.deleteBody}
+          </p>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md bg-destructive px-4 text-[14px] font-semibold text-surface touch-manipulation"
+          >
+            {copy.deleteConfirm}
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmingDelete(false)}
+            className="mt-2 flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+          >
+            {copy.deleteCancel}
+          </button>
+        </>
+      ) : (
+        <>
+          <span className="block truncate text-[20px] font-semibold leading-tight text-text-primary">
+            {entry.songName}
+          </span>
 
-            {/* Edit (normal) or Name this song (??? placeholder) — both re-pick
-                via the SearchSheet and write through renameEntry. */}
+          {/* Edit (normal) or Name this song (??? placeholder) — both re-pick
+              via the SearchSheet and write through renameEntry. */}
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            className="mt-3 flex min-h-11 w-full items-center gap-2 rounded-md border border-hairline px-4 py-2 text-[14px] font-semibold text-text-primary touch-manipulation"
+          >
+            <Pencil size={18} />
+            {entry.isPlaceholder ? copy.renameHeading : copy.editCta}
+          </button>
+
+          {/* Delete — opens the destructive confirm (never removes on this tap). */}
+          <button
+            type="button"
+            onClick={() => setConfirmingDelete(true)}
+            className="mt-2 flex min-h-11 w-full items-center gap-2 rounded-md border border-hairline px-4 py-2 text-[14px] font-semibold text-destructive touch-manipulation"
+          >
+            <Trash2 size={18} />
+            {copy.deleteConfirm}
+          </button>
+
+          {/* ??? placeholders get an explicit Skip that leaves them as ???. */}
+          {entry.isPlaceholder && (
             <button
               type="button"
-              onClick={() => setSearchOpen(true)}
-              className="mt-3 flex min-h-11 w-full items-center gap-2 rounded-md border border-hairline px-4 py-2 text-[14px] font-semibold text-text-primary touch-manipulation"
+              onClick={close}
+              className="mt-2 flex min-h-11 w-full items-center justify-center rounded-md px-4 py-2 text-[14px] font-semibold text-text-muted touch-manipulation"
             >
-              <Pencil size={18} />
-              {entry.isPlaceholder ? copy.renameHeading : copy.editCta}
+              {copy.renameSkip}
             </button>
-
-            {/* Delete — opens the destructive confirm (never removes on this tap). */}
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(true)}
-              className="mt-2 flex min-h-11 w-full items-center gap-2 rounded-md border border-hairline px-4 py-2 text-[14px] font-semibold text-destructive touch-manipulation"
-            >
-              <Trash2 size={18} />
-              {copy.deleteConfirm}
-            </button>
-
-            {/* ??? placeholders get an explicit Skip that leaves them as ???. */}
-            {entry.isPlaceholder && (
-              <button
-                type="button"
-                onClick={close}
-                className="mt-2 flex min-h-11 w-full items-center justify-center rounded-md px-4 py-2 text-[14px] font-semibold text-text-muted touch-manipulation"
-              >
-                {copy.renameSkip}
-              </button>
-            )}
-          </>
-        )}
-      </div>
-    </div>
+          )}
+        </>
+      )}
+    </Sheet>
   );
 }
