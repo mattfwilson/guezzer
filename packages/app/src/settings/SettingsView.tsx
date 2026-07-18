@@ -31,6 +31,7 @@ import {
   openBackupFilePicker,
   pickAndImport,
 } from "./importPicker.ts";
+import { isTypedNameMine } from "./ownerMatch.ts";
 
 /** An unowned file (no owner name) awaiting the "Whose dex is this?" answer. */
 interface NamePrompt {
@@ -117,17 +118,10 @@ export function SettingsView() {
   const resolveNamePrompt = () => {
     if (namePrompt == null) return;
     const answer = promptName.trim();
-    const a = answer.toLowerCase();
-    const localOwner = (ownerName ?? "").trim().toLowerCase();
     // "It's mine → restore" if the typed name matches the local owner OR the FILE's
-    // own owner. The file-owner match is the WARNING-1 hardening: on an evicted-DB
-    // reinstall the local owner is unknown (""), so without it, typing your own name
-    // here would dead-end in compare instead of restoring the backup it's named after.
-    const fileOwner = namePrompt.envelope.owner?.trim().toLowerCase();
-    const isMine =
-      answer !== "" &&
-      ((localOwner !== "" && a === localOwner) || (fileOwner != null && a === fileOwner));
-    if (isMine) {
+    // own owner (isTypedNameMine, ./ownerMatch.ts). The file-owner leg is the
+    // PWA-05/WARNING-1 evicted-DB hardening — its full rationale lives on the helper.
+    if (isTypedNameMine(promptName, ownerName ?? null, namePrompt.envelope.owner)) {
       mergeFile(namePrompt.file);
     } else {
       setCompareEnvelope({ ...namePrompt.envelope, owner: answer || null });

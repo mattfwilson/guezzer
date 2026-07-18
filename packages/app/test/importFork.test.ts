@@ -3,12 +3,14 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { config } from "../src/config.ts";
 import {
   db,
+  getMeta,
   setMeta,
   snapshot,
   type TrackedEntry,
   type TrackedShow,
 } from "../src/db/db.ts";
 import { classifyImport, pickAndImport } from "../src/settings/importPicker.ts";
+import { isTypedNameMine } from "../src/settings/ownerMatch.ts";
 
 /**
  * Import fork (D-17, RESEARCH Pattern 5, plan 06-10). `classifyImport` runs the
@@ -148,5 +150,50 @@ describe("classifyImport — the D-17 compare-vs-merge fork (Pattern 5)", () => 
     const outcome = await pickAndImport(file);
     expect(outcome.ok).toBe(true);
     expect(await db.trackedShows.get("s-mine")).toBeDefined();
+  });
+
+  it("evicted DB + typed own name: union merge preserves local data — PWA-05", async () => {
+    // Evicted-DB state: NO ownerName meta row (clearTables/resetDb leaves it unset).
+    // Seed local rows across two tables so the union is proven across the schema.
+    await db.attendedShows.put({ show_id: 111, showDate: "2020-01-01" });
+    const localShow: TrackedShow = {
+      sessionId: "s-local",
+      date: "2020-01-01",
+      status: "finalized",
+      currentSetNumber: "1",
+      startedAt: 1,
+      showId: null,
+      venueId: null,
+      venueName: null,
+      city: null,
+    };
+    await db.trackedShows.put(localShow);
+
+    // The backup is owned by "Matt" and carries a DIFFERENT attended show (222).
+    const fileJson = jsonOf(
+      envelope({
+        owner: "Matt",
+        attendedShows: [{ show_id: 222, showDate: "2021-02-02" }],
+      }),
+    );
+
+    // The decision leg wired to the merge leg: this is exactly what
+    // resolveNamePrompt evaluates before calling mergeFile on the evicted-DB
+    // typed-name path — local owner unset (null), file owner "Matt".
+    expect(isTypedNameMine("matt", null, "Matt")).toBe(true);
+
+    // Run the REAL (unmocked) merge + atomic commit.
+    const outcome = await pickAndImport(
+      new File([fileJson], "mine.json", { type: "application/json" }),
+    );
+    expect(outcome.ok).toBe(true);
+
+    // Union, zero drops: the seeded local rows survive AND the file's row is added.
+    expect(await db.attendedShows.get(111)).toBeDefined(); // local kept
+    expect(await db.attendedShows.get(222)).toBeDefined(); // file added
+    expect(await db.trackedShows.get("s-local")).toBeDefined(); // second-table local kept
+
+    // Owner is a device-local fork key, never written to meta on import (06-07).
+    expect(await getMeta<string>("ownerName")).toBeUndefined();
   });
 });
