@@ -422,16 +422,26 @@ export const config = {
        *                   never drift in sync (mirrors the orb-float --float-delay idiom).
        */
       blooms: [
-        { color: "#6D28D9", opacity: 0.18, sizeVmin: 95, x: 0.24, y: 0.26, driftXPct: 5, driftYPct: -4, driftMs: 46000, delayMs: 0 }, // violet
-        { color: "#4338CA", opacity: 0.15, sizeVmin: 115, x: 0.78, y: 0.34, driftXPct: -6, driftYPct: 5, driftMs: 57000, delayMs: -13000 }, // indigo
-        { color: "#0D9488", opacity: 0.11, sizeVmin: 85, x: 0.55, y: 0.82, driftXPct: 4, driftYPct: 6, driftMs: 64000, delayMs: -30000 }, // teal
+        { color: "#6D28D9", opacity: 0.18, sizeVmin: 95, x: 0.24, y: 0.26, driftXPct: 13, driftYPct: -10, driftMs: 42000, delayMs: 0 }, // violet
+        { color: "#4338CA", opacity: 0.15, sizeVmin: 115, x: 0.78, y: 0.34, driftXPct: -15, driftYPct: 12, driftMs: 52000, delayMs: -13000 }, // indigo
+        { color: "#0D9488", opacity: 0.11, sizeVmin: 85, x: 0.55, y: 0.82, driftXPct: 11, driftYPct: 14, driftMs: 60000, delayMs: -30000 }, // teal
       ],
       /** [ASSUMED] Gaussian blur radius in px on each bloom for a soft-edged wash. */
       BLUR_PX: 64,
       /** [ASSUMED] Peak scale of each bloom's gentle "breathing" pulse (transform-only, folded into the drift keyframe). */
-      PULSE_SCALE: 1.07,
-      /** [ASSUMED] Faint static star-speck layer opacity (0–1) — pure CSS radial-gradient dots, NO external images (offline-safe); this layer is NOT animated. */
-      SPECK_OPACITY: 0.4,
+      PULSE_SCALE: 1.12,
+      /** [ASSUMED] Bloom opacity at the breathe mid-point (0–1) — each bloom fades toward this and back so the nebula pulses "alive"; 1 = no breathe. Folded into the drift keyframe (compositor-only). */
+      PULSE_OPACITY: 0.68,
+      /** [ASSUMED] Faint static star-speck layer opacity (0–1) — overall multiplier on the generated dots, NO external images (offline-safe); this layer is NOT animated. */
+      SPECK_OPACITY: 0.55,
+      /** [ASSUMED] Number of star specks generated (random positions, non-tiled) across the viewport. */
+      SPECK_COUNT: 90,
+      /** [ASSUMED] Per-speck brightness (alpha) is randomized in [MIN, MAX] so the field twinkles in intensity, not uniform white. */
+      SPECK_BRIGHTNESS_MIN: 0.18,
+      SPECK_BRIGHTNESS_MAX: 1,
+      /** [ASSUMED] Per-speck diameter randomized in [MIN, MAX] px for size variety. */
+      SPECK_SIZE_MIN_PX: 0.7,
+      SPECK_SIZE_MAX_PX: 1.9,
     },
   },
 

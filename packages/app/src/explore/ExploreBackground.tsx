@@ -18,15 +18,28 @@
  *  - Paints ONLY translucent blooms + specks over transparency — no opaque base fill;
  *    the wrapper's `bg-surface` (#0C0C10) stays the opaque base so the focus-dim /
  *    Dex-dim overlays read against #0C0C10 and nothing white-flashes.
- *  - No state, no effects, no per-frame JS. Drift/pulse is pure CSS on a compositor
- *    layer, gated behind `prefers-reduced-motion: no-preference` in styles.css
- *    (STATIC by default) and never touches/reheats the d3 sim (EXPL-06).
+ *  - No effects, no per-frame JS. The speck field is generated ONCE per mount
+ *    (`useMemo`, non-deterministic by design so each visit's sky differs); drift +
+ *    breathe are pure CSS on a compositor layer, gated behind
+ *    `prefers-reduced-motion: no-preference` in styles.css (STATIC by default) and
+ *    never touch/reheat the d3 sim (EXPL-06).
  *  - CSS gradients only — no external images (offline-safe).
  */
-import { type CSSProperties } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { config } from "../config.ts";
 
-const { blooms, BLUR_PX, PULSE_SCALE, SPECK_OPACITY } = config.explore.background;
+const {
+  blooms,
+  BLUR_PX,
+  PULSE_SCALE,
+  PULSE_OPACITY,
+  SPECK_OPACITY,
+  SPECK_COUNT,
+  SPECK_BRIGHTNESS_MIN,
+  SPECK_BRIGHTNESS_MAX,
+  SPECK_SIZE_MIN_PX,
+  SPECK_SIZE_MAX_PX,
+} = config.explore.background;
 
 /** `#RRGGBB` → `rgba(r, g, b, a)` so a bloom's gradient can fade color→transparent. */
 function rgba(hex: string, alpha: number): string {
@@ -37,28 +50,40 @@ function rgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+/** Uniform pick in [min, max]. */
+const lerp = (min: number, max: number) => min + Math.random() * (max - min);
+
 /**
- * Faint static star-speck field: a handful of tiny radial-gradient dots tiled with
- * `background-repeat`. The dot layout is decorative pattern design (like the keyframe
- * geometry), while the tunable — overall speck opacity — comes from config. NOT
- * animated: the drift is carried by the blooms only, keeping this layer cheap.
+ * Build the faint star-speck field: `SPECK_COUNT` tiny radial-gradient dots at RANDOM
+ * viewport positions (non-tiled — one full-size layer per dot positioned via `at X% Y%`,
+ * `background-repeat: no-repeat`), each with its own randomized brightness (alpha) and
+ * diameter so the field twinkles in intensity rather than reading as a uniform grid.
+ * Generated once per mount (see `useMemo` below) — decorative, not animated, so it stays
+ * cheap; the "alive" motion is carried by the blooms only.
  */
-const SPECK_TILE_PX = 260;
-const speckStyle: CSSProperties = {
-  opacity: SPECK_OPACITY,
-  backgroundImage: [
-    "radial-gradient(1.4px 1.4px at 18% 22%, #ffffff 45%, transparent 50%)",
-    "radial-gradient(1px 1px at 62% 12%, #ffffff 45%, transparent 50%)",
-    "radial-gradient(1.2px 1.2px at 82% 46%, #ffffff 45%, transparent 50%)",
-    "radial-gradient(1px 1px at 34% 64%, #ffffff 45%, transparent 50%)",
-    "radial-gradient(1.3px 1.3px at 72% 82%, #ffffff 45%, transparent 50%)",
-    "radial-gradient(1px 1px at 12% 88%, #ffffff 45%, transparent 50%)",
-  ].join(", "),
-  backgroundRepeat: "repeat",
-  backgroundSize: `${SPECK_TILE_PX}px ${SPECK_TILE_PX}px`,
-};
+function buildSpeckStyle(): CSSProperties {
+  const layers: string[] = [];
+  for (let i = 0; i < SPECK_COUNT; i++) {
+    const x = (Math.random() * 100).toFixed(2);
+    const y = (Math.random() * 100).toFixed(2);
+    const size = lerp(SPECK_SIZE_MIN_PX, SPECK_SIZE_MAX_PX).toFixed(2);
+    const alpha = lerp(SPECK_BRIGHTNESS_MIN, SPECK_BRIGHTNESS_MAX).toFixed(2);
+    layers.push(
+      `radial-gradient(${size}px ${size}px at ${x}% ${y}%, rgba(255, 255, 255, ${alpha}) 45%, transparent 50%)`,
+    );
+  }
+  return {
+    opacity: SPECK_OPACITY,
+    backgroundImage: layers.join(", "),
+    backgroundRepeat: "no-repeat",
+  };
+}
 
 export function ExploreBackground() {
+  // Fresh random speck field per mount (stable across re-renders so specks never
+  // jump; different each visit for an "alive" sky). No RNG in render — memoized once.
+  const speckStyle = useMemo(buildSpeckStyle, []);
+
   return (
     <div
       aria-hidden="true"
@@ -88,6 +113,7 @@ export function ExploreBackground() {
               "--explore-bg-drift-ms": `${b.driftMs}ms`,
               "--explore-bg-drift-delay": `${b.delayMs}ms`,
               "--explore-bg-pulse-scale": String(PULSE_SCALE),
+              "--explore-bg-pulse-opacity": String(PULSE_OPACITY),
             } as CSSProperties
           }
         />
