@@ -12,13 +12,13 @@ Requirements for this milestone. Each maps to a roadmap phase.
 ### UI Polish
 
 - [x] **POLISH-01**: On a small phone screen, prediction-orb and center-node song names render fully legible — no truncation, overflow, or oversizing. Verify the Phase-6 `orbLabelFit`/`ORB_LABEL` helpers on-device and fix any residual. (Closes the 2026-07-11 orb-text todo.)
-- [ ] **POLISH-02**: The Show-Mode FAB speed-dial (D-20) and once-per-version InstallBanner (D-22) are verified against their originating todos and the todos are formally moved to resolved — confirm implemented behavior matches intent (both landed in Phase 6).
+- [x] **POLISH-02**: The Show-Mode FAB speed-dial (D-20) and once-per-version InstallBanner (D-22) are verified against their originating todos and the todos are formally moved to resolved — confirm implemented behavior matches intent (both landed in Phase 6).
 
 ### Accessibility
 
-- [ ] **A11Y-01**: Every bottom sheet and modal dialog (NodeSheet, AppMenu, TrailNodeSheet, EndShowDialog, ShareCardSheet, the "Whose dex is this?" prompt, CompareView) can be dismissed with the Escape key and manages focus — focus is trapped while open and restored to the trigger on close.
-- [ ] **A11Y-02**: While a constellation node is focused, the NodeSheet does not occlude the Explore FilterFab (both remain usable).
-- [ ] **A11Y-03**: Resizing the viewport while a constellation node is focused keeps the camera framed on the focused node (no snap-off).
+- [x] **A11Y-01**: Every bottom sheet and modal dialog (NodeSheet, AppMenu, TrailNodeSheet, EndShowDialog, ShareCardSheet, the "Whose dex is this?" prompt, CompareView) can be dismissed with the Escape key and manages focus — focus is trapped while open and restored to the trigger on close.
+- [x] **A11Y-02**: While a constellation node is focused, the NodeSheet does not occlude the Explore FilterFab (both remain usable).
+- [x] **A11Y-03**: Resizing the viewport while a constellation node is focused keeps the camera framed on the focused node (no snap-off).
 
 ### Data Integrity
 

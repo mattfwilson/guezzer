@@ -70,6 +70,12 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 - [x] Physics settles and freezes; labels never jitter permanently; device-tuned spacing + on-load auto-frame + clean pinch-to-zoom (EXPL-06)
 - [x] Pokédex overlays the constellation: unseen songs as dimmed silhouettes, seen at full color with a green sighting ring + zoom-gated count; live cross-tab recolor via useLiveQuery (DEX-05)
 
+**On-device UI polish & accessibility (Validated in Phase 8, v1.1 — human UAT 5/5 passed on iPhone, 2026-07-18):**
+- [x] Every prediction-orb and center-node song name renders fully inside its circle across all orb sizes — `fitOrbLabel` is circle-aware (per-line chord width + stacked-height budget incl. the percent line), guarded by a geometric sweep over the real [56..112]px diameter range and confirmed on-device via `#/dev/orb-fit` (POLISH-01)
+- [x] D-20 FAB speed-dial and D-22 once-per-version InstallBanner verified as intended; originating todos resolved (POLISH-02)
+- [x] All 7 sheet/dialog surfaces dismiss with Escape, trap focus while open (modal), and restore focus to their trigger on close — confirmed with VoiceOver + external keyboard on iOS, incl. `inert` propagation through `display:contents` (A11Y-01)
+- [x] FilterFab never occluded by the NodeSheet peek; camera stays framed on the focused node through rotate/keyboard resize (A11Y-02, A11Y-03)
+
 **Live sync & data safety (Validated in Phase 5: Live Sync & Data Safety):**
 - [x] Live sync from kglw.net — polite ≤1/60s `latest`-only poll during an active show, editor songs offered as dismissible suggestions (deduped by song ID, never auto-merged), fully offline once loaded and resuming silently on reconnect (SYNC-01/02/03)
 - [x] Attended-show list + live-tracked setlists in IndexedDB, with prominent JSON export/import so a lost phone never means a lost dex — round-trips every table; own-backup restore on an evicted DB routes to the "Whose dex is this?" prompt (WARNING-1 fixed, quick 260716-vw2) (PWA-04)
@@ -86,9 +92,10 @@ _All v1.0 requirements shipped and validated above. The items below are delibera
 **Explore Mode:**
 - [ ] Era slider (2010 → present) scrubbing the constellation through time — v1.5 stretch, deliberately deferred (v2: EXPL-V2-01)
 
-**UI polish (deferred at v1.0 close — see STATE.md Deferred Items):**
-- [ ] Orb/center song-name text sizing on small screens; consolidate the "Whose dex is this?" restore affordance; InstallBanner once-per-version (todos in `.planning/todos/pending/`)
-- [ ] Phase 01 tuning-tag human spot-check (DATA-04) — ~10-song musical sanity pass; owner-only, non-defect
+**Remaining v1.1 hardening (Phases 9–10):**
+- [ ] "Whose dex is this?" restore path — typing your own owner name reaches merge/restore, never friend-compare (PWA-05, Phase 9); `shownotes` survives normalization with a test (DATA-06, Phase 9)
+- [ ] Phase 01 tuning-tag human spot-check (DATA-04 → VALID-01, Phase 10) — ~10-song musical sanity pass; owner-only, non-defect
+- [ ] Full real-device show-loop dry-run before show #1 (VALID-02, Phase 10)
 
 ### Out of Scope
 
@@ -166,4 +173,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-17 after v1.0 MVP milestone — shipped, audited (PASSED), and archived. All 60 v1 requirements validated.*
+*Last updated: 2026-07-18 after Phase 8 (On-Device UI Polish & Accessibility) — all 5 requirements validated on real hardware, human UAT 5/5 passed.*

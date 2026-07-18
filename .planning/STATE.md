@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Polish & Pre-Show Hardening
-status: executing
-stopped_at: Completed 08-08-PLAN.md
-last_updated: "2026-07-18T19:57:42.040Z"
-last_activity: 2026-07-18 -- Phase 08 execution started
+status: ready_to_plan
+stopped_at: Phase 08 complete (human UAT 5/5 passed), ready to plan Phase 9
+last_updated: "2026-07-18T20:37:31.932Z"
+last_activity: 2026-07-18
 progress:
   total_phases: 3
   completed_phases: 1
@@ -18,23 +18,23 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
+See: .planning/PROJECT.md (updated 2026-07-18 after Phase 8)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 08 — on-device-ui-polish-accessibility
+**Current focus:** Phase 9 — Data Integrity & Restore UX
 
 ## Current Position
 
-Phase: 08 (on-device-ui-polish-accessibility) — EXECUTING
-Plan: 2 of 7
-Status: Ready to execute
-Last activity: 2026-07-18 -- Phase 08 execution started
+Phase: 9
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-18 — Phase 08 complete (UAT 5/5 passed, POLISH-01 retest confirmed on-device)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 70
+- Total plans completed: 78
 - Average duration: -
 - Total execution time: 0 hours
 
@@ -46,6 +46,7 @@ Last activity: 2026-07-18 -- Phase 08 execution started
 | 04 | 7 | - | - |
 | 05 | 6 | - | - |
 | 06 | 12 | - | - |
+| 08 | 8 | - | - |
 
 **Recent Trend:**
 
@@ -180,7 +181,7 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 |----------|------|--------|-------------|--------------|
 | debug | knowledge-base (resolved-sessions index, not an open session — false alarm) | not-a-defect | 2026-07-17 | — |
 | verification | Phase 01 tuning-tag spot-check (DATA-04 human_needed; ~10-song sanity pass) | human_needed | 2026-07-17 | VALID-01 (Phase 10) |
-| todo/ui | orb song-name text truncated/oversized (esp. center orb) | pending | 2026-07-17 | POLISH-01 (Phase 8) |
+| todo/ui | orb song-name text truncated/oversized (esp. center orb) | resolved 2026-07-18 (Phase 8, circle-aware fit + on-device retest pass) | 2026-07-17 | POLISH-01 (Phase 8) |
 | todo/ui | collapse Show-Mode actions into FAB menu | resolved | 2026-07-18 | POLISH-02 (Phase 8) |
 | research/ui-model | Reconcile orb % (prediction confidence) vs rarity color (global frequency) — legendary orb can out-% a common one. Mechanics + option space parked, no change decided. See [260717-p4s-FOLLOWUP-orb-percent-vs-rarity.md](./quick/260717-p4s-map-rarity-colors-to-prediction-orbs-and/260717-p4s-FOLLOWUP-orb-percent-vs-rarity.md) | parked | 2026-07-17 | TBD |
 | todo/pwa | InstallBanner should show once per version, not every reload | resolved | 2026-07-18 | POLISH-02 (Phase 8) |
@@ -188,10 +189,10 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-18T19:57:41.940Z
-Stopped at: Completed 08-08-PLAN.md
+Last session: 2026-07-18T21:00:00.000Z
+Stopped at: Phase 08 complete (human UAT 5/5 passed), ready to plan Phase 9
 Resume file: None
 
 ## Operator Next Steps
 
-- Plan the first v1.1 phase with `/gsd-plan-phase 8`
+- Discuss/plan Phase 9 with `/gsd-discuss-phase 9` (or `/gsd-plan-phase 9` to plan directly)

@@ -101,7 +101,7 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
 | 5. Live Sync & Data Safety | v1.0 | 6/6 | Complete | 2026-07-14 |
 | 6. Pokédex, History & Stats | v1.0 | 12/12 | Complete | 2026-07-16 |
 | 7. Explore Mode Constellation | v1.0 | 7/7 | Complete | 2026-07-16 |
-| 8. On-Device UI Polish & Accessibility | v1.1 | 8/8 | Complete   | 2026-07-18 |
+| 8. On-Device UI Polish & Accessibility | v1.1 | 8/8 | Complete    | 2026-07-18 |
 | 9. Data Integrity & Restore UX | v1.1 | 0/? | Not started | - |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 0/? | Not started | - |
 

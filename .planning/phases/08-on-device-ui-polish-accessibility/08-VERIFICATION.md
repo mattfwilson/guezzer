@@ -1,7 +1,7 @@
 ---
 phase: 08-on-device-ui-polish-accessibility
 verified: 2026-07-18T08:57:08Z
-status: human_needed
+status: passed
 score: 5/5 must-haves verified in code (final confirmation deferred to on-device pass)
 overrides_applied: 0
 human_verification:
@@ -29,7 +29,7 @@ notes_out_of_scope:
 
 **Phase Goal:** Every on-screen label is legible and every sheet/dialog is keyboard- and focus-accessible on real phone hardware — closing the v1.0 audit's UI-polish and accessibility gaps.
 **Verified:** 2026-07-18T08:57:08Z
-**Status:** human_needed
+**Status:** passed
 **Re-verification:** No — initial verification
 
 ## Goal Achievement
