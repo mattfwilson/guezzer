@@ -22,7 +22,9 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { OutgoingBar, TuningFamily } from "@guezzer/core";
 import { config } from "../config.ts";
+import { useDialogDismiss } from "../components/a11y/useDialogDismiss.ts";
 import { RankedBar } from "./RankedBar.tsx";
+import { useVisibleViewportHeight } from "./useVisibleViewportHeight.ts";
 
 /** One bar with its target song already resolved (name + tuning family). */
 export interface SheetBar {
@@ -78,14 +80,25 @@ export function NodeSheet({
   const topN = config.explore.BARS_TOP_N;
   const reduced = prefersReducedMotion();
 
-  const [vh, setVh] = useState(() =>
-    typeof window !== "undefined" ? window.innerHeight : 0,
-  );
+  // Escape-to-dismiss via the shared LIFO dialogStack (D-02) — NO bespoke
+  // `document` keydown listener. NodeSheet is only mounted while focused, so it's
+  // always the active dialog while rendered.
+  useDialogDismiss(true, onClose);
+
+  // Focus-restore ONLY (D-02): capture the trigger on mount, restore on unmount.
+  // Deliberately NO focus-trap / inert / scrim — the graph + FilterFab must stay
+  // reachable above this NON-modal window (T-08-10). The graph is what the bars
+  // describe; trapping focus here would strand the keyboard/AT user off it.
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    const onResize = () => setVh(window.innerHeight);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    restoreFocusRef.current = document.activeElement as HTMLElement | null;
+    return () => restoreFocusRef.current?.focus?.();
   }, []);
+
+  // The ONE shared visible-viewport height (Pitfall 3): NodeSheet peek, the FAB
+  // lift, and the camera reframe all read this, never `window.innerHeight` (which
+  // is the iOS LARGE viewport and ignores the keyboard/toolbar).
+  const vh = useVisibleViewportHeight();
 
   const peekH = Math.round(vh * config.explore.SHEET_PEEK_FRACTION);
   const fullH = Math.max(peekH, vh - FULL_TOP_GAP_PX);
@@ -132,8 +145,9 @@ export function NodeSheet({
       role="dialog"
       aria-modal={false}
       aria-label={songName}
-      className="fixed inset-x-0 bottom-0 z-30 flex flex-col rounded-t-2xl border-t border-hairline bg-elevated"
+      className="fixed inset-x-0 bottom-0 flex flex-col rounded-t-2xl border-t border-hairline bg-elevated"
       style={{
+        zIndex: config.ui.z.sheet,
         height,
         transition: dragging || reduced ? "none" : `height ${SNAP_MS}ms ease`,
         paddingBottom: "env(safe-area-inset-bottom)",
