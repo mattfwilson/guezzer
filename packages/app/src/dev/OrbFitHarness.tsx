@@ -9,13 +9,14 @@
  * the ACTUAL bar is real glyph rendering on the owner's phone. This harness renders
  * every real `@matrix` name as a real `PredictionOrb` (at the ORB_MIN_DIAMETER floor
  * AND a representative solved diameter) plus a real `CenterNode`, then measures each
- * rendered cell's `scrollWidth/scrollHeight` against its `clientWidth/clientHeight`
- * and lists any OVERFLOW offenders on-screen. Zero offenders = every name renders
- * fully at real sizes.
+ * rendered text LINE's real width against the CIRCLE chord at that line's vertical
+ * offset (POLISH-01 08-08 — no `overflow:hidden` clip, no rectangular scroll blind
+ * spot) and lists any circular-SPILL offenders on-screen. Zero offenders = every
+ * name renders fully INSIDE its circular fill at real sizes.
  *
  * Device flow (memory: device-uat-hosting): serve over the cloudflared HTTPS tunnel
  * (`--http-host-header localhost`), open `#/dev/orb-fit` on the iPhone, confirm the
- * banner reads zero offenders (watch the 44-char outlier
+ * banner reads zero circular-spill offenders (watch the 44-char outlier
  * `(You Gotta) Fight for Your Right (To Party!)` + `Deserted Dunes Welcome Weary Feet`).
  */
 import { useEffect, useRef, useState } from "react";
@@ -62,7 +63,12 @@ function orbLayout(songId: number, diameterPx: number): OrbLayout {
 interface Offender {
   name: string;
   variant: string;
+  /** The specific rendered line that spilled past the circle chord. */
+  line: string;
 }
+
+/** Sub-pixel slack (px) so glyph antialiasing / rounding doesn't false-flag a fit. */
+const SPILL_EPSILON_PX = 0.5;
 
 export function OrbFitHarness() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -72,7 +78,7 @@ export function OrbFitHarness() {
 
   useEffect(() => {
     // Measure AFTER layout+fonts settle: two rAFs push past the paint that applies
-    // the fitted font sizes so scrollWidth/scrollHeight reflect the real glyph runs.
+    // the fitted font sizes so getBoundingClientRect reflects the real glyph runs.
     let raf2 = 0;
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => {
@@ -80,15 +86,48 @@ export function OrbFitHarness() {
         if (!root) return;
         const cells = root.querySelectorAll<HTMLElement>("[data-fit-cell]");
         const found: Offender[] = [];
-        cells.forEach((el) => {
-          if (
-            el.scrollWidth > el.clientWidth ||
-            el.scrollHeight > el.clientHeight
-          ) {
-            found.push({
-              name: el.dataset.fitName ?? "?",
-              variant: el.dataset.fitVariant ?? "?",
-            });
+        cells.forEach((cell) => {
+          // The visual CIRCLE is the round cell itself (rounded-full fills it):
+          // center + radius from its bounding rect.
+          const cellRect = cell.getBoundingClientRect();
+          const cx = cellRect.left + cellRect.width / 2;
+          const cy = cellRect.top + cellRect.height / 2;
+          const r = Math.min(cellRect.width, cellRect.height) / 2;
+
+          // Real rendered LINES = the leaf text spans (each name line, and the
+          // PredictionOrb percent line). Container/flex spans have element children;
+          // the aria-hidden ripple spans + the sr-only "why" button carry no text —
+          // both are excluded by the leaf-with-text filter, so no harness-only
+          // marker is needed on the production components.
+          const lineEls = Array.from(
+            cell.querySelectorAll<HTMLElement>("span"),
+          ).filter(
+            (el) =>
+              el.childElementCount === 0 &&
+              (el.textContent ?? "").trim() !== "",
+          );
+
+          for (const lineEl of lineEls) {
+            const lineRect = lineEl.getBoundingClientRect();
+            // Vertical offset = the line edge FARTHER from center (worst case), so a
+            // line straddling the equator is still measured at its widest-needed y.
+            const worstY = Math.max(
+              Math.abs(lineRect.top - cy),
+              Math.abs(lineRect.bottom - cy),
+            );
+            const halfWidth = lineRect.width / 2;
+            // The circle chord half-width available at this line's y.
+            const chordHalf = Math.sqrt(Math.max(0, r * r - worstY * worstY));
+            const spillsSide = halfWidth > chordHalf + SPILL_EPSILON_PX;
+            const spillsTopBottom = worstY > r + SPILL_EPSILON_PX;
+            if (spillsSide || spillsTopBottom) {
+              found.push({
+                name: cell.dataset.fitName ?? "?",
+                variant: cell.dataset.fitVariant ?? "?",
+                line: (lineEl.textContent ?? "").trim(),
+              });
+              break; // one spilling line is enough to flag the cell
+            }
           }
         });
         setOffenders(found);
@@ -108,8 +147,9 @@ export function OrbFitHarness() {
       <header className="sticky top-0 z-10 -mx-4 -mt-4 mb-4 bg-surface/95 px-4 py-3 backdrop-blur">
         <h1 className="text-lg font-semibold">Orb-fit harness (POLISH-01, dev only)</h1>
         <p className="text-sm opacity-70">
-          {nodes.length} real catalog names · orb {config.show.ORB_MIN_DIAMETER}px &amp;{" "}
-          {REPRESENTATIVE_SOLVED_PX}px · center {config.show.ORB_CENTER_DIAMETER}px
+          Each rendered line measured against the CIRCLE chord at its y (no clip, no
+          rectangular scroll) · {nodes.length} names · orb {config.show.ORB_MIN_DIAMETER}px
+          &amp; {REPRESENTATIVE_SOLVED_PX}px · center {config.show.ORB_CENTER_DIAMETER}px
         </p>
         <p
           className={`mt-1 text-sm font-semibold ${
@@ -131,7 +171,7 @@ export function OrbFitHarness() {
           <ul className="mt-1 max-h-32 overflow-y-auto text-xs text-red-300">
             {offenders.map((o, i) => (
               <li key={i}>
-                {o.variant}: {o.name}
+                {o.variant}: {o.name} — spilled line “{o.line}”
               </li>
             ))}
           </ul>
@@ -149,7 +189,7 @@ export function OrbFitHarness() {
                   data-fit-cell
                   data-fit-name={node.songName}
                   data-fit-variant={`orb-${d}`}
-                  style={{ width: d, height: d, overflow: "hidden" }}
+                  style={{ width: d, height: d }}
                   className="rounded-full"
                 >
                   <PredictionOrb
@@ -168,7 +208,6 @@ export function OrbFitHarness() {
                 style={{
                   width: config.show.ORB_CENTER_DIAMETER,
                   height: config.show.ORB_CENTER_DIAMETER,
-                  overflow: "hidden",
                 }}
                 className="rounded-full"
               >
