@@ -22,11 +22,11 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Data Integrity
 
-- [ ] **DATA-06**: `shownotes` is carried verbatim through ingestion AND normalization into the domain model, matching `docs/SCHEMA.md` §12, with an automated test asserting it survives normalization — so a future show-level-prose feature needs no full re-normalize. (Resolves audit WR-01.)
+- [x] **DATA-06**: `shownotes` is carried verbatim through ingestion AND normalization into the domain model, matching `docs/SCHEMA.md` §12, with an automated test asserting it survives normalization — so a future show-level-prose feature needs no full re-normalize. (Resolves audit WR-01.)
 
 ### Data Safety
 
-- [ ] **PWA-05**: On a fresh/evicted DB (owner name unset), typing your own owner name into the "Whose dex is this?" prompt restores (merges) your backup — the name-match path reaches the merge path, not only the explicit "It's mine, restore it" button. (Polishes the WARNING-1 fix from quick 260716-vw2.)
+- [x] **PWA-05**: On a fresh/evicted DB (owner name unset), typing your own owner name into the "Whose dex is this?" prompt restores (merges) your backup — the name-match path reaches the merge path, not only the explicit "It's mine, restore it" button. (Polishes the WARNING-1 fix from quick 260716-vw2.)
 
 ### Pre-Show Validation
 

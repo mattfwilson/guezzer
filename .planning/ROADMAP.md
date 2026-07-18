@@ -27,7 +27,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.0-ROADM
 Small, low-risk hardening milestone — no new user-facing features. Close the v1.0 audit's non-blocking gaps (UI polish, accessibility, data integrity, restore UX) and prove the app show-ready on real hardware before show #1 (late Aug/Sep 2026). Bias toward shipping the hardening quickly.
 
 - [x] **Phase 8: On-Device UI Polish & Accessibility** — Legible labels + Escape/focus-managed sheets and dialogs across Show and Explore (completed 2026-07-18)
-- [ ] **Phase 9: Data Integrity & Restore UX** — `shownotes` survives normalization; owner can always recover their own backup
+- [x] **Phase 9: Data Integrity & Restore UX** — `shownotes` survives normalization; owner can always recover their own backup (completed 2026-07-18)
 - [ ] **Phase 10: Pre-Show Validation & Device Dry-Run** — Owner tuning-tag spot-check + full real-device show-loop rehearsal before show #1
 
 ## Phase Details
@@ -80,8 +80,8 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
 **Plans**: 2 plans
 Plans:
 
-- [ ] 09-01-PLAN.md — DATA-06: carry `shownotes` verbatim through normalization (position-1-wins + stats counter), end-to-end tests, regenerate corpus.json with byte-stable downstream artifacts
-- [ ] 09-02-PLAN.md — PWA-05: extract pure `isTypedNameMine` helper + unit tests, component test for typed-name→merge on evicted DB, real-Dexie union-merge proof
+- [x] 09-01-PLAN.md — DATA-06: carry `shownotes` verbatim through normalization (position-1-wins + stats counter), end-to-end tests, regenerate corpus.json with byte-stable downstream artifacts
+- [x] 09-02-PLAN.md — PWA-05: extract pure `isTypedNameMine` helper + unit tests, component test for typed-name→merge on evicted DB, real-Dexie union-merge proof
 
 ### Phase 10: Pre-Show Validation & Device Dry-Run
 
@@ -108,7 +108,7 @@ Plans:
 | 6. Pokédex, History & Stats | v1.0 | 12/12 | Complete | 2026-07-16 |
 | 7. Explore Mode Constellation | v1.0 | 7/7 | Complete | 2026-07-16 |
 | 8. On-Device UI Polish & Accessibility | v1.1 | 8/8 | Complete    | 2026-07-18 |
-| 9. Data Integrity & Restore UX | v1.1 | 0/2 | Planned | - |
+| 9. Data Integrity & Restore UX | v1.1 | 2/2 | Complete    | 2026-07-18 |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 0/? | Not started | - |
 
 ---
