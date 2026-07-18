@@ -35,6 +35,13 @@ interface SearchSheetProps {
   onSelect: (selection: SearchSelection) => void;
   /** No-match inline "Log as ???" → the shared instant-placeholder-miss path (D-14). */
   onUnknown: () => void;
+  /**
+   * Pre-opener recency-weighted opener suggestions (QUICK-260718-1no). When
+   * present and the query is empty, they render under a heading BEFORE any
+   * typing; selecting one flows through the same `onSelect` path as a fuzzy
+   * result. Absent/empty → today's blank empty-query state (mid-show).
+   */
+  openerSuggestions?: { songId: number; songName: string }[];
 }
 
 export function SearchSheet({
@@ -42,6 +49,7 @@ export function SearchSheet({
   onClose,
   onSelect,
   onUnknown,
+  openerSuggestions,
 }: SearchSheetProps) {
   const copy = config.copy.show;
   const [query, setQuery] = useState("");
@@ -60,6 +68,11 @@ export function SearchSheet({
 
   const results = searcher(query);
   const noMatch = query.trim() !== "" && results.length === 0;
+  // Pre-opener: with an empty query and suggestions provided, show the top
+  // openers before any typing. Typing (non-empty query) always shows fuzzy
+  // results; clearing back to empty returns here.
+  const showOpenerSuggestions =
+    query.trim() === "" && !!openerSuggestions && openerSuggestions.length > 0;
 
   const reset = () => setQuery("");
 
@@ -112,6 +125,32 @@ export function SearchSheet({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
+        {/* Pre-opener suggestions — a heading + the top recency-weighted openers,
+            shown before typing. Rows reuse the exact result-row markup so
+            selection flows through the unchanged onSelect path (QUICK-260718-1no). */}
+        {showOpenerSuggestions && (
+          <>
+            <p className="px-4 pb-1 pt-4 text-[13px] font-semibold uppercase tracking-wide text-text-muted">
+              {copy.openerSuggestionsHeading}
+            </p>
+            {openerSuggestions.map((suggestion) => (
+              <button
+                key={suggestion.songId}
+                type="button"
+                onClick={() =>
+                  handleSelect({
+                    songId: suggestion.songId,
+                    songName: suggestion.songName,
+                  })
+                }
+                className="flex min-h-11 w-full items-center border-b border-hairline px-4 py-3 text-left text-base leading-normal text-text-primary touch-manipulation"
+              >
+                {suggestion.songName}
+              </button>
+            ))}
+          </>
+        )}
+
         {/* Result rows — ≥44px, song name as React text only (never HTML). */}
         {results.map((result) => (
           <button

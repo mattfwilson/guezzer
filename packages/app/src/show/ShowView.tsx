@@ -64,6 +64,7 @@ import { TallyReadout } from "./TallyReadout.tsx";
 import { TrailNodeSheet } from "./TrailNodeSheet.tsx";
 import { PreShowLauncher } from "./PreShowLauncher.tsx";
 import { SearchSheet, type SearchSelection } from "./SearchSheet.tsx";
+import { getOpenerSuggestions } from "./openerSuggestions.ts";
 import { WakeLockNotice } from "./WakeLockNotice.tsx";
 import { WhyDetail } from "./WhyDetail.tsx";
 import { useShowSession } from "./useShowSession.ts";
@@ -364,6 +365,12 @@ export function ShowView() {
   // both collapse so the "Search for the opener" orb centers with no blank bar.
   const openerSeeded = session.currentSongId !== null;
 
+  // Pre-opener opener suggestions (QUICK-260718-1no) — a stable, module-memoized
+  // top-N recency-weighted opener list (NOT a hook, so it's safe below the early
+  // returns above); passed to SearchSheet only pre-opener so mid-show an empty
+  // search stays blank exactly as today.
+  const openerSuggestions = getOpenerSuggestions();
+
   return withBackground(
     <>
       {/* Region 1 — Show-Mode header slot extending the AppShell chrome: the
@@ -456,6 +463,9 @@ export function ShowView() {
           handleUnknown();
           setSearchOpen(false);
         }}
+        openerSuggestions={
+          session.currentSongId === null ? openerSuggestions : undefined
+        }
       />
 
       {/* Older-entry edit / delete (confirm) / rename-??? from a trail tap
