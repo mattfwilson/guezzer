@@ -27,8 +27,8 @@ interface ExploreFilterFabProps {
   onOpenChange: (open: boolean) => void;
   view: ExploreView;
   onViewChange: (view: ExploreView) => void;
-  edgeThreshold: number;
-  onEdgeThresholdChange: (threshold: number) => void;
+  topK: number;
+  onTopKChange: (topK: number) => void;
   /** Dex overlay on? (DEX-05/D-10, ON by default). Forwarded to the panel switch. */
   dexOverlay: boolean;
   onDexOverlayChange: (on: boolean) => void;
@@ -39,8 +39,8 @@ export function ExploreFilterFab({
   onOpenChange,
   view,
   onViewChange,
-  edgeThreshold,
-  onEdgeThresholdChange,
+  topK,
+  onTopKChange,
   dexOverlay,
   onDexOverlayChange,
 }: ExploreFilterFabProps) {
@@ -60,8 +60,8 @@ export function ExploreFilterFab({
         <ExploreFilterPanel
           view={view}
           onViewChange={onViewChange}
-          edgeThreshold={edgeThreshold}
-          onEdgeThresholdChange={onEdgeThresholdChange}
+          topK={topK}
+          onTopKChange={onTopKChange}
           dexOverlay={dexOverlay}
           onDexOverlayChange={onDexOverlayChange}
         />
