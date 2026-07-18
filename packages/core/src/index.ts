@@ -240,13 +240,16 @@ export {
  * artifacts the predictor and dex already consume (one pipeline, CLAUDE.md):
  * `deriveConstellation` reshapes the matrix into the force-graph `{nodes, links}`
  * (mutation-safe fromId/toId, EXPL-01); `edgesAtThreshold` is the D-08 render-pass
- * edge filter (node population preserved); `rankOutgoing` yields a node's complete
- * raw outgoing history — never `predict()` (EXPL-02/D-01..D-04). The renderer
- * (`react-force-graph-2d`) and rotation/dex wiring live app-side.
+ * edge filter (node population preserved); `topKEdgesPerNode` is the degree-aware
+ * declutter sparsifier (each source's K highest-count OUT edges, EXPL-04/EXPL-06);
+ * `rankOutgoing` yields a node's complete raw outgoing history — never `predict()`
+ * (EXPL-02/D-01..D-04). The renderer (`react-force-graph-2d`) and rotation/dex
+ * wiring live app-side.
  */
 export {
   deriveConstellation,
   edgesAtThreshold,
+  topKEdgesPerNode,
   type ConstellationNode,
   type ConstellationLink,
   type ConstellationData,

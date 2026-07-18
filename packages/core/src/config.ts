@@ -306,27 +306,27 @@ export const config = {
     ROTATION_WINDOW_SHOWS: 5,
 
     /**
-     * [VERIFIED] D-07 (07-RESEARCH §Data-Driven Defaults): edge slider default
-     * ("played together ≥ X times"). 1,946 of 2,987 corpus edges (65%) are
-     * one-play edges — exactly the misleading 100%-from-one-play class D-07
-     * exists to kill. Threshold ≥2 removes all of them by construction,
-     * leaving a legible 56-node / 174-edge default sky within the N=5
-     * rotation subgraph (≥3 would thin it to 103 edges).
+     * [VERIFIED] D-07 (07-RESEARCH §Data-Driven Defaults, remeasured 2026-07-17):
+     * top-K-per-node declutter default — draw each song's K highest-count OUT
+     * edges (degree-aware sparsification, `topKEdgesPerNode`), NOT a global
+     * "played together ≥ X" gate. At the old count≥2 gate 1,041 edges drew — a
+     * hairball dominated by power-law hubs (max out-degree 107). K=2 caps every
+     * node's out-degree to draw ~332 edges (−68%), a legible sky; focus reveals a
+     * node's FULL real neighborhood past this gate.
      */
-    EDGE_COUNT_THRESHOLD_DEFAULT: 2,
+    TOP_K_PER_NODE_DEFAULT: 2,
 
     /**
-     * [VERIFIED] D-07: edge slider lower bound (count ≥ X). Minimum 1 restores
-     * the full truth — every observed transition — for whoever wants it.
+     * [VERIFIED] D-07: top-K lower bound. K=1 draws only each song's single
+     * strongest successor — the sparsest, most skeletal sky.
      */
-    EDGE_SLIDER_MIN: 1,
+    TOP_K_PER_NODE_MIN: 1,
 
     /**
-     * [VERIFIED] D-07: edge slider upper bound. Max observed count is 224, but
-     * ≥10 already thins to 133 edges catalog-wide — deeper cuts add nothing
-     * legible, so the slider caps at 10.
+     * [VERIFIED] D-07: top-K upper bound. Range now 1–5 (top-3 already draws 441
+     * edges; deeper K re-hairballs the hubs), so the slider caps at 5.
      */
-    EDGE_SLIDER_MAX: 10,
+    TOP_K_PER_NODE_MAX: 5,
 
     /**
      * [VERIFIED] D-04: ranked outgoing bars shown before the "Show all N"
