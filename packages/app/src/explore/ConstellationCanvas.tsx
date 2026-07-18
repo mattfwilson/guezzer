@@ -36,6 +36,7 @@ import {
 import { config } from "../config.ts";
 import { tuningColor } from "../show/tuningColor.ts";
 import { ExploreBackground } from "./ExploreBackground.tsx";
+import { useVisibleViewportHeight } from "./useVisibleViewportHeight.ts";
 // Depth draw-pass color helpers (quick task 260717-ual). The format-agnostic
 // parseColor / mixColor / fadeToward / sphereGradient live in depthColor.ts so the
 // spike-001 bug #1 blend (hex AND rgb() inputs, never NaN) is unit-tested in
@@ -173,6 +174,15 @@ export function ConstellationCanvas({
   // Held for camera control (centerAt/zoom) the chain-hop focus needs in a later slice.
   const fgRef = useRef<FgMethods | undefined>(undefined);
   const [size, setSize] = useState({ width: 0, height: 0 });
+
+  // A11Y-03: the SAME shared visible-viewport source the NodeSheet peek + FAB lift
+  // read. The container ResizeObserver already catches element-box resizes (address-
+  // bar collapse, orientation, Android keyboard that reflows the layout box), but
+  // the iOS on-screen keyboard shrinks ONLY `visualViewport` — the constellation
+  // box is unchanged — so `size.height` alone would miss it and the camera would
+  // snap off the focused node. Threading this into the focus-camera effect's deps
+  // (below) re-frames the focused node on ANY visible-viewport change.
+  const visibleViewportHeight = useVisibleViewportHeight();
 
   // Nebula motion-parallax (quick task 260717-ual): the DAMPED graph transform the
   // sky follows, sourced from `<ForceGraph2D onZoom>` (interaction-driven only —
@@ -331,7 +341,11 @@ export function ConstellationCanvas({
       ((0.5 - config.explore.FOCUS_TARGET_TOP_FRACTION) * size.height) / k;
     fg.zoom(k, ms);
     fg.centerAt(node.x, node.y + offsetWorld, ms);
-  }, [focusId, graphData, size.height]);
+    // `visibleViewportHeight` is in the deps (A11Y-03) so an iOS keyboard show/hide
+    // — which changes visualViewport but NOT the container box / `size.height` —
+    // still re-frames the focused node instead of leaving it snapped off. The frozen
+    // fx/fy layout is untouched (EXPL-06): this only re-issues the camera move.
+  }, [focusId, graphData, size.height, visibleViewportHeight]);
 
   const nodeCanvasObject = (
     node: FgNode,
