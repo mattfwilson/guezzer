@@ -18,11 +18,11 @@ describe("app/core config mirror", () => {
     expect(app.explore.ROTATION_WINDOW_SHOWS).toBe(
       core.explore.ROTATION_WINDOW_SHOWS,
     );
-    expect(app.explore.EDGE_COUNT_THRESHOLD_DEFAULT).toBe(
-      core.explore.EDGE_COUNT_THRESHOLD_DEFAULT,
+    expect(app.explore.TOP_K_PER_NODE_DEFAULT).toBe(
+      core.explore.TOP_K_PER_NODE_DEFAULT,
     );
-    expect(app.explore.EDGE_SLIDER_MIN).toBe(core.explore.EDGE_SLIDER_MIN);
-    expect(app.explore.EDGE_SLIDER_MAX).toBe(core.explore.EDGE_SLIDER_MAX);
+    expect(app.explore.TOP_K_PER_NODE_MIN).toBe(core.explore.TOP_K_PER_NODE_MIN);
+    expect(app.explore.TOP_K_PER_NODE_MAX).toBe(core.explore.TOP_K_PER_NODE_MAX);
     expect(app.dex.OWNER_NAME_MAX_LENGTH).toBe(core.dex.OWNER_NAME_MAX_LENGTH);
   });
 });

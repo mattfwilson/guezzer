@@ -9,8 +9,8 @@
  *      a muted helper line under Rotation. Rotation is the opening default (D-03/
  *      D-12); N is config-only (`ROTATION_WINDOW_SHOWS`) — there is deliberately
  *      NO second slider for the rotation window.
- *   2. Edge-count slider ("played together ≥ X times", range 1–10, default 2).
- *      Changes fire IMMEDIATELY — the slider is a pure render-pass edge filter in
+ *   2. Top-K-per-node declutter slider ("Top N per song", range 1–5, default 2).
+ *      Changes fire IMMEDIATELY — the slider is a pure render-pass top-K filter in
  *      the canvas, no simulation reheat (D-07/D-09). A tabular-nums readout tracks
  *      the thumb.
  *   3. The dex-overlay switch (DEX-05/D-10) — now wired live: ExploreView owns the
@@ -32,10 +32,10 @@ interface ExploreFilterPanelProps {
   view: ExploreView;
   /** Switch the drawn node population (render draw-gate; positions never churn). */
   onViewChange: (view: ExploreView) => void;
-  /** Current edge-count threshold (links with count < this are hidden). */
-  edgeThreshold: number;
-  /** Live edge-slider handler — applied immediately in the render pass. */
-  onEdgeThresholdChange: (threshold: number) => void;
+  /** Current top-K per song (each source's K highest-count OUT edges are drawn). */
+  topK: number;
+  /** Live top-K slider handler — applied immediately in the render pass. */
+  onTopKChange: (topK: number) => void;
   /**
    * The dex-overlay switch state + handler (DEX-05/D-10). ExploreView passes both
    * live, so the switch is interactive. Kept optional only for the fallback: if a
@@ -48,13 +48,14 @@ interface ExploreFilterPanelProps {
 export function ExploreFilterPanel({
   view,
   onViewChange,
-  edgeThreshold,
-  onEdgeThresholdChange,
+  topK,
+  onTopKChange,
   dexOverlay,
   onDexOverlayChange,
 }: ExploreFilterPanelProps) {
   const copy = config.copy.explore;
-  const { EDGE_SLIDER_MIN, EDGE_SLIDER_MAX, ROTATION_WINDOW_SHOWS } = config.explore;
+  const { TOP_K_PER_NODE_MIN, TOP_K_PER_NODE_MAX, ROTATION_WINDOW_SHOWS } =
+    config.explore;
   const overlayReserved = onDexOverlayChange == null;
 
   return (
@@ -91,24 +92,24 @@ export function ExploreFilterPanel({
         {copy.rotationHelper(ROTATION_WINDOW_SHOWS)}
       </p>
 
-      {/* 2. Edge-count slider — "played together ≥ X". Live: fires immediately as
-             a render-pass edge filter, no reheat (D-07). Row ≥44px tall. */}
+      {/* 2. Top-K-per-node declutter slider — "Top N per song". Live: fires
+             immediately as a render-pass top-K filter, no reheat (D-07). Row ≥44px. */}
       <div className="mt-4 flex min-h-11 flex-col justify-center">
         <div className="flex items-baseline justify-between">
           <label htmlFor="explore-edge-slider" className="text-[14px] font-semibold text-text-primary">
-            {copy.edgeSliderLabel(edgeThreshold)}
+            {copy.edgeSliderLabel(topK)}
           </label>
-          <span className="text-[14px] text-text-muted tabular-nums">{edgeThreshold}</span>
+          <span className="text-[14px] text-text-muted tabular-nums">{topK}</span>
         </div>
         <input
           id="explore-edge-slider"
           type="range"
-          min={EDGE_SLIDER_MIN}
-          max={EDGE_SLIDER_MAX}
+          min={TOP_K_PER_NODE_MIN}
+          max={TOP_K_PER_NODE_MAX}
           step={1}
-          value={edgeThreshold}
-          onChange={(e) => onEdgeThresholdChange(Number(e.target.value))}
-          aria-valuetext={copy.edgeSliderLabel(edgeThreshold)}
+          value={topK}
+          onChange={(e) => onTopKChange(Number(e.target.value))}
+          aria-valuetext={copy.edgeSliderLabel(topK)}
           className="mt-2 h-11 w-full cursor-pointer accent-accent touch-manipulation focus-visible:outline-2 focus-visible:outline-accent"
         />
       </div>

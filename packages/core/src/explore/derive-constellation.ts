@@ -90,3 +90,41 @@ export function edgesAtThreshold(
 ): ConstellationLink[] {
   return links.filter((l) => l.count >= threshold);
 }
+
+/**
+ * EXPL-04/EXPL-06 degree-aware sparsifier: keep each source song's K highest-count
+ * OUT edges, returning the UNION across all sources. A pure render-pass helper —
+ * like `edgesAtThreshold`, it filters LINKS only and never touches the node
+ * population (per EXPL-04/EXPL-06: no graphData rebuild, no d3 reheat; frozen
+ * fx/fy survive). Operates strictly on the immutable `fromId`/`toId` copies, never
+ * the post-tick-mutated `source`/`target` (RESEARCH Pitfall 1).
+ *
+ * Where the global `count >= threshold` gate draws a hairball (the power-law hubs
+ * fan out 100+ edges), this caps every node's out-degree to K. Default K=2 draws
+ * ~332 of 2,987 corpus edges (−68% vs the 1,041 at count≥2) — a legible sky.
+ *
+ * Membership rule (documented): a link is kept iff it is in its OWN source node's
+ * top-K OUT set. A consequence: a reciprocal pair A→B and B→A both generally
+ * survive, since each is a top edge from its own source — exactly the case the
+ * canvas then bows apart with `linkCurvature`. Tie-break is deterministic (count
+ * desc, then toId asc), never input-order dependent, mirroring the file's
+ * sort-comparator idiom.
+ */
+export function topKEdgesPerNode(
+  links: readonly ConstellationLink[],
+  k: number,
+): ConstellationLink[] {
+  const bySource = new Map<number, ConstellationLink[]>();
+  for (const l of links) {
+    const bucket = bySource.get(l.fromId);
+    if (bucket) bucket.push(l);
+    else bySource.set(l.fromId, [l]);
+  }
+
+  const kept: ConstellationLink[] = [];
+  for (const bucket of bySource.values()) {
+    bucket.sort((a, b) => b.count - a.count || a.toId - b.toId);
+    for (const l of bucket.slice(0, k)) kept.push(l);
+  }
+  return kept;
+}

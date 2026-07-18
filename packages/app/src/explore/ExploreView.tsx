@@ -36,14 +36,15 @@ export function ExploreView() {
   // the useMemo below re-derives the constellation exactly once.
   const result = loadMatrix();
 
-  // Focus is live (tap-to-focus + chain-hop). View + edge-threshold are live this
+  // Focus is live (tap-to-focus + chain-hop). View + top-K declutter are live this
   // slice (07-05); the dex-overlay state stays forward-scaffold for 07-06.
   const [focusId, setFocusId] = useState<number | null>(null);
   // Rotation is the OPENING DEFAULT (D-03/D-12): the last-N-shows active sky.
   const [view, setView] = useState<"rotation" | "full">("rotation");
-  // Edge-count slider default (D-07): ≥2 kills the misleading one-play edges.
-  const [edgeThreshold, setEdgeThreshold] = useState<number>(
-    config.explore.EDGE_COUNT_THRESHOLD_DEFAULT,
+  // Top-K-per-node declutter default (D-07): K=2 draws each song's 2 strongest OUT
+  // edges (−68% vs the old hairball); focus reveals the full neighborhood past it.
+  const [topK, setTopK] = useState<number>(
+    config.explore.TOP_K_PER_NODE_DEFAULT,
   );
   // Filter panel open? Owned HERE (not the FAB) so a canvas tap can collapse it
   // without a scrim — the graph must stay live while sliding (D-09).
@@ -183,7 +184,7 @@ export function ExploreView() {
         focusId={focusId}
         onFocus={handleFocus}
         visibleNodeIds={visibleNodeIds}
-        edgeThreshold={edgeThreshold}
+        topK={topK}
         overlay={dexOverlayActive}
         sightingsFor={sightingsFor}
       />
@@ -206,8 +207,8 @@ export function ExploreView() {
         onOpenChange={setFilterOpen}
         view={view}
         onViewChange={setView}
-        edgeThreshold={edgeThreshold}
-        onEdgeThresholdChange={setEdgeThreshold}
+        topK={topK}
+        onTopKChange={setTopK}
         dexOverlay={dexOverlay}
         onDexOverlayChange={setDexOverlay}
       />

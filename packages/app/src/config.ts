@@ -318,6 +318,16 @@ export const config = {
      */
     LINK_DISTANCE: 180,
     /**
+     * [ASSUMED] Link bow magnitude (react-force-graph-2d `linkCurvature`). Bows
+     * reciprocal A→B / B→A pairs to opposite sides (deterministic sign by
+     * endpoint-id order) so they no longer overlap on one straight line;
+     * non-reciprocal edges share the same gentle curve (acceptable). A render-only
+     * constant, so it lives app-side with no core mirror — consistent with the
+     * NODE_RADIUS_* / CHARGE_STRENGTH render constants. 0.15–0.25 is the sensible
+     * band; tune on device later.
+     */
+    LINK_CURVATURE: 0.2,
+    /**
      * [device spike 2026-07-16] px padding around the connected main grouping when
      * the constellation auto-frames on settle (zoomToFit). The frame targets nodes
      * that carry at least one edge, so free-floating stars (common once the edge
@@ -359,27 +369,27 @@ export const config = {
     ROTATION_WINDOW_SHOWS: 5,
 
     /**
-     * D-07 edge slider default ("played together ≥ X times"). MIRRORS
-     * `config.explore.EDGE_COUNT_THRESHOLD_DEFAULT` in @guezzer/core; the two MUST
-     * stay equal (2). ≥2 kills every misleading one-play (100%-from-one) edge by
-     * construction while keeping the node population intact (D-08 free-floating
-     * stars).
+     * D-07 top-K-per-node declutter default ("Top N per song"). MIRRORS
+     * `config.explore.TOP_K_PER_NODE_DEFAULT` in @guezzer/core; the two MUST stay
+     * equal (2). K=2 draws each song's 2 highest-count OUT edges (−68% vs the old
+     * count≥2 hairball) while keeping the node population intact (D-08 free-floating
+     * stars); a focused node still reveals its FULL neighborhood past this gate.
      */
-    EDGE_COUNT_THRESHOLD_DEFAULT: 2,
+    TOP_K_PER_NODE_DEFAULT: 2,
 
     /**
-     * D-07 edge slider lower bound (count ≥ X). MIRRORS
-     * `config.explore.EDGE_SLIDER_MIN` in @guezzer/core; the two MUST stay equal
-     * (1). Minimum 1 restores every observed transition for whoever wants it.
+     * D-07 top-K lower bound. MIRRORS `config.explore.TOP_K_PER_NODE_MIN` in
+     * @guezzer/core; the two MUST stay equal (1). K=1 draws only each song's single
+     * strongest successor — the sparsest sky.
      */
-    EDGE_SLIDER_MIN: 1,
+    TOP_K_PER_NODE_MIN: 1,
 
     /**
-     * D-07 edge slider upper bound. MIRRORS `config.explore.EDGE_SLIDER_MAX` in
-     * @guezzer/core; the two MUST stay equal (10) — deeper cuts add nothing
-     * legible, so the slider caps at 10.
+     * D-07 top-K upper bound. MIRRORS `config.explore.TOP_K_PER_NODE_MAX` in
+     * @guezzer/core; the two MUST stay equal (5) — deeper K re-hairballs the hubs,
+     * so the slider caps at 5.
      */
-    EDGE_SLIDER_MAX: 10,
+    TOP_K_PER_NODE_MAX: 5,
   },
 
   /** UI-SPEC §Copywriting Contract. */
@@ -780,8 +790,8 @@ export const config = {
       toggleFull: "Full catalog",
       /** Filter panel — rotation helper. N interpolated from config.explore.ROTATION_WINDOW_SHOWS (never hardcoded). */
       rotationHelper: (n: number): string => `Songs from the last ${n} shows.`,
-      /** Filter panel — edge slider label; {x} is the live tabular-nums value readout beside the thumb. */
-      edgeSliderLabel: (x: number): string => `Played together ≥ ${x}×`,
+      /** Filter panel — top-K-per-node declutter slider label; {x} is the live tabular-nums value readout beside the thumb. */
+      edgeSliderLabel: (x: number): string => `Top ${x} per song`,
       /** Filter panel — dex-overlay switch (ON default, D-10). */
       overlaySwitch: "My dex overlay",
       /** Sheet header subline — all-time play count (Label, muted, tabular-nums). */

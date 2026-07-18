@@ -3,6 +3,7 @@ import type { MatrixEdge, MatrixNode, TransitionMatrix } from "../../src/domain/
 import {
   deriveConstellation,
   edgesAtThreshold,
+  topKEdgesPerNode,
 } from "../../src/explore/derive-constellation.ts";
 
 /** Inert matrix-node factory — only the constellation-relevant fields matter. */
@@ -77,5 +78,67 @@ describe("deriveConstellation (EXPL-01)", () => {
   it("threshold x=1 restores the full truth", () => {
     const data = deriveConstellation(fixture);
     expect(edgesAtThreshold(data.links, 1)).toHaveLength(2);
+  });
+});
+
+describe("topKEdgesPerNode (declutter — degree-aware sparsifier)", () => {
+  /** Shorthand: build a matrix from raw edges over a padded node set, derive its links. */
+  function links(edges: MatrixEdge[]) {
+    // Collect every songId the edges touch so deriveConstellation has matching nodes
+    // (node identity is irrelevant to the sparsifier, which reads fromId/toId/count).
+    const ids = new Set<number>();
+    for (const e of edges) {
+      ids.add(e.from);
+      ids.add(e.to);
+    }
+    const nodes = [...ids].map((id) => node(id, `song-${id}`));
+    return deriveConstellation(matrix(nodes, edges)).links;
+  }
+
+  /** Stable "fromId->toId" identity used across assertions. */
+  const key = (l: { fromId: number; toId: number }) => `${l.fromId}->${l.toId}`;
+
+  it("hub cap: a source with >K out-edges keeps EXACTLY its K highest-count edges", () => {
+    // Source 10 has 4 out-edges; k=2 keeps the two highest counts (50, 40 → to 40, 30).
+    const kept = topKEdgesPerNode(
+      links([edge(10, 20, 10), edge(10, 30, 40), edge(10, 40, 50), edge(10, 50, 20)]),
+      2,
+    );
+    expect(kept).toHaveLength(2);
+    expect(kept.map(key).sort()).toEqual(["10->30", "10->40"]);
+  });
+
+  it("leaf keep-all: a source with <K out-edges keeps all of them (no crash, no padding)", () => {
+    const kept = topKEdgesPerNode(links([edge(10, 20, 5), edge(10, 30, 3)]), 5);
+    expect(kept).toHaveLength(2);
+    expect(kept.map(key).sort()).toEqual(["10->20", "10->30"]);
+  });
+
+  it("deterministic tie-break: equal counts, k=1 → the lower-toId edge wins", () => {
+    const kept = topKEdgesPerNode(links([edge(10, 30, 5), edge(10, 20, 5)]), 1);
+    expect(kept).toHaveLength(1);
+    expect(key(kept[0])).toBe("10->20");
+  });
+
+  it("k=1: each source contributes at most one edge", () => {
+    const kept = topKEdgesPerNode(
+      links([edge(10, 20, 5), edge(10, 30, 3), edge(40, 50, 7), edge(40, 60, 2)]),
+      1,
+    );
+    expect(kept).toHaveLength(2);
+    expect(kept.map(key).sort()).toEqual(["10->20", "40->50"]);
+  });
+
+  it("k >= max out-degree: every link survives (union equals input)", () => {
+    const all = links([edge(10, 20, 5), edge(10, 30, 3), edge(20, 30, 1)]);
+    const kept = topKEdgesPerNode(all, 10);
+    expect(kept).toHaveLength(all.length);
+    expect(kept.map(key).sort()).toEqual(all.map(key).sort());
+  });
+
+  it("reciprocal pair both survive: A->B and B->A, k=1 → both kept (each its own source's top)", () => {
+    const kept = topKEdgesPerNode(links([edge(10, 20, 5), edge(20, 10, 3)]), 1);
+    expect(kept).toHaveLength(2);
+    expect(kept.map(key).sort()).toEqual(["10->20", "20->10"]);
   });
 });
