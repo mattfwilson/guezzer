@@ -418,8 +418,8 @@
       "songId": 80,
       "name": "Fury",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 81,
@@ -1356,64 +1356,64 @@
       "songId": 255,
       "name": "Love For Me",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 256,
       "name": "Oh God",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 257,
       "name": "Other Side",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 258,
       "name": "Moby Dick",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 263,
       "name": "Happy Birthday To You",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 265,
       "name": "Talk Talk Talk",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 266,
       "name": "I Gotta Rock 'n' Roll",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 267,
       "name": "I Wanna Be Your Dog",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 268,
       "name": "Open My Eyes",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 269,
@@ -1433,99 +1433,99 @@
       "songId": 272,
       "name": "Pushin' Too Hard",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 274,
       "name": "High School",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 276,
       "name": "Let There Be Rock",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 277,
       "name": "All My Loving",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 278,
       "name": "Dirty Deeds Done Dirt Cheap",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 279,
       "name": "Proud Mary",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 280,
       "name": "La Grange",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 281,
       "name": "I Was Made for Lovin' You",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 282,
       "name": "Whole Lotta Love",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 283,
       "name": "(You Gotta) Fight for Your Right (To Party!)",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 284,
       "name": "These Boots Are Made for Walkin'",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 285,
       "name": "Every 1's a Winner",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 289,
       "name": "On the Road Again",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 290,
       "name": "Silver Machine",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 314,
@@ -1573,15 +1573,15 @@
       "songId": 330,
       "name": "Boogie",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 381,
       "name": "Ghost",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 387,
@@ -1636,29 +1636,29 @@
       "songId": 404,
       "name": "Gypsy",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 405,
       "name": "Stoned",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 424,
       "name": "Rock N’ Roll",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 425,
       "name": "T.V. Eye",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 430,
@@ -1678,8 +1678,8 @@
       "songId": 439,
       "name": "Jam",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 440,
@@ -1748,8 +1748,8 @@
       "songId": 498,
       "name": "Treaty",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 500,
@@ -1818,36 +1818,36 @@
       "songId": 927,
       "name": "Jailbreak",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 980,
       "name": "Police Truck",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 992,
       "name": "JOJAM",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 996,
       "name": "LUSEQ",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     },
     {
       "songId": 1022,
       "name": "Dueling Drums",
       "family": "standard",
-      "needsReview": true,
-      "source": "album-default"
+      "needsReview": false,
+      "source": "hand-tagged"
     }
   ]
 }
