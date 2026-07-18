@@ -30,16 +30,21 @@ describe("fitOrbLabel (D-21 wrap/scale-to-fit)", () => {
     });
   });
 
-  it("wraps a long name to two lines BEFORE any font shrink", () => {
+  it("wraps a long name across lines BEFORE any font shrink", () => {
+    // POLISH-01 retune (plan 08-06): with the conservative CHAR_WIDTH_FACTOR (0.55)
+    // this name wraps to three whole-word lines at the base font — still no shrink.
     const result = fitOrbLabel("The Dripping Tap", 88, orbOpts);
     expect(result.fontPx).toBe(orbOpts.baseFontPx);
-    expect(result.lines).toHaveLength(2);
+    expect(result.lines.length).toBeGreaterThan(1);
+    expect(result.lines.length).toBeLessThanOrEqual(orbOpts.maxLines);
     expect(result.ellipsized).toBe(false);
     expect(result.lines.join(" ")).toBe("The Dripping Tap");
   });
 
   it("shrinks toward the floor when the wrap at base font overflows the line budget", () => {
-    const result = fitOrbLabel("Nonagon Infinity Opens The Door Again", 88, orbOpts);
+    // A small (56px) orb: the name can't wrap whole within maxLines at base font,
+    // so the heuristic shrinks toward the floor while keeping every word whole.
+    const result = fitOrbLabel("Nonagon Infinity Opens The Door Again", 56, orbOpts);
     expect(result.fontPx).toBeGreaterThanOrEqual(orbOpts.minFontPx);
     expect(result.fontPx).toBeLessThan(orbOpts.baseFontPx);
     expect(result.lines.length).toBeLessThanOrEqual(orbOpts.maxLines);
@@ -56,8 +61,10 @@ describe("fitOrbLabel (D-21 wrap/scale-to-fit)", () => {
   });
 
   it("hard-breaks a single word too long for any line, preserving the FULL word (no ellipsis)", () => {
-    // Longer than a line even at the floor → broken across lines rather than clipped.
-    const result = fitOrbLabel("Interdimensional", 88, orbOpts);
+    // In a small (56px) orb this word is longer than a line even at the floor →
+    // broken across lines rather than clipped (POLISH-01 retune: at larger orbs the
+    // conservative fit keeps it whole, so a tight orb is used to exercise the break).
+    const result = fitOrbLabel("Interdimensional", 56, orbOpts);
     expect(result.ellipsized).toBe(false);
     expect(result.lines.length).toBeGreaterThan(1);
     expect(result.lines.length).toBeLessThanOrEqual(orbOpts.maxLines);
@@ -65,9 +72,11 @@ describe("fitOrbLabel (D-21 wrap/scale-to-fit)", () => {
   });
 
   it("never shrinks below minFontPx and ellipsizes only at the floor when over budget", () => {
+    // Two words that hard-break past maxLines even in a tight orb — the only path
+    // that reaches the (real-name-unreachable) ellipsis safety net.
     const result = fitOrbLabel(
       "Supercalifragilistic Antidisestablishmentarian",
-      88,
+      56,
       orbOpts,
     );
     expect(result.fontPx).toBe(orbOpts.minFontPx);

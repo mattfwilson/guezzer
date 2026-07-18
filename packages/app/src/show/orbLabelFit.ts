@@ -33,8 +33,17 @@ export interface FitOrbLabelResult {
   ellipsized: boolean;
 }
 
-/** Average character advance as a fraction of font px for the 600-weight system font. */
-const CHAR_WIDTH_FACTOR = 0.52;
+/**
+ * Average character advance as a fraction of font px for the 600-weight system
+ * font. Raised from the old optimistic 0.52 to a CONSERVATIVE 0.55 (POLISH-01,
+ * plan 08-06): the pure heuristic has no real glyph metrics and drifts optimistic
+ * (RESEARCH §Orb-Label Legibility, three drift sources), so it under-estimated
+ * how many chars actually fit and let long real names ellipsize on-device. The
+ * conservatism is paired with the extra wrap line (ORB_LABEL_MAX_LINES 4) and the
+ * lower 10px floor so every real catalog name still fits without ellipsis
+ * (locked by orbLabelFit.catalog.test.ts, confirmed on-device via #/dev/orb-fit).
+ */
+const CHAR_WIDTH_FACTOR = 0.55;
 /** Fraction of the diameter usable as a per-line text chord. */
 const USABLE_WIDTH_FACTOR = 1;
 
