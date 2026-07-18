@@ -3,6 +3,7 @@ import { config } from "../config";
 import { useInstallState } from "../pwa/install/useInstallState";
 import { navigate } from "../routing/useHashRoute";
 import { IosInstallInstructions } from "./IosInstallInstructions";
+import { Sheet } from "./Sheet";
 import { VersionStamp } from "./VersionStamp";
 
 interface AppMenuProps {
@@ -17,8 +18,6 @@ interface AppMenuProps {
  */
 export function AppMenu({ open, onClose }: AppMenuProps) {
   const { canInstall, promptInstall, isIos } = useInstallState();
-
-  if (!open) return null;
 
   const handleInstallClick = () => {
     if (canInstall) {
@@ -38,67 +37,55 @@ export function AppMenu({ open, onClose }: AppMenuProps) {
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Menu"
-      className="fixed inset-0 z-20 flex flex-col justify-end bg-black/50"
-      onClick={onClose}
-    >
-      <div
-        className="rounded-t-2xl border-t border-hairline bg-elevated px-4 pt-4"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 32px)" }}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-[20px] font-semibold leading-tight text-text-primary">
-            Guezzer
-          </span>
-          <button
-            type="button"
-            aria-label="Close menu"
-            onClick={onClose}
-            className="flex min-h-11 min-w-11 items-center justify-center text-text-muted"
-          >
-            <X size={22} />
-          </button>
-        </div>
-
+    <Sheet open={open} onClose={onClose} modal variant="bottom-sheet" ariaLabel="Menu">
+      <div className="flex items-center justify-between">
+        <span className="text-[20px] font-semibold leading-tight text-text-primary">
+          Guezzer
+        </span>
         <button
           type="button"
-          onClick={handleInstallClick}
-          className="mt-3 flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-4 text-[14px] font-semibold text-surface"
+          aria-label="Close menu"
+          onClick={onClose}
+          className="flex min-h-11 min-w-11 items-center justify-center text-text-muted"
         >
-          {config.copy.installCta}
+          <X size={22} />
         </button>
-
-        {/* D-14: Settings entry (gear icon) → #/settings. Neutral row styling
-            (min-h-11), never accent — the one gold CTA stays Export in-view. */}
-        <button
-          type="button"
-          onClick={handleSettingsClick}
-          className="mt-3 flex min-h-11 w-full items-center gap-3 rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary"
-        >
-          <Settings size={20} />
-          {config.copy.settings.menuLabel}
-        </button>
-
-        {isIos && (
-          <div className="mt-3 border-t border-hairline pt-3">
-            <IosInstallInstructions />
-          </div>
-        )}
-
-        {!canInstall && !isIos && (
-          <p className="mt-3 text-[14px] leading-normal text-text-muted">
-            {config.copy.installUnavailable}
-          </p>
-        )}
-
-        <div className="mt-3 border-t border-hairline pt-3">
-          <VersionStamp />
-        </div>
       </div>
-    </div>
+
+      <button
+        type="button"
+        onClick={handleInstallClick}
+        className="mt-3 flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-4 text-[14px] font-semibold text-surface"
+      >
+        {config.copy.installCta}
+      </button>
+
+      {/* D-14: Settings entry (gear icon) → #/settings. Neutral row styling
+          (min-h-11), never accent — the one gold CTA stays Export in-view. */}
+      <button
+        type="button"
+        onClick={handleSettingsClick}
+        className="mt-3 flex min-h-11 w-full items-center gap-3 rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary"
+      >
+        <Settings size={20} />
+        {config.copy.settings.menuLabel}
+      </button>
+
+      {isIos && (
+        <div className="mt-3 border-t border-hairline pt-3">
+          <IosInstallInstructions />
+        </div>
+      )}
+
+      {!canInstall && !isIos && (
+        <p className="mt-3 text-[14px] leading-normal text-text-muted">
+          {config.copy.installUnavailable}
+        </p>
+      )}
+
+      <div className="mt-3 border-t border-hairline pt-3">
+        <VersionStamp />
+      </div>
+    </Sheet>
   );
 }
