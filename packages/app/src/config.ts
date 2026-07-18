@@ -215,10 +215,16 @@ export const config = {
       content: 10,
       /** Transient bottom notifications — UpdateToast + InstallBanner. */
       toast: 20,
-      /** Resting FABs + FabMenu action rows. */
+      /**
+       * FabMenu full-viewport scrim: above content, BELOW the `fab` tier it
+       * dims. It only needs to sit over the orbit stage — never over the FAB
+       * toggle or its own action rows — so it MUST stay strictly below `fab`,
+       * otherwise the scrim paints on top of the speed-dial actions and eats
+       * every tap (CR-01 regression guard: fabScrim < fab).
+       */
+      fabScrim: 25,
+      /** Resting FABs + FabMenu action rows (strictly above `fabScrim`). */
       fab: 30,
-      /** FabMenu full-viewport scrim (below sheets, above content). */
-      fabScrim: 35,
       /** Modal sheet/dialog backdrops. */
       sheetScrim: 40,
       /** Sheet/dialog content (all modals + the non-modal NodeSheet). */

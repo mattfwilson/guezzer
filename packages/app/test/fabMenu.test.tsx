@@ -109,6 +109,15 @@ describe("FabMenu (D-20 speed-dial replacing ActionBar)", () => {
     }
   });
 
+  // CR-01 regression guard: jsdom fires onClick regardless of paint order, so the
+  // behavioural tests above CANNOT catch a z-index inversion. Assert the numeric
+  // tier ordering directly — the FabMenu scrim (z.fabScrim) MUST paint strictly
+  // BELOW the FAB + action-row container (z.fab), or the open menu becomes an
+  // untappable scrim over every Show-Mode action.
+  it("scrim tier sits strictly below the FAB container tier (paint-order guard)", () => {
+    expect(config.ui.z.fabScrim).toBeLessThan(config.ui.z.fab);
+  });
+
   it("the FAB carries the config aria-label; no control is accent-styled", () => {
     renderMenu();
     const fab = screen.getByRole("button", {
