@@ -109,6 +109,10 @@ None - no external service configuration required.
 - PWA-05 is provably closed: the typed-name decision is directly unit-tested, the merge route is component-proven on an evicted DB, and the real union merge is proven to drop no local data.
 - No blockers. Full-workspace `npm test` (including core) is deferred to phase verification since plan 09-01 runs in the same wave.
 
+## Self-Check: PASSED
+
+All created files exist on disk (`ownerMatch.ts`, `ownerMatch.test.ts`, `09-02-SUMMARY.md`) and all task commits are present in git history (`eaf4fa1`, `cd2b4eb`, `6903293`, `a058739`, `0006bd1`). Working tree clean.
+
 ---
 *Phase: 09-data-integrity-restore-ux*
 *Completed: 2026-07-18*
