@@ -47,11 +47,44 @@ describe("deriveConstellation (EXPL-01)", () => {
     [edge(10, 20, 5, 1), edge(20, 30, 1)],
   );
 
-  it("maps nodes to library default-key shape sorted by songId", () => {
+  it("maps nodes to library default-key shape sorted FAR→NEAR (ascending z, then id) with synthetic z", () => {
     const { nodes } = deriveConstellation(fixture);
-    expect(nodes.map((n) => n.id)).toEqual([10, 20, 30]);
-    expect(nodes[0]).toEqual({ id: 10, name: "Robot Stop", playCount: 100, tuningFamily: "standard" });
-    expect(nodes[2]).toEqual({ id: 30, name: "Rattlesnake", playCount: 200, tuningFamily: "microtonal" });
+    // Far→near draw order for occlusion: Gamma Knife (z-min) first, Rattlesnake (z=1) last.
+    // Robot Stop z=√100/√200≈0.707 sits between Gamma Knife (0.5) and Rattlesnake (1).
+    expect(nodes.map((n) => n.id)).toEqual([20, 10, 30]);
+    // z = √playCount / √maxPlayCount, 1 = nearest (max playCount).
+    expect(nodes[0]).toEqual({
+      id: 20,
+      name: "Gamma Knife",
+      playCount: 50,
+      tuningFamily: "standard",
+      z: Math.sqrt(50) / Math.sqrt(200),
+    });
+    expect(nodes[1].z).toBe(Math.sqrt(100) / Math.sqrt(200));
+    expect(nodes[2]).toEqual({
+      id: 30,
+      name: "Rattlesnake",
+      playCount: 200,
+      tuningFamily: "microtonal",
+      z: 1,
+    });
+    // The exact z values requested by the plan.
+    expect(nodes[0].z).toBe(0.5); // Gamma Knife: √50/√200 = √0.25 = 0.5
+    expect(nodes[2].z).toBe(1); // Rattlesnake is the max-play node → nearest
+  });
+
+  it("maxPlayCount===0 guard: every node z===0, no NaN, deterministic songId order", () => {
+    // Degenerate/empty corpus — all playCount 0. No divide-by-zero, no NaN (spike bug class).
+    const zeroFixture = matrix(
+      [node(30, "C-song", 0), node(10, "A-song", 0), node(20, "B-song", 0)],
+      [],
+    );
+    const { nodes } = deriveConstellation(zeroFixture);
+    expect(nodes.map((n) => n.id)).toEqual([10, 20, 30]); // z all equal → songId tie-break
+    for (const n of nodes) {
+      expect(n.z).toBe(0);
+      expect(Number.isNaN(n.z)).toBe(false);
+    }
   });
 
   it("emits links with source/target default accessors AND mutation-safe fromId/toId (Pitfall 1)", () => {
