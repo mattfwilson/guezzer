@@ -35,6 +35,7 @@ import {
 } from "@guezzer/core";
 import { config } from "../config.ts";
 import { tuningColor } from "../show/tuningColor.ts";
+import { ExploreBackground } from "./ExploreBackground.tsx";
 
 /** System font stack (inherited, 07-UI-SPEC §Typography) — also the canvas font. */
 const FONT_STACK =
@@ -449,13 +450,23 @@ export function ConstellationCanvas({
       className="relative flex-1 touch-none select-none overflow-hidden bg-surface"
       style={{ overscrollBehavior: "none" }}
     >
+      {/* Decorative galaxy nebula behind the constellation (quick task 260717-sjg).
+          FIRST child of the `relative` wrapper + `absolute inset-0` → sits behind the
+          canvas in z-order. aria-hidden + pointer-events-none, so it never intercepts
+          the canvas's pan/zoom/tap. Requires the transparent `backgroundColor` below —
+          the wrapper KEEPS `bg-surface` (#0C0C10) as the opaque base so nothing flashes. */}
+      <ExploreBackground />
       {size.width > 0 && size.height > 0 && (
         <ForceGraph2D<ConstellationNode, ConstellationLink>
           ref={fgRef}
           graphData={graphData}
           width={size.width}
           height={size.height}
-          backgroundColor="#0c0c10"
+          // Transparent canvas fill (quick task 260717-sjg): react-force-graph-2d
+          // otherwise clears the canvas OPAQUELY every frame, hiding the DOM nebula
+          // behind it. The wrapper's `bg-surface` provides the base #0C0C10, so the
+          // constellation still reads on dark where there are no blooms.
+          backgroundColor="rgba(0, 0, 0, 0)"
           // Node draw: one replace-mode callback owns fill + label (§Color/§Typography).
           nodeCanvasObject={nodeCanvasObject}
           nodeCanvasObjectMode={() => "replace"}

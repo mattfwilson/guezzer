@@ -390,6 +390,49 @@ export const config = {
      * so the slider caps at 5.
      */
     TOP_K_PER_NODE_MAX: 5,
+
+    /**
+     * Quick task 260717-sjg: GizzVerse (Explore) ambient galaxy backdrop — a
+     * PURELY decorative CSS radial-gradient nebula rendered on a DOM layer BEHIND
+     * the <ForceGraph2D> canvas (ExploreBackground.tsx). The canvas is made
+     * transparent so this shows through; the wrapper's bg-surface (#0C0C10) stays
+     * the opaque base, so the focus-dim (0.12) / Dex-dim (0.35) overlays still read
+     * against #0C0C10 where there are no blooms. It must read as ambient deep-space
+     * depth and NEVER compete with tuning-color node fills, the 20%-alpha muted
+     * edges, or those dim overlays — hence the deliberately LOW bloom opacities.
+     * Motion is transform-only (translate + gentle scale, GPU-composited) and gated
+     * behind prefers-reduced-motion (STATIC by default) — it never touches/reheats
+     * the d3 sim (EXPL-06 settle-and-freeze) and runs ZERO per-frame JS. Every value
+     * is [ASSUMED] — tune on device (single-config ethos: no magic numbers in the
+     * component or CSS). No external assets — CSS gradients only (offline-safe).
+     */
+    background: {
+      /**
+       * [ASSUMED] Off-center nebula blooms, each a soft radial-gradient wash. Kept
+       * LOW opacity (0.10–0.22 subtle band) so a 0.12 focus-dimmed node still reads
+       * over it. Palette per the todo: a violet, an indigo, and a teal bloom.
+       *   - `color`     : bloom hue (#RRGGBB); the gradient fades color→transparent.
+       *   - `opacity`   : peak (center) opacity of the bloom (0–1, LOW).
+       *   - `sizeVmin`  : bloom diameter as a viewport-min (vmin) percentage.
+       *   - `x`/`y`     : normalized 0–1 viewport fractions of the bloom CENTER.
+       *   - `driftXPct` / `driftYPct` : peak drift offset (% of the bloom's own box)
+       *                   at the mid-point of the loop — very small, ambient.
+       *   - `driftMs`   : that bloom's drift-loop period in ms (tens of seconds).
+       *   - `delayMs`   : animation-delay (negative = pre-seeded phase) so the blooms
+       *                   never drift in sync (mirrors the orb-float --float-delay idiom).
+       */
+      blooms: [
+        { color: "#6D28D9", opacity: 0.18, sizeVmin: 95, x: 0.24, y: 0.26, driftXPct: 5, driftYPct: -4, driftMs: 46000, delayMs: 0 }, // violet
+        { color: "#4338CA", opacity: 0.15, sizeVmin: 115, x: 0.78, y: 0.34, driftXPct: -6, driftYPct: 5, driftMs: 57000, delayMs: -13000 }, // indigo
+        { color: "#0D9488", opacity: 0.11, sizeVmin: 85, x: 0.55, y: 0.82, driftXPct: 4, driftYPct: 6, driftMs: 64000, delayMs: -30000 }, // teal
+      ],
+      /** [ASSUMED] Gaussian blur radius in px on each bloom for a soft-edged wash. */
+      BLUR_PX: 64,
+      /** [ASSUMED] Peak scale of each bloom's gentle "breathing" pulse (transform-only, folded into the drift keyframe). */
+      PULSE_SCALE: 1.07,
+      /** [ASSUMED] Faint static star-speck layer opacity (0–1) — pure CSS radial-gradient dots, NO external images (offline-safe); this layer is NOT animated. */
+      SPECK_OPACITY: 0.4,
+    },
   },
 
   /** UI-SPEC §Copywriting Contract. */

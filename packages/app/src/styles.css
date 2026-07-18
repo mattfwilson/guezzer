@@ -136,6 +136,38 @@ body {
   }
 }
 
+/* GizzVerse (Explore) ambient galaxy backdrop (quick task 260717-sjg): the soft
+   nebula blooms in ExploreBackground very slowly drift + gently pulse behind the
+   constellation canvas. Mirrors the orb-float idiom exactly — DEFAULT is STATIC
+   (the `.explore-bg-bloom` selector declares NO animation, so under
+   prefers-reduced-motion the sky is a still gradient with zero drift/pulse); motion
+   is ADDED ONLY inside the no-preference block below. transform-only (translate +
+   scale, GPU-composited — no opacity churn, no layout), config-driven via the
+   per-bloom --explore-bg-* custom properties set inline. This is a pure compositor
+   layer: it runs NO per-frame JS and never touches/reheats the d3 sim (EXPL-06). */
+@keyframes explore-bg-bloom {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(
+        var(--explore-bg-drift-x, 0),
+        var(--explore-bg-drift-y, 0),
+        0
+      )
+      scale(var(--explore-bg-pulse-scale, 1));
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .explore-bg-bloom {
+    animation: explore-bg-bloom var(--explore-bg-drift-ms, 48000ms) ease-in-out
+      infinite;
+    animation-delay: var(--explore-bg-drift-delay, 0ms);
+    will-change: transform;
+  }
+}
+
 body {
   margin: 0;
   background-color: var(--color-surface);
