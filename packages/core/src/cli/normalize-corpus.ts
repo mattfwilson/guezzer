@@ -87,9 +87,12 @@ export function formatNormalizeSummary(result: NormalizeCorpusCliResult): string
   const { corpus, stats } = result;
   const excludedSettypes =
     stats.showsExcludedBySettype.map((show) => show.settype).join(", ") || "none";
+  const shownotesDisagreements =
+    stats.showsWithShownotesDisagreement.map((show) => show.showId).join(", ") || "none";
   return (
     `Normalized ${corpus.showCount} shows, ${corpus.songCount} distinct songs, latest show ${corpus.latestShowDate}. ` +
-    `Excluded ${stats.nonKglwRowsExcluded} non-KGLW rows and ${stats.showsExcludedBySettype.length} shows by settype (${excludedSettypes}).`
+    `Excluded ${stats.nonKglwRowsExcluded} non-KGLW rows and ${stats.showsExcludedBySettype.length} shows by settype (${excludedSettypes}). ` +
+    `Shownotes disagreements: ${stats.showsWithShownotesDisagreement.length} (${shownotesDisagreements}).`
   );
 }
 

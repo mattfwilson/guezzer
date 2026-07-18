@@ -69,6 +69,15 @@ export interface NormalizedShow {
   venue: Venue;
   tourId: number;
   tourName: string;
+  /**
+   * Show-level prose denormalized from the position-1 row (D-01), carried
+   * verbatim byte-for-byte with zero transformation — no trim, no HTML
+   * strip, `\r\n` preserved, empty string stays `""` (never null). Untrusted
+   * content: NEVER render (docs/SCHEMA.md §12; mirrors the `Performance.footnote`
+   * convention). Present on the corpus artifact only — never flows into the
+   * bundled archive (D-06).
+   */
+  shownotes: string;
   sets: SetSection[];
 }
 

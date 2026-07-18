@@ -154,6 +154,7 @@ function makeShow(
     venue: { venueId: 1, name: `Venue ${showId}`, city: "Town", state: null, country: "Australia" },
     tourId: 2,
     tourName: "Tour",
+    shownotes: "",
     sets: sets.map((s) => ({
       setNumber: s.n,
       performances: s.perfs.map((p, i) => ({
