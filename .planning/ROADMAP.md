@@ -43,7 +43,7 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
   2. The Show-Mode FAB speed-dial (D-20) and once-per-version InstallBanner (D-22) behave as their originating todos intended, and those todos are formally moved to resolved (POLISH-02).
   3. Every bottom sheet and modal dialog (NodeSheet, AppMenu, TrailNodeSheet, EndShowDialog, ShareCardSheet, "Whose dex is this?" prompt, CompareView) dismisses with Escape, traps focus while open, and restores focus to its trigger on close (A11Y-01).
   4. While a constellation node is focused, the NodeSheet and the Explore FilterFab are both fully usable — no occlusion (A11Y-02).
-  5. Resizing the viewport with a node focused keeps the camera framed on that node — no snap-off (A11Y-03).**Plans**: 7 plans
+  5. Resizing the viewport with a node focused keeps the camera framed on that node — no snap-off (A11Y-03).**Plans**: 8 plans (7 + 1 gap-closure)
 
 **Wave 1**
 
@@ -57,6 +57,10 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
   - [x] 08-04-PLAN.md — Explore a11y: NodeSheet Escape/focus-restore (non-modal), FilterFab lift above sheet, shared visible-viewport source, resize reframe (A11Y-02, A11Y-03)
   - [x] 08-05-PLAN.md — migrate all remaining raw z-* literals onto config.ui.z; annotate the folded bottom-sheets todo (A11Y-01, A11Y-02)
   - [x] 08-06-PLAN.md — orb-label legibility: retune fitOrbLabel/ORB_LABEL, real-catalog test, on-device dev harness (POLISH-01)
+
+**Gap closure** *(POLISH-01 regression found on-device — small orbs overflow their labels)*
+
+  - [ ] 08-08-PLAN.md — make fitOrbLabel circle-aware (per-line chord + height budget), subtract face padding + reserve percent line, geometric regression test swept [56..112], circular OrbFitHarness (POLISH-01)
 
 **UI hint**: yes
 
