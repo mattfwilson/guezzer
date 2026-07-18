@@ -95,9 +95,13 @@ Plans:
   3. Android is exercised in the dry-run if a device is available (VALID-02).
 
 **Plans**: 2 plans
-
 Plans:
+**Wave 1**
+
 - [ ] 10-01-PLAN.md — VALID-01: read-only tuning-review CLI + spot-check/anomaly sweep; owner confirms or fixes+rebuilds+backtests (D-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 10-02-PLAN.md — VALID-02: 10-HUMAN-UAT.md device-loop checklist + D-07 build/preview/tunnel harness; owner runs the graded iPhone dry-run incl. offline leg + export/import round-trip
 
 ## Progress
