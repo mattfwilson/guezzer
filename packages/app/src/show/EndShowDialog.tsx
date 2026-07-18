@@ -22,6 +22,7 @@
  */
 import { CircleCheck, ShieldAlert } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Sheet } from "../components/Sheet.tsx";
 import { config } from "../config.ts";
 import { endShow, getMeta, setMeta } from "../db/db.ts";
 import type { PersistStatus } from "../pwa/persist.ts";
@@ -74,8 +75,6 @@ export function EndShowDialog({ open, sessionId, onClose, onEnded }: EndShowDial
     };
   }, [open]);
 
-  if (!open) return null;
-
   // Only finalize on an explicit confirm (D-04) — never on the backdrop/cancel.
   // The backup runs on the SAME confirm, AFTER finalize; both `endShow` and
   // `exportBackup` are fired synchronously here (exportBackup never throws), so
@@ -87,68 +86,66 @@ export function EndShowDialog({ open, sessionId, onClose, onEnded }: EndShowDial
     onClose();
   };
 
+  // A11Y-01 (D-01/D-02): the destructive-confirm shell is now the shared modal
+  // <Sheet> — Escape-dismiss, focus-trap, and focus-restore in one place. The
+  // Cancel button and backdrop both map to `onClose`; the confirm gate (D-04)
+  // and destructive styling are unchanged.
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={copy.endHeading}
-      className="fixed inset-0 z-30 flex flex-col justify-end bg-black/50"
-      onClick={onClose}
+    <Sheet
+      open={open}
+      onClose={onClose}
+      modal
+      variant="bottom-sheet"
+      ariaLabel={copy.endHeading}
     >
-      <div
-        className="rounded-t-2xl border-t border-hairline bg-elevated px-4 pt-4"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 32px)" }}
-        onClick={(event) => event.stopPropagation()}
+      <p className="text-[20px] font-semibold leading-tight text-text-primary">
+        {copy.endHeading}
+      </p>
+      <p className="mt-2 text-base leading-normal text-text-muted">
+        {copy.endBody}
+      </p>
+
+      {/* D-13 auto-backup nudge — muted, non-blocking, not a per-show nag. */}
+      <p className="mt-3 flex items-center gap-2 text-base leading-normal text-text-muted">
+        <CircleCheck size={16} className="shrink-0" />
+        <span>{settingsCopy.endShowBackupConfirmation}</span>
+      </p>
+
+      {/* D-13 one-time persist-denied warning, offering an inline Export. */}
+      {showPersistWarning && (
+        <div className="mt-3 flex flex-col gap-2 rounded-md border border-hairline bg-surface p-3">
+          <p className="flex items-center gap-2 text-[14px] font-semibold leading-tight text-text-primary">
+            <ShieldAlert size={16} className="shrink-0" />
+            {settingsCopy.storageNotProtected}
+          </p>
+          <p className="text-base leading-normal text-text-muted">
+            {settingsCopy.storageNotProtectedBody}
+          </p>
+          <button
+            type="button"
+            onClick={() => void exportBackup()}
+            className="mt-1 flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+          >
+            {settingsCopy.exportCta}
+          </button>
+        </div>
+      )}
+
+      {/* Destructive confirm — finalizes to read-only (D-04). */}
+      <button
+        type="button"
+        onClick={handleConfirm}
+        className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md bg-destructive px-4 text-[14px] font-semibold text-surface touch-manipulation"
       >
-        <p className="text-[20px] font-semibold leading-tight text-text-primary">
-          {copy.endHeading}
-        </p>
-        <p className="mt-2 text-base leading-normal text-text-muted">
-          {copy.endBody}
-        </p>
-
-        {/* D-13 auto-backup nudge — muted, non-blocking, not a per-show nag. */}
-        <p className="mt-3 flex items-center gap-2 text-base leading-normal text-text-muted">
-          <CircleCheck size={16} className="shrink-0" />
-          <span>{settingsCopy.endShowBackupConfirmation}</span>
-        </p>
-
-        {/* D-13 one-time persist-denied warning, offering an inline Export. */}
-        {showPersistWarning && (
-          <div className="mt-3 flex flex-col gap-2 rounded-md border border-hairline bg-surface p-3">
-            <p className="flex items-center gap-2 text-[14px] font-semibold leading-tight text-text-primary">
-              <ShieldAlert size={16} className="shrink-0" />
-              {settingsCopy.storageNotProtected}
-            </p>
-            <p className="text-base leading-normal text-text-muted">
-              {settingsCopy.storageNotProtectedBody}
-            </p>
-            <button
-              type="button"
-              onClick={() => void exportBackup()}
-              className="mt-1 flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
-            >
-              {settingsCopy.exportCta}
-            </button>
-          </div>
-        )}
-
-        {/* Destructive confirm — finalizes to read-only (D-04). */}
-        <button
-          type="button"
-          onClick={handleConfirm}
-          className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md bg-destructive px-4 text-[14px] font-semibold text-surface touch-manipulation"
-        >
-          {copy.endConfirm}
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="mt-2 flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
-        >
-          {copy.endCancel}
-        </button>
-      </div>
-    </div>
+        {copy.endConfirm}
+      </button>
+      <button
+        type="button"
+        onClick={onClose}
+        className="mt-2 flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+      >
+        {copy.endCancel}
+      </button>
+    </Sheet>
   );
 }
