@@ -26,6 +26,15 @@ export interface NormalizeStats {
   nonKglwRowsExcluded: number;
   /** Shows dropped because their settype is not in config.settypeAllowlist (D-16). */
   showsExcludedBySettype: Array<{ showId: number; showDate: string; settype: string }>;
+  /**
+   * Shows whose rows carried DISAGREEING `shownotes` values (D-01). `shownotes`
+   * is show-level prose denormalized onto every row; a within-show mismatch is
+   * cosmetic editor data, NOT structural — so it is recorded here for build-log
+   * visibility and the position-1 value wins, but it NEVER throws (unlike the
+   * `settype` mixed-value hard-fail). Identifying context per entry, mirroring
+   * `showsExcludedBySettype`.
+   */
+  showsWithShownotesDisagreement: Array<{ showId: number; showDate: string }>;
   /** Count of shows that made it into the normalized corpus. */
   showsIncluded: number;
 }
@@ -128,6 +137,7 @@ export function normalizeCorpus(rows: unknown[], options: NormalizeOptions = {})
   });
 
   const showsExcludedBySettype: NormalizeStats["showsExcludedBySettype"] = [];
+  const showsWithShownotesDisagreement: NormalizeStats["showsWithShownotesDisagreement"] = [];
   const normalizedShows: NormalizedShow[] = [];
   const distinctSongIds = new Set<number>();
 
@@ -161,6 +171,15 @@ export function normalizeCorpus(rows: unknown[], options: NormalizeOptions = {})
             `Positions must be contiguous 1..N within a show.`,
         );
       }
+    }
+
+    // shownotes carry (D-01/D-02): `shownotes` is show-level prose repeated on
+    // every row. Detect within-show disagreement with the SAME Set idiom as the
+    // settype check — but record it to stats and CONTINUE rather than throw:
+    // prose is non-structural, and a cosmetic editor mismatch must never break a
+    // corpus refresh (D-01, D-15 tolerant-prose ethos). The position-1 row wins.
+    if (new Set(showRows.map((row) => row.shownotes)).size > 1) {
+      showsWithShownotesDisagreement.push({ showId, showDate });
     }
 
     // Group into SetSections by setnumber, in order of first appearance.
@@ -230,6 +249,9 @@ export function normalizeCorpus(rows: unknown[], options: NormalizeOptions = {})
       },
       tourId: firstRow.tour_id,
       tourName: firstRow.tourname,
+      // D-01/D-02: verbatim carry from the POSITION-SORTED first row (not
+      // `firstRow`, which is unsorted input order) — zero transformation.
+      shownotes: sortedRows[0].shownotes,
       sets,
     });
   }
@@ -253,6 +275,7 @@ export function normalizeCorpus(rows: unknown[], options: NormalizeOptions = {})
     totalRowsValidated: validated.length,
     nonKglwRowsExcluded,
     showsExcludedBySettype,
+    showsWithShownotesDisagreement,
     showsIncluded: normalizedShows.length,
   };
 
