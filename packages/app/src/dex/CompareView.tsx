@@ -23,6 +23,7 @@ import {
 import { ChevronDown, ChevronRight, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { config } from "../config.ts";
+import { Sheet } from "../components/Sheet.tsx";
 import { TierBadge } from "./TierBadge.tsx";
 import { useDexStats } from "./useDexStats.ts";
 
@@ -73,19 +74,22 @@ export function CompareView({ envelope, onClose }: CompareViewProps) {
   // Loader failure or still-resolving reads — hold the frame behind the banner.
   if (stats.error != null || compare == null || stats.archive == null) {
     return (
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={copy.banner(friendName)}
-        className="fixed inset-0 z-40 flex flex-col bg-surface"
+      <Sheet
+        open
+        onClose={onClose}
+        modal
+        variant="fullscreen"
+        ariaLabel={copy.banner(friendName)}
       >
-        {header}
-        {stats.error != null && (
-          <p className="px-4 pt-8 text-center text-base leading-normal text-text-muted">
-            {stats.error}
-          </p>
-        )}
-      </div>
+        <div className="flex min-h-full flex-col">
+          {header}
+          {stats.error != null && (
+            <p className="px-4 pt-8 text-center text-base leading-normal text-text-muted">
+              {stats.error}
+            </p>
+          )}
+        </div>
+      </Sheet>
     );
   }
 
@@ -93,11 +97,12 @@ export function CompareView({ envelope, onClose }: CompareViewProps) {
   const nameOf = (songId: number): string => archive.songs[String(songId)] ?? `#${songId}`;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={copy.banner(friendName)}
-      className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-surface"
+    <Sheet
+      open
+      onClose={onClose}
+      modal
+      variant="fullscreen"
+      ariaLabel={copy.banner(friendName)}
     >
       {header}
 
@@ -134,7 +139,7 @@ export function CompareView({ envelope, onClose }: CompareViewProps) {
           tierOf={(id) => stats.rarity?.get(id)?.tier ?? null}
         />
       </div>
-    </div>
+    </Sheet>
   );
 }
 

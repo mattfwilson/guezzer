@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -99,5 +99,30 @@ describe("CompareView — read-only friend diff (D-17)", () => {
     });
     const after = await snapshot();
     expect(after).toEqual(before);
+  });
+
+  // Phase-8 A11Y-01 (08-03): CompareView now renders through the fullscreen
+  // <Sheet> — Escape dismisses it and the guarded hold/error branch still renders.
+  it("A11Y-01: Escape dismisses the fullscreen sheet (onClose)", async () => {
+    const onClose = vi.fn();
+    render(<CompareView envelope={friendEnvelope()} onClose={onClose} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(copy.banner("Alice"))).toBeTruthy();
+    });
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("V7: the guarded loading/error branch renders through <Sheet> without throwing", () => {
+    // On first synchronous render the live reads are still `undefined`, so
+    // `compare` is null and the guarded hold/error branch renders (T-08-08).
+    // It must render the persistent banner + close control — never throw.
+    expect(() =>
+      render(<CompareView envelope={friendEnvelope()} onClose={() => {}} />),
+    ).not.toThrow();
+    expect(screen.getByText(copy.banner("Alice"))).toBeTruthy();
+    expect(screen.getByLabelText(copy.close)).toBeTruthy();
   });
 });

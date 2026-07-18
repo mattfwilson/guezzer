@@ -16,6 +16,7 @@ import { CircleCheck, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { buildShareStats } from "@guezzer/core";
 import { config } from "../config.ts";
+import { Sheet } from "../components/Sheet.tsx";
 import { buildShareCardFile, shareOrDownload, type ShareCardFile } from "./shareCard.ts";
 import { useDexStats } from "./useDexStats.ts";
 
@@ -66,8 +67,6 @@ export function ShareCardSheet({ open, onClose }: ShareCardSheetProps) {
     };
   }, [open, ready, dex, archive]);
 
-  if (!open) return null;
-
   // Share tap — call shareOrDownload with the file captured from state. NO async
   // work precedes the navigator.share call inside it (the Pitfall-7 contract).
   const handleShare = async () => {
@@ -81,78 +80,66 @@ export function ShareCardSheet({ open, onClose }: ShareCardSheetProps) {
   const buildFailed = build != null && !build.ok;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={copy.sheetLabel}
-      className="fixed inset-0 z-40 flex flex-col justify-end bg-black/50"
-      onClick={onClose}
-    >
-      <div
-        className="rounded-t-2xl border-t border-hairline bg-elevated px-4 pt-4"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 32px)" }}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <p className="text-[20px] font-semibold leading-tight text-text-primary">
-          {copy.sheetLabel}
-        </p>
+    <Sheet open={open} onClose={onClose} modal variant="bottom-sheet" ariaLabel={copy.sheetLabel}>
+      <p className="text-[20px] font-semibold leading-tight text-text-primary">
+        {copy.sheetLabel}
+      </p>
 
-        {/* Preview / build-failure / hold frame. */}
-        <div className="mt-4 flex flex-col items-center gap-3">
-          {buildFailed ? (
-            <div className="flex flex-col gap-1 py-6 text-center">
-              <p className="text-base font-semibold leading-tight text-text-primary">
-                {copy.failureHeading}
-              </p>
-              <p className="text-base leading-normal text-text-muted">{copy.failureBody}</p>
-            </div>
-          ) : build != null && build.ok ? (
-            <img
-              src={build.previewUrl}
-              alt={copy.sheetLabel}
-              className="max-h-[52vh] w-auto rounded-md border border-hairline"
-            />
-          ) : (
-            // Still building the File — a calm hold frame (4:5 aspect).
-            <div
-              aria-hidden="true"
-              className="aspect-[4/5] w-40 rounded-md border border-hairline bg-surface"
-            />
-          )}
-
-          {/* Post-share success (download fallback) — muted, non-blocking. */}
-          {status === "saved" && (
-            <p className="flex items-center gap-2 text-base leading-normal text-text-muted">
-              <CircleCheck size={16} className="shrink-0" aria-hidden="true" />
-              <span>{copy.savedToDownloads}</span>
+      {/* Preview / build-failure / hold frame. */}
+      <div className="mt-4 flex flex-col items-center gap-3">
+        {buildFailed ? (
+          <div className="flex flex-col gap-1 py-6 text-center">
+            <p className="text-base font-semibold leading-tight text-text-primary">
+              {copy.failureHeading}
             </p>
-          )}
-          {status === "failed" && (
-            <p className="text-base leading-normal text-text-muted">{copy.failureHeading}</p>
-          )}
-        </div>
-
-        {/* Accent Share CTA (reserved accent use #1) — disabled until the File
-            is built so the tap always has an already-built file (Pitfall 7). */}
-        {!buildFailed && (
-          <button
-            type="button"
-            disabled={build == null || !build.ok}
-            onClick={() => void handleShare()}
-            className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-accent px-4 text-[14px] font-semibold text-surface touch-manipulation disabled:opacity-50"
-          >
-            <Share2 size={18} aria-hidden="true" />
-            {copy.cta}
-          </button>
+            <p className="text-base leading-normal text-text-muted">{copy.failureBody}</p>
+          </div>
+        ) : build != null && build.ok ? (
+          <img
+            src={build.previewUrl}
+            alt={copy.sheetLabel}
+            className="max-h-[52vh] w-auto rounded-md border border-hairline"
+          />
+        ) : (
+          // Still building the File — a calm hold frame (4:5 aspect).
+          <div
+            aria-hidden="true"
+            className="aspect-[4/5] w-40 rounded-md border border-hairline bg-surface"
+          />
         )}
+
+        {/* Post-share success (download fallback) — muted, non-blocking. */}
+        {status === "saved" && (
+          <p className="flex items-center gap-2 text-base leading-normal text-text-muted">
+            <CircleCheck size={16} className="shrink-0" aria-hidden="true" />
+            <span>{copy.savedToDownloads}</span>
+          </p>
+        )}
+        {status === "failed" && (
+          <p className="text-base leading-normal text-text-muted">{copy.failureHeading}</p>
+        )}
+      </div>
+
+      {/* Accent Share CTA (reserved accent use #1) — disabled until the File
+          is built so the tap always has an already-built file (Pitfall 7). */}
+      {!buildFailed && (
         <button
           type="button"
-          onClick={onClose}
-          className="mt-2 flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+          disabled={build == null || !build.ok}
+          onClick={() => void handleShare()}
+          className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-accent px-4 text-[14px] font-semibold text-surface touch-manipulation disabled:opacity-50"
         >
-          {copy.close}
+          <Share2 size={18} aria-hidden="true" />
+          {copy.cta}
         </button>
-      </div>
-    </div>
+      )}
+      <button
+        type="button"
+        onClick={onClose}
+        className="mt-2 flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+      >
+        {copy.close}
+      </button>
+    </Sheet>
   );
 }
