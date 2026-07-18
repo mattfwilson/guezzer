@@ -44,7 +44,8 @@ export function AlbumDetail({
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      className="fixed inset-0 z-30 flex flex-col overflow-y-auto bg-surface"
+      className="fixed inset-0 flex flex-col overflow-y-auto bg-surface"
+      style={{ zIndex: config.ui.z.sheet }}
     >
       {/* Header row — back control + cover + name + tally. */}
       <div
