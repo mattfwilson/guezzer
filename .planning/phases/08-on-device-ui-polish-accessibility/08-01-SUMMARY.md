@@ -121,3 +121,9 @@ None - no external service configuration required. This plan installs ZERO new n
 ---
 *Phase: 08-on-device-ui-polish-accessibility*
 *Completed: 2026-07-18*
+
+## Self-Check: PASSED
+
+- All 6 created source/test files present on disk.
+- SUMMARY.md present.
+- All task commits (`8b1f209`, `93504a5`, `368899e`) + docs commit (`dcfac3b`) present in git history.
