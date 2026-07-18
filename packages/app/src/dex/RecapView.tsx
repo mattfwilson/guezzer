@@ -100,7 +100,8 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
         role="dialog"
         aria-modal="true"
         aria-label={copy.heading}
-        className="fixed inset-0 z-40 bg-surface"
+        className="fixed inset-0 bg-surface"
+        style={{ zIndex: config.ui.z.sheet }}
       />
     );
   }
@@ -140,7 +141,8 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
       role="dialog"
       aria-modal="true"
       aria-label={copy.heading}
-      className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-surface"
+      className="fixed inset-0 flex flex-col overflow-y-auto bg-surface"
+      style={{ zIndex: config.ui.z.sheet }}
     >
       <div
         className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-4 pt-6"

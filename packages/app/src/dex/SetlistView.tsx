@@ -116,7 +116,8 @@ export function SetlistView({ showId, archive, rarity, onClose }: SetlistViewPro
         role="dialog"
         aria-modal="true"
         aria-label={copy.albumBack}
-        className="fixed inset-0 z-30 bg-surface"
+        className="fixed inset-0 bg-surface"
+        style={{ zIndex: config.ui.z.sheet }}
       />
     );
   }
@@ -126,7 +127,8 @@ export function SetlistView({ showId, archive, rarity, onClose }: SetlistViewPro
       role="dialog"
       aria-modal="true"
       aria-label={resolved.date}
-      className="fixed inset-0 z-30 flex flex-col overflow-y-auto bg-surface"
+      className="fixed inset-0 flex flex-col overflow-y-auto bg-surface"
+      style={{ zIndex: config.ui.z.sheet }}
     >
       {/* Header — back control + {date} · {venue}. */}
       <div

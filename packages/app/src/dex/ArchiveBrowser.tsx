@@ -247,7 +247,8 @@ export function ArchiveBrowser({ archive, onClose }: ArchiveBrowserProps) {
       role="dialog"
       aria-modal="true"
       aria-label={copy.title}
-      className="fixed inset-0 z-30 flex flex-col bg-surface"
+      className="fixed inset-0 flex flex-col bg-surface"
+      style={{ zIndex: config.ui.z.sheet }}
     >
       {/* Title + close. */}
       <div
@@ -350,7 +351,8 @@ export function ArchiveBrowser({ archive, onClose }: ArchiveBrowserProps) {
           role="dialog"
           aria-modal="true"
           aria-label={copy.unmarkHeading}
-          className="fixed inset-0 z-40 flex flex-col justify-end bg-black/50"
+          className="fixed inset-0 flex flex-col justify-end bg-black/50"
+          style={{ zIndex: config.ui.z.sheetScrim }}
           onClick={() => setUnmarkTarget(null)}
         >
           <div
