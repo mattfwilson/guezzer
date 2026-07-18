@@ -39,7 +39,11 @@ const {
   SPECK_BRIGHTNESS_MAX,
   SPECK_SIZE_MIN_PX,
   SPECK_SIZE_MAX_PX,
+  PARALLAX_MAX_TRANSLATE_PX,
+  PARALLAX_OVERSCAN_PX,
 } = config.explore.background;
+
+const clamp = (v: number, max: number) => Math.max(-max, Math.min(max, v));
 
 /** `#RRGGBB` → `rgba(r, g, b, a)` so a bloom's gradient can fade color→transparent. */
 function rgba(hex: string, alpha: number): string {
@@ -107,11 +111,13 @@ export function ExploreBackground({
 
   // Compositor transform (translate3d + scale) driven by the damped parallax. GPU
   // layer (willChange) so it never repaints per-frame. Omitted under reduced motion
-  // or when no parallax is supplied → the layer stays exactly as before.
+  // or when no parallax is supplied → the layer stays static (still overscanned).
+  // Translate is CLAMPED to ±PARALLAX_MAX_TRANSLATE_PX and scale to ≥1, so combined
+  // with the constant overscan below the layer's edge can never enter the viewport.
   const transformStyle: CSSProperties =
     parallax && !reducedMotion
       ? {
-          transform: `translate3d(${parallax.x}px, ${parallax.y}px, 0) scale(${parallax.k})`,
+          transform: `translate3d(${clamp(parallax.x, PARALLAX_MAX_TRANSLATE_PX)}px, ${clamp(parallax.y, PARALLAX_MAX_TRANSLATE_PX)}px, 0) scale(${Math.max(1, parallax.k)})`,
           willChange: "transform",
         }
       : {};
@@ -119,8 +125,18 @@ export function ExploreBackground({
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 overflow-hidden"
-      style={transformStyle}
+      className="pointer-events-none absolute overflow-hidden"
+      // Constant px overscan on every side (negative inset) so the star-field's
+      // rectangular edge sits outside the viewport — a parallax shift up to
+      // ±PARALLAX_MAX_TRANSLATE_PX never drags it into view. Applied always (even
+      // static) so first pan doesn't pop the composition.
+      style={{
+        top: -PARALLAX_OVERSCAN_PX,
+        right: -PARALLAX_OVERSCAN_PX,
+        bottom: -PARALLAX_OVERSCAN_PX,
+        left: -PARALLAX_OVERSCAN_PX,
+        ...transformStyle,
+      }}
     >
       {blooms.map((b, i) => (
         <div

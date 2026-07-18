@@ -498,6 +498,15 @@ export const config = {
       PARALLAX_TRANSLATE_DAMP: 0.15,
       /** [ASSUMED] Fraction of the graph ZOOM the sky scales with, applied as `1 + (k-1)*damp`. Low = the sky barely zooms. */
       PARALLAX_ZOOM_DAMP: 0.05,
+      /** [ASSUMED] Max nebula parallax translate in px (clamp on |x|,|y|). Bounds the
+       *  shift so it can never exceed the overscan below — the star-field edge stays
+       *  off-screen. MUST be < PARALLAX_OVERSCAN_PX. */
+      PARALLAX_MAX_TRANSLATE_PX: 40,
+      /** [ASSUMED] Constant px the nebula layer extends BEYOND the viewport on every
+       *  side (negative inset). Sized > PARALLAX_MAX_TRANSLATE_PX so translating the
+       *  sky (or a <1 zoom, clamped out) never drags the layer's rectangular edge into
+       *  view (fixes the parallax edge-reveal). */
+      PARALLAX_OVERSCAN_PX: 56,
     },
   },
 
