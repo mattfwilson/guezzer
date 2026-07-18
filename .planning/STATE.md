@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 Phase: Not started — v1.1 roadmap defined (Phases 8–10)
 Plan: —
 Status: Roadmap complete; awaiting phase planning
-Last activity: 2026-07-18 — Recorded the MODEL TRUST SIGN-OFF (`.planning/phases/02-transition-matrix-model-backtest/02-MODEL-TRUST-SIGNOFF.md`): reviewed the backtest report + ran a 36-tour overfitting check (single-tour ablation leads did NOT generalize) → all scoring signals retained, model accepted for show #1
+Last activity: 2026-07-18 — Prepped show-day validation in `.planning/validation/`: TUNING-TAG-REVIEW.md (52 flagged songs, album-joined; ~15 microtonal-album targets isolated for a 5-min owner spot-check) + SHOW-DAY-DRYRUN.md (home mock rehearsal via ?mockLatest=1 + real show #1 checklist, covering VALID-02 / SYNC-01 / WARNING-1). Prior: MODEL TRUST SIGN-OFF recorded (36-tour overfitting check → all signals retained, model accepted for show #1)
 
 ## Performance Metrics
 
