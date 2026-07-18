@@ -4,6 +4,7 @@ import { AppShell } from "./components/AppShell";
 import { InstallBanner } from "./components/InstallBanner";
 import { PlaceholderView } from "./components/PlaceholderView";
 import { UpdateToast } from "./components/UpdateToast";
+import { OrbFitHarness } from "./dev/OrbFitHarness.tsx";
 import { DexView } from "./dex/DexView.tsx";
 import { ExploreView } from "./explore/ExploreView.tsx";
 import { requestPersistenceOnce } from "./pwa/persist.ts";
@@ -36,6 +37,16 @@ export function App() {
     });
     return () => window.removeEventListener("pointerdown", onFirstInteraction);
   }, []);
+
+  // POLISH-01 THROWAWAY dev harness (plan 08-06) — gated OUTSIDE the normal route
+  // switch on the exact `#/dev/orb-fit` hash (not in the ROUTES allow-list, so it
+  // never appears as a tab and leaves existing routing untouched). Placed AFTER all
+  // hooks (rules of hooks). Renders all 264 real orb labels on-device and flags
+  // overflow by real measurement. REMOVE POST-PHASE. Personal tool: exposes only
+  // the already-bundled public catalog names.
+  if (typeof location !== "undefined" && location.hash === "#/dev/orb-fit") {
+    return <OrbFitHarness />;
+  }
 
   return (
     // Phase-8 A11Y-01: the `#app-content` inert target (setRootInert toggles native

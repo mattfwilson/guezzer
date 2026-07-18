@@ -87,15 +87,29 @@ export const config = {
     /** Base (largest) prediction-orb label font in px — smaller than before so the
      *  bigger orbs read with breathing room, wrapping/shrinking only as needed (owner 2026-07-17). */
     ORB_LABEL_BASE_FONT_PX: 13,
-    /** Max wrapped lines for a prediction-orb label before shrinking (D-21). */
-    ORB_LABEL_MAX_LINES: 3,
-    /** Font-size floor in px for a prediction-orb label before ellipsis (D-21). */
-    ORB_LABEL_MIN_FONT_PX: 11,
+    /** Max wrapped lines for a prediction-orb label before shrinking (D-21). Raised
+     *  3→4 in POLISH-01 (plan 08-06): the extra line, paired with the conservative
+     *  CHAR_WIDTH_FACTOR (0.55) and the 10px floor, lets every real 264-song catalog
+     *  name fit without ellipsis at the realistic min orb diameter (locked by
+     *  orbLabelFit.catalog.test.ts; confirmed on-device via #/dev/orb-fit). */
+    ORB_LABEL_MAX_LINES: 4,
+    /** Font-size floor in px for a prediction-orb label before ellipsis (D-21).
+     *  POLISH-01 DOCUMENTED MINIMUM-LEGIBILITY FLOOR: 10px @ weight 600 is the
+     *  smallest orb data-text still legible in the dark at arm's length on a small
+     *  phone (lowered 11→10 to remove the last of the optimistic-drift ellipsis on
+     *  the longest real names). The heuristic never returns a smaller font before
+     *  the (now unreachable for real names) ellipsis safety net fires. */
+    ORB_LABEL_MIN_FONT_PX: 10,
     /** Base (largest) center-node label font in px. */
     ORB_LABEL_BASE_FONT_PX_CENTER: 18,
-    /** Max wrapped lines for the larger center-node label (D-21). */
-    ORB_LABEL_MAX_LINES_CENTER: 3,
-    /** Font-size floor in px for the center-node label before ellipsis (D-21). */
+    /** Max wrapped lines for the larger center-node label (D-21). Raised 3→4 in
+     *  POLISH-01 (plan 08-06): the 44-char outlier
+     *  `(You Gotta) Fight for Your Right (To Party!)` needs a 4th line to render
+     *  fully (no ellipsis) inside the 92px center inner width at the 12px floor. */
+    ORB_LABEL_MAX_LINES_CENTER: 4,
+    /** Font-size floor in px for the center-node label before ellipsis (D-21). Kept
+     *  at 12px (the larger center node reaches zero-ellipsis for every real name at
+     *  this floor once MAX_LINES_CENTER is 4 — no lower floor needed). */
     ORB_LABEL_MIN_FONT_PX_CENTER: 12,
 
     /**
