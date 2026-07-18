@@ -40,7 +40,7 @@ export function DexHeader({ dex, archive, onShare }: DexHeaderProps) {
           via aria-label so it stays the one accent control on the dex face. */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <p className="text-[28px] font-semibold leading-tight tabular-nums text-text-primary">
+          <p className="text-[56px] font-semibold leading-tight tabular-nums text-text-primary">
             {caught}/{total} · {pct}%
           </p>
           <p className="text-[14px] font-semibold leading-tight text-text-muted">
