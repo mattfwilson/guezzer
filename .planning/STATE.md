@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Polish & Pre-Show Hardening
-status: ready_to_plan
-stopped_at: Phase 08 complete (human UAT 5/5 passed), ready to plan Phase 9
-last_updated: "2026-07-18T20:37:31.932Z"
-last_activity: 2026-07-18
+status: planning
+stopped_at: Phase 9 context gathered
+last_updated: "2026-07-18T21:06:07.718Z"
+last_activity: 2026-07-18 — Phase 08 complete (UAT 5/5 passed, POLISH-01 retest confirmed on-device)
 progress:
   total_phases: 3
   completed_phases: 1
@@ -189,9 +189,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-18T21:00:00.000Z
-Stopped at: Phase 08 complete (human UAT 5/5 passed), ready to plan Phase 9
-Resume file: None
+Last session: 2026-07-18T21:06:07.714Z
+Stopped at: Phase 9 context gathered
+Resume file: .planning/phases/09-data-integrity-restore-ux/09-CONTEXT.md
 
 ## Operator Next Steps
 
