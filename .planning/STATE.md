@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Polish & Pre-Show Hardening
-status: planning
+status: executing
 stopped_at: Phase 8 UI-SPEC approved
-last_updated: "2026-07-18T08:01:34.429Z"
-last_activity: "2026-07-18 — Completed quick task 260718-1no: pre-opener "Search for the opener" now auto-populates the SearchSheet with the top-5 recency-weighted popular show openers (new pure core `deriveTopOpeners` from archive Set-1 first songs, anchored on latestShowDate + reusing decayedWeight; pre-opener only, typing runs normal fuzzy search). Real top-5: Phantom Island / The Dripping Tap / Mars For the Rich / Gaia / Theia. 527 tests green (incl. 8 new), both tsc clean. Prior: Completed quick task 260718-12j: GizzVerse constellation song-name labels now always render on top of the edge/path lines (moved label draw into an onRenderFramePost top pass; pure render-layering change, app tsc clean). Prior: Closed tuning review (needsReview now 0/264: cleared 24 covers + 13 early/jam originals, all standard — bb92192) and hardened WARNING-1 (e08ceee): verified vw2 already closed the core evicted-DB restore (the "It's mine, restore it" button works), then fixed a residual footgun where the name-field path dead-ended in Compare on a reinstall — resolveNamePrompt now also matches the FILE's owner → restore. Prior: owner tuning-tag review applied (9 tracks→microtonal); show-day validation prepped; MODEL TRUST SIGN-OFF recorded"
+last_updated: "2026-07-18T08:08:56.197Z"
+last_activity: 2026-07-18 -- Phase 08 execution started
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
+  total_plans: 7
   completed_plans: 0
   percent: 0
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** v1.1 Polish & Pre-Show Hardening roadmapped (Phases 8–10) — ready to plan Phase 8 (`/gsd-plan-phase 8`)
+**Current focus:** Phase 08 — on-device-ui-polish-accessibility
 
 ## Current Position
 
-Phase: Not started — v1.1 roadmap defined (Phases 8–10)
-Plan: —
-Status: Roadmap complete; awaiting phase planning
-Last activity: 2026-07-18 — Completed quick task 260718-1no: pre-opener "Search for the opener" now auto-populates the SearchSheet with the top-5 recency-weighted popular show openers (new pure core `deriveTopOpeners` from archive Set-1 first songs, anchored on latestShowDate + reusing decayedWeight; pre-opener only, typing runs normal fuzzy search). Real top-5: Phantom Island / The Dripping Tap / Mars For the Rich / Gaia / Theia. 527 tests green (incl. 8 new), both tsc clean. Prior: Completed quick task 260718-12j: GizzVerse constellation song-name labels now always render on top of the edge/path lines (moved label draw into an onRenderFramePost top pass; pure render-layering change, app tsc clean). Prior: Closed tuning review (needsReview now 0/264: cleared 24 covers + 13 early/jam originals, all standard — bb92192) and hardened WARNING-1 (e08ceee): verified vw2 already closed the core evicted-DB restore (the "It's mine, restore it" button works), then fixed a residual footgun where the name-field path dead-ended in Compare on a reinstall — resolveNamePrompt now also matches the FILE's owner → restore. Prior: owner tuning-tag review applied (9 tracks→microtonal); show-day validation prepped; MODEL TRUST SIGN-OFF recorded
+Phase: 08 (on-device-ui-polish-accessibility) — EXECUTING
+Plan: 1 of 7
+Status: Executing Phase 08
+Last activity: 2026-07-18 -- Phase 08 execution started
 
 ## Performance Metrics
 
@@ -179,9 +179,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 | debug | knowledge-base (resolved-sessions index, not an open session — false alarm) | not-a-defect | 2026-07-17 | — |
 | verification | Phase 01 tuning-tag spot-check (DATA-04 human_needed; ~10-song sanity pass) | human_needed | 2026-07-17 | VALID-01 (Phase 10) |
 | todo/ui | orb song-name text truncated/oversized (esp. center orb) | pending | 2026-07-17 | POLISH-01 (Phase 8) |
-| todo/ui | collapse Show-Mode actions into FAB menu | pending | 2026-07-17 | POLISH-02 (Phase 8) |
+| todo/ui | collapse Show-Mode actions into FAB menu | resolved | 2026-07-18 | POLISH-02 (Phase 8) |
 | research/ui-model | Reconcile orb % (prediction confidence) vs rarity color (global frequency) — legendary orb can out-% a common one. Mechanics + option space parked, no change decided. See [260717-p4s-FOLLOWUP-orb-percent-vs-rarity.md](./quick/260717-p4s-map-rarity-colors-to-prediction-orbs-and/260717-p4s-FOLLOWUP-orb-percent-vs-rarity.md) | parked | 2026-07-17 | TBD |
-| todo/pwa | InstallBanner should show once per version, not every reload | pending | 2026-07-17 | POLISH-02 (Phase 8) |
+| todo/pwa | InstallBanner should show once per version, not every reload | resolved | 2026-07-18 | POLISH-02 (Phase 8) |
 | integration/warning | WARNING-1 own-backup restore fork — **FIXED** in quick 260716-vw2 (not deferred) | resolved | 2026-07-17 | PWA-05 polishes it (Phase 9) |
 
 ## Session Continuity

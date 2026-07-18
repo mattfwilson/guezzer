@@ -47,8 +47,8 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
 
 **Wave 1**
 
-  - [ ] 08-01-PLAN.md — a11y foundation: shared `<Sheet>` primitive + useFocusTrap/useDialogDismiss/dialogStack/inertRoot, config.ui.z tier scale, #app-content inert target, matchMedia test stub (A11Y-01, A11Y-02)
-  - [ ] 08-07-PLAN.md — verify D-20 FabMenu + D-22 InstallBanner, move todos to resolved (POLISH-02)
+  - [x] 08-01-PLAN.md — a11y foundation: shared `<Sheet>` primitive + useFocusTrap/useDialogDismiss/dialogStack/inertRoot, config.ui.z tier scale, #app-content inert target, matchMedia test stub (A11Y-01, A11Y-02)
+  - [x] 08-07-PLAN.md — verify D-20 FabMenu + D-22 InstallBanner, move todos to resolved (POLISH-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -97,7 +97,7 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
 | 5. Live Sync & Data Safety | v1.0 | 6/6 | Complete | 2026-07-14 |
 | 6. Pokédex, History & Stats | v1.0 | 12/12 | Complete | 2026-07-16 |
 | 7. Explore Mode Constellation | v1.0 | 7/7 | Complete | 2026-07-16 |
-| 8. On-Device UI Polish & Accessibility | v1.1 | 0/7 | Not started | - |
+| 8. On-Device UI Polish & Accessibility | v1.1 | 2/7 | In Progress|  |
 | 9. Data Integrity & Restore UX | v1.1 | 0/? | Not started | - |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 0/? | Not started | - |
 
