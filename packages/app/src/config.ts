@@ -184,6 +184,36 @@ export const config = {
     FAB_DIAMETER: 56,
     /** Phase-6 D-20: min height in px of each expanded speed-dial action row (≥44px hit floor cleared). */
     FAB_ACTION_HEIGHT: 48,
+
+    /**
+     * Phase-8 D-04: named z-index stacking tiers — the single source of truth
+     * for every layered `fixed` overlay (CLAUDE.md single-config-file rule; no
+     * scattered `z-NN` literals). Applied via inline `style={{ zIndex:
+     * config.ui.z.X }}` on each overlay, NOT a Tailwind `z-[…]` class (Tailwind
+     * v4 resolves arbitrary values at author-time from static strings, so a
+     * JS-config value must go through inline style to keep config.ts the one
+     * source). INVARIANT: every FAB tier sits STRICTLY below `sheet`; `focusedFab`
+     * is the ONE deliberate exception (D-03: the FilterFab lifts above the
+     * non-modal NodeSheet when a constellation node is focused).
+     */
+    z: {
+      /** In-flow raised content (e.g. the ShowView column). */
+      content: 10,
+      /** Transient bottom notifications — UpdateToast + InstallBanner. */
+      toast: 20,
+      /** Resting FABs + FabMenu action rows. */
+      fab: 30,
+      /** FabMenu full-viewport scrim (below sheets, above content). */
+      fabScrim: 35,
+      /** Modal sheet/dialog backdrops. */
+      sheetScrim: 40,
+      /** Sheet/dialog content (all modals + the non-modal NodeSheet). */
+      sheet: 50,
+      /** D-03 exception: FilterFab lifted ABOVE the NodeSheet when a node is focused. */
+      focusedFab: 60,
+    },
+    /** Phase-8 D-03: gap in px between the lifted FilterFab and the sheet's top edge. */
+    FAB_SHEET_GAP_PX: 12,
   },
 
   /** Phase-5 data-safety tunables (05-UI-SPEC §Config surface). */

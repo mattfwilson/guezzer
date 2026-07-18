@@ -38,7 +38,14 @@ export function App() {
   }, []);
 
   return (
-    <>
+    // Phase-8 A11Y-01: the `#app-content` inert target (setRootInert toggles native
+    // `inert` here while a modal <Sheet> is open). `display:contents` adds NO layout
+    // box — the visible tree is identical to before — while still propagating `inert`
+    // to every descendant per spec. Open sheets portal to document.body, OUTSIDE this
+    // wrapper, so they stay interactive while everything here goes inert. Fallback if a
+    // device ever shows inert NOT propagating through display:contents: move id/inert
+    // onto AppShell's root flex div instead.
+    <div id="app-content" style={{ display: "contents" }}>
       {/* Show Mode owns a full-height non-scrolling orbit (SHOW-13, Pitfall 5),
           so `#/show` disables AppShell's `<main>` scroll. Explore's constellation
           canvas owns all its gestures too (07-UI-SPEC §Layout region 1), so
@@ -63,6 +70,6 @@ export function App() {
       <InstallBanner />
       <UpdateToast />
       <AppMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
-    </>
+    </div>
   );
 }
