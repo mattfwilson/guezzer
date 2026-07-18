@@ -11,7 +11,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### UI Polish
 
-- [ ] **POLISH-01**: On a small phone screen, prediction-orb and center-node song names render fully legible — no truncation, overflow, or oversizing. Verify the Phase-6 `orbLabelFit`/`ORB_LABEL` helpers on-device and fix any residual. (Closes the 2026-07-11 orb-text todo.)
+- [x] **POLISH-01**: On a small phone screen, prediction-orb and center-node song names render fully legible — no truncation, overflow, or oversizing. Verify the Phase-6 `orbLabelFit`/`ORB_LABEL` helpers on-device and fix any residual. (Closes the 2026-07-11 orb-text todo.)
 - [ ] **POLISH-02**: The Show-Mode FAB speed-dial (D-20) and once-per-version InstallBanner (D-22) are verified against their originating todos and the todos are formally moved to resolved — confirm implemented behavior matches intent (both landed in Phase 6).
 
 ### Accessibility

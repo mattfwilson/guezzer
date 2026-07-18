@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Polish & Pre-Show Hardening
 status: executing
-stopped_at: Phase 8 UI-SPEC approved
-last_updated: "2026-07-18T08:08:56.197Z"
+stopped_at: Completed 08-08-PLAN.md
+last_updated: "2026-07-18T19:57:42.040Z"
 last_activity: 2026-07-18 -- Phase 08 execution started
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 7
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 8
+  completed_plans: 8
+  percent: 33
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 ## Current Position
 
 Phase: 08 (on-device-ui-polish-accessibility) — EXECUTING
-Plan: 1 of 7
-Status: Executing Phase 08
+Plan: 2 of 7
+Status: Ready to execute
 Last activity: 2026-07-18 -- Phase 08 execution started
 
 ## Performance Metrics
@@ -71,6 +71,7 @@ Last activity: 2026-07-18 -- Phase 08 execution started
 | Phase 06 P09 | 7min | 3 tasks | 10 files |
 | Phase 06 P10 | 7min | 2 tasks | 9 files |
 | Phase 06 P11 | ~9min | 2 tasks | 10 files |
+| Phase 08 P08 | 40 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,7 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-10: CompareView runs deriveDex a SECOND time over the friend envelope (v2 ⊇ DexSnapshotInput) and diffs — zero DB writes proven by two independent before/after table deep-equals
 - [Phase 06]: 06-11: buildShareStats(dex, archive) is pure — latest-show date = max(perSong.lastSeenDate), venue resolved from archive by date; no attendance re-read needed (deriveDex exposes no timeline)
 - [Phase 06]: 06-11: ShareCardSheet self-sources the live dex via useDexStats (no dex/archive props) so DexHeader + RecapView both open the same whole-dex brag card; File pre-built on sheet-open, share tap has no async before navigator.share (Pitfall 7)
+- [Phase 08]: Orb-label fit is now circle-aware (per-line chord + height budget); kept CHAR_WIDTH_FACTOR 0.55, tuned LINE_HEIGHT_FACTOR 1.0 / PERCENT_LINE_PX 12 / MAX_LINES 5 / MIN_FONT_PX 7 (08-08) — Rectangular fit over-granted width and ignored height, spilling small orbs on iPhone (POLISH-01); geometric sweep [56..112] now guards it
 
 ### Pending Todos
 
@@ -186,9 +188,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-18T07:30:50.368Z
-Stopped at: Phase 8 UI-SPEC approved
-Resume file: .planning/phases/08-on-device-ui-polish-accessibility/08-UI-SPEC.md
+Last session: 2026-07-18T19:57:41.940Z
+Stopped at: Completed 08-08-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
