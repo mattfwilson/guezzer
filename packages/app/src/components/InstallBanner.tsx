@@ -87,8 +87,11 @@ export function InstallBanner() {
       ref={ref}
       role="region"
       aria-label={headline}
-      className="fixed inset-x-0 bottom-16 z-10 border-t border-hairline bg-elevated px-4 py-4 motion-safe:transition-all motion-safe:duration-200"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="fixed inset-x-0 bottom-16 border-t border-hairline bg-elevated px-4 py-4 motion-safe:transition-all motion-safe:duration-200"
+      style={{
+        zIndex: config.ui.z.toast,
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
     >
       {isIos ? (
         <IosInstallInstructions />

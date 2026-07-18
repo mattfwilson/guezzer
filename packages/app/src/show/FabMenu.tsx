@@ -96,14 +96,17 @@ export function FabMenu({
           data-testid="fab-scrim"
           aria-hidden="true"
           onClick={() => setOpen(false)}
-          className="fab-menu fixed inset-0 z-20"
-          style={{ backgroundColor: "rgba(12, 12, 16, 0.6)" }}
+          className="fab-menu fixed inset-0"
+          style={{
+            zIndex: config.ui.z.fabScrim,
+            backgroundColor: "rgba(12, 12, 16, 0.6)",
+          }}
         />
       )}
 
       <div
-        className="fab-menu fixed z-30 flex flex-col items-end gap-2"
-        style={{ bottom: bottomOffset, right: rightOffset }}
+        className="fab-menu fixed flex flex-col items-end gap-2"
+        style={{ zIndex: config.ui.z.fab, bottom: bottomOffset, right: rightOffset }}
       >
         {open && (
           <div className="flex flex-col items-end gap-2">

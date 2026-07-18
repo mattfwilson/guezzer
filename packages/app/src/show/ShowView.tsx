@@ -137,12 +137,16 @@ export function ShowView() {
 
   // Wrap a page state in the blurred+dimmed cover backdrop. The frame is the
   // positioned parent (`relative`) the ShowBackground fills; content rides a
-  // `z-10` column that reproduces the page's full-height non-scrolling flex
-  // layout (SHOW-13). Reused by all three in-page states (recap is excluded).
+  // `config.ui.z.content` column that reproduces the page's full-height
+  // non-scrolling flex layout (SHOW-13). Reused by all three in-page states
+  // (recap is excluded).
   const withBackground = (content: ReactNode) => (
     <div className="relative flex h-full min-h-0 flex-1 flex-col">
       <ShowBackground coverUrl={targetCover} />
-      <div className="relative z-10 flex h-full min-h-0 flex-1 flex-col">
+      <div
+        className="relative flex h-full min-h-0 flex-1 flex-col"
+        style={{ zIndex: config.ui.z.content }}
+      >
         {content}
       </div>
     </div>
