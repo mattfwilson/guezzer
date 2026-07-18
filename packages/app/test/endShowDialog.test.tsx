@@ -53,4 +53,16 @@ describe("EndShowDialog finalize confirm (D-04)", () => {
     expect(endShowMock).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
   });
+
+  // A11Y-01 (D-01): migrated onto the shared <Sheet modal>, so Escape dismisses
+  // via the LIFO dialogStack — and dismissing must NOT finalize the show.
+  it("dismisses on Escape without finalizing (A11Y-01)", () => {
+    const onClose = vi.fn();
+    render(<EndShowDialog open sessionId="s1" onClose={onClose} />);
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(onClose).toHaveBeenCalled();
+    expect(endShowMock).not.toHaveBeenCalled();
+  });
 });

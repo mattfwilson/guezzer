@@ -163,4 +163,16 @@ describe("TrailNodeSheet edit/delete/rename (SHOW-07/D-15)", () => {
     expect(deleteEntryMock).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
   });
+
+  // A11Y-01 (D-01): migrated onto the shared <Sheet modal>, so Escape dismisses
+  // via the LIFO dialogStack — and dismissing must NOT delete the entry.
+  it("dismisses on Escape without deleting (A11Y-01)", () => {
+    const onClose = vi.fn();
+    render(<TrailNodeSheet entry={normalEntry()} onClose={onClose} />);
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(onClose).toHaveBeenCalled();
+    expect(deleteEntryMock).not.toHaveBeenCalled();
+  });
 });
