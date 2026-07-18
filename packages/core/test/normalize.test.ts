@@ -166,6 +166,56 @@ describe("normalizeCorpus — synthetic edge cases", () => {
     expect(corpus.shows.some((s) => s.showId === 999002)).toBe(true);
     expect(stats.nonKglwRowsExcluded).toBe(1);
   });
+
+  it("Test 9 (D-01): shownotes is carried from the POSITION-1 row even when raw input rows are out of position order", () => {
+    // Rows deliberately in NON-position order (position 2 first) with
+    // differing shownotes — the carry must read the position-sorted first
+    // row, not raw input order (D-01: position-1 wins).
+    const rows = [
+      makeRow({ show_id: 999010, showdate: "2020-03-01", position: 2, setnumber: "1", shownotes: "pos-2 notes" }),
+      makeRow({ show_id: 999010, showdate: "2020-03-01", position: 1, setnumber: "1", shownotes: "pos-1 notes" }),
+    ];
+
+    const { corpus } = normalizeCorpus(rows);
+    expect(corpus.shows.length).toBe(1);
+    expect(corpus.shows[0].shownotes).toBe("pos-1 notes");
+  });
+
+  it("Test 10 (D-01): within-show shownotes disagreement is recorded in stats, never throws, and position-1 still wins", () => {
+    const rows = [
+      makeRow({ show_id: 999011, showdate: "2020-03-02", position: 1, setnumber: "1", shownotes: "A" }),
+      makeRow({ show_id: 999011, showdate: "2020-03-02", position: 2, setnumber: "1", shownotes: "B" }),
+    ];
+
+    let result: ReturnType<typeof normalizeCorpus> | undefined;
+    expect(() => {
+      result = normalizeCorpus(rows);
+    }).not.toThrow();
+
+    expect(result!.corpus.shows[0].shownotes).toBe("A");
+    const entry = result!.stats.showsWithShownotesDisagreement.find((e) => e.showId === 999011);
+    expect(entry).toBeDefined();
+    expect(entry!.showDate).toBe("2020-03-02");
+  });
+
+  it("Test 11 (D-01): a show whose rows all share one shownotes value is NOT recorded as a disagreement", () => {
+    const rows = [
+      makeRow({ show_id: 999012, showdate: "2020-03-03", position: 1, setnumber: "1", shownotes: "same" }),
+      makeRow({ show_id: 999012, showdate: "2020-03-03", position: 2, setnumber: "1", shownotes: "same" }),
+    ];
+
+    const { stats } = normalizeCorpus(rows);
+    expect(stats.showsWithShownotesDisagreement.some((e) => e.showId === 999012)).toBe(false);
+  });
+
+  it("Test 12 (D-02): an empty shownotes string is carried verbatim as \"\", never coerced to null/undefined", () => {
+    const rows = [
+      makeRow({ show_id: 999013, showdate: "2020-03-04", position: 1, setnumber: "1", shownotes: "" }),
+    ];
+
+    const { corpus } = normalizeCorpus(rows);
+    expect(corpus.shows[0].shownotes).toBe("");
+  });
 });
 
 describe("normalizeCorpus — era-spanning fixtures (phase success criterion 5)", () => {
@@ -232,6 +282,18 @@ describe("normalizeCorpus — era-spanning fixtures (phase success criterion 5)"
     expect(closer.transitionId).toBe(4);
     expect(closer.transitionKind).toBe("terminal");
     expect(show.sets[1].performances[0].position).toBe(14);
+  });
+
+  it("Fixture E (2022-rr1010-multiset) (D-02): shownotes is carried byte-for-byte from the position-1 raw row onto NormalizedShow", () => {
+    const { corpus } = normalizeCorpus(fixture2022Rr1010Multiset);
+    // Assert against the fixture's OWN position-1 raw value (raw -> domain
+    // exact equality), never a re-typed literal — proves zero transformation
+    // (no trim, no HTML strip, \r\n preserved) end to end.
+    const pos1RawRow = (fixture2022Rr1010Multiset as Array<Record<string, unknown>>).find(
+      (row) => row.position === 1,
+    );
+    expect(pos1RawRow).toBeDefined();
+    expect(corpus.shows[0].shownotes).toBe(pos1RawRow!.shownotes);
   });
 
   it("Fixture F (2017-segues): a mid-era (2017) show with >= 2 segues normalizes clean", () => {
