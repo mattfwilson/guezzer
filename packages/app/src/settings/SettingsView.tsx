@@ -19,8 +19,9 @@ import {
   ShieldCheck,
   Upload,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { config } from "../config.ts";
+import { Sheet } from "../components/Sheet.tsx";
 import { CompareView } from "../dex/CompareView.tsx";
 import { getMeta, setMeta } from "../db/db.ts";
 import type { PersistStatus } from "../pwa/persist.ts";
@@ -47,6 +48,8 @@ export function SettingsView() {
   const [compareEnvelope, setCompareEnvelope] = useState<ExportEnvelope | null>(null);
   const [namePrompt, setNamePrompt] = useState<NamePrompt | null>(null);
   const [promptName, setPromptName] = useState("");
+  // A11Y-01 (08-03): focus the name field on open via the <Sheet> initialFocusRef.
+  const promptInputRef = useRef<HTMLInputElement>(null);
 
   // Reactive read of the persistence status recorded by requestPersistenceOnce
   // (Plan 04). `undefined` while loading is treated as "not yet protected".
@@ -266,54 +269,51 @@ export function SettingsView() {
       )}
 
       {/* Unowned file → "Whose dex is this?" before anything happens (never guess). */}
-      {namePrompt != null && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={compareCopy.namePrompt}
-          className="fixed inset-0 z-40 flex items-end bg-black/60"
-          onClick={() => {
-            setNamePrompt(null);
-            setPromptName("");
-          }}
-        >
-          <div
-            className="flex w-full flex-col gap-3 rounded-t-2xl border-t border-hairline bg-elevated p-4"
-            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
-            onClick={(e) => e.stopPropagation()}
+      <Sheet
+        open={namePrompt != null}
+        onClose={() => {
+          setNamePrompt(null);
+          setPromptName("");
+        }}
+        modal
+        variant="bottom-sheet"
+        ariaLabel={compareCopy.namePrompt}
+        initialFocusRef={promptInputRef}
+      >
+        <div className="flex flex-col gap-3">
+          <label
+            htmlFor="whose-dex"
+            className="text-[20px] font-semibold leading-tight text-text-primary"
           >
-            <label
-              htmlFor="whose-dex"
-              className="text-[20px] font-semibold leading-tight text-text-primary"
-            >
-              {compareCopy.namePrompt}
-            </label>
-            <input
-              id="whose-dex"
-              type="text"
-              value={promptName}
-              onChange={(e) => setPromptName(e.target.value)}
-              placeholder={compareCopy.namePromptPlaceholder}
-              autoComplete="off"
-              className="min-h-11 w-full rounded-md border border-hairline bg-surface px-3 text-base text-text-primary placeholder:text-text-muted touch-manipulation"
-            />
-            <button
-              type="button"
-              onClick={resolveNamePrompt}
-              className="flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
-            >
-              {compareCopy.namePromptConfirm}
-            </button>
-            <button
-              type="button"
-              onClick={confirmPromptMine}
-              className="flex min-h-11 w-full items-center justify-center rounded-md px-4 text-[14px] font-semibold text-text-muted touch-manipulation"
-            >
-              {compareCopy.namePromptMine}
-            </button>
-          </div>
+            {compareCopy.namePrompt}
+          </label>
+          <input
+            id="whose-dex"
+            ref={promptInputRef}
+            type="text"
+            value={promptName}
+            onChange={(e) => setPromptName(e.target.value)}
+            maxLength={config.dex.OWNER_NAME_MAX_LENGTH}
+            placeholder={compareCopy.namePromptPlaceholder}
+            autoComplete="off"
+            className="min-h-11 w-full rounded-md border border-hairline bg-surface px-3 text-base text-text-primary placeholder:text-text-muted touch-manipulation"
+          />
+          <button
+            type="button"
+            onClick={resolveNamePrompt}
+            className="flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+          >
+            {compareCopy.namePromptConfirm}
+          </button>
+          <button
+            type="button"
+            onClick={confirmPromptMine}
+            className="flex min-h-11 w-full items-center justify-center rounded-md px-4 text-[14px] font-semibold text-text-muted touch-manipulation"
+          >
+            {compareCopy.namePromptMine}
+          </button>
         </div>
-      )}
+      </Sheet>
 
       {/* Read-only friend compare — a second deriveDex + diff, ZERO DB writes. */}
       {compareEnvelope != null && (

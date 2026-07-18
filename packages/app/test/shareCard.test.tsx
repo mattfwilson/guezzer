@@ -1,7 +1,36 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ShareCardData } from "@guezzer/core";
 import { config } from "../src/config.ts";
 import { buildShareCardFile, drawShareCard, shareOrDownload } from "../src/dex/shareCard.ts";
+
+// The ShareCardSheet render tests below drive `useDexStats`, which bundle-imports
+// the archive + album artifacts through the `@archive` / `@dexAlbums` aliases —
+// stub them with tiny schemaVersion-1 fixtures so the sheet reaches its build step.
+vi.mock("@archive", () => ({
+  default: {
+    schemaVersion: 1,
+    latestShowDate: "2019-02-01",
+    songs: { "101": "Rattlesnake" },
+    shows: [
+      {
+        id: 8001,
+        date: "2019-01-01",
+        venue: "V1",
+        city: "C1",
+        state: null,
+        country: "US",
+        sets: [{ n: "1", songs: [101] }],
+      },
+    ],
+  },
+}));
+vi.mock("@dexAlbums", () => ({
+  default: { schemaVersion: 1, albums: [], buckets: { covers: [], miscellaneous: [] } },
+}));
+
+const { ShareCardSheet } = await import("../src/dex/ShareCardSheet.tsx");
+const { db } = await import("../src/db/db.ts");
 
 /**
  * Share-card contract (SHAR-02, D-18/D-19, RESEARCH Pitfalls 7-8, plan 06-11).
@@ -66,6 +95,37 @@ const file = () => new File(["png-bytes"], "guezzer-dex.png", { type: "image/png
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+});
+
+describe("ShareCardSheet — <Sheet> migration (A11Y-01, 08-03)", () => {
+  beforeEach(async () => {
+    await db.attendedShows.clear();
+    await db.trackedShows.clear();
+    await db.trackedEntries.clear();
+    await db.archiveShows.clear();
+  });
+  afterEach(cleanup);
+
+  it("V7: renders the calm build-failure branch (getContext null in jsdom) without throwing", async () => {
+    // jsdom has no canvas backend → buildShareCardFile resolves { ok: false },
+    // so the sheet must surface the failure copy — never throw (T-08-08).
+    render(<ShareCardSheet open onClose={() => {}} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(config.copy.share.failureHeading)).toBeTruthy();
+    });
+  });
+
+  it("A11Y-01: Escape dismisses the bottom-sheet (onClose)", () => {
+    const onClose = vi.fn();
+    render(<ShareCardSheet open onClose={onClose} />);
+
+    // The sheet chrome (title) renders immediately, before the async build.
+    expect(screen.getAllByText(config.copy.share.sheetLabel).length).toBeGreaterThan(0);
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("drawShareCard — pure (ctx, data) canvas draw (Pitfall 8)", () => {
