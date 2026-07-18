@@ -274,3 +274,16 @@ export {
   type RecentShowsDeps,
   type RecentShowsResult,
 } from "./dex/recent-shows.ts";
+
+/**
+ * Pre-opener opener suggestions (QUICK-260718-1no). `deriveTopOpeners` is a pure,
+ * recency-weighted ranking of a song's Set-1 openers over the bundled archive —
+ * the SearchSheet auto-populates the top N before the opener is logged, the one
+ * moment `predict()` cannot help (no current song yet). Recency anchor is passed
+ * in (`archive.latestShowDate`), so it stays pure/deterministic (zero Date.now).
+ */
+export {
+  deriveTopOpeners,
+  type TopOpener,
+  type DeriveTopOpenersOptions,
+} from "./dex/openers.ts";
