@@ -94,7 +94,11 @@ Plans:
   2. A full show-loop dry-run passes on a real device: start → predictions → log hits/misses → set break → encore → End Show → recap → dex credit → JSON export/import round-trip (VALID-02).
   3. Android is exercised in the dry-run if a device is available (VALID-02).
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — VALID-01: read-only tuning-review CLI + spot-check/anomaly sweep; owner confirms or fixes+rebuilds+backtests (D-03)
+- [ ] 10-02-PLAN.md — VALID-02: 10-HUMAN-UAT.md device-loop checklist + D-07 build/preview/tunnel harness; owner runs the graded iPhone dry-run incl. offline leg + export/import round-trip
 
 ## Progress
 
