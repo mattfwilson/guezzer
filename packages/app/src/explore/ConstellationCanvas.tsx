@@ -27,10 +27,11 @@ import ForceGraph2D, {
   type LinkObject,
   type NodeObject,
 } from "react-force-graph-2d";
-import type {
-  ConstellationData,
-  ConstellationLink,
-  ConstellationNode,
+import {
+  topKEdgesPerNode,
+  type ConstellationData,
+  type ConstellationLink,
+  type ConstellationNode,
 } from "@guezzer/core";
 import { config } from "../config.ts";
 import { tuningColor } from "../show/tuningColor.ts";
@@ -104,7 +105,7 @@ export function ConstellationCanvas({
   focusId,
   onFocus,
   visibleNodeIds,
-  edgeThreshold,
+  topK,
   overlay = false,
   sightingsFor,
 }: {
@@ -141,14 +142,17 @@ export function ConstellationCanvas({
    */
   visibleNodeIds?: ReadonlySet<number> | null;
   /**
-   * EXPL-04 edge-count slider (D-07/D-08): draw a link only when its `count >=`
-   * this threshold. A pure RENDER-PASS filter — nodes are untouched, so hiding
-   * all of a node's edges leaves it a free-floating star. `null`/omitted → no
-   * edge filtering. Changing it never rebuilds `graphData` and never reheats the
-   * simulation (the same `edgesAtThreshold` predicate, applied per-link here so
-   * the links array is never re-created).
+   * EXPL-04 top-K-per-node declutter slider (D-07/D-08): draw only each song's K
+   * highest-count OUT edges (degree-aware `topKEdgesPerNode`), NOT a global count
+   * gate. A pure RENDER-PASS filter — nodes are untouched, so a node whose edges
+   * are all sparsified out stays a free-floating star. A focused node ALWAYS
+   * reveals its FULL real neighborhood past this gate (focus exemption below).
+   * `null`/omitted → no sparsification (full truth). Changing K never rebuilds
+   * `graphData` and never reheats the simulation: the derived kept-link identity
+   * Set is memoized and the `linkVisibility` predicate reads it per-link, so the
+   * links array is never re-created and frozen fx/fy survive (EXPL-06).
    */
-  edgeThreshold?: number | null;
+  topK?: number | null;
 }) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   // Held for camera control (centerAt/zoom) the chain-hop focus needs in a later slice.
@@ -203,6 +207,19 @@ export function ConstellationCanvas({
     }
     return ids;
   }, [graphData]);
+
+  // Declutter kept-link identity Set (EXPL-04/EXPL-06): each source song's K
+  // highest-count OUT edges, keyed by the immutable "fromId->toId" string so
+  // membership is stable across the library mutating source/target post-tick
+  // (Pitfall 1). `topK == null` → null (no sparsification, full truth). Memoized
+  // on [graphData, topK] so toggling K recomputes ONLY this derived Set — the node
+  // objects and their frozen fx/fy are never rebuilt, so the sim never reheats.
+  const keptLinkSet = useMemo(() => {
+    if (topK == null) return null;
+    return new Set(
+      topKEdgesPerNode(graphData.links, topK).map((l) => `${l.fromId}->${l.toId}`),
+    );
+  }, [graphData, topK]);
 
   // Top-K-by-playCount label set computed ONCE (memoized off graphData), never per
   // draw call. These biggest nodes carry labels even at rest (D-15).
@@ -447,14 +464,29 @@ export function ConstellationCanvas({
           // focus + neighbors are always exempt so a chain-hop never hits a gap.
           // This slice passes no filter → every node visible.
           nodeVisibility={(n: FgNode) => isNodeVisible(n.id)}
-          // Draw an edge only when BOTH endpoints are visible AND its play-together
-          // count clears the slider threshold (EXPL-04/D-07). Pure render pass — the
-          // node array is untouched, so a node whose every edge is hidden still draws
-          // as a free-floating star (D-08). No graphData rebuild, no reheat.
+          // Draw an edge only when BOTH endpoints are visible AND it survives the
+          // top-K-per-node declutter — UNLESS it touches the focused node, in which
+          // case it's always drawn (full-neighborhood reveal, EXPL-05). The focus
+          // exemption lives in the predicate, not the memoized Set, so focusing never
+          // rebuilds the derived kept-set. Pure render pass — the node array is
+          // untouched, so a node whose every edge is sparsified out still draws as a
+          // free-floating star (D-08). No graphData rebuild, no reheat.
           linkVisibility={(l: FgLink) =>
             isNodeVisible(l.fromId) &&
             isNodeVisible(l.toId) &&
-            (edgeThreshold == null || l.count >= edgeThreshold)
+            (keptLinkSet == null ||
+              keptLinkSet.has(`${l.fromId}->${l.toId}`) ||
+              l.fromId === focusId ||
+              l.toId === focusId)
+          }
+          // Bow reciprocal A→B / B→A pairs to opposite sides so they no longer
+          // overlap on one straight line (deterministic sign by endpoint-id order);
+          // non-reciprocal edges share the same gentle curve. Directional arrows
+          // render along the curved path natively — linkDirectionalArrow* untouched.
+          linkCurvature={(l: FgLink) =>
+            l.fromId < l.toId
+              ? config.explore.LINK_CURVATURE
+              : -config.explore.LINK_CURVATURE
           }
           // Tap a node → focus it (D-13); tap empty canvas → clear focus + dim.
           onNodeClick={(n: FgNode) => onFocus(n.id)}

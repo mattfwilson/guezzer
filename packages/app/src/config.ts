@@ -318,6 +318,16 @@ export const config = {
      */
     LINK_DISTANCE: 180,
     /**
+     * [ASSUMED] Link bow magnitude (react-force-graph-2d `linkCurvature`). Bows
+     * reciprocal A→B / B→A pairs to opposite sides (deterministic sign by
+     * endpoint-id order) so they no longer overlap on one straight line;
+     * non-reciprocal edges share the same gentle curve (acceptable). A render-only
+     * constant, so it lives app-side with no core mirror — consistent with the
+     * NODE_RADIUS_* / CHARGE_STRENGTH render constants. 0.15–0.25 is the sensible
+     * band; tune on device later.
+     */
+    LINK_CURVATURE: 0.2,
+    /**
      * [device spike 2026-07-16] px padding around the connected main grouping when
      * the constellation auto-frames on settle (zoomToFit). The frame targets nodes
      * that carry at least one edge, so free-floating stars (common once the edge
