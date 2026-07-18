@@ -114,7 +114,16 @@ export function SettingsView() {
   const resolveNamePrompt = () => {
     if (namePrompt == null) return;
     const answer = promptName.trim();
-    const isMine = answer !== "" && answer.toLowerCase() === (ownerName ?? "").trim().toLowerCase();
+    const a = answer.toLowerCase();
+    const localOwner = (ownerName ?? "").trim().toLowerCase();
+    // "It's mine → restore" if the typed name matches the local owner OR the FILE's
+    // own owner. The file-owner match is the WARNING-1 hardening: on an evicted-DB
+    // reinstall the local owner is unknown (""), so without it, typing your own name
+    // here would dead-end in compare instead of restoring the backup it's named after.
+    const fileOwner = namePrompt.envelope.owner?.trim().toLowerCase();
+    const isMine =
+      answer !== "" &&
+      ((localOwner !== "" && a === localOwner) || (fileOwner != null && a === fileOwner));
     if (isMine) {
       mergeFile(namePrompt.file);
     } else {
