@@ -445,28 +445,75 @@ export function ConstellationCanvas({
       ctx.fillText(label, cx, cy);
     }
 
-    // 5. Label. The focused node + its neighbors are ALWAYS labeled regardless of
-    //    zoom (§B4/D-15), in text-primary semibold; the focused node shows its
-    //    FULL name (ellipsis-exempt). Otherwise the zoom-gated / top-K-at-rest
-    //    muted label rule (D-15) applies. Constant screen size via fontPx/scale.
+    // 5. Label moved to a dedicated TOP pass (drawNodeLabel via onRenderFramePost,
+    //    quick task 260718-12j): react-force-graph-2d paints nodes one-at-a-time, so
+    //    a label drawn here could be overpainted by a LATER node's orb fill or sit
+    //    below edge lines. Drawing every label AFTER all links/arrows/nodes render
+    //    guarantees labels always paint on top. Blocks 1-4 stay in the node pass.
+    ctx.restore();
+  };
+
+  // Label top pass (quick task 260718-12j): drawn from onRenderFramePost AFTER every
+  // link, arrow, and node, in the same world transform, so labels never get
+  // overpainted. Because onRenderFramePost iterates ALL nodes manually (it does NOT
+  // get the `nodeVisibility` filter the node pass benefits from), this replicates the
+  // exact per-node state the node pass computed: the visibility gate, depth radius,
+  // combined focus/dex/depth alpha, and the zoom/top-K/focus-forced showLabel gate.
+  // Font/color/ellipsize/fillText are byte-identical to the old inline block.
+  const drawNodeLabel = (
+    node: FgNode,
+    ctx: CanvasRenderingContext2D,
+    globalScale: number,
+  ) => {
+    if (node.x == null || node.y == null) return;
+    // Replicate the nodeVisibility gate the node pass got for free — never relabel a
+    // filtered-out node (rotation view / declutter leave hidden nodes in graphData).
+    if (!isNodeVisible(node.id)) return;
+
+    const focused = node.id === focusId;
+    const neighbor = focusId != null && neighborIds.has(node.id);
+
+    // Depth-scaled radius for the label y-offset — SAME formula as the node pass.
+    const dz = config.explore.depth;
+    const z = node.z;
+    const r = radiusFor(node.playCount) * lerp(dz.DEPTH_RADIUS_FAR, dz.DEPTH_RADIUS_NEAR, z);
+    const depthAlpha = lerp(dz.DEPTH_OPACITY_FAR, dz.DEPTH_OPACITY_NEAR, z);
+
+    // Combined alpha computed EXACTLY as the node pass does (focus-dim ∧ dex-dim by
+    // MIN, then depth multiply, clamped to DEPTH_ALPHA_FLOOR).
+    const sightings = overlay && sightingsFor ? sightingsFor(node.id) : 0;
+    const unseen = overlay && sightings === 0;
+    const focusAlpha = isInNeighborhood(node.id)
+      ? 1
+      : config.explore.FOCUS_DIM_OPACITY;
+    const dexAlpha = unseen ? config.explore.DEX_DIM_OPACITY : 1;
+
+    // Label gate identical to the pre-change block (§B4/D-15).
     const forced = focused || neighbor;
     const showLabel =
       forced ||
       globalScale >= config.explore.LABEL_ZOOM_THRESHOLD ||
       topKIds.has(node.id);
-    if (showLabel) {
-      const fontPx = (forced ? 14 : 12) / globalScale;
-      ctx.font = `${forced ? "600 " : ""}${fontPx}px ${FONT_STACK}`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
-      ctx.fillStyle = forced ? FOCUS_LABEL_COLOR : LABEL_COLOR;
-      const text = focused
-        ? node.name
-        : ellipsize(node.name, config.explore.LABEL_MAX_CHARS);
-      // fillText only — canvas text is inherently non-executing (T-07-02).
-      ctx.fillText(text, node.x, node.y + r + 2 / globalScale);
-    }
+    if (!showLabel) return;
 
+    ctx.save();
+    ctx.globalAlpha = Math.max(
+      dz.DEPTH_ALPHA_FLOOR,
+      Math.min(focusAlpha, dexAlpha) * depthAlpha,
+    );
+    // The focused node + its neighbors are ALWAYS labeled regardless of zoom
+    // (§B4/D-15), in text-primary semibold; the focused node shows its FULL name
+    // (ellipsis-exempt). Constant screen size via fontPx/scale.
+    const fontPx = (forced ? 14 : 12) / globalScale;
+    ctx.font = `${forced ? "600 " : ""}${fontPx}px ${FONT_STACK}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = forced ? FOCUS_LABEL_COLOR : LABEL_COLOR;
+    const text = focused
+      ? node.name
+      : ellipsize(node.name, config.explore.LABEL_MAX_CHARS);
+    // fillText only — canvas text is inherently non-executing (T-07-02).
+    ctx.fillText(text, node.x, node.y + r + 2 / globalScale);
     ctx.restore();
   };
 
@@ -546,10 +593,20 @@ export function ConstellationCanvas({
           // behind it. The wrapper's `bg-surface` provides the base #0C0C10, so the
           // constellation still reads on dark where there are no blooms.
           backgroundColor="rgba(0, 0, 0, 0)"
-          // Node draw: one replace-mode callback owns fill + label (§Color/§Typography).
+          // Node draw: replace-mode callback owns fill + rings + count pill (§Color).
           nodeCanvasObject={nodeCanvasObject}
           nodeCanvasObjectMode={() => "replace"}
           nodePointerAreaPaint={nodePointerAreaPaint}
+          // Label TOP pass (quick task 260718-12j): runs AFTER all links, arrows, and
+          // nodes render, in the same world transform, so labels always paint on top
+          // and are never overpainted by a later node's orb fill or hidden under edges.
+          // Iterates ALL nodes; drawNodeLabel replicates the node pass's visibility +
+          // alpha + gating so the set/styling is byte-identical to the old inline block.
+          onRenderFramePost={(ctx, globalScale) => {
+            for (const raw of graphData.nodes) {
+              drawNodeLabel(raw as FgNode, ctx, globalScale);
+            }
+          }}
           // Slice-3 filter seam (Pitfall 6): draw only the visible population; the
           // focus + neighbors are always exempt so a chain-hop never hits a gap.
           // This slice passes no filter → every node visible.
