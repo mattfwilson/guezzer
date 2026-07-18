@@ -213,6 +213,15 @@ export const config = {
     z: {
       /** In-flow raised content (e.g. the ShowView column). */
       content: 10,
+      /**
+       * Opaque full-screen PAGES rendered in-tree (e.g. RecapView) — above
+       * content, but BELOW every modal/scrim tier. A full-screen opaque page
+       * is NOT a scrim-backed modal, so it must never occupy the `sheet` tier:
+       * if it did, a portaled `<Sheet>` opened from it (ShareCardSheet) would
+       * land its scrim (`sheetScrim`) behind the opaque page, killing the
+       * backdrop dim + tap-to-dismiss (WR-01 regression guard: page < sheetScrim).
+       */
+      page: 15,
       /** Transient bottom notifications — UpdateToast + InstallBanner. */
       toast: 20,
       /**
