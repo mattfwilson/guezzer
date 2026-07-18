@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-17 after v1.0 milestone)
 Phase: Not started — v1.1 roadmap defined (Phases 8–10)
 Plan: —
 Status: Roadmap complete; awaiting phase planning
-Last activity: 2026-07-18 — Completed quick task 260717-ual: added a 2D depth stack to the GizzVerse constellation (spherical shading, playCount depth-scaling incl. the grayscale path, far→near occlusion, depth-weighted edges, onZoom nebula parallax) — spike-validated first
+Last activity: 2026-07-18 — Recorded the MODEL TRUST SIGN-OFF (`.planning/phases/02-transition-matrix-model-backtest/02-MODEL-TRUST-SIGNOFF.md`): reviewed the backtest report + ran a 36-tour overfitting check (single-tour ablation leads did NOT generalize) → all scoring signals retained, model accepted for show #1
 
 ## Performance Metrics
 
