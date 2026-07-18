@@ -42,7 +42,14 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
   3. Every bottom sheet and modal dialog (NodeSheet, AppMenu, TrailNodeSheet, EndShowDialog, ShareCardSheet, "Whose dex is this?" prompt, CompareView) dismisses with Escape, traps focus while open, and restores focus to its trigger on close (A11Y-01).
   4. While a constellation node is focused, the NodeSheet and the Explore FilterFab are both fully usable — no occlusion (A11Y-02).
   5. Resizing the viewport with a node focused keeps the camera framed on that node — no snap-off (A11Y-03).
-**Plans**: TBD
+**Plans**: 7 plans
+  - [ ] 08-01-PLAN.md — a11y foundation: shared `<Sheet>` primitive + useFocusTrap/useDialogDismiss/dialogStack/inertRoot, config.ui.z tier scale, #app-content inert target, matchMedia test stub (A11Y-01, A11Y-02)
+  - [ ] 08-02-PLAN.md — migrate Show-area modals (EndShowDialog, TrailNodeSheet, WhyDetail) onto `<Sheet>` (A11Y-01)
+  - [ ] 08-03-PLAN.md — migrate Menu/Dex/Settings modals (AppMenu, ShareCardSheet, CompareView fullscreen, "Whose dex is this?" prompt) onto `<Sheet>` (A11Y-01)
+  - [ ] 08-04-PLAN.md — Explore a11y: NodeSheet Escape/focus-restore (non-modal), FilterFab lift above sheet, shared visible-viewport source, resize reframe (A11Y-02, A11Y-03)
+  - [ ] 08-05-PLAN.md — migrate all remaining raw z-* literals onto config.ui.z; annotate the folded bottom-sheets todo (A11Y-01, A11Y-02)
+  - [ ] 08-06-PLAN.md — orb-label legibility: retune fitOrbLabel/ORB_LABEL, real-catalog test, on-device dev harness (POLISH-01)
+  - [ ] 08-07-PLAN.md — verify D-20 FabMenu + D-22 InstallBanner, move todos to resolved (POLISH-02)
 **UI hint**: yes
 
 ### Phase 9: Data Integrity & Restore UX
@@ -76,7 +83,7 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
 | 5. Live Sync & Data Safety | v1.0 | 6/6 | Complete | 2026-07-14 |
 | 6. Pokédex, History & Stats | v1.0 | 12/12 | Complete | 2026-07-16 |
 | 7. Explore Mode Constellation | v1.0 | 7/7 | Complete | 2026-07-16 |
-| 8. On-Device UI Polish & Accessibility | v1.1 | 0/? | Not started | - |
+| 8. On-Device UI Polish & Accessibility | v1.1 | 0/7 | Not started | - |
 | 9. Data Integrity & Restore UX | v1.1 | 0/? | Not started | - |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 0/? | Not started | - |
 
