@@ -12,6 +12,8 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 
 **Shipped v1.0 MVP (2026-07-17)** — all 60 v1 requirements delivered across 7 phases (46 plans, ~26,600 LOC TypeScript). The full Show Mode loop is device-verified on iPhone 16 Pro; the model trust gate holds (backtest top-5 66.9% overall / 68.6% free-choice on the held-out 2025 tour). Milestone audit PASSED: 6/6 cross-phase integration seams WIRED, 4/4 E2E flows PASS, 0 critical blockers. The app is installable, fully offline-capable, and ready for the first show (late Aug/Sep 2026).
 
+**v1.1 in progress** — Phase 8 (On-Device UI Polish & Accessibility) and Phase 9 (Data Integrity & Restore UX) complete. Phase 9 threads `shownotes` verbatim through normalization (DATA-06, corpus regenerated for all 738 shows with a byte-identical archive proof) and hardens the own-backup restore path so an owner can always recover on a fresh or evicted database (PWA-05). Next: Phase 10 — pre-show validation & real-device dry-run.
+
 ## Current Milestone: v1.1 Polish & Pre-Show Hardening
 
 **Goal:** Close the v1.0 audit's non-blocking gaps and prove the app show-ready on real hardware before show #1 (late Aug/Sep 2026).
@@ -173,4 +175,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-18 after Phase 8 (On-Device UI Polish & Accessibility) — all 5 requirements validated on real hardware, human UAT 5/5 passed.*
+*Last updated: 2026-07-18 after Phase 9 (Data Integrity & Restore UX) — DATA-06 + PWA-05 validated via automated coverage (571 tests green), phase verification 9/9 must-haves passed.*
