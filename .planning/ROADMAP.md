@@ -26,7 +26,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.0-ROADM
 
 Small, low-risk hardening milestone — no new user-facing features. Close the v1.0 audit's non-blocking gaps (UI polish, accessibility, data integrity, restore UX) and prove the app show-ready on real hardware before show #1 (late Aug/Sep 2026). Bias toward shipping the hardening quickly.
 
-- [ ] **Phase 8: On-Device UI Polish & Accessibility** — Legible labels + Escape/focus-managed sheets and dialogs across Show and Explore
+- [x] **Phase 8: On-Device UI Polish & Accessibility** — Legible labels + Escape/focus-managed sheets and dialogs across Show and Explore (completed 2026-07-18)
 - [ ] **Phase 9: Data Integrity & Restore UX** — `shownotes` survives normalization; owner can always recover their own backup
 - [ ] **Phase 10: Pre-Show Validation & Device Dry-Run** — Owner tuning-tag spot-check + full real-device show-loop rehearsal before show #1
 
@@ -52,11 +52,11 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-  - [ ] 08-02-PLAN.md — migrate Show-area modals (EndShowDialog, TrailNodeSheet, WhyDetail) onto `<Sheet>` (A11Y-01)
-  - [ ] 08-03-PLAN.md — migrate Menu/Dex/Settings modals (AppMenu, ShareCardSheet, CompareView fullscreen, "Whose dex is this?" prompt) onto `<Sheet>` (A11Y-01)
-  - [ ] 08-04-PLAN.md — Explore a11y: NodeSheet Escape/focus-restore (non-modal), FilterFab lift above sheet, shared visible-viewport source, resize reframe (A11Y-02, A11Y-03)
-  - [ ] 08-05-PLAN.md — migrate all remaining raw z-* literals onto config.ui.z; annotate the folded bottom-sheets todo (A11Y-01, A11Y-02)
-  - [ ] 08-06-PLAN.md — orb-label legibility: retune fitOrbLabel/ORB_LABEL, real-catalog test, on-device dev harness (POLISH-01)
+  - [x] 08-02-PLAN.md — migrate Show-area modals (EndShowDialog, TrailNodeSheet, WhyDetail) onto `<Sheet>` (A11Y-01)
+  - [x] 08-03-PLAN.md — migrate Menu/Dex/Settings modals (AppMenu, ShareCardSheet, CompareView fullscreen, "Whose dex is this?" prompt) onto `<Sheet>` (A11Y-01)
+  - [x] 08-04-PLAN.md — Explore a11y: NodeSheet Escape/focus-restore (non-modal), FilterFab lift above sheet, shared visible-viewport source, resize reframe (A11Y-02, A11Y-03)
+  - [x] 08-05-PLAN.md — migrate all remaining raw z-* literals onto config.ui.z; annotate the folded bottom-sheets todo (A11Y-01, A11Y-02)
+  - [x] 08-06-PLAN.md — orb-label legibility: retune fitOrbLabel/ORB_LABEL, real-catalog test, on-device dev harness (POLISH-01)
 
 **UI hint**: yes
 
@@ -97,7 +97,7 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
 | 5. Live Sync & Data Safety | v1.0 | 6/6 | Complete | 2026-07-14 |
 | 6. Pokédex, History & Stats | v1.0 | 12/12 | Complete | 2026-07-16 |
 | 7. Explore Mode Constellation | v1.0 | 7/7 | Complete | 2026-07-16 |
-| 8. On-Device UI Polish & Accessibility | v1.1 | 2/7 | In Progress|  |
+| 8. On-Device UI Polish & Accessibility | v1.1 | 7/7 | Complete   | 2026-07-18 |
 | 9. Data Integrity & Restore UX | v1.1 | 0/? | Not started | - |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 0/? | Not started | - |
 
