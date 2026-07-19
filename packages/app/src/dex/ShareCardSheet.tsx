@@ -13,7 +13,7 @@
  * silent. Shares the EndShowDialog bottom-sheet idiom.
  */
 import { CircleCheck, Share2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { buildShareStats, type ShareCardData } from "@guezzer/core";
 import { config } from "../config.ts";
 import { Sheet } from "../components/Sheet.tsx";
@@ -44,23 +44,29 @@ export function ShareCardSheet({ open, onClose, data }: ShareCardSheetProps) {
 
   const dex = stats.dex;
   const archive = stats.archive;
-  // Per-show data is ready immediately; the lifetime path waits on the live dex.
-  const selfSource = data == null;
-  const ready = !selfSource || (stats.ready && dex != null && archive != null);
+  // The effective card data: the pre-built per-show `data` (a stable ref from
+  // RecapView's useMemo), else the lifetime projection once the live dex resolves
+  // (null until then). Memoized so the async dex/archive resolution does NOT
+  // re-fire the build effect on the per-show path — which ignores dex/archive —
+  // a re-fire that flickered the preview and transiently re-disabled the share
+  // icon (WR-02). On the per-show path this recomputes to the SAME `data` ref, so
+  // the effect below never re-runs.
+  const cardData = useMemo<ShareCardData | null>(
+    () => data ?? (dex != null && archive != null ? buildShareStats(dex, archive) : null),
+    [data, dex, archive],
+  );
 
-  // On open, assemble the card numbers in core + build the File immediately
-  // (Pitfall 7: the File must exist before the tap). Revoke the preview URL on
+  // On open, build the PNG File immediately from the resolved card data (Pitfall
+  // 7: the File must exist before the tap). Revoke the preview URL on
   // close/unmount so object URLs never leak.
   useEffect(() => {
-    if (!open || !ready) return;
+    if (!open || cardData == null) return;
     let cancelled = false;
     let builtUrl: string | null = null;
 
     setStatus(null);
     setBuild(null);
     void (async () => {
-      // Prefer the pre-built per-show data; else self-source the lifetime card.
-      const cardData: ShareCardData = data ?? buildShareStats(dex!, archive!);
       const result = await buildShareCardFile(cardData);
       if (cancelled) {
         if (result.ok) URL.revokeObjectURL(result.previewUrl);
@@ -74,7 +80,7 @@ export function ShareCardSheet({ open, onClose, data }: ShareCardSheetProps) {
       cancelled = true;
       if (builtUrl != null) URL.revokeObjectURL(builtUrl);
     };
-  }, [open, ready, data, dex, archive]);
+  }, [open, cardData]);
 
   // Share tap — call shareOrDownload with the file captured from state. NO async
   // work precedes the navigator.share call inside it (the Pitfall-7 contract).

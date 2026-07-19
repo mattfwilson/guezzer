@@ -139,12 +139,17 @@ export function SuggestionStrip({
     // orb centers and there's no bar. Visible chrome (border/bg) only when there's
     // actual content — an empty reserved slot is invisible calm space, not a bar.
     <div
-      className={`flex shrink-0 flex-col justify-center overflow-y-auto ${
+      className={`flex shrink-0 flex-col overflow-y-auto ${
         hasContent ? "border-t border-hairline bg-elevated" : ""
       }`}
+      // `safe center`, NOT plain `justify-center`: centers the rows while they fit
+      // the fixed slot, but falls back to start-alignment when they overflow (2
+      // suggestions + a fill hint > 112px) so the top row is never clipped-and-
+      // unreachable under overflow-y-auto (the classic flex scroll-clip; WR-01).
       style={{
         height:
           reserveSpace || hasContent ? config.ui.SUGGESTION_STRIP_HEIGHT : 0,
+        justifyContent: "safe center",
       }}
     >
       {suggestions.map((suggestion) => (
