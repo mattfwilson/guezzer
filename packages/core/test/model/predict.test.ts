@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { config } from "../../src/config.ts";
 import { normalizeCorpus } from "../../src/ingest/normalize.ts";
 import { buildMatrix } from "../../src/model/matrix.ts";
-import { buildMatrixIndex, type MatrixIndex } from "../../src/model/index-build.ts";
+import { buildMatrixIndex } from "../../src/model/index-build.ts";
 import { decayedWeight } from "../../src/model/decay.ts";
 import {
   alreadyPlayedFactor,
@@ -19,7 +19,13 @@ import {
   tuningAffinity,
   type ScoringConfig,
 } from "../../src/model/predict.ts";
-import type { AsOfBound, ShowContext, SignalToggles } from "../../src/domain/types.ts";
+import type {
+  AsOfBound,
+  MatrixNode,
+  ShowContext,
+  SignalToggles,
+  TransitionMatrix,
+} from "../../src/domain/types.ts";
 
 // Fixture-normalize convention (normalize.test.ts:1-16 / matrix.test.ts:7-19):
 // raw kglw.net-shaped rows normalize through normalizeCorpus first.
@@ -389,44 +395,97 @@ describe("predict — rotation suppression (MODL-06)", () => {
   });
 });
 
-describe("predict — era prior (MODL-07)", () => {
-  it("Test 10: eraPrior is a relative multiplier centered near 1 -- a currently-hot song scores > 1, a song with zero recent-era plays scores < 1 but >= eraPriorFloor, and the result is clamped to [floor, ceil]", () => {
-    // Hand-built MatrixIndex (eraPrior is a pure fn of index + cfg, no I/O
-    // needed) -- keeps the era-window arithmetic exact and independent of
-    // buildMatrix's `typeof config` literal-typed parameter.
-    const SONG_HOT = 800001;
-    const SONG_RETIRED = 800002;
-    const SONG_SUPERHOT = 800003;
-    const index: MatrixIndex = {
-      edgesFrom: new Map(),
-      nodeById: new Map([
-        [SONG_HOT, { songId: SONG_HOT, songName: "Hot", playCount: 10, eraPlayCount: 1, tuningFamily: "other" }],
-        [SONG_RETIRED, { songId: SONG_RETIRED, songName: "Retired", playCount: 10, eraPlayCount: 0, tuningFamily: "other" }],
-        [SONG_SUPERHOT, { songId: SONG_SUPERHOT, songName: "Superhot", playCount: 100, eraPlayCount: 50, tuningFamily: "other" }],
-      ]),
-    };
-    const cfgNarrowEra: ScoringConfig = { ...config, eraWindowShows: 1 };
+// --- Plan 11-01 (PRED-02) Wave-0 RED gate: production-scale era-prior ---
+// The prior Test 10 hand-built a 3-node MatrixIndex whose Σ playCount = 120,
+// which made basePlayRate() accidentally commensurate with the per-window
+// eraRate and let the eraPriorFloor fire. At real catalog scale
+// (Σ playCount ~14,000 across ~260 nodes) the k=1 additive smoothing in
+// eraPrior() pins every ratio near 1.0 and the floor becomes unreachable —
+// the unit mismatch RESEARCH Pitfall 1 / PRED-02 documents. This rewritten,
+// production-scale fixture makes that dead floor TESTABLE: on the current
+// (buggy) eraPrior arithmetic the retired-song assertion below FAILS (RED),
+// and plan 11-03 (the PRED-02 fix) flips it green. Do NOT weaken this test
+// or touch predict.ts/config.ts to make it pass here.
+const ERA_RETIRED = 800002; // this-era retired: eraPlayCount 0, modest career playCount
+const ERA_HOT = 800001; // currently-hot: high eraPlayCount near eraWindowShows
 
-    // eraRate(HOT) = 1/1 = 1.0 > allTimeRate = basePlayRate(HOT) = 10/120 ~ 0.083 -> ratio > 1.
-    const hotFactor = eraPrior(SONG_HOT, index, cfgNarrowEra);
+/**
+ * A representative production-scale TransitionMatrix (~260 nodes,
+ * Σ playCount ~14,000, corpus-realistic showCount) built to exercise
+ * eraPrior() at the same scale as the shipped artifact. Includes one RETIRED
+ * node (eraPlayCount 0, career playCount ~50) and one HOT node (eraPlayCount
+ * near eraWindowShows, high career playCount). Edges are irrelevant to
+ * eraPrior (it reads only nodeById + config), so the edge list is empty. The
+ * index is built via buildMatrixIndex(matrix) — never a hand-built literal —
+ * so this test stays forward-compatible with the showCount field plan 11-03
+ * threads into MatrixIndex.
+ */
+function buildProductionScaleEraMatrix(): TransitionMatrix {
+  const nodes: MatrixNode[] = [
+    // Retired: played ~50 times over its career, ZERO plays this era.
+    { songId: ERA_RETIRED, songName: "Retired Deep Cut", playCount: 50, eraPlayCount: 0, tuningFamily: "other" },
+    // Hot: heavily played career AND near-saturated in the current era window.
+    { songId: ERA_HOT, songName: "Current Rotation Staple", playCount: 300, eraPlayCount: 38, tuningFamily: "other" },
+  ];
+
+  // ~258 filler catalog nodes: a spread of career playCounts (10..99, avg ~54)
+  // so Σ playCount lands near 14,000 — the scale at which k=1 smoothing pins
+  // the ratio near 1.0. eraPlayCount on fillers does not affect the two tested
+  // nodes (eraPrior's denominator is eraWindowShows, not total era play).
+  for (let i = 0; i < 258; i++) {
+    const songId = 810000 + i;
+    nodes.push({
+      songId,
+      songName: `Catalog Song ${i}`,
+      playCount: 10 + (i % 90),
+      eraPlayCount: i % 5,
+      tuningFamily: "other",
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generatedAt: "2026-01-01T00:00:00.000Z",
+    asOfDate: "2026-01-01",
+    showCount: 241, // corpus-realistic (matrix.ts:186)
+    nodeCount: nodes.length,
+    edgeCount: 0,
+    nodes,
+    edges: [],
+  };
+}
+
+describe("predict — era prior at production scale (MODL-07 / PRED-02 RED gate)", () => {
+  it("Test 10: a zero-era-play retired song reaches ~eraPriorFloor and a currently-hot song scores > 1 at real catalog scale (RED on current eraPrior — flipped green by plan 11-03)", () => {
+    const matrix = buildProductionScaleEraMatrix();
+    const index = buildMatrixIndex(matrix);
+
+    // Sanity: this fixture really is production scale (Σ playCount ~14k), the
+    // condition under which the current eraPrior masks the floor.
+    const totalPlay = matrix.nodes.reduce((sum, n) => sum + n.playCount, 0);
+    expect(totalPlay).toBeGreaterThan(12000);
+
+    // Bounds are read from scoringConfig by name — never bare literals — so
+    // this assertion tracks config, not a hardcoded 0.3/2.0.
+    const cfg: ScoringConfig = config;
+    const epsilon = 1e-6;
+
+    // RETIRED song (eraPlayCount 0) MUST decay to ~eraPriorFloor. On the
+    // current buggy arithmetic — ratio = (0 + k) / (playCount/Σ + k) with
+    // Σ ~14,000 and k=1 — this evaluates to ~0.996, NOT ~0.3, so THIS
+    // assertion is the accepted RED deliverable of the Wave-0 gate.
+    const retiredFactor = eraPrior(ERA_RETIRED, index, cfg);
+    expect(retiredFactor).toBeLessThanOrEqual(cfg.eraPriorFloor + epsilon);
+
+    // HOT song (eraPlayCount near eraWindowShows) stays a genuine boost > 1
+    // (this assertion already passes on current code; kept so 11-03 must
+    // preserve the hot end while fixing the floor).
+    const hotFactor = eraPrior(ERA_HOT, index, cfg);
     expect(hotFactor).toBeGreaterThan(1);
-    expect(hotFactor).toBeLessThanOrEqual(cfgNarrowEra.eraPriorCeil);
-
-    // eraPlayCount === 0 -- a "retired" (this-era) song -- scores < 1 but stays >= floor.
-    const retiredFactor = eraPrior(SONG_RETIRED, index, cfgNarrowEra);
-    expect(retiredFactor).toBeLessThan(1);
-    expect(retiredFactor).toBeGreaterThanOrEqual(cfgNarrowEra.eraPriorFloor);
-
-    // Clamp ceiling is load-bearing: with smoothing disabled, the raw ratio
-    // for the superhot song (eraRate 50/1=50 vs allTimeRate ~0.83) blows
-    // well past eraPriorCeil, so the returned value must be the ceiling
-    // itself, not the unclamped ratio.
-    const cfgNoSmoothing: ScoringConfig = { ...cfgNarrowEra, eraPriorSmoothingK: 0 };
-    const clampedFactor = eraPrior(SONG_SUPERHOT, index, cfgNoSmoothing);
-    expect(clampedFactor).toBe(cfgNoSmoothing.eraPriorCeil);
+    expect(hotFactor).toBeLessThanOrEqual(cfg.eraPriorCeil);
 
     // Unknown song id degrades to the neutral 1.0, never NaN/undefined.
-    expect(eraPrior(999999, index, cfgNarrowEra)).toBe(1);
+    expect(eraPrior(999999, index, cfg)).toBe(1);
   });
 });
 
