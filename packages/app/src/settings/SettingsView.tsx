@@ -15,6 +15,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import {
   CircleCheck,
   Download,
+  RotateCcw,
   ShieldAlert,
   ShieldCheck,
   Upload,
@@ -23,7 +24,7 @@ import { useRef, useState } from "react";
 import { config } from "../config.ts";
 import { Sheet } from "../components/Sheet.tsx";
 import { CompareView } from "../dex/CompareView.tsx";
-import { getMeta, setMeta } from "../db/db.ts";
+import { getMeta, setMeta, todayIso } from "../db/db.ts";
 import type { PersistStatus } from "../pwa/persist.ts";
 import { exportBackup } from "./exportDownload.ts";
 import {
@@ -49,6 +50,10 @@ export function SettingsView() {
   const [compareEnvelope, setCompareEnvelope] = useState<ExportEnvelope | null>(null);
   const [namePrompt, setNamePrompt] = useState<NamePrompt | null>(null);
   const [promptName, setPromptName] = useState("");
+  // PRED-03 cross-night rotation reset: a two-tap confirm affordance guards the
+  // marker write (no data is deleted, but it changes prediction behavior).
+  const [resetConfirming, setResetConfirming] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
   // A11Y-01 (08-03): focus the name field on open via the <Sheet> initialFocusRef.
   const promptInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,6 +78,20 @@ export function SettingsView() {
   const handleExport = async () => {
     const res = await exportBackup();
     setExportDone(res.ok);
+  };
+
+  // PRED-03: write today's YYYY-MM-DD as the rotation reset boundary (A3 date
+  // boundary). `useShowSession` reads this marker and passes it to core's
+  // `currentRunShowSets`, which drops shows on/after the boundary out of the
+  // cross-night suppression window. Uses the canonical `todayIso` (same helper
+  // that stamps a show's `date`) so the boundary is commensurate. The marker
+  // lives in free-form `db.meta` — no Dexie version bump — and round-trips
+  // through export/import via `snapshot()`.
+  const confirmRotationReset = () => {
+    void setMeta("rotationRunResetDate", todayIso()).then(() => {
+      setResetConfirming(false);
+      setResetDone(true);
+    });
   };
 
   // Commit the Phase-5 merge path VERBATIM (only ever reached for a "mine" file
@@ -249,6 +268,54 @@ export function SettingsView() {
               </p>
             )}
           </div>
+        </div>
+
+        {/* Cross-night rotation reset (PRED-03) — a NON-destructive prediction
+            control (no data deleted); two-tap confirm guards the behavior change. */}
+        <div className="flex flex-col gap-2 border-t border-hairline pt-4">
+          <h2 className="text-[20px] font-semibold leading-tight text-text-primary">
+            {copy.rotationResetHeading}
+          </h2>
+          <p className="text-base leading-normal text-text-muted">
+            {copy.rotationResetDescription}
+          </p>
+          {!resetConfirming ? (
+            <button
+              type="button"
+              onClick={() => {
+                setResetDone(false);
+                setResetConfirming(true);
+              }}
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+            >
+              <RotateCcw size={18} />
+              {copy.rotationResetCta}
+            </button>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={confirmRotationReset}
+                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+              >
+                <RotateCcw size={18} />
+                {copy.rotationResetConfirmCta}
+              </button>
+              <button
+                type="button"
+                onClick={() => setResetConfirming(false)}
+                className="flex min-h-11 w-full items-center justify-center rounded-md px-4 text-[14px] font-semibold text-text-muted touch-manipulation"
+              >
+                {copy.rotationResetCancelCta}
+              </button>
+            </div>
+          )}
+          {resetDone && (
+            <p className="flex items-center gap-2 text-base leading-normal text-text-muted">
+              <CircleCheck size={16} />
+              {copy.rotationResetDone}
+            </p>
+          )}
         </div>
       </section>
 

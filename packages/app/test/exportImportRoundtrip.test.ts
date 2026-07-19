@@ -151,6 +151,31 @@ describe("export/import round-trip (PWA-04 lose-a-phone guarantee)", () => {
     expect(reimportedWithoutId).toEqual(seededEntryWithoutId);
   });
 
+  it("round-trips the rotationRunResetDate marker unchanged (PRED-03, plan 11-05)", async () => {
+    // The Settings reset control (PRED-03) writes this free-form db.meta row. It
+    // must survive a full backup round-trip or a restored phone would silently
+    // re-suppress a run the owner explicitly reset (T-11-05-02).
+    await seedAll();
+    await setMeta("rotationRunResetDate", "2026-08-16");
+
+    await exportBackup();
+    const json = await capturedBlob!.text();
+
+    await wipeAll();
+    expect(await db.meta.get("rotationRunResetDate")).toBeUndefined();
+
+    const file = new File([json], "guezzer-backup.json", {
+      type: "application/json",
+    });
+    const result = await pickAndImport(file);
+
+    expect(result.ok).toBe(true);
+    expect(await db.meta.get("rotationRunResetDate")).toEqual({
+      key: "rotationRunResetDate",
+      value: "2026-08-16",
+    });
+  });
+
   it("rejects a malformed file with ok:false and mutates nothing (D-12)", async () => {
     await seedAll();
     const before = await tableCounts();

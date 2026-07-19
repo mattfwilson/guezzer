@@ -785,6 +785,21 @@ export const config = {
       ownerNameDescription:
         "Stamped on your backups so friends' dexes stay separate from yours.",
       ownerNamePlaceholder: "Add your name",
+
+      /**
+       * Cross-night rotation reset (PRED-03, plan 11-05). During a run of
+       * consecutive nights, songs played earlier in the run are gently
+       * down-weighted in tonight's predictions. Tapping this before a SEPARATE
+       * weekend (where the band may replay) clears that history so nothing is
+       * suppressed. A two-tap confirm affordance guards it — no data is deleted.
+       */
+      rotationResetHeading: "Start a fresh run",
+      rotationResetDescription:
+        "Stops songs from earlier nights being down-weighted. Tap before a separate weekend where the band might replay them. Nothing is deleted.",
+      rotationResetCta: "Start a fresh run",
+      rotationResetConfirmCta: "Confirm — start fresh",
+      rotationResetCancelCta: "Cancel",
+      rotationResetDone: "Fresh run started. Earlier nights won't be down-weighted.",
     },
 
     /**

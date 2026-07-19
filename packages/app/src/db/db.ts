@@ -252,8 +252,13 @@ export async function getMeta<T>(key: string): Promise<T | undefined> {
 // whole Show Mode loop writes through to (SHOW-11); the UI re-renders reactively
 // from it via useLiveQuery in later plans.
 
-/** ISO YYYY-MM-DD stamp for today, local time (D-01). */
-function todayIso(): string {
+/**
+ * ISO YYYY-MM-DD stamp for today, local time (D-01). Exported so the Settings
+ * rotation-reset control (PRED-03, plan 11-05) can write a boundary date that is
+ * COMMENSURATE with the `TrackedShow.date` values `currentRunShowSets` compares
+ * against — the same helper that stamps `startShow`'s show date.
+ */
+export function todayIso(): string {
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, "0");

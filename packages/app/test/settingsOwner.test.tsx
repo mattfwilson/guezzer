@@ -248,3 +248,68 @@ describe("SettingsView — 'Whose dex is this?' prompt (A11Y-01, 08-03)", () => 
     expect(screen.queryByText(compareCopy.banner("matt"))).toBeNull();
   });
 });
+
+/**
+ * Cross-night rotation reset control (PRED-03, plan 11-05). A two-tap confirm
+ * writes the `rotationRunResetDate` free-form `db.meta` marker (today's boundary)
+ * — consumed by `useShowSession` to clear cross-night suppression. No Dexie
+ * version bump; no data deleted.
+ */
+describe("SettingsView — cross-night rotation reset (PRED-03)", () => {
+  const settingsCopy = config.copy.settings;
+
+  beforeEach(async () => {
+    await db.meta.clear();
+  });
+  afterEach(async () => {
+    cleanup();
+    await db.meta.clear();
+  });
+
+  it("a two-tap confirm writes today's boundary to the rotationRunResetDate marker", async () => {
+    render(<SettingsView />);
+
+    // No marker before the reset.
+    expect(await getMeta<string>("rotationRunResetDate")).toBeUndefined();
+
+    // First tap reveals the confirm affordance; the marker is NOT yet written.
+    fireEvent.click(
+      screen.getByRole("button", { name: settingsCopy.rotationResetCta }),
+    );
+    expect(await getMeta<string>("rotationRunResetDate")).toBeUndefined();
+
+    // Confirm tap writes the boundary.
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: settingsCopy.rotationResetConfirmCta,
+      }),
+    );
+
+    await waitFor(async () => {
+      const marker = await getMeta<string>("rotationRunResetDate");
+      expect(marker).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    // A confirmation line renders after the write.
+    await waitFor(() =>
+      expect(screen.getByText(settingsCopy.rotationResetDone)).toBeTruthy(),
+    );
+  });
+
+  it("Cancel dismisses the confirm affordance without writing the marker", async () => {
+    render(<SettingsView />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: settingsCopy.rotationResetCta }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: settingsCopy.rotationResetCancelCta }),
+    );
+
+    // Back to the single reset CTA; nothing written.
+    expect(
+      screen.getByRole("button", { name: settingsCopy.rotationResetCta }),
+    ).toBeTruthy();
+    expect(await getMeta<string>("rotationRunResetDate")).toBeUndefined();
+  });
+});
