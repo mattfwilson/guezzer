@@ -12,7 +12,7 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 
 **Shipped v1.0 MVP (2026-07-17)** — all 60 v1 requirements delivered across 7 phases (46 plans, ~26,600 LOC TypeScript). The full Show Mode loop is device-verified on iPhone 16 Pro; the model trust gate holds (backtest top-5 66.9% overall / 68.6% free-choice on the held-out 2025 tour). Milestone audit PASSED: 6/6 cross-phase integration seams WIRED, 4/4 E2E flows PASS, 0 critical blockers. The app is installable, fully offline-capable, and ready for the first show (late Aug/Sep 2026).
 
-**v1.1 in progress** — Phase 8 (On-Device UI Polish & Accessibility) and Phase 9 (Data Integrity & Restore UX) complete. Phase 9 threads `shownotes` verbatim through normalization (DATA-06, corpus regenerated for all 738 shows with a byte-identical archive proof) and hardens the own-backup restore path so an owner can always recover on a fresh or evicted database (PWA-05). Next: Phase 10 — pre-show validation & real-device dry-run.
+**v1.1 COMPLETE (2026-07-18)** — Phases 8 (On-Device UI Polish & Accessibility), 9 (Data Integrity & Restore UX), and 10 (Pre-Show Validation & Device Dry-Run) all complete. Phase 9 threads `shownotes` verbatim through normalization (DATA-06, corpus regenerated for all 738 shows with a byte-identical archive proof) and hardens the own-backup restore path (PWA-05). Phase 10 closed the pre-show trust gates: VALID-01 — the owner tuning-tag spot-check confirmed the 12 canonical anchors and re-tagged the 9 *Infest the Rats' Nest* tracks to cs-standard with a zero-regression backtest; VALID-02 — the full show loop (start → predict → log → set break → encore → End Show → recap → dex credit) passed a real-device iPhone rehearsal, with three in-phase fixes/enhancements caught during the dry-run (SuggestionStrip sizing, FAB lift, and a per-show recap share card). Two on-device iOS legs (offline airplane-mode, export/import round-trip) were confirmed on desktop localhost and accepted as a non-blocking pre-show follow-up (tunnel/deploy-backed iPhone pass before show #1). The app is ready for the first show (late Aug/Sep 2026).
 
 ## Current Milestone: v1.1 Polish & Pre-Show Hardening
 
@@ -94,10 +94,9 @@ _All v1.0 requirements shipped and validated above. The items below are delibera
 **Explore Mode:**
 - [ ] Era slider (2010 → present) scrubbing the constellation through time — v1.5 stretch, deliberately deferred (v2: EXPL-V2-01)
 
-**Remaining v1.1 hardening (Phases 9–10):**
-- [ ] "Whose dex is this?" restore path — typing your own owner name reaches merge/restore, never friend-compare (PWA-05, Phase 9); `shownotes` survives normalization with a test (DATA-06, Phase 9)
-- [ ] Phase 01 tuning-tag human spot-check (DATA-04 → VALID-01, Phase 10) — ~10-song musical sanity pass; owner-only, non-defect
-- [ ] Full real-device show-loop dry-run before show #1 (VALID-02, Phase 10)
+**Validated in Phase 10: Pre-Show Validation & Device Dry-Run (v1.1 — 2026-07-18):**
+- [x] Tuning-family tag human spot-check (DATA-04 → VALID-01) — 12 canonical anchors confirmed musically sane; 9 *Infest the Rats' Nest* tracks re-tagged cs-standard; backtest zero top-k regression
+- [x] Full real-device show-loop dry-run (VALID-02) — start → predict → log → set break → encore → End Show → recap → dex credit passed on iPhone; offline + export/import legs confirmed on desktop localhost (on-device iOS re-test deferred non-blocking to before show #1); Android waived (D-06)
 
 ### Out of Scope
 
@@ -175,4 +174,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-18 after Phase 9 (Data Integrity & Restore UX) — DATA-06 + PWA-05 validated via automated coverage (571 tests green), phase verification 9/9 must-haves passed.*
+*Last updated: 2026-07-18 after Phase 10 (Pre-Show Validation & Device Dry-Run) — VALID-01 + VALID-02 validated (owner tuning spot-check + real-device iPhone show-loop rehearsal), 587 tests green. This closes the v1.1 "Polish & Pre-Show Hardening" milestone; one non-blocking on-device iOS re-test (offline + export/import) tracked before show #1.*
