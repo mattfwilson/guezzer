@@ -20,8 +20,9 @@
  * Shares the TrailNodeSheet overlay idiom (AppMenu bottom sheet); song text is
  * static copy so there is no untrusted-string surface here.
  */
-import { CircleCheck, ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import { useEffect, useState } from "react";
+import { showBackupToast } from "../components/BackupToast.tsx";
 import { Sheet } from "../components/Sheet.tsx";
 import { config } from "../config.ts";
 import { endShow, getMeta, setMeta } from "../db/db.ts";
@@ -76,14 +77,20 @@ export function EndShowDialog({ open, sessionId, onClose, onEnded }: EndShowDial
   }, [open]);
 
   // Only finalize on an explicit confirm (D-04) — never on the backdrop/cancel.
-  // The backup runs on the SAME confirm, AFTER finalize; both `endShow` and
-  // `exportBackup` are fired synchronously here (exportBackup never throws), so
-  // the finalize + close contract (T-04-18) is preserved unchanged.
-  const handleConfirm = () => {
-    void endShow(sessionId);
-    void exportBackup(); // D-13 auto-backup — never-throws, fire-and-forget
-    onEnded?.(sessionId); // D-13 recap seam (06-09) — AFTER finalize + backup
-    onClose();
+  // SAFE-01 (D-04): `endShow` is AWAITED first so the show is committed to
+  // `finalized` BEFORE `exportBackup` reads the snapshot — a restored backup can
+  // never resurrect an "active" show. SAFE-03 (D-05): the "Backup saved" toast
+  // fires only AFTER `exportBackup()` resolves `{ ok: true }`, via the app-level
+  // emitter — NEVER a setState here, since confirming makes ShowView swap to
+  // RecapView and unmount this dialog's subtree. `exportBackup` never throws
+  // (`{ ok: boolean }`), so making this async preserves the finalize/close
+  // contract (T-04-18).
+  const handleConfirm = async () => {
+    await endShow(sessionId); // SAFE-01 — commit finalize before any snapshot
+    onEnded?.(sessionId); // D-13 recap seam (06-09) — recap carries no toast (D-05)
+    onClose(); // dialog closes immediately (D-05)
+    const { ok } = await exportBackup(); // snapshot now reads a finalized show
+    if (ok) showBackupToast(); // SAFE-03 — app-level toast only on real success
   };
 
   // A11Y-01 (D-01/D-02): the destructive-confirm shell is now the shared modal
@@ -103,12 +110,6 @@ export function EndShowDialog({ open, sessionId, onClose, onEnded }: EndShowDial
       </p>
       <p className="mt-2 text-base leading-normal text-text-muted">
         {copy.endBody}
-      </p>
-
-      {/* D-13 auto-backup nudge — muted, non-blocking, not a per-show nag. */}
-      <p className="mt-3 flex items-center gap-2 text-base leading-normal text-text-muted">
-        <CircleCheck size={16} className="shrink-0" />
-        <span>{settingsCopy.endShowBackupConfirmation}</span>
       </p>
 
       {/* D-13 one-time persist-denied warning, offering an inline Export. */}
@@ -134,7 +135,7 @@ export function EndShowDialog({ open, sessionId, onClose, onEnded }: EndShowDial
       {/* Destructive confirm — finalizes to read-only (D-04). */}
       <button
         type="button"
-        onClick={handleConfirm}
+        onClick={() => void handleConfirm()}
         className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md bg-destructive px-4 text-[14px] font-semibold text-surface touch-manipulation"
       >
         {copy.endConfirm}
