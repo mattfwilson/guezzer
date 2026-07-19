@@ -30,8 +30,8 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Pre-Show Validation
 
-- [ ] **VALID-01**: The owner completes the tuning-family tag spot-check (DATA-04) — ~10 well-known songs verified musically sensible and the `needsReview` subset hand-filled as needed, so predictions aren't skewed by silent tuning misclassification.
-- [ ] **VALID-02**: A full show-loop dry-run on a real device passes before show #1 — start → predictions → log hits/misses → set break → encore → End Show → recap → dex credit → JSON export/import round-trip — with Android exercised if a device is available.
+- [x] **VALID-01**: The owner completes the tuning-family tag spot-check (DATA-04) — ~10 well-known songs verified musically sensible and the `needsReview` subset hand-filled as needed, so predictions aren't skewed by silent tuning misclassification. (Phase 10-01: owner confirmed 12 canonical spot-checks + 36 hand-tags; D-03 fix re-tagged 9 Infest tracks → cs-standard, zero backtest regression.)
+- [x] **VALID-02**: A full show-loop dry-run on a real device passes before show #1 — start → predictions → log hits/misses → set break → encore → End Show → recap → dex credit → JSON export/import round-trip — with Android exercised if a device is available. (Phase 10-02: loop passed on iPhone; offline/import legs verified on desktop localhost with iPhone-specific legs deferred non-blocking; Android waived, no device D-06.)
 
 ## Future Requirements (deferred to v2+)
 
@@ -67,8 +67,8 @@ Which phases cover which requirements. Filled by the roadmapper.
 | A11Y-03 | Phase 8 | Planned |
 | DATA-06 | Phase 9 | Planned |
 | PWA-05 | Phase 9 | Planned |
-| VALID-01 | Phase 10 | Planned |
-| VALID-02 | Phase 10 | Planned |
+| VALID-01 | Phase 10 | Complete |
+| VALID-02 | Phase 10 | Complete |
 
 **Coverage:**
 

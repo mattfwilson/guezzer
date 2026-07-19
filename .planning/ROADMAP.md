@@ -28,7 +28,7 @@ Small, low-risk hardening milestone — no new user-facing features. Close the v
 
 - [x] **Phase 8: On-Device UI Polish & Accessibility** — Legible labels + Escape/focus-managed sheets and dialogs across Show and Explore (completed 2026-07-18)
 - [x] **Phase 9: Data Integrity & Restore UX** — `shownotes` survives normalization; owner can always recover their own backup (completed 2026-07-18)
-- [ ] **Phase 10: Pre-Show Validation & Device Dry-Run** — Owner tuning-tag spot-check + full real-device show-loop rehearsal before show #1
+- [x] **Phase 10: Pre-Show Validation & Device Dry-Run** — Owner tuning-tag spot-check + full real-device show-loop rehearsal before show #1 (completed 2026-07-18)
 
 ## Phase Details
 
@@ -102,7 +102,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 10-02-PLAN.md — VALID-02: 10-HUMAN-UAT.md device-loop checklist + D-07 build/preview/tunnel harness; owner runs the graded iPhone dry-run incl. offline leg + export/import round-trip
+- [x] 10-02-PLAN.md — VALID-02: 10-HUMAN-UAT.md device-loop checklist + D-07 build/preview/tunnel harness; owner runs the graded iPhone dry-run incl. offline leg + export/import round-trip — Complete 2026-07-18 (loop passed on iPhone; 2 D-09 blocker fixes + owner-directed per-show share card; offline/import legs verified on desktop localhost, iPhone-specific legs deferred non-blocking; Android waived D-06)
 
 ## Progress
 
@@ -117,7 +117,7 @@ Plans:
 | 7. Explore Mode Constellation | v1.0 | 7/7 | Complete | 2026-07-16 |
 | 8. On-Device UI Polish & Accessibility | v1.1 | 8/8 | Complete    | 2026-07-18 |
 | 9. Data Integrity & Restore UX | v1.1 | 2/2 | Complete    | 2026-07-18 |
-| 10. Pre-Show Validation & Device Dry-Run | v1.1 | 1/2 | In progress | - |
+| 10. Pre-Show Validation & Device Dry-Run | v1.1 | 2/2 | Complete    | 2026-07-18 |
 
 ---
 *Roadmap created: 2026-07-08*

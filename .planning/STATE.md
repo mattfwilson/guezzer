@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Polish & Pre-Show Hardening
 status: executing
-stopped_at: Completed 10-01-PLAN.md (VALID-01)
-last_updated: "2026-07-18T21:36:14Z"
-last_activity: 2026-07-18 -- Completed Phase 10 Plan 01 (VALID-01 tuning spot-check + D-03 fix)
+stopped_at: Completed 10-02-PLAN.md (VALID-02) — Phase 10 complete
+last_updated: "2026-07-18T22:45:00Z"
+last_activity: 2026-07-18 -- Completed Phase 10 Plan 02 (VALID-02 device dry-run; 2 D-09 fixes + per-show share card)
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 11
-  percent: 75
+  completed_plans: 12
+  percent: 100
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-18 after Phase 8)
 
 ## Current Position
 
-Phase: 10 (pre-show-validation-device-dry-run) — EXECUTING
-Plan: 2 of 2
-Status: Executing Phase 10 (10-01 VALID-01 complete; 10-02 VALID-02 device dry-run next)
-Last activity: 2026-07-18 -- Completed Phase 10 Plan 01 (VALID-01 tuning spot-check + D-03 fix)
+Phase: 10 (pre-show-validation-device-dry-run) — COMPLETE
+Plan: 2 of 2 (both complete)
+Status: Phase 10 complete (10-01 VALID-01 + 10-02 VALID-02 both closed) — v1.1 Polish & Pre-Show Hardening milestone done
+Last activity: 2026-07-18 -- Completed Phase 10 Plan 02 (VALID-02 device dry-run; 2 D-09 fixes + per-show share card)
 
 ## Performance Metrics
 
@@ -75,6 +75,7 @@ Last activity: 2026-07-18 -- Completed Phase 10 Plan 01 (VALID-01 tuning spot-ch
 | Phase 06 P11 | ~9min | 2 tasks | 10 files |
 | Phase 08 P08 | 40 min | 3 tasks | 7 files |
 | Phase 10 P01 | ~24min | 3 tasks | 10 files |
+| Phase 10 P02 | ~2h (owner-run) | 2 tasks (1 checkpoint) | 11 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,7 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-11: buildShareStats(dex, archive) is pure — latest-show date = max(perSong.lastSeenDate), venue resolved from archive by date; no attendance re-read needed (deriveDex exposes no timeline)
 - [Phase 06]: 06-11: ShareCardSheet self-sources the live dex via useDexStats (no dex/archive props) so DexHeader + RecapView both open the same whole-dex brag card; File pre-built on sheet-open, share tap has no async before navigator.share (Pitfall 7)
 - [Phase 08]: Orb-label fit is now circle-aware (per-line chord + height budget); kept CHAR_WIDTH_FACTOR 0.55, tuned LINE_HEIGHT_FACTOR 1.0 / PERCENT_LINE_PX 12 / MAX_LINES 5 / MIN_FONT_PX 7 (08-08) — Rectangular fit over-granted width and ignored height, spilling small orbs on iPhone (POLISH-01); geometric sweep [56..112] now guards it
+- [Phase 10]: 10-02 (VALID-02): full show loop passed a real-device (iPhone) rehearsal on the vite production build (owner declined the tunnel — tests 2–5 on iPhone, 6–7 on desktop localhost secure-context fallback, 8 Android waived D-06). Two D-09 loop-breaking blockers found+fixed inline (SuggestionStrip slot 56→112px + overflow, `b0213c0`; FAB lifted above the reserved strip, `a60d5e2`). Owner-directed scope expansion: per-show recap Share card (core `buildRecapShareStats` off `deriveRecap`, six-tier rarity box, share-icon chrome — `3c09839`) replacing the lifetime-GizzDex card that mismatched the recap (resolves the final-show-share-card todo). Deferred non-blocking gap: iPhone-specific offline (iOS SW eviction) + import (iOS file picker) legs to confirm before show #1. Recorded in 10-HUMAN-UAT.md (status: resolved).
 - [Phase 10]: 10-01 (VALID-01): read-only tuning-review CLI reuses ingest helpers (findMatchedAlbumTitles/defaultFamilyForAlbum made export-only), never touches the write path. Owner D-03 verdict: 9 Infest the Rats' Nest tracks (94/133/152/157/160/180/200/239/240) re-tagged standard→cs-standard (first non-empty cs-standard family); 12 canonical spot-checks + 36 no-album-default hand-tags confirmed as-is. Backtest top-k ZERO regression (tuning is a weak signal, ablation Δ≈0) — recorded in 10-HUMAN-UAT.md test #1 (pass)
 
 ### Pending Todos
@@ -135,7 +137,7 @@ Recent decisions affecting current work:
 - [ui] Bottom sheets app-wide — animate up/down smoothly on open/close (scrim cross-fade, honor prefers-reduced-motion) AND make every sheet the top-most surface so no FAB/banner ever paints over an open sheet — `.planning/todos/pending/2026-07-17-bottom-sheets-smooth-up-down-animation-always-on-top-layerin.md`. Owner request 2026-07-17. **Absorbs the retired Explore-FAB-over-menu bug** (`ExploreFilterFab` `z-30` vs `AppMenu` `z-20`) as one instance. Recommend a centralized z-index tier scale in config (no scattered magic numbers) + a shared BottomSheet animation (motion is already a dep); audit ALL `z-*` usages so the fix doesn't move the collision.
 - [ui] Format full calendar dates app-wide as "Mon D, YYYY" (e.g. `Jan 2, 2026`) via one shared UTC-safe helper mirroring `formatMonYear.ts` — convert raw-ISO renders in ShowView header, ShowsList, SetlistView, ArchiveBrowser, RecapView subline, shareCard PNG — `.planning/todos/pending/2026-07-17-readable-full-date-format-mon-d-yyyy-app-wide.md`. Owner idea 2026-07-17; **use `timeZone:"UTC"` to avoid off-by-one-day**; leave coarse Mon-Year (last-seen/year headers) unless owner wants otherwise.
 - [ui] Rebrand tabs: Dex→GizzDex, Explore→GizzVerse, Show→LiveGizz (`BottomTabBar.tsx:5-7`) — **layer-1 (visible labels) DONE (260716-wwj / `ba775f0`)**; only optional layer-2 (internal code-identifier consistency) remains, deferred — `.planning/todos/pending/2026-07-17-rebrand-tabs-dex-to-gizzdex-explore-to-gizzverse-show-to-liv.md`. **Do NOT blind-rename route strings or persisted Dexie/storage keys** (breaks nav + orphans saved data) — decouple display name from route/storage key.
-- [ui] Final-show recap Share card shows **all-time GizzDex totals, not that night's show** — `.planning/todos/pending/2026-07-18-final-show-share-card-uses-gizzdex-totals.md`. Owner report 2026-07-18. Root cause: `RecapView.tsx:282-283` opens `<ShareCardSheet>` with no session context, and the sheet self-sources `useDexStats` + `buildShareStats(dex, archive)` (shared with the DexHeader CTA). Fix should give the recap a **show-scoped** card from the `deriveRecap` stats it already renders (keep card math in core; preserve the DexHeader all-time path; T-06-21 text-only names).
+- [ui] ~~Final-show recap Share card shows **all-time GizzDex totals, not that night's show**~~ — **RESOLVED 2026-07-18** in Phase 10-02 (owner-directed inline fix during the VALID-02 device rehearsal, commit `3c09839`): new per-show recap Share card via core `buildRecapShareStats` off `deriveRecap` (six-tier rarity box, share-icon chrome; DexHeader all-time path preserved). `.planning/todos/pending/2026-07-18-final-show-share-card-uses-gizzdex-totals.md`.
 
 ### Quick Tasks Completed
 
@@ -192,10 +194,11 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-18T21:36:14Z
-Stopped at: Completed 10-01-PLAN.md (VALID-01)
+Last session: 2026-07-18T22:45:00Z
+Stopped at: Completed 10-02-PLAN.md (VALID-02) — Phase 10 complete, v1.1 milestone done
 Resume file: None
 
 ## Operator Next Steps
 
-- Execute Phase 10 Plan 02 (VALID-02 device dry-run) with `/gsd-execute-phase 10`
+- Phase 10 complete; v1.1 Polish & Pre-Show Hardening milestone (Phases 8–10) done. Consider a milestone audit / evolve PROJECT.md.
+- Deferred (non-blocking) before show #1: a short tunnel-backed iPhone pass to confirm the iOS-specific offline (SW eviction under airplane mode) + import (Files/share-sheet picker) legs — see 10-HUMAN-UAT.md ## Gaps.
