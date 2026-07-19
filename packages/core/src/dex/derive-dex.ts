@@ -11,6 +11,7 @@
  * tracked∪retro dedupe (bound → by show_id, unbound → by date).
  */
 import { config } from "../config.ts";
+import { attendanceKey } from "../data-safety/attendance-key.ts";
 import type { ArchiveArtifact } from "./archive-types.ts";
 import type { RarityIndex, RarityTier } from "./rarity.ts";
 
@@ -65,11 +66,6 @@ interface AlbumsInput {
     covers: Array<{ songId: number | null; inMatrix: boolean }>;
     miscellaneous: Array<{ songId: number | null; inMatrix: boolean }>;
   };
-}
-
-/** Stable grouping key for tracked∪retro dedupe (D-11): bound → by show_id, unbound → by date. */
-function attendanceGroupKey(showId: number | null, date: string): string {
-  return showId != null ? `id:${showId}` : `date:${date}`;
 }
 
 interface AttendanceGroup {
@@ -134,11 +130,12 @@ export function deriveDex(
     return group;
   };
   for (const attended of snapshot.attendedShows) {
-    const group = ensureGroup(attendanceGroupKey(attended.show_id, attended.showDate), attended.showDate);
+    // Retro marks are always bound → showId non-null, so sessionId is ignored.
+    const group = ensureGroup(attendanceKey(attended.show_id, attended.showDate, ""), attended.showDate);
     group.showIds.add(attended.show_id);
   }
   for (const tracked of snapshot.trackedShows) {
-    const group = ensureGroup(attendanceGroupKey(tracked.showId, tracked.date), tracked.date);
+    const group = ensureGroup(attendanceKey(tracked.showId, tracked.date, tracked.sessionId), tracked.date);
     if (tracked.showId != null) group.showIds.add(tracked.showId);
     group.sessionIds.add(tracked.sessionId);
   }
