@@ -81,6 +81,41 @@ describe("wakeLock: acquireWakeLock (SHOW-12, Pitfall 1)", () => {
     expect(onUnsupported).toHaveBeenCalledTimes(1);
   });
 
+  it("releases a late-resolving sentinel when release races an in-flight acquire (UX-02, D-02)", async () => {
+    // The race: acquireWakeLock's request("screen") is still in flight when End
+    // Show calls releaseWakeLock() (showActive → false). When the request finally
+    // resolves with a live sentinel, the post-await re-check must release it and
+    // store NOTHING — otherwise the lock leaks (nothing else can release it).
+    let resolveRequest: (sentinel: unknown) => void = () => {};
+    const deferred = new Promise((resolve) => {
+      resolveRequest = resolve;
+    });
+    setWakeLock(vi.fn().mockReturnValue(deferred));
+    const { acquireWakeLock, releaseWakeLock } = await freshModule();
+    const onUnsupported = vi.fn();
+
+    // Start the acquire; the request promise does NOT resolve yet.
+    const acquiring = acquireWakeLock(onUnsupported);
+    await flush();
+
+    // End Show fires while the request is still in flight → showActive = false.
+    await releaseWakeLock();
+
+    // Now the deferred request resolves with a live sentinel.
+    const late = liveSentinel();
+    resolveRequest(late);
+    await acquiring;
+    await flush();
+
+    // The re-check released the late sentinel exactly once...
+    expect(late.release).toHaveBeenCalledTimes(1);
+    // ...and stored nothing: a subsequent release is a no-op (no second release).
+    await releaseWakeLock();
+    expect(late.release).toHaveBeenCalledTimes(1);
+    // ...and never surfaced the fallback notice (End Show is normal teardown).
+    expect(onUnsupported).not.toHaveBeenCalled();
+  });
+
   it("reacquires on visibilitychange when a show is active and the lock was dropped", async () => {
     let releaseCb: () => void = () => {};
     const request = vi
