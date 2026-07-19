@@ -27,6 +27,45 @@ export interface TrailEntryInput {
   isPlaceholder: boolean;
 }
 
+/**
+ * Minimal projection of the tracked show that `guardLatestRows` keys off
+ * (LIVE-01). Re-declared locally — NEVER imported from the app — mirroring
+ * `bind-show.ts`'s `TrackedShowInput` idiom (CLAUDE.md strict core/UI
+ * separation). `showId` is the canonical kglw.net id once bound (else null,
+ * still provisional); `date` is the show's OWN stored date (never wall-clock).
+ */
+export interface TonightGuardInput {
+  showId: number | null;
+  date: string;
+}
+
+/**
+ * Keep only the tracked show's `latest` rows, dropping a cached previous-night
+ * payload before it can leak into suggestions/fill-hints (LIVE-01).
+ *
+ * - Bound show (`showId !== null`): identity match — keep rows whose
+ *   `show_id === guard.showId`, drop everything else (a previous night still
+ *   cached under a different `show_id` is discarded; D-09).
+ * - Unbound show (`showId === null`): date match against the show's OWN stored
+ *   date — keep rows whose `showdate === guard.date`. This NEVER reads
+ *   wall-clock `todayIso`, so a past-midnight set (the show's date is the 14th
+ *   while "today" has rolled to the 15th) is not self-rejected (D-10).
+ *
+ * Pure filter: no sort, no clock, empty in → empty out. Applied ONCE by the app
+ * (plan 11-04) upstream of `diffLatestAgainstTrail`/`resolvePlaceholders` — it
+ * is deliberately NOT embedded inside them (RESEARCH anti-pattern: the guard is
+ * a single ingress point, not a per-consumer re-filter).
+ */
+export function guardLatestRows(
+  rows: LatestSetlistRow[],
+  guard: TonightGuardInput,
+): LatestSetlistRow[] {
+  if (guard.showId !== null) {
+    return rows.filter((r) => r.show_id === guard.showId);
+  }
+  return rows.filter((r) => r.showdate === guard.date);
+}
+
 /** An editor-logged song offered to the user (SYNC-02). Never auto-applied. */
 export interface Suggestion {
   songId: number;
