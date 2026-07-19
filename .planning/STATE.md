@@ -4,8 +4,8 @@ milestone: v1.2
 milestone_name: Pre-Show Hardening
 status: verifying
 stopped_at: Phase 12 context gathered
-last_updated: "2026-07-19T20:07:06.982Z"
-last_activity: 2026-07-19
+last_updated: "2026-07-19T20:40:59.791Z"
+last_activity: 2026-07-19 -- Phase 12 planning complete
 progress:
   total_phases: 6
   completed_phases: 1
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 Phase: 12
 Plan: Not started
 Status: All 5 plans complete; phase verification gate (device UAT: night-2 down-weighting + reset) pending
-Last activity: 2026-07-19
+Last activity: 2026-07-19 -- Phase 12 planning complete
 
 ## Performance Metrics
 

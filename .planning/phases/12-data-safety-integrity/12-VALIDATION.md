@@ -1,8 +1,8 @@
 ---
 phase: 12
 slug: data-safety-integrity
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-19
 ---
@@ -79,6 +79,6 @@ created: 2026-07-19
 - [ ] Wave 0 covers all MISSING references (SAFE-02 `triggerDownload` test, SAFE-03 toast seam)
 - [ ] No watch-mode flags
 - [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-07-19 (plans pass plan-checker; `wave_0_complete` flips true once the Wave-0 test scaffolds land in execution)
