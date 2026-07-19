@@ -19,7 +19,7 @@ const actionLabels = [
   config.copy.show.endCta, // End Show — the last FAB item (moved from the header)
 ];
 
-function renderMenu() {
+function renderMenu(stripReserved = false) {
   const handlers = {
     onSearch: vi.fn(),
     onUnknown: vi.fn(),
@@ -28,8 +28,16 @@ function renderMenu() {
     onUndo: vi.fn(),
     onEndShow: vi.fn(),
   };
-  render(<FabMenu {...handlers} />);
+  render(<FabMenu {...handlers} stripReserved={stripReserved} />);
   return handlers;
+}
+
+/** The positioned container carrying the bottom offset (class `fab-menu`). */
+function fabContainer(): HTMLElement {
+  const fab = screen.getByRole("button", { name: config.copy.show.fabLabel });
+  const container = fab.closest(".fab-menu");
+  if (!(container instanceof HTMLElement)) throw new Error("fab container not found");
+  return container;
 }
 
 function openMenu() {
@@ -40,6 +48,16 @@ function openMenu() {
 
 describe("FabMenu (D-20 speed-dial replacing ActionBar)", () => {
   afterEach(cleanup);
+
+  it("lifts above the reserved SuggestionStrip so it never overlaps a row (owner 2026-07-18)", () => {
+    // jsdom's CSSOM drops calc()/env() from style.bottom, so assert the wiring
+    // via the data attribute the container reflects (also a debug hook).
+    renderMenu(false);
+    expect(fabContainer().dataset.stripReserved).toBe("false");
+    cleanup();
+    renderMenu(true);
+    expect(fabContainer().dataset.stripReserved).toBe("true");
+  });
 
   it("is collapsed by default: only the FAB is in the tree, no action buttons", () => {
     renderMenu();
