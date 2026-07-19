@@ -88,7 +88,11 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
   3. The "Backup saved" confirmation appears only after a backup actually succeeds, never while the End-Show dialog is still open (SAFE-03).
   4. Two shows attended on the same date are tracked and counted as two distinct attendances across merge and dex derivation — doubleheaders are not collapsed (SAFE-04).
 
-**Plans**: TBD
+**Plans**: 3 plans, 1 wave
+
+  - [ ] 12-01-PLAN.md — SAFE-04: shared `attendanceKey` core module; keep same-date doubleheaders distinct through merge.ts + derive-dex.ts (rewrite the two inverted tests, retain bound-dedup)
+  - [ ] 12-02-PLAN.md — SAFE-01/03: async End-Show finalize→backup→confirm sequencing + app-level `<BackupToast/>`; remove the premature static confirmation
+  - [ ] 12-03-PLAN.md — SAFE-02: centralized `triggerDownload` helper with deferred object-URL revoke (config constant) adopted by exportDownload.ts + shareCard.ts
 
 ### Phase 13: Interface & Explore Polish
 
