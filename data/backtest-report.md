@@ -1,6 +1,6 @@
 # Backtest Report
 
-Generated 2026-07-08T21:48:06.479Z from the committed normalized corpus. Zero network requests were made to produce this report -- it is a pure derivation over the already-committed `data/normalized/corpus.json` artifact (D-15, mirrors `census-report.md`, D-10).
+Generated 2026-07-18T21:36:14.453Z from the committed normalized corpus. Zero network requests were made to produce this report -- it is a pure derivation over the already-committed `data/normalized/corpus.json` artifact (D-15, mirrors `census-report.md`, D-10).
 
 **Holdout:** 2025 Phantom Island Australia Tour (tour 65), 9 show(s), 154 evaluated within-set transitions.
 

@@ -494,9 +494,9 @@
     {
       "songId": 94,
       "name": "Hell",
-      "family": "standard",
+      "family": "cs-standard",
       "needsReview": false,
-      "source": "album-default"
+      "source": "hand-tagged"
     },
     {
       "songId": 95,
@@ -725,9 +725,9 @@
     {
       "songId": 133,
       "name": "Mars For the Rich",
-      "family": "standard",
+      "family": "cs-standard",
       "needsReview": false,
-      "source": "album-default"
+      "source": "hand-tagged"
     },
     {
       "songId": 134,
@@ -830,9 +830,9 @@
     {
       "songId": 152,
       "name": "Organ Farmer",
-      "family": "standard",
+      "family": "cs-standard",
       "needsReview": false,
-      "source": "album-default"
+      "source": "hand-tagged"
     },
     {
       "songId": 153,
@@ -851,9 +851,9 @@
     {
       "songId": 157,
       "name": "Perihelion",
-      "family": "standard",
+      "family": "cs-standard",
       "needsReview": false,
-      "source": "album-default"
+      "source": "hand-tagged"
     },
     {
       "songId": 158,
@@ -865,9 +865,9 @@
     {
       "songId": 160,
       "name": "Planet B",
-      "family": "standard",
+      "family": "cs-standard",
       "needsReview": false,
-      "source": "album-default"
+      "source": "hand-tagged"
     },
     {
       "songId": 161,
@@ -991,9 +991,9 @@
     {
       "songId": 180,
       "name": "Self-Immolate",
-      "family": "standard",
+      "family": "cs-standard",
       "needsReview": false,
-      "source": "album-default"
+      "source": "hand-tagged"
     },
     {
       "songId": 181,
@@ -1089,9 +1089,9 @@
     {
       "songId": 200,
       "name": "Superbug",
-      "family": "standard",
+      "family": "cs-standard",
       "needsReview": false,
-      "source": "album-default"
+      "source": "hand-tagged"
     },
     {
       "songId": 201,
@@ -1285,16 +1285,16 @@
     {
       "songId": 239,
       "name": "Venusian 1",
-      "family": "standard",
+      "family": "cs-standard",
       "needsReview": false,
-      "source": "album-default"
+      "source": "hand-tagged"
     },
     {
       "songId": 240,
       "name": "Venusian 2",
-      "family": "standard",
+      "family": "cs-standard",
       "needsReview": false,
-      "source": "album-default"
+      "source": "hand-tagged"
     },
     {
       "songId": 241,

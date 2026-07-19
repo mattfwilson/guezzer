@@ -501,7 +501,7 @@
       "songName": "Hell",
       "playCount": 66,
       "eraPlayCount": 1,
-      "tuningFamily": "standard"
+      "tuningFamily": "cs-standard"
     },
     {
       "songId": 95,
@@ -732,7 +732,7 @@
       "songName": "Mars For the Rich",
       "playCount": 122,
       "eraPlayCount": 18,
-      "tuningFamily": "standard"
+      "tuningFamily": "cs-standard"
     },
     {
       "songId": 134,
@@ -837,7 +837,7 @@
       "songName": "Organ Farmer",
       "playCount": 51,
       "eraPlayCount": 0,
-      "tuningFamily": "standard"
+      "tuningFamily": "cs-standard"
     },
     {
       "songId": 153,
@@ -858,7 +858,7 @@
       "songName": "Perihelion",
       "playCount": 62,
       "eraPlayCount": 6,
-      "tuningFamily": "standard"
+      "tuningFamily": "cs-standard"
     },
     {
       "songId": 158,
@@ -872,7 +872,7 @@
       "songName": "Planet B",
       "playCount": 78,
       "eraPlayCount": 2,
-      "tuningFamily": "standard"
+      "tuningFamily": "cs-standard"
     },
     {
       "songId": 161,
@@ -998,7 +998,7 @@
       "songName": "Self-Immolate",
       "playCount": 101,
       "eraPlayCount": 2,
-      "tuningFamily": "standard"
+      "tuningFamily": "cs-standard"
     },
     {
       "songId": 181,
@@ -1096,7 +1096,7 @@
       "songName": "Superbug",
       "playCount": 22,
       "eraPlayCount": 3,
-      "tuningFamily": "standard"
+      "tuningFamily": "cs-standard"
     },
     {
       "songId": 201,
@@ -1292,14 +1292,14 @@
       "songName": "Venusian 1",
       "playCount": 29,
       "eraPlayCount": 2,
-      "tuningFamily": "standard"
+      "tuningFamily": "cs-standard"
     },
     {
       "songId": 240,
       "songName": "Venusian 2",
       "playCount": 61,
       "eraPlayCount": 2,
-      "tuningFamily": "standard"
+      "tuningFamily": "cs-standard"
     },
     {
       "songId": 241,
