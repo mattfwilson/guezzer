@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Pre-Show Hardening
-status: executing
-stopped_at: Completed 11-05-PLAN.md
-last_updated: "2026-07-19T21:40:00Z"
-last_activity: 2026-07-19 -- Completed Phase 11 plan 05 (app wiring: cross-night rotation window into buildShowContext + Settings reset control, PRED-01/PRED-03)
+status: verifying
+stopped_at: Completed 11-05-PLAN.md (all 5 phase-11 plans executed; device verification gate pending)
+last_updated: "2026-07-19T19:27:40.920Z"
+last_activity: 2026-07-19
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
   completed_plans: 5
-  percent: 0
+  percent: 17
 ---
 
 # Project State
@@ -25,16 +25,16 @@ See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 
 ## Current Position
 
-Phase: 11 (live-sync-prediction-correctness) — EXECUTING
-Plan: 5 of 5 (11-05 complete — all plans executed)
+Phase: 12
+Plan: Not started
 Status: All 5 plans complete; phase verification gate (device UAT: night-2 down-weighting + reset) pending
-Last activity: 2026-07-19 -- Completed Phase 11 plan 05 (app wiring: cross-night rotation window into buildShowContext + Settings reset control, PRED-01/PRED-03)
+Last activity: 2026-07-19
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 80
+- Total plans completed: 85
 - Average duration: -
 - Total execution time: 0 hours
 
@@ -48,6 +48,7 @@ Last activity: 2026-07-19 -- Completed Phase 11 plan 05 (app wiring: cross-night
 | 06 | 12 | - | - |
 | 08 | 8 | - | - |
 | 09 | 2 | - | - |
+| 11 | 5 | - | - |
 
 **Recent Trend:**
 

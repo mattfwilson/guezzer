@@ -40,7 +40,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 
 **Bug fixes land before Gizz Bingo.** The bugs are the show-#1 trust gate for the Aug 14, 2026 residency (3-night no-repeat runs); Bingo is not. Gizz Bingo carries TWO hard upstream gates: (1) the Phase 11 live-sync correctness fixes must land first — Bingo is a new consumer of the same `latest` feed and auto-marking is trust-by-design; (2) a fill-rate Monte-Carlo calibration pre-plan task must run and write locked constants to `packages/core/src/config.ts` before the Bingo generator is built.
 
-- [ ] **Phase 11: Live-Sync & Prediction Correctness** — Tier-1 show-critical: no wrong-show/wrong-artist leakage, drift-tolerant sync, rotation suppression fires on night 2+ (LIVE-01/02/03, PRED-01/02/03)
+- [x] **Phase 11: Live-Sync & Prediction Correctness** — Tier-1 show-critical: no wrong-show/wrong-artist leakage, drift-tolerant sync, rotation suppression fires on night 2+ (LIVE-01/02/03, PRED-01/02/03) (completed 2026-07-19)
 - [ ] **Phase 12: Data Safety & Integrity** — the exported backup is always honest and complete; same-date doubleheaders survive (SAFE-01/02/03/04)
 - [ ] **Phase 13: Interface & Explore Polish** — safe-area inset, wake-lock release race, fill-hint accuracy, constellation camera (UX-01/02/03/04)
 - [ ] **Phase 14: Gizz Bingo — Core Marking & Generation** — deterministic consume-once `deriveMarks` fold + seeded generator, behind the calibration gate (BINGO-03)
@@ -164,7 +164,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 | 8. On-Device UI Polish & Accessibility | v1.1 | 8/8 | Complete | 2026-07-18 |
 | 9. Data Integrity & Restore UX | v1.1 | 2/2 | Complete | 2026-07-18 |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 2/2 | Complete | 2026-07-18 |
-| 11. Live-Sync & Prediction Correctness | v1.2 | 5/5 | In Progress|  |
+| 11. Live-Sync & Prediction Correctness | v1.2 | 5/5 | Complete    | 2026-07-19 |
 | 12. Data Safety & Integrity | v1.2 | 0/— | Not started | - |
 | 13. Interface & Explore Polish | v1.2 | 0/— | Not started | - |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 0/— | Not started | - |
