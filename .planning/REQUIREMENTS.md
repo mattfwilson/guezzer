@@ -15,9 +15,9 @@ Milestone theme: harden the live-show-critical paths (live sync, prediction corr
 
 ### Prediction Correctness (PRED) — Tier 1
 
-- [ ] **PRED-01**: On night 2+ of a run, songs already played earlier in the run are down-weighted in live predictions — rotation suppression fires with real cross-night data.
+- [x] **PRED-01**: On night 2+ of a run, songs already played earlier in the run are down-weighted in live predictions — rotation suppression fires with real cross-night data.
 - [x] **PRED-02**: The era-prior signal down-weights long-retired songs as designed (unit mismatch fixed; the retired-song floor is reachable).
-- [ ] **PRED-03**: User can reset the cross-night rotation state before a new run of shows, so songs played in a prior run/weekend are no longer down-weighted when the no-repeat window no longer applies (e.g. a separate weekend where the band may replay).
+- [x] **PRED-03**: User can reset the cross-night rotation state before a new run of shows, so songs played in a prior run/weekend are no longer down-weighted when the no-repeat window no longer applies (e.g. a separate weekend where the band may replay).
 
 ### Data Safety & Integrity (SAFE) — Tier 1/2
 
@@ -76,9 +76,9 @@ Deferred to a later milestone (backlog unchanged in `.planning/todos/pending/`).
 | LIVE-01 | Phase 11 | Complete (11-02 + 11-04) |
 | LIVE-02 | Phase 11 | Complete (11-02) |
 | LIVE-03 | Phase 11 | Complete (11-02 + 11-04) |
-| PRED-01 | Phase 11 | Pending |
+| PRED-01 | Phase 11 | Complete (11-03 + 11-05) |
 | PRED-02 | Phase 11 | Complete |
-| PRED-03 | Phase 11 | Pending |
+| PRED-03 | Phase 11 | Complete (11-03 + 11-05) |
 | SAFE-01 | Phase 12 | Pending |
 | SAFE-02 | Phase 12 | Pending |
 | SAFE-03 | Phase 12 | Pending |

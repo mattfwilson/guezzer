@@ -74,7 +74,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-  - [ ] 11-05-PLAN.md — Wave 3: prediction app wiring — feed cross-night run window into buildShowContext (PRED-01) + Settings reset control (PRED-03)
+  - [x] 11-05-PLAN.md — Wave 3: prediction app wiring — feed cross-night run window into buildShowContext (PRED-01) + Settings reset control (PRED-03)
 
 ### Phase 12: Data Safety & Integrity
 
@@ -164,7 +164,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 | 8. On-Device UI Polish & Accessibility | v1.1 | 8/8 | Complete | 2026-07-18 |
 | 9. Data Integrity & Restore UX | v1.1 | 2/2 | Complete | 2026-07-18 |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 2/2 | Complete | 2026-07-18 |
-| 11. Live-Sync & Prediction Correctness | v1.2 | 2/5 | In Progress|  |
+| 11. Live-Sync & Prediction Correctness | v1.2 | 5/5 | In Progress|  |
 | 12. Data Safety & Integrity | v1.2 | 0/— | Not started | - |
 | 13. Interface & Explore Polish | v1.2 | 0/— | Not started | - |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 0/— | Not started | - |

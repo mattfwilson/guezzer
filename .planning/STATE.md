@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Pre-Show Hardening
 status: executing
-stopped_at: Completed 11-04-PLAN.md
-last_updated: "2026-07-19T21:12:00Z"
-last_activity: 2026-07-19 -- Completed Phase 11 plan 04 (live app wiring: PollResult + guardLatestRows + amber SyncDot)
+stopped_at: Completed 11-05-PLAN.md
+last_updated: "2026-07-19T21:40:00Z"
+last_activity: 2026-07-19 -- Completed Phase 11 plan 05 (app wiring: cross-night rotation window into buildShowContext + Settings reset control, PRED-01/PRED-03)
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 ## Current Position
 
 Phase: 11 (live-sync-prediction-correctness) — EXECUTING
-Plan: 5 of 5 (11-04 complete)
-Status: Ready to execute (Wave 3 — 11-05 unblocked: needs 11-03 ✓ + 11-04 ✓)
-Last activity: 2026-07-19 -- Completed Phase 11 plan 04 (live app wiring: PollResult + guardLatestRows + amber SyncDot)
+Plan: 5 of 5 (11-05 complete — all plans executed)
+Status: All 5 plans complete; phase verification gate (device UAT: night-2 down-weighting + reset) pending
+Last activity: 2026-07-19 -- Completed Phase 11 plan 05 (app wiring: cross-night rotation window into buildShowContext + Settings reset control, PRED-01/PRED-03)
 
 ## Performance Metrics
 
@@ -80,6 +80,7 @@ Last activity: 2026-07-19 -- Completed Phase 11 plan 04 (live app wiring: PollRe
 | Phase 11 P02 | ~9min | 3 tasks | 7 files |
 | Phase 11 P03 | ~12min | 2 tasks | 6 files |
 | Phase 11 P04 | ~7min | 2 tasks | 8 files |
+| Phase 11 P05 | ~14min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -134,6 +135,7 @@ Recent decisions affecting current work:
 - [Phase 11]: 11-01: replaced the masking 3-node era-prior fixture with a production-scale (~260-node, Σ playCount ~14k) matrix; the retired-song eraPriorFloor is proven unreachable on current code (returns ~0.996), RED until 11-03
 - [Phase 11]: 11-03: PRED-02 eraPrior unit fix — allTimeRate is now career plays-per-show (`node.playCount / index.showCount`, new `MatrixIndex.showCount` off the matrix header, no rebuild) instead of the catalog-marginal `basePlayRate`; `eraPriorSmoothingK` rescaled 1→0.08 (per-show scale). Retired-song floor is now reachable — the 11-01 production-scale RED test flips GREEN. PRED-01/03: new pure DOM-free `currentRunShowSets(finalized, currentDate, cfg, resetBoundaryDate?)` groups prior finalized shows into the current run by calendar-day gap (`config.runGapDays: 2`), excludes shows ≥ reset boundary and ≥ currentDate, returns the `recentShowSongSets` window `rotationSuppression` (unchanged) is starved of. App wiring is 11-05. Deviation (Rule 1): fixed the 11-01 fixture HOT node career playCount 300→120 — 300/241≈1.24 plays/show was dimensionally impossible and made the corrected per-show ratio rightly <1; retired node + all thresholds untouched. Flag for backtest/human-verify gate: eraPriorSmoothingK=0.08, runGapDays=2. Full core suite 326 green.
 - [Phase 11]: 11-04: app-tier completion of LIVE-01/LIVE-03. `useLatestPoll` callback WIDENED to `(result: PollResult) => void` (chosen over a second `onDrift` callback — one stable ref, drift coupled to its rows). `SyncDot` gained a third amber `#F59E0B` `schemaDrift` state — the ONLY interactive SyncDot state: a non-modal tap-for-detail inline popover rendering novel key NAMES only (never editor values), distinct aria-label, negative-margin tap target (no header shift). `ShowView` computes `guardedRows = guardLatestRows(latestRows, {showId,date})` ONCE at ingress and feeds it to diff/resolve/bind — single-filter, no consumer sees raw rows (a cached previous-night payload can no longer leak into night-2 suggestions). `?mockLatest=drift` injects `mock_novel_field` to exercise the amber path on-device. Full app suite 287 green, full repo 613 green — the 11-02 pollLatest signature ripple is fully resolved. DRIFT_AMBER=#F59E0B for device UAT.
+- [Phase 11]: 11-05: app-tier wiring of the cross-night rotation window (PRED-01) + owner reset control (PRED-03). `useShowSession` now reads finalized `trackedShows`+entries via `useLiveQuery`, projects them to `FinalizedShowInput[]`, and groups via core `currentRunShowSets(active.date, {runGapDays: coreConfig.runGapDays}, rotationRunResetDate)` — the result replaces the hardcoded `[]` 3rd `buildShowContext` arg, so `rotationSuppression` finally fires live (implicit rank drop; night-1 = `[]`). Decision logic stays in core (CLAUDE.md separation) — the app only shapes Dexie rows. `status === "finalized"` inherently excludes the active in-progress show (Pitfall 4). `SettingsView` gained a "Start a fresh run" two-tap-confirm control writing the `rotationRunResetDate` free-form `db.meta` marker (today's `YYYY-MM-DD`, A3 date boundary) — no Dexie version bump, round-trips via `snapshot()`. Exported `todayIso` from `db.ts` (same helper stamping `TrackedShow.date`, so the boundary is commensurate). Reset copy in `config.copy.settings`. Full repo suite 619 green (+6). Verification gate remaining: device UAT — night-2 down-weighting + reset escape hatch.
 - [Phase 11]: 11-02: three pure-core live-path fixes (LIVE-01/02/03). guardLatestRows is a once-at-ingress filter (bound→show_id, unbound→show's OWN date, never wall-clock so past-midnight sets survive). latestSetlistRow switched to `.catchall(z.unknown())` so an additive API key keeps the row usable; KNOWN_LATEST_KEYS derived from the schema's `.shape` (single source of truth) feeds a names-only detectNovelKeys. pollLatest now returns `PollResult { rows, schemaDrift, novelKeys? }` — drift aggregated into a Set and logged once/poll, never-throw soft-fail preserved. artist_id!==1 confirmed as the SOLE single-ingress filter, locked by a mixed-artist regression test. 11-04 must consume PollResult (useLatestPoll/mockLatest/app tests) and wire guardLatestRows once upstream of diff/resolve.
 
 ### Pending Todos
@@ -255,8 +257,8 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-19T21:12:00Z
-Stopped at: Completed 11-04-PLAN.md (Wave 3 — 11-05 unblocked: needs 11-03 ✓ + 11-04 ✓)
+Last session: 2026-07-19T21:40:00Z
+Stopped at: Completed 11-05-PLAN.md (all 5 phase-11 plans executed; device verification gate pending)
 Resume file: .planning/phases/11-live-sync-prediction-correctness/11-CONTEXT.md
 
 ## Operator Next Steps
