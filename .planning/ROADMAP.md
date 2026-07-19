@@ -91,7 +91,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 **Plans**: 3 plans, 1 wave
 
   - [x] 12-01-PLAN.md — SAFE-04: shared `attendanceKey` core module; keep same-date doubleheaders distinct through merge.ts + derive-dex.ts (rewrite the two inverted tests, retain bound-dedup) — completed 2026-07-19
-  - [ ] 12-02-PLAN.md — SAFE-01/03: async End-Show finalize→backup→confirm sequencing + app-level `<BackupToast/>`; remove the premature static confirmation
+  - [x] 12-02-PLAN.md — SAFE-01/03: async End-Show finalize→backup→confirm sequencing + app-level `<BackupToast/>`; remove the premature static confirmation
   - [ ] 12-03-PLAN.md — SAFE-02: centralized `triggerDownload` helper with deferred object-URL revoke (config constant) adopted by exportDownload.ts + shareCard.ts
 
 ### Phase 13: Interface & Explore Polish
@@ -169,7 +169,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 | 9. Data Integrity & Restore UX | v1.1 | 2/2 | Complete | 2026-07-18 |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 2/2 | Complete | 2026-07-18 |
 | 11. Live-Sync & Prediction Correctness | v1.2 | 5/5 | Complete    | 2026-07-19 |
-| 12. Data Safety & Integrity | v1.2 | 1/3 | In progress | - |
+| 12. Data Safety & Integrity | v1.2 | 2/3 | In Progress|  |
 | 13. Interface & Explore Polish | v1.2 | 0/— | Not started | - |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 0/— | Not started | - |
 | 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 0/— | Not started | - |

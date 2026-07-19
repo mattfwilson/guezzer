@@ -21,9 +21,9 @@ Milestone theme: harden the live-show-critical paths (live sync, prediction corr
 
 ### Data Safety & Integrity (SAFE) — Tier 1/2
 
-- [ ] **SAFE-01**: Ending a show then exporting a backup always records that show as finalized — the backup never resurrects an "active" show on restore.
+- [x] **SAFE-01**: Ending a show then exporting a backup always records that show as finalized — the backup never resurrects an "active" show on restore.
 - [ ] **SAFE-02**: Backup and share-card downloads complete reliably on iOS Safari — no same-tick `revokeObjectURL` aborting the download.
-- [ ] **SAFE-03**: The "Backup saved" confirmation appears only after a backup actually succeeds, never while the End-Show dialog is still open.
+- [x] **SAFE-03**: The "Backup saved" confirmation appears only after a backup actually succeeds, never while the End-Show dialog is still open.
 - [x] **SAFE-04**: Two shows attended on the same date are tracked and counted as distinct attendances across merge and dex derivation (doubleheaders not collapsed).
 
 ### Interface & Explore Polish (UX) — Tier 3
@@ -79,9 +79,9 @@ Deferred to a later milestone (backlog unchanged in `.planning/todos/pending/`).
 | PRED-01 | Phase 11 | Complete (11-03 + 11-05) |
 | PRED-02 | Phase 11 | Complete |
 | PRED-03 | Phase 11 | Complete (11-03 + 11-05) |
-| SAFE-01 | Phase 12 | Pending |
+| SAFE-01 | Phase 12 | Complete |
 | SAFE-02 | Phase 12 | Pending |
-| SAFE-03 | Phase 12 | Pending |
+| SAFE-03 | Phase 12 | Complete |
 | SAFE-04 | Phase 12 | Complete |
 | UX-01 | Phase 13 | Pending |
 | UX-02 | Phase 13 | Pending |
