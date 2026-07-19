@@ -41,7 +41,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 **Bug fixes land before Gizz Bingo.** The bugs are the show-#1 trust gate for the Aug 14, 2026 residency (3-night no-repeat runs); Bingo is not. Gizz Bingo carries TWO hard upstream gates: (1) the Phase 11 live-sync correctness fixes must land first — Bingo is a new consumer of the same `latest` feed and auto-marking is trust-by-design; (2) a fill-rate Monte-Carlo calibration pre-plan task must run and write locked constants to `packages/core/src/config.ts` before the Bingo generator is built.
 
 - [x] **Phase 11: Live-Sync & Prediction Correctness** — Tier-1 show-critical: no wrong-show/wrong-artist leakage, drift-tolerant sync, rotation suppression fires on night 2+ (LIVE-01/02/03, PRED-01/02/03) (completed 2026-07-19)
-- [ ] **Phase 12: Data Safety & Integrity** — the exported backup is always honest and complete; same-date doubleheaders survive (SAFE-01/02/03/04)
+- [x] **Phase 12: Data Safety & Integrity** — the exported backup is always honest and complete; same-date doubleheaders survive (SAFE-01/02/03/04) (completed 2026-07-19)
 - [ ] **Phase 13: Interface & Explore Polish** — safe-area inset, wake-lock release race, fill-hint accuracy, constellation camera (UX-01/02/03/04)
 - [ ] **Phase 14: Gizz Bingo — Core Marking & Generation** — deterministic consume-once `deriveMarks` fold + seeded generator, behind the calibration gate (BINGO-03)
 - [ ] **Phase 15: Gizz Bingo — Persistence, Lock & Replay** — Dexie v5 `bingoCards` + lock-on-Start-Show + export/import + catch-up + GizzDex replay (BINGO-06/07)
@@ -92,7 +92,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 
   - [x] 12-01-PLAN.md — SAFE-04: shared `attendanceKey` core module; keep same-date doubleheaders distinct through merge.ts + derive-dex.ts (rewrite the two inverted tests, retain bound-dedup) — completed 2026-07-19
   - [x] 12-02-PLAN.md — SAFE-01/03: async End-Show finalize→backup→confirm sequencing + app-level `<BackupToast/>`; remove the premature static confirmation
-  - [ ] 12-03-PLAN.md — SAFE-02: centralized `triggerDownload` helper with deferred object-URL revoke (config constant) adopted by exportDownload.ts + shareCard.ts
+  - [x] 12-03-PLAN.md — SAFE-02: centralized `triggerDownload` helper with deferred object-URL revoke (config constant) adopted by exportDownload.ts + shareCard.ts
 
 ### Phase 13: Interface & Explore Polish
 
@@ -169,7 +169,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 | 9. Data Integrity & Restore UX | v1.1 | 2/2 | Complete | 2026-07-18 |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 2/2 | Complete | 2026-07-18 |
 | 11. Live-Sync & Prediction Correctness | v1.2 | 5/5 | Complete    | 2026-07-19 |
-| 12. Data Safety & Integrity | v1.2 | 2/3 | In Progress|  |
+| 12. Data Safety & Integrity | v1.2 | 3/3 | Complete   | 2026-07-19 |
 | 13. Interface & Explore Polish | v1.2 | 0/— | Not started | - |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 0/— | Not started | - |
 | 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 0/— | Not started | - |
