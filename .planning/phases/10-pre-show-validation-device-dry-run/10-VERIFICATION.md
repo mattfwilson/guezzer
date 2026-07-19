@@ -1,10 +1,10 @@
 ---
 phase: 10-pre-show-validation-device-dry-run
 verified: 2026-07-18T23:30:00Z
-status: human_needed
-score: 4/5 must-haves verified (1 partial — device-surface confirmation outstanding)
+status: passed
+score: 5/5 must-haves verified (the two on-device iOS legs completed on iPhone 2026-07-19)
 overrides_applied: 0
-owner_disposition: accepted-deferred (option A, 2026-07-18) — owner accepted the two on-device iOS legs (export/import round-trip, offline airplane-mode) as a NON-BLOCKING pre-show-#1 follow-up, tracked in 10-HUMAN-UAT.md ## Gaps. Phase 10 stands complete; a short tunnel/deploy-backed iPhone pass remains before the first show.
+resolution: on-device (2026-07-19) — the offline airplane-mode leg and the JSON export/import round-trip were re-run and PASSED on the installed iPhone PWA (production build over a cloudflared HTTPS tunnel), satisfying the human_needed items. VALID-02 is a clean full on-device pass. (An earlier owner disposition on 2026-07-18 had accepted them as deferred/non-blocking; superseded by this completed on-device run.)
 human_verification:
   - test: "On-device (iPhone) JSON export -> re-import round-trip via the iOS Files/share-sheet picker"
     expected: "Export the backup JSON on the installed iPhone PWA, then re-import it through the iOS file picker; owner-match path merges with zero local data loss (attended shows, entries, dex credit intact)"
@@ -112,8 +112,14 @@ The owner reviewed this `human_needed` verdict and chose **option A — accept t
 
 **Phase 10 is complete.** This closes the v1.1 "Polish & Pre-Show Hardening" milestone.
 
+### Resolution (2026-07-19)
+
+The owner subsequently stood up the cloudflared tunnel and completed both on-device legs on the installed iPhone PWA: **test 6 (offline airplane-mode) and test 7 (export/import round-trip) both PASSED on-device.** iOS service-worker/precache survival under airplane mode and the iOS Files/share-sheet import owner-match merge (zero data loss) are both confirmed. The `human_needed` items are satisfied — VALID-02 is now a clean, full on-device pass with no outstanding device-surface confirmation. **Verification status upgraded human_needed → passed.**
+
+(One post-rehearsal UI polish fix also landed and was device-verified: `5647cab` — the Show-Mode FAB now lifts only when a suggestion row is actually on screen, not when the strip slot is merely reserved.)
+
 ---
 
 _Verified: 2026-07-18T23:30:00Z_
 _Verifier: Claude (gsd-verifier)_
-_Owner decision recorded: 2026-07-18 (accepted-deferred, option A)_
+_Owner decision recorded: 2026-07-18 (accepted-deferred, option A); resolved on-device 2026-07-19 (status → passed)_

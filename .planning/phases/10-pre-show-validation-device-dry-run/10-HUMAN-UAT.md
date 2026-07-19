@@ -8,7 +8,7 @@ updated: 2026-07-18T22:40:00Z
 
 ## Current Test
 
-None — VALID-01 and VALID-02 both closed. The graded device rehearsal is complete (tests 2–5 on iPhone, 6–7 on desktop localhost, 8 Android waived). See ## Gaps for the deferred on-device offline / import legs.
+None — VALID-01 and VALID-02 both fully closed on-device. The graded device rehearsal is complete: tests 2–7 on iPhone (6–7 completed on-device 2026-07-19 over the cloudflared tunnel), test 8 Android waived (D-06). No open gaps.
 
 ## Tests
 
@@ -148,9 +148,9 @@ expected: |
   - Re-enable network and confirm polling resumes silently within one interval (no manual action, no banner).
   This exercises the "fully offline once loaded" core value and the `clientsClaim` first-load precache path (MEMORY `sw-clientsclaim-offline`).
 result: |
-  PASS — **VERIFIED ON DESKTOP localhost (secure-context fallback), NOT on the iPhone.** Functionally confirmed: with the tab offline, predictions still rendered, logging still worked, and the GizzVerse constellation still loaded/rendered — all from precache + IndexedDB with no error banner; re-enabling the network resumed polling silently (no manual action, no banner).
+  PASS — **on-device on iPhone (installed PWA, production build over the cloudflared HTTPS tunnel), 2026-07-19.** With airplane mode on mid-show, predictions still rendered, logging still worked, and the GizzVerse constellation still loaded/rendered — all from precache + IndexedDB with no error banner (calm offline line + hollow SyncDot only); re-enabling resumed polling silently. iOS service-worker / precache survival under airplane mode confirmed. (Also previously confirmed on desktop localhost.)
 
-  Harness note: this run used the vite production build + `npm run preview` on `localhost:4173` (no cloudflared tunnel — owner declined the tunnel this run). localhost is a secure context, so the service worker installs and the precache/offline path is exercised. The iPhone-specific verification (iOS service-worker eviction under airplane mode) was NOT performed — see ## Gaps (deferred, non-blocking).
+  Harness: vite production build + `npm run preview` on `localhost:4173`, exposed over a cloudflared quick tunnel (`--http-host-header localhost`) and installed to the iPhone home screen.
 
 ### 7. JSON export/import round-trip
 expected: |
@@ -159,9 +159,9 @@ expected: |
   - Re-import it via the Settings import picker. The zod-validated v2 envelope routes through the owner-match fork (`isTypedNameMine` / `classifyImport`, T-10-05): the owner-match path MERGES with the local data.
   - Confirm the round-trip completes with NO local data loss (attended shows, logged entries, and dex credit all intact — nothing dropped or duplicated destructively).
 result: |
-  PASS — **VERIFIED ON DESKTOP localhost, NOT on the iPhone.** Functionally confirmed: exporting the backup JSON and then re-importing it routed through the owner-match path (`isTypedNameMine` / `classifyImport`, T-10-05) and MERGED with zero local data loss — attended shows, logged entries, and dex credit all intact, nothing dropped or duplicated destructively.
+  PASS — **on-device on iPhone (installed PWA over the cloudflared HTTPS tunnel), 2026-07-19.** Exported the backup JSON on device and re-imported it via the iOS Files/share-sheet picker; the zod-validated envelope routed through the owner-match fork (`isTypedNameMine` / `classifyImport`, T-10-05) and MERGED with zero local data loss — attended shows, logged entries, and dex credit all intact, nothing dropped or duplicated destructively. iOS file-picker import flow confirmed. (Also previously confirmed on desktop localhost.)
 
-  Harness note: run on the vite production build + `npm run preview` on `localhost:4173`. The iPhone-specific verification (iOS file picker / share-sheet import) was NOT performed — see ## Gaps (deferred, non-blocking).
+  Harness: same cloudflared-tunnel iPhone harness as test 6.
 
 ### 8. Android (VALID-02 criterion 3)
 expected: |
@@ -180,13 +180,10 @@ blocked: 0
 
 Notes:
 - Tests 1–5 passed on-device (iPhone, production build): test 1 (VALID-01) from plan 10-01; tests 2–5 in this rehearsal.
-- Tests 6 (offline airplane-mode leg) and 7 (JSON export/import round-trip) passed on **desktop localhost** (a secure-context fallback) — functionally confirmed, but their iPhone-specific legs are deferred (see ## Gaps).
+- Tests 6 (offline airplane-mode leg) and 7 (JSON export/import round-trip) passed **on-device on iPhone** over the cloudflared HTTPS tunnel (2026-07-19), after an initial desktop-localhost confirmation — the previously-deferred on-device gap is now RESOLVED.
 - Test 8 (Android) is WAIVED / no device available (D-06), counted as passed per this skeleton's convention.
-- Three in-checkpoint code changes: two D-09 loop-breaking blocker fixes on the SuggestionStrip/FAB (test 2: `b0213c0`, `a60d5e2`) and one owner-directed per-show recap share-card enhancement (test 5: `3c09839`).
+- In-checkpoint code changes: two D-09 loop-breaking blocker fixes on the SuggestionStrip/FAB (test 2: `b0213c0`, `a60d5e2`) and one owner-directed per-show recap share-card enhancement (test 5: `3c09839`). Post-review/rehearsal polish, all device-verified: code-review warning fixes (`868667d`) and a FAB reposition fix so it lifts only when a suggestion row is actually on screen, not when the slot is merely reserved (`5647cab`).
 
 ## Gaps
 
-- **[deferred / non-blocking follow-up] On-device (iPhone) offline + import legs not yet run.** Tests 6 (offline airplane-mode leg, D-05) and 7 (JSON export/import round-trip) were verified only on **desktop localhost** this run — the owner declined the cloudflared tunnel, so the iPhone-specific behaviors were not exercised. Still to confirm on-device before show #1:
-  - Test 6: iOS service-worker eviction / precache survival under airplane mode on the installed PWA.
-  - Test 7: the iOS file picker / share-sheet import flow (desktop file-input vs iOS Files/share-sheet differ).
-  Both are functionally confirmed on desktop (the merge and offline logic work); this gap is device-surface confirmation only. Non-blocking — schedule a short tunnel-backed iPhone pass before show #1.
+- **[RESOLVED 2026-07-19] On-device (iPhone) offline + import legs.** Tests 6 (offline airplane-mode leg, D-05) and 7 (JSON export/import round-trip) — initially verified on desktop localhost — were re-run and PASSED on the installed iPhone PWA (production build over a cloudflared HTTPS tunnel): iOS service-worker/precache survival under airplane mode confirmed, and the iOS Files/share-sheet import owner-match merge completed with zero data loss. No open gaps; VALID-02 is a clean full on-device pass.
