@@ -331,19 +331,24 @@ Not applicable — no library/framework currency question. The stack is pinned a
 | A4 | `pollLatest` return should widen to a `PollResult` object (vs an `onDrift` callback) | LIVE-03 | Wider blast radius on tests; the callback alternative is documented as fallback. |
 | A5 | The per-show fix (playCount/showCount) is preferred over the marginal-vs-marginal fix | PRED-02 | Both valid; if backtest prefers the marginal form, switch. Low risk — isolated to `eraPrior`. |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All three were resolved and adopted by the Phase 11 plans; only tunable values remain flagged for the human-verify/backtest gate.
 
 1. **What is the correct `runGapDays` default (D-03)?**
    - Known: Aug 2026 residency is 3-night runs; owner said "you decide"; ~2 days tolerates one rest night.
    - Unclear: whether any real run has a 2-night internal gap (would need `runGapDays ≥ 3`).
    - Recommendation: default `2`, single named config constant, surfaced at the human-verify gate; the manual reset (D-04) covers mis-groupings either way.
+   - **RESOLVED:** adopted `runGapDays = 2` in `config.ts` (plan 11-03); `[ASSUMED]` value flagged for the backtest/human-verify gate.
 
 2. **Reset marker: date boundary vs session-id boundary (D-04/A3)?**
    - Known: `db.meta` is the natural home; both are one row.
    - Recommendation: a date boundary (`rotationRunResetDate`) — simplest for the pure grouping fn (`resetBoundaryDate?: string`) and human-readable in an export.
+   - **RESOLVED:** adopted the date boundary — `rotationRunResetDate` in `db.meta`, read by the pure grouping fn (plans 11-03 core, 11-05 Settings control).
 
 3. **`pollLatest` return: widen to `PollResult` vs `onDrift` callback (LIVE-03/A4)?**
    - Recommendation: `PollResult` object — keeps the poller pure and the signal explicit; accept the four-call-site test update as a bounded refactor task.
+   - **RESOLVED:** adopted the `PollResult` object (`{ rows, schemaDrift }`) in plan 11-02; the four call-site updates are bounded tasks in 11-02/11-04.
 
 ## Environment Availability
 

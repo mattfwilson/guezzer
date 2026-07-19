@@ -4,7 +4,7 @@ milestone: v1.2
 milestone_name: Pre-Show Hardening
 status: planning
 stopped_at: Phase 11 context gathered
-last_updated: "2026-07-19T16:43:55.920Z"
+last_updated: "2026-07-19T17:23:44.680Z"
 last_activity: 2026-07-19 — v1.2 roadmap created (Phases 11–16, 22/22 requirements mapped)
 progress:
   total_phases: 6
