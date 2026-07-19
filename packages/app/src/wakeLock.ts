@@ -49,6 +49,30 @@ export async function acquireWakeLock(
   try {
     const next = await navigator.wakeLock.request("screen");
 
+    // D-02: End Show may have fired while this request("screen") was still in
+    // flight. `releaseWakeLock()` already no-op'd on the null sentinel, so if we
+    // now stored `next` nothing would ever release it — the lock would leak until
+    // the app is backgrounded (UX-02). If the show is no longer active, release
+    // `next` best-effort and return WITHOUT storing the sentinel and WITHOUT
+    // calling onUnsupported: End Show is normal teardown, not an unsupported
+    // device, so surfacing the fallback notice here would be wrong (Pitfall 2).
+    // The reacquire listener cannot fight this — it is gated on `showActive`
+    // (:99), which is already false.
+    //
+    // Accepted residual (A5): a rapid End-Show→Start-Show where an OLD acquire is
+    // still in flight can still orphan a lock — the boolean `showActive` cannot
+    // distinguish "show 1" from "show 2". This is a consciously ACCEPTED LOW
+    // residual (tiny window, self-clears on next background); closing it would
+    // need a monotonic epoch token, deliberately out of scope for D-02.
+    if (!showActive) {
+      try {
+        await next.release();
+      } catch {
+        // Swallow — releasing is best-effort and must never surface an error.
+      }
+      return;
+    }
+
     // Verify the lock actually HELD: an installed-PWA false-positive resolves a
     // sentinel that is already released. Treat it as unsupported (Pitfall 1).
     if (next.released) {
