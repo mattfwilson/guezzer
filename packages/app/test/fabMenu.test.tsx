@@ -19,7 +19,7 @@ const actionLabels = [
   config.copy.show.endCta, // End Show — the last FAB item (moved from the header)
 ];
 
-function renderMenu(stripReserved = false) {
+function renderMenu(stripHasContent = false) {
   const handlers = {
     onSearch: vi.fn(),
     onUnknown: vi.fn(),
@@ -28,7 +28,7 @@ function renderMenu(stripReserved = false) {
     onUndo: vi.fn(),
     onEndShow: vi.fn(),
   };
-  render(<FabMenu {...handlers} stripReserved={stripReserved} />);
+  render(<FabMenu {...handlers} stripHasContent={stripHasContent} />);
   return handlers;
 }
 
@@ -49,14 +49,14 @@ function openMenu() {
 describe("FabMenu (D-20 speed-dial replacing ActionBar)", () => {
   afterEach(cleanup);
 
-  it("lifts above the reserved SuggestionStrip so it never overlaps a row (owner 2026-07-18)", () => {
+  it("lifts only when the SuggestionStrip is showing rows, never for an empty slot (owner 2026-07-19)", () => {
     // jsdom's CSSOM drops calc()/env() from style.bottom, so assert the wiring
     // via the data attribute the container reflects (also a debug hook).
     renderMenu(false);
-    expect(fabContainer().dataset.stripReserved).toBe("false");
+    expect(fabContainer().dataset.stripHasContent).toBe("false");
     cleanup();
     renderMenu(true);
-    expect(fabContainer().dataset.stripReserved).toBe("true");
+    expect(fabContainer().dataset.stripHasContent).toBe("true");
   });
 
   it("is collapsed by default: only the FAB is in the tree, no action buttons", () => {

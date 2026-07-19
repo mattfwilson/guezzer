@@ -20,16 +20,17 @@
  *     once (auto-collapse-then-act).
  *
  * Fixed-position anchor (unlike the in-flow ActionBar): 16px in from the right
- * edge (plus the safe-area inset) and 16px above the app BottomTabBar when no
- * SuggestionStrip is reserved. When the strip slot IS reserved (`stripReserved`,
- * mid-show once the opener is seeded, or whenever an advisory row is present),
- * the FAB LIFTS by the strip's fixed height so it sits fully above the strip and
- * never overlaps a row's +/X buttons (owner 2026-07-18, revising the earlier
- * 2026-07-17 symmetric-inset-that-tolerates-overlap call). The lift is a single
- * stable step keyed to the strip's own fixed reservation (SHOW-02) — the strip
- * height is constant, so the FAB glides up once at opener-seed and stays put, no
- * per-suggestion jumping. Never accent — gold is reserved for Start Show / focus
- * ring (UI-SPEC §Color).
+ * edge (plus the safe-area inset) and 16px above the app BottomTabBar. When the
+ * SuggestionStrip is actually showing rows (`stripHasContent` — advisory
+ * suggestions or fill-`???` hints are on screen), the FAB LIFTS by the strip's
+ * fixed height so it sits fully above those rows and never overlaps a row's +/X
+ * buttons (owner 2026-07-18, revising the earlier 2026-07-17
+ * symmetric-inset-that-tolerates-overlap call). The lift is keyed to VISIBLE
+ * content, not the strip's reserved slot: an empty (reserved-but-invisible) strip
+ * has nothing to overlap, so the FAB stays in its resting corner and only
+ * repositions when a row is genuinely there to clear (owner 2026-07-19). The
+ * motion-safe transition glides the reposition. Never accent — gold is reserved
+ * for Start Show / focus ring (UI-SPEC §Color).
  */
 import { CircleHelp, CircleStop, Minus, Plus, Search, Star, Undo2 } from "lucide-react";
 import { useState } from "react";
@@ -51,12 +52,13 @@ interface FabMenuProps {
    *  header button. */
   onEndShow: () => void;
   /**
-   * True when the SuggestionStrip slot is reserved below the orbit (opener seeded
-   * or an advisory row present). Lifts the FAB by the strip's fixed height so it
-   * never overlaps a strip row's +/X buttons (owner 2026-07-18). Constant strip
-   * height ⇒ a single stable lift, no per-suggestion jumping.
+   * True when the SuggestionStrip is actually rendering rows (advisory
+   * suggestions or fill-`???` hints on screen). Lifts the FAB by the strip's
+   * fixed height so it never overlaps a strip row's +/X buttons (owner
+   * 2026-07-19). Keyed to VISIBLE content — NOT the reserved-but-empty slot — so
+   * the FAB only repositions when a row is genuinely there to clear.
    */
-  stripReserved: boolean;
+  stripHasContent: boolean;
 }
 
 export function FabMenu({
@@ -66,7 +68,7 @@ export function FabMenu({
   onEncore,
   onUndo,
   onEndShow,
-  stripReserved,
+  stripHasContent,
 }: FabMenuProps) {
   const [open, setOpen] = useState(false);
   const copy = config.copy.show;
@@ -92,11 +94,11 @@ export function FabMenu({
   };
 
   // Bottom offset = 16px above the app BottomTabBar (h-16 = 64px), atop the
-  // safe-area inset. When the SuggestionStrip slot is reserved, ADD its fixed
-  // height so the FAB clears the strip entirely (owner 2026-07-18) instead of
-  // overlapping a row's +/X buttons. The strip height is constant, so this is a
-  // single stable lift, not a per-suggestion shuffle.
-  const bottomOffset = stripReserved
+  // safe-area inset. When the SuggestionStrip is actually showing rows, ADD its
+  // fixed height so the FAB clears those rows entirely (owner 2026-07-19) instead
+  // of overlapping a row's +/X buttons. Empty (reserved-but-invisible) strip →
+  // resting offset, since there is nothing to overlap.
+  const bottomOffset = stripHasContent
     ? `calc(env(safe-area-inset-bottom) + 64px + ${config.ui.SUGGESTION_STRIP_HEIGHT}px + 16px)`
     : "calc(env(safe-area-inset-bottom) + 64px + 16px)";
   const rightOffset = "calc(env(safe-area-inset-right) + 16px)";
@@ -120,7 +122,7 @@ export function FabMenu({
 
       <div
         className="fab-menu fixed flex flex-col items-end gap-2 motion-safe:transition-[bottom] motion-safe:duration-300 motion-safe:ease-out"
-        data-strip-reserved={stripReserved ? "true" : "false"}
+        data-strip-has-content={stripHasContent ? "true" : "false"}
         style={{ zIndex: config.ui.z.fab, bottom: bottomOffset, right: rightOffset }}
       >
         {open && (

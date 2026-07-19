@@ -369,12 +369,14 @@ export function ShowView() {
   // both collapse so the "Search for the opener" orb centers with no blank bar.
   const openerSeeded = session.currentSongId !== null;
 
-  // The SuggestionStrip reserves its fixed slot when the opener is seeded (a fan
-  // exists to protect, SHOW-02) OR whenever an advisory row is present. Mirror that
-  // predicate here so the FAB lifts above the strip and never overlaps a row's
-  // +/X buttons (owner 2026-07-18, FabMenu.stripReserved).
-  const stripReserved =
-    openerSeeded || visibleSuggestions.length > 0 || visibleFillHints.length > 0;
+  // The FAB lifts above the SuggestionStrip only when it is actually RENDERING
+  // rows (advisory suggestions or fill-??? hints) — NOT merely when the fixed slot
+  // is reserved. An empty (reserved-but-invisible) strip has nothing to overlap,
+  // so the FAB stays in its resting corner and only repositions when a row is
+  // genuinely there to clear (owner 2026-07-19, FabMenu.stripHasContent). Mirrors
+  // the strip's own `hasContent` (suggestions or fill hints present).
+  const stripHasContent =
+    visibleSuggestions.length > 0 || visibleFillHints.length > 0;
 
   // Pre-opener opener suggestions (QUICK-260718-1no) — a stable, module-memoized
   // top-N recency-weighted opener list (NOT a hook, so it's safe below the early
@@ -462,7 +464,7 @@ export function ShowView() {
         onEncore={handleEncore}
         onUndo={handleUndo}
         onEndShow={() => setEndOpen(true)}
-        stripReserved={stripReserved}
+        stripHasContent={stripHasContent}
       />
 
       {/* Fuzzy catalog search over core searchCatalog — opener-seed + mid-show
