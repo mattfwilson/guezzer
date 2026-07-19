@@ -64,7 +64,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 
 **Wave 1**
 
-  - [ ] 11-01-PLAN.md — Wave 0: rewrite the masking era-prior test at production scale (RED gate for PRED-02)
+  - [x] 11-01-PLAN.md — Wave 0: rewrite the masking era-prior test at production scale (RED gate for PRED-02)
   - [ ] 11-02-PLAN.md — Wave 1: live-path core — guardLatestRows (LIVE-01), lenient schema + detectNovelKeys + PollResult (LIVE-03), mixed-artist regression (LIVE-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -164,7 +164,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 | 8. On-Device UI Polish & Accessibility | v1.1 | 8/8 | Complete | 2026-07-18 |
 | 9. Data Integrity & Restore UX | v1.1 | 2/2 | Complete | 2026-07-18 |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 2/2 | Complete | 2026-07-18 |
-| 11. Live-Sync & Prediction Correctness | v1.2 | 0/5 | Planned | - |
+| 11. Live-Sync & Prediction Correctness | v1.2 | 1/5 | In Progress|  |
 | 12. Data Safety & Integrity | v1.2 | 0/— | Not started | - |
 | 13. Interface & Explore Polish | v1.2 | 0/— | Not started | - |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 0/— | Not started | - |

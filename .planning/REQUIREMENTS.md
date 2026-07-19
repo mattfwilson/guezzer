@@ -16,7 +16,7 @@ Milestone theme: harden the live-show-critical paths (live sync, prediction corr
 ### Prediction Correctness (PRED) — Tier 1
 
 - [ ] **PRED-01**: On night 2+ of a run, songs already played earlier in the run are down-weighted in live predictions — rotation suppression fires with real cross-night data.
-- [ ] **PRED-02**: The era-prior signal down-weights long-retired songs as designed (unit mismatch fixed; the retired-song floor is reachable).
+- [x] **PRED-02**: The era-prior signal down-weights long-retired songs as designed (unit mismatch fixed; the retired-song floor is reachable).
 - [ ] **PRED-03**: User can reset the cross-night rotation state before a new run of shows, so songs played in a prior run/weekend are no longer down-weighted when the no-repeat window no longer applies (e.g. a separate weekend where the band may replay).
 
 ### Data Safety & Integrity (SAFE) — Tier 1/2
@@ -51,10 +51,12 @@ Milestone theme: harden the live-show-critical paths (live sync, prediction corr
 Deferred to a later milestone (backlog unchanged in `.planning/todos/pending/`).
 
 ### Engagement features (deferred)
+
 - **GAME-V1.3-01**: Gizz Bingo shared-seed leaderboard — comparable cards + first-to-bingo across friends at the same show (seed: `.planning/seeds/gizz-bingo-shared-leaderboard.md`).
 - Gizzle (daily song-guessing puzzle), Guezz League (pregame prediction game), Couch Mode (follow from home), Badge system, My Stats & Want List, Residency Mode (no-repeat pool UI), Shiny catches, Song Dossiers + lore codex, Know-Before-You-Go primer.
 
 ### UI polish (deferred)
+
 - Directional-flow edge particles (GizzVerse), unified bottom-sheet up/down animation, app-wide "Mon D, YYYY" date format, final show share card uses GizzDex totals.
 
 ## Out of Scope
@@ -75,7 +77,7 @@ Deferred to a later milestone (backlog unchanged in `.planning/todos/pending/`).
 | LIVE-02 | Phase 11 | Pending |
 | LIVE-03 | Phase 11 | Pending |
 | PRED-01 | Phase 11 | Pending |
-| PRED-02 | Phase 11 | Pending |
+| PRED-02 | Phase 11 | Complete |
 | PRED-03 | Phase 11 | Pending |
 | SAFE-01 | Phase 12 | Pending |
 | SAFE-02 | Phase 12 | Pending |
@@ -95,6 +97,7 @@ Deferred to a later milestone (backlog unchanged in `.planning/todos/pending/`).
 | BINGO-08 | Phase 16 | Pending |
 
 **Coverage:**
+
 - v1.2 requirements: 22 total
 - Mapped to phases: 22 ✓
 - Unmapped: 0

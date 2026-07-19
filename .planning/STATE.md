@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Pre-Show Hardening
-status: planning
+status: executing
 stopped_at: Phase 11 context gathered
-last_updated: "2026-07-19T17:23:44.680Z"
-last_activity: 2026-07-19 — v1.2 roadmap created (Phases 11–16, 22/22 requirements mapped)
+last_updated: "2026-07-19T17:38:00.447Z"
+last_activity: 2026-07-19 -- Phase 11 execution started
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 5
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** v1.2 roadmap created — Pre-Show Hardening: 6 phases (11–16). Bug fixes first: Phase 11 Live-Sync & Prediction Correctness (Tier 1) → Phase 12 Data Safety & Integrity → Phase 13 Interface & Explore Polish. Then Gizz Bingo (gated on Phase 11 + a Monte-Carlo calibration pre-plan task): Phase 14 core marking/generation → Phase 15 persistence/lock/replay → Phase 16 build/live-marking/celebrations. Next: `/gsd-plan-phase 11`. App is show-ready; first show Aug 14, 2026.
+**Current focus:** Phase 11 — live-sync-prediction-correctness
 
 ## Current Position
 
-Phase: 11 — Live-Sync & Prediction Correctness (not started)
-Plan: —
-Status: Roadmap created; ready to plan Phase 11
-Last activity: 2026-07-19 — v1.2 roadmap created (Phases 11–16, 22/22 requirements mapped)
+Phase: 11 (live-sync-prediction-correctness) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-07-19 -- Phase 11 execution started
 
 ## Performance Metrics
 
@@ -76,6 +76,7 @@ Last activity: 2026-07-19 — v1.2 roadmap created (Phases 11–16, 22/22 requir
 | Phase 08 P08 | 40 min | 3 tasks | 7 files |
 | Phase 10 P01 | ~24min | 3 tasks | 10 files |
 | Phase 10 P02 | ~2h (owner-run) | 2 tasks (1 checkpoint) | 11 files |
+| Phase 11 P01 | ~10min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -127,6 +128,7 @@ Recent decisions affecting current work:
 - [Phase 08]: Orb-label fit is now circle-aware (per-line chord + height budget); kept CHAR_WIDTH_FACTOR 0.55, tuned LINE_HEIGHT_FACTOR 1.0 / PERCENT_LINE_PX 12 / MAX_LINES 5 / MIN_FONT_PX 7 (08-08) — Rectangular fit over-granted width and ignored height, spilling small orbs on iPhone (POLISH-01); geometric sweep [56..112] now guards it
 - [Phase 10]: 10-02 (VALID-02): full show loop passed a real-device (iPhone) rehearsal on the vite production build (owner declined the tunnel — tests 2–5 on iPhone, 6–7 on desktop localhost secure-context fallback, 8 Android waived D-06). Two D-09 loop-breaking blockers found+fixed inline (SuggestionStrip slot 56→112px + overflow, `b0213c0`; FAB lifted above the reserved strip, `a60d5e2`). Owner-directed scope expansion: per-show recap Share card (core `buildRecapShareStats` off `deriveRecap`, six-tier rarity box, share-icon chrome — `3c09839`) replacing the lifetime-GizzDex card that mismatched the recap (resolves the final-show-share-card todo). Deferred non-blocking gap: iPhone-specific offline (iOS SW eviction) + import (iOS file picker) legs to confirm before show #1. Recorded in 10-HUMAN-UAT.md (status: resolved).
 - [Phase 10]: 10-01 (VALID-01): read-only tuning-review CLI reuses ingest helpers (findMatchedAlbumTitles/defaultFamilyForAlbum made export-only), never touches the write path. Owner D-03 verdict: 9 Infest the Rats' Nest tracks (94/133/152/157/160/180/200/239/240) re-tagged standard→cs-standard (first non-empty cs-standard family); 12 canonical spot-checks + 36 no-album-default hand-tags confirmed as-is. Backtest top-k ZERO regression (tuning is a weak signal, ablation Δ≈0) — recorded in 10-HUMAN-UAT.md test #1 (pass)
+- [Phase 11]: 11-01: replaced the masking 3-node era-prior fixture with a production-scale (~260-node, Σ playCount ~14k) matrix; the retired-song eraPriorFloor is proven unreachable on current code (returns ~0.996), RED until 11-03
 
 ### Pending Todos
 
@@ -247,7 +249,7 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-19T16:43:55.915Z
+Last session: 2026-07-19T17:38:00.442Z
 Stopped at: Phase 11 context gathered
 Resume file: .planning/phases/11-live-sync-prediction-correctness/11-CONTEXT.md
 
