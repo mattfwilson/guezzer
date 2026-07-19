@@ -1,14 +1,14 @@
 ---
-status: pass
+status: resolved
 phase: 10-pre-show-validation-device-dry-run
 source: [10-VERIFICATION.md]
 started: 2026-07-19T00:08:48Z
-updated: 2026-07-18T21:36:14Z
+updated: 2026-07-18T22:40:00Z
 ---
 
 ## Current Test
 
-### 2. Live-sync leg (?mockLatest=1) — first step of the VALID-02 on-device rehearsal (pending owner run)
+None — VALID-01 and VALID-02 both closed. The graded device rehearsal is complete (tests 2–5 on iPhone, 6–7 on desktop localhost, 8 Android waived). See ## Gaps for the deferred on-device offline / import legs.
 
 ## Tests
 
@@ -104,7 +104,13 @@ expected: |
   - Start Show, then confirm the SuggestionStrip surfaces the fixture's next un-logged editor song within one mock tick (~2s).
   - Adopt the surfaced suggestion (tap Add) — it logs with `source:"editor"`, classified hit/miss honestly against the on-screen fan, with no confirm.
   - Confirm the orbit auto-binds the show (D-07 canonical show_id/venue written once, matching-date guard) and recenters onto the adopted song with a real prediction fan.
-result: [pending]
+result: |
+  PASS (on iPhone, production build). The `?mockLatest=1` fixture surfaced its next un-logged editor song in the SuggestionStrip within one tick; adopting it logged `source:"editor"` with no confirm, and the orbit auto-bound the show and recentered onto the adopted song with a real prediction fan.
+
+  Two D-09 loop-breaking blockers were FOUND AND FIXED inline during this leg (the SuggestionStrip render broke the one-thumb loop), then re-verified:
+  - **found+fixed (a):** the SuggestionStrip clipped its 2nd suggestion against the bottom tab bar — the reserved slot (56px) was too short for two 44px rows. Fixed by sizing the slot to 112px + `overflow-y-auto`. Commit `b0213c0`.
+  - **found+fixed (b):** the corner FAB overlapped the strip rows' +/X buttons. Fixed by lifting the FAB above the strip whenever the strip's slot is reserved. Commit `a60d5e2`.
+  After both fixes the owner re-verified on-device: the strip renders cleanly (both rows visible, no tab-bar clip), no FAB overlap, and the row +/X buttons are tappable.
 
 ### 3. Start + predictions + log hits/misses
 expected: |
@@ -113,7 +119,8 @@ expected: |
   - Confirm the adaptive prediction fan renders around the current song.
   - Log several more songs: tap orbs in the fan (each a HIT + recenter) and use Search for songs outside the fan (each a MISS + recenter).
   - Confirm the persistent hit/miss tally (TallyReadout) and the comet trail both update correctly after each log, with no orbit re-layout on suggestion appearance/dismissal.
-result: [pending]
+result: |
+  PASS (on iPhone, production build, mock removed). Reloaded the installed app WITHOUT `?mockLatest=1`; seeded the opener via the Search sheet (honest pre-opener miss), the adaptive prediction fan rendered around the current song, and logging several more songs (orb-tap HITs + Search MISSes) recentered correctly each time. The TallyReadout and comet trail both updated correctly after each log, with no orbit re-layout on suggestion appearance/dismissal.
 
 ### 4. Set break + encore
 expected: |
@@ -121,14 +128,18 @@ expected: |
   - Tap Set break, then log the next song and confirm subsequent entries stamp set number "2" (SHOW-06).
   - Tap Encore, then log a song and confirm it stamps the encore set ("e").
   - Confirm the set structure is captured in the trail / entry snapshots.
-result: [pending]
+result: |
+  PASS (on iPhone, production build). Through the real Show Mode FAB speed-dial: tapping Set break then logging the next song stamped set number "2" (SHOW-06); tapping Encore then logging stamped the encore set "e". Set-number stamping was confirmed in the expanded comet-trail list — post-break entries show "2" and post-encore entries show "e" — so the set structure is captured in the entry snapshots.
 
 ### 5. End Show + recap + dex credit
 expected: |
   - Open the FAB → End Show; confirm it is confirm-gated (the destructive "End show?" bottom sheet, D-04) — the backdrop/Keep-tracking must NOT finalize.
   - Confirm the show finalizes, the JSON auto-backup nudge appears (D-13), and the post-show RecapView renders show-scoped stats.
   - Confirm the attended show credits the GizzDex (songs caught live appear in the dex).
-result: [pending]
+result: |
+  PASS (on iPhone, production build). End Show was confirm-gated (the destructive "End show?" bottom sheet; backdrop/Keep-tracking did NOT finalize); the show finalized, the JSON auto-backup nudge appeared (D-13), the RecapView rendered show-scoped stats, and the attended show credited the GizzDex (songs caught live appear in the dex).
+
+  **found+fixed (behavior issue, owner-directed enhancement):** the End-Show Share card showed the LIFETIME whole-GizzDex collection rather than the just-ended show, so its rarity counts did not match the recap. Per owner direction this was addressed inline as a new PER-SHOW recap share card (scope expansion beyond pure validation, at owner direction): session-scoped stats (new core `buildRecapShareStats` off `deriveRecap`), hero = songs-caught count (no %), a vertical six-tier rarity box (Debut Candidate..Legendary, right-aligned tier-colored counts), and the share-sheet chrome changed to a share-icon button upper-right with a primary Close button. Commit `3c09839`. Owner re-verified on-device: the per-show card now matches the just-ended show.
 
 ### 6. Offline airplane-mode leg (D-05)
 expected: |
@@ -136,7 +147,10 @@ expected: |
   - Confirm predictions still render, logging still works (tap-orb + Search + ???), and the GizzVerse constellation still loads/renders — all from precache + IndexedDB, with NO error banner (only the calm one-time offline reassurance LINE, D-08; SyncDot flips to the hollow offline ring).
   - Re-enable network and confirm polling resumes silently within one interval (no manual action, no banner).
   This exercises the "fully offline once loaded" core value and the `clientsClaim` first-load precache path (MEMORY `sw-clientsclaim-offline`).
-result: [pending]
+result: |
+  PASS — **VERIFIED ON DESKTOP localhost (secure-context fallback), NOT on the iPhone.** Functionally confirmed: with the tab offline, predictions still rendered, logging still worked, and the GizzVerse constellation still loaded/rendered — all from precache + IndexedDB with no error banner; re-enabling the network resumed polling silently (no manual action, no banner).
+
+  Harness note: this run used the vite production build + `npm run preview` on `localhost:4173` (no cloudflared tunnel — owner declined the tunnel this run). localhost is a secure context, so the service worker installs and the precache/offline path is exercised. The iPhone-specific verification (iOS service-worker eviction under airplane mode) was NOT performed — see ## Gaps (deferred, non-blocking).
 
 ### 7. JSON export/import round-trip
 expected: |
@@ -144,20 +158,35 @@ expected: |
   - Export the backup JSON (Settings export, or the End-Show auto-backup file) — a dated `guezzer-backup-YYYY-MM-DD.json` saved to Files/Downloads.
   - Re-import it via the Settings import picker. The zod-validated v2 envelope routes through the owner-match fork (`isTypedNameMine` / `classifyImport`, T-10-05): the owner-match path MERGES with the local data.
   - Confirm the round-trip completes with NO local data loss (attended shows, logged entries, and dex credit all intact — nothing dropped or duplicated destructively).
-result: [pending]
+result: |
+  PASS — **VERIFIED ON DESKTOP localhost, NOT on the iPhone.** Functionally confirmed: exporting the backup JSON and then re-importing it routed through the owner-match path (`isTypedNameMine` / `classifyImport`, T-10-05) and MERGED with zero local data loss — attended shows, logged entries, and dex credit all intact, nothing dropped or duplicated destructively.
+
+  Harness note: run on the vite production build + `npm run preview` on `localhost:4173`. The iPhone-specific verification (iOS file picker / share-sheet import) was NOT performed — see ## Gaps (deferred, non-blocking).
 
 ### 8. Android (VALID-02 criterion 3)
 expected: |
   No Android device available for this rehearsal. Android install/loop is formally waived per D-06 — recorded, not run.
-result: [pending] — will record "waived / no device available" (D-06).
+result: |
+  WAIVED / no Android device available (D-06). The Android install/loop is formally waived for this rehearsal — recorded, not run.
 
 ## Summary
 
 total: 8
-passed: 1
+passed: 8
 issues: 0
-pending: 7
+pending: 0
 skipped: 0
 blocked: 0
 
+Notes:
+- Tests 1–5 passed on-device (iPhone, production build): test 1 (VALID-01) from plan 10-01; tests 2–5 in this rehearsal.
+- Tests 6 (offline airplane-mode leg) and 7 (JSON export/import round-trip) passed on **desktop localhost** (a secure-context fallback) — functionally confirmed, but their iPhone-specific legs are deferred (see ## Gaps).
+- Test 8 (Android) is WAIVED / no device available (D-06), counted as passed per this skeleton's convention.
+- Three in-checkpoint code changes: two D-09 loop-breaking blocker fixes on the SuggestionStrip/FAB (test 2: `b0213c0`, `a60d5e2`) and one owner-directed per-show recap share-card enhancement (test 5: `3c09839`).
+
 ## Gaps
+
+- **[deferred / non-blocking follow-up] On-device (iPhone) offline + import legs not yet run.** Tests 6 (offline airplane-mode leg, D-05) and 7 (JSON export/import round-trip) were verified only on **desktop localhost** this run — the owner declined the cloudflared tunnel, so the iPhone-specific behaviors were not exercised. Still to confirm on-device before show #1:
+  - Test 6: iOS service-worker eviction / precache survival under airplane mode on the installed PWA.
+  - Test 7: the iOS file picker / share-sheet import flow (desktop file-input vs iOS Files/share-sheet differ).
+  Both are functionally confirmed on desktop (the merge and offline logic work); this gap is device-surface confirmation only. Non-blocking — schedule a short tunnel-backed iPhone pass before show #1.
