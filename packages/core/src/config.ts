@@ -153,8 +153,17 @@ export const config = {
   /** [ASSUMED] M8/A6 (02-RESEARCH.md), MODL-07: trailing window (in shows, before the as-of cutoff) defining "current era" for the eraPrior relative-marginal multiplier. */
   eraWindowShows: 40,
 
-  /** [ASSUMED] M8/A6 (02-RESEARCH.md), MODL-07: additive smoothing constant for the era-rate / all-time-rate ratio underlying eraPrior, avoiding divide-by-near-zero on sparse songs. */
-  eraPriorSmoothingK: 1,
+  /**
+   * [ASSUMED] M8/A6 (02-RESEARCH.md) + A1 (11-RESEARCH.md PRED-02), MODL-07:
+   * additive smoothing constant for the era-rate / all-time-rate ratio
+   * underlying eraPrior, avoiding divide-by-near-zero on sparse songs.
+   * RESCALED 1 → 0.08 for the PRED-02 fix: both sides of the ratio are now
+   * per-show rates (~O(0.1–1.5) plays/show), so the old k=1 swamped them and
+   * pinned every ratio near 1.0 (dead eraPriorFloor). 0.08 sits in the A1
+   * per-show range (0.05–0.1). Backtestable / owner-tunable — do NOT restore 1
+   * (re-breaks the floor).
+   */
+  eraPriorSmoothingK: 0.08,
 
   /** [ASSUMED] M8/A6 (02-RESEARCH.md), MODL-07: lower clamp bound for the eraPrior relative multiplier (retired-song floor). */
   eraPriorFloor: 0.3,

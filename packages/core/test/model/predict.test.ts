@@ -424,8 +424,16 @@ function buildProductionScaleEraMatrix(): TransitionMatrix {
   const nodes: MatrixNode[] = [
     // Retired: played ~50 times over its career, ZERO plays this era.
     { songId: ERA_RETIRED, songName: "Retired Deep Cut", playCount: 50, eraPlayCount: 0, tuningFamily: "other" },
-    // Hot: heavily played career AND near-saturated in the current era window.
-    { songId: ERA_HOT, songName: "Current Rotation Staple", playCount: 300, eraPlayCount: 38, tuningFamily: "other" },
+    // Hot: near-saturated in the current era window (0.95 plays/show over the
+    // last 40) and played MORE per show now than across its whole career — the
+    // only shape that is genuinely "hot" under the PRED-02 per-show ratio
+    // (recent rate > career rate). career playCount 120 / showCount 241 ≈ 0.50
+    // plays/show, well under the 0.95 recent rate ⇒ eraPrior > 1.
+    // (11-01 set this to 300, tuned against the OLD marginal-share denominator;
+    // 300/241 ≈ 1.24 plays/show is dimensionally impossible for a single song
+    // and made the corrected per-show ratio < 1 — a fixture bug the PRED-02 fix
+    // exposed. Retired node + all assertions/thresholds are unchanged.)
+    { songId: ERA_HOT, songName: "Current Rotation Staple", playCount: 120, eraPlayCount: 38, tuningFamily: "other" },
   ];
 
   // ~258 filler catalog nodes: a spread of career playCounts (10..99, avg ~54)

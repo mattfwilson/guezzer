@@ -279,10 +279,16 @@ export function alreadyPlayedFactor(B: number, ctx: ShowContext, cfg: ScoringCon
  */
 export function eraPrior(B: number, index: MatrixIndex, cfg: ScoringConfig): number {
   const node = index.nodeById.get(B);
-  if (!node) return 1;
+  // PRED-02 guard: an unknown song or a matrix with no shows has no meaningful
+  // per-show rate — degrade to the neutral 1.0 (never NaN from a 0 denominator).
+  if (!node || index.showCount <= 0) return 1;
   const k = cfg.eraPriorSmoothingK;
-  const eraRate = node.eraPlayCount / cfg.eraWindowShows;
-  const allTimeRate = basePlayRate(B, index);
+  const eraRate = node.eraPlayCount / cfg.eraWindowShows; // recent plays-per-show
+  // PRED-02 FIX: career plays-per-show — dimensionally matches `eraRate`, so
+  // the retired-song floor is reachable. Was `basePlayRate(B, index)` (the
+  // catalog-marginal share), a ~100× smaller unit that pinned the ratio near 1
+  // and left `eraPriorFloor` dead (RESEARCH Pitfall 1 / PRED-02).
+  const allTimeRate = node.playCount / index.showCount; // career plays-per-show
   const ratio = (eraRate + k) / (allTimeRate + k);
   return clamp(ratio, cfg.eraPriorFloor, cfg.eraPriorCeil);
 }

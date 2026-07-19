@@ -10,6 +10,14 @@ import type { MatrixEdge, MatrixNode, TransitionMatrix } from "../domain/types.t
 export interface MatrixIndex {
   edgesFrom: Map<number, MatrixEdge[]>;
   nodeById: Map<number, MatrixNode>;
+  /**
+   * PRED-02: total shows in the corpus the matrix was built from
+   * (`matrix.showCount`, matrix.ts:186 `showCount: shows.length`). Threaded
+   * through so `eraPrior` can compute a dimensionally-correct per-show career
+   * rate (`node.playCount / showCount`) instead of the catalog-marginal
+   * `basePlayRate`. Copied straight off the matrix header — no rebuild.
+   */
+  showCount: number;
 }
 
 export function buildMatrixIndex(matrix: TransitionMatrix): MatrixIndex {
@@ -28,5 +36,5 @@ export function buildMatrixIndex(matrix: TransitionMatrix): MatrixIndex {
     }
   }
 
-  return { edgesFrom, nodeById };
+  return { edgesFrom, nodeById, showCount: matrix.showCount };
 }
