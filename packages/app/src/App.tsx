@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AppMenu } from "./components/AppMenu";
 import { AppShell } from "./components/AppShell";
+import { BackupToast } from "./components/BackupToast";
 import { InstallBanner } from "./components/InstallBanner";
 import { PlaceholderView } from "./components/PlaceholderView";
 import { UpdateToast } from "./components/UpdateToast";
@@ -80,6 +81,7 @@ export function App() {
 
       <InstallBanner />
       <UpdateToast />
+      <BackupToast />
       <AppMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </div>
   );
