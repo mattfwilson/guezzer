@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Pre-Show Hardening
 status: planning
-last_updated: "2026-07-19T06:10:52.961Z"
+last_updated: "2026-07-19T07:00:00.000Z"
 last_activity: 2026-07-19
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** v1.2 scoped (not yet started) — Pre-Show Hardening: 13 bug fixes (Tier 1→3, first) + Gizz Bingo (after). See `.planning/notes/v1.2-scope-triage.md`. Run `/gsd-new-milestone` to formalize. App is show-ready; first show Aug 14, 2026.
+**Current focus:** v1.2 roadmap created — Pre-Show Hardening: 6 phases (11–16). Bug fixes first: Phase 11 Live-Sync & Prediction Correctness (Tier 1) → Phase 12 Data Safety & Integrity → Phase 13 Interface & Explore Polish. Then Gizz Bingo (gated on Phase 11 + a Monte-Carlo calibration pre-plan task): Phase 14 core marking/generation → Phase 15 persistence/lock/replay → Phase 16 build/live-marking/celebrations. Next: `/gsd-plan-phase 11`. App is show-ready; first show Aug 14, 2026.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 11 — Live-Sync & Prediction Correctness (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-19 — Milestone v1.2 started
+Status: Roadmap created; ready to plan Phase 11
+Last activity: 2026-07-19 — v1.2 roadmap created (Phases 11–16, 22/22 requirements mapped)
 
 ## Performance Metrics
 
@@ -83,6 +83,7 @@ Last activity: 2026-07-19 — Milestone v1.2 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- Roadmap (v1.2): 22 requirements mapped to 6 phases (11–16), 100% coverage. **Bugs before Bingo** — Phase 11 Live-Sync & Prediction Correctness (LIVE-01/02/03 + PRED-01/02/03, Tier-1 residency-failure cluster, FIRST) → Phase 12 Data Safety & Integrity (SAFE-01..04) → Phase 13 Interface & Explore Polish (UX-01..04, lowest severity). Gizz Bingo decomposed into 3 phases behind TWO hard gates (GATE 1 = Phase 11 live-sync correctness; GATE 2 = Monte-Carlo fill-rate calibration writing locked constants to config.ts): Phase 14 pure-core marking/generation (BINGO-03) → Phase 15 persistence/lock/replay (BINGO-06/07) → Phase 16 build/live-marking/celebrations (BINGO-01/02/04/05/08). Segue excluded from the auto-mark catalog (TrackedEntry is song-level, no transitionKind).
 - Roadmap (v1.1): 9 hardening requirements grouped into 3 phases by theme — Phase 8 (UI polish + a11y, frontend), Phase 9 (data integrity + restore UX, core/data), Phase 10 (human/device pre-show validation). VALID-01/VALID-02 are human/device checkpoints, isolated in the final verification phase which depends on 8 and 9.
 - Roadmap: 🎯 (show-#1) requirements confined to Phases 1–5; Phases 6–7 may ship after show #1 without data loss (attendance auto-mark in Phase 4, export in Phase 5)
 - Roadmap: DATA-05 (set-boundary exclusion) mapped to Phase 2 with the matrix builder, not Phase 1 ingestion — the exclusion decision lives where edges are emitted

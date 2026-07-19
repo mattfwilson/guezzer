@@ -65,41 +65,43 @@ Deferred to a later milestone (backlog unchanged in `.planning/todos/pending/`).
 | Live duration / clock-timed bingo squares | Track durations do not exist in kglw.net data; replaced by a static "marathon jam" tag. |
 | Any backend / accounts for Bingo | Hard project constraint — no backend; solo/personal only. |
 | Real-time shared setlist state between friends | Reopens the "no backend" constraint (SOCL-V2-01, out of scope until explicitly reconsidered). |
+| A "segue" auto-mark square (v1.2) | `TrackedEntry` is song-level and carries no `transitionKind`, so a segue cannot be auto-marked from the trail. Re-adding it is explicit future scope (enrich `TrackedEntry` with a captured transition kind, or mark opportunistically from `latest`). |
 
 ## Traceability
 
-Filled by the roadmapper during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LIVE-01 | TBD | Pending |
-| LIVE-02 | TBD | Pending |
-| LIVE-03 | TBD | Pending |
-| PRED-01 | TBD | Pending |
-| PRED-02 | TBD | Pending |
-| PRED-03 | TBD | Pending |
-| SAFE-01 | TBD | Pending |
-| SAFE-02 | TBD | Pending |
-| SAFE-03 | TBD | Pending |
-| SAFE-04 | TBD | Pending |
-| UX-01 | TBD | Pending |
-| UX-02 | TBD | Pending |
-| UX-03 | TBD | Pending |
-| UX-04 | TBD | Pending |
-| BINGO-01 | TBD | Pending |
-| BINGO-02 | TBD | Pending |
-| BINGO-03 | TBD | Pending |
-| BINGO-04 | TBD | Pending |
-| BINGO-05 | TBD | Pending |
-| BINGO-06 | TBD | Pending |
-| BINGO-07 | TBD | Pending |
-| BINGO-08 | TBD | Pending |
+| LIVE-01 | Phase 11 | Pending |
+| LIVE-02 | Phase 11 | Pending |
+| LIVE-03 | Phase 11 | Pending |
+| PRED-01 | Phase 11 | Pending |
+| PRED-02 | Phase 11 | Pending |
+| PRED-03 | Phase 11 | Pending |
+| SAFE-01 | Phase 12 | Pending |
+| SAFE-02 | Phase 12 | Pending |
+| SAFE-03 | Phase 12 | Pending |
+| SAFE-04 | Phase 12 | Pending |
+| UX-01 | Phase 13 | Pending |
+| UX-02 | Phase 13 | Pending |
+| UX-03 | Phase 13 | Pending |
+| UX-04 | Phase 13 | Pending |
+| BINGO-03 | Phase 14 | Pending |
+| BINGO-06 | Phase 15 | Pending |
+| BINGO-07 | Phase 15 | Pending |
+| BINGO-01 | Phase 16 | Pending |
+| BINGO-02 | Phase 16 | Pending |
+| BINGO-04 | Phase 16 | Pending |
+| BINGO-05 | Phase 16 | Pending |
+| BINGO-08 | Phase 16 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 22 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 22 ⚠️
+- Mapped to phases: 22 ✓
+- Unmapped: 0
+
+Phase distribution: Phase 11 (6: LIVE-01/02/03, PRED-01/02/03) · Phase 12 (4: SAFE-01/02/03/04) · Phase 13 (4: UX-01/02/03/04) · Phase 14 (1: BINGO-03) · Phase 15 (2: BINGO-06/07) · Phase 16 (5: BINGO-01/02/04/05/08).
 
 ---
 *Requirements defined: 2026-07-19 for milestone v1.2 Pre-Show Hardening*
+*Traceability filled by roadmapper: 2026-07-19 — 22/22 mapped across Phases 11–16*
 *Last updated: 2026-07-19*
