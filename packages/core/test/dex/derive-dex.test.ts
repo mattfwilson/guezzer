@@ -88,7 +88,12 @@ describe("deriveDex — single derivation entry point (DEX-03/04, STAT-03/04)", 
     expect(stats.completion.caught).toBe(4);
   });
 
-  it("dedupes two unbound tracked nights on the same date — ONE attendance, UNION sightings", () => {
+  // SAFE-04 / D-01 INTENTIONAL INVERSION (was "dedupes two unbound tracked
+  // nights on the same date — ONE attendance"). Two DISTINCT unbound tracked
+  // nights on the same date are a genuine doubleheader and must derive
+  // showCount === 2 — the dex must never silently lose a caught show. A
+  // plan-checker MUST NOT restore the old showCount === 1 collapse assertion.
+  it("keeps two unbound same-date tracked nights as TWO attendances (D-01 showCount === 2)", () => {
     const stats = run(
       dexSnapshot({
         trackedShows: [
@@ -102,8 +107,14 @@ describe("deriveDex — single derivation entry point (DEX-03/04, STAT-03/04)", 
       }),
     );
 
-    expect(stats.showCount).toBe(1);
+    // Two distinct unbound sessions → two attendance groups.
+    expect(stats.showCount).toBe(2);
+    // D-03 join-safety: each unbound night still resolves its OWN tracked
+    // sightings (drawn from trackedEntries, never dropped by the split) — song
+    // 10 seen once on s3's night, song 20 once on s4's night.
     expect([...stats.perSong.keys()].sort((a, b) => a - b)).toEqual([10, 20]);
+    expect(stats.perSong.get(10)?.sightings).toBe(1);
+    expect(stats.perSong.get(20)?.sightings).toBe(1);
   });
 
   it("computes personalGap as your deduped shows strictly after the last sighting (STAT-03)", () => {

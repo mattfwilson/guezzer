@@ -243,7 +243,12 @@ describe("parseAndMergeImport — same-show dedupe (D-11)", () => {
     }
   });
 
-  it("collapses two unbound shows sharing a date to ONE attendance", () => {
+  // SAFE-04 / D-01 INTENTIONAL INVERSION (was "collapses two unbound shows
+  // sharing a date to ONE attendance"). A genuine doubleheader — two DISTINCT
+  // unbound sessions on the same date — must survive as TWO attendances; the
+  // export/dex must never silently lose a caught show. A plan-checker MUST NOT
+  // restore the old ONE-attendance collapse assertion.
+  it("keeps two unbound same-date shows as TWO attendances (D-01 doubleheader survives)", () => {
     const local: ExportSnapshot = {
       ...emptySnapshot(),
       trackedShows: [show({ sessionId: "dev-a", showId: null, date: "2026-08-01" })],
@@ -260,8 +265,37 @@ describe("parseAndMergeImport — same-show dedupe (D-11)", () => {
     const result = parseAndMergeImport(rawExport(incoming), local, SCHEMA_VERSION);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.merged.trackedShows).toHaveLength(1);
-      expect(result.merged.trackedEntries).toHaveLength(2);
+      // Distinct unbound sessions on one date → TWO attendances, no adoption.
+      expect(result.merged.trackedShows).toHaveLength(2);
+      expect(
+        result.merged.trackedShows.map((s) => s.sessionId).sort(),
+      ).toEqual(["dev-a", "dev-b"]);
+      // No song-union collapse: each night keeps its own entries (1 + 2 = 3).
+      expect(result.merged.trackedEntries).toHaveLength(3);
+    }
+  });
+
+  it("keeps a bound + unbound pair on the same date as TWO groups (D-02 unchanged)", () => {
+    // One night bound to show 999, a genuinely different unbound night on the
+    // same date — the bound `id:` key and the unbound `date:#session` key never
+    // collide, so both survive.
+    const local: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "dev-bound", showId: 999, date: "2026-08-01" })],
+      trackedEntries: [entry({ sessionId: "dev-bound", position: 1 })],
+    };
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "dev-unbound", showId: null, date: "2026-08-01" })],
+      trackedEntries: [entry({ sessionId: "dev-unbound", position: 1 })],
+    };
+    const result = parseAndMergeImport(rawExport(incoming), local, SCHEMA_VERSION);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.merged.trackedShows).toHaveLength(2);
+      expect(
+        result.merged.trackedShows.map((s) => s.sessionId).sort(),
+      ).toEqual(["dev-bound", "dev-unbound"]);
     }
   });
 
