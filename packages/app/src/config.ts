@@ -292,6 +292,16 @@ export const config = {
      * v1 backups migrate forward losslessly via core MIGRATIONS[1].
      */
     SCHEMA_VERSION: 2,
+    /**
+     * Deferred object-URL revoke delay in ms (SAFE-02, D-06). The
+     * triggerDownload helper frees the anchor's object URL only after this
+     * delay, never on the click tick — a same-tick `revokeObjectURL` silently
+     * aborts the download on iOS Safari (backup JSON + share-card PNG). Long
+     * enough for iOS Safari to begin the download before the URL is freed.
+     * Config-tunable; 1000–10000 ms is the safe band, verified on-device
+     * during SAFE-02 UAT. App-only browser-timing value — no core mirror.
+     */
+    OBJECT_URL_REVOKE_DELAY_MS: 5000,
   },
 
   /**
