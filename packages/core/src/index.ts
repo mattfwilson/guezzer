@@ -118,7 +118,7 @@ export {
  * is the tolerant `latest` poller (SYNC-01/D-06); `latestSetlistRow` is its
  * dedicated schema; the suggest/bind functions are pure decision fns.
  */
-export { pollLatest, type PollDeps } from "./live/poll-latest.ts";
+export { pollLatest, type PollDeps, type PollResult } from "./live/poll-latest.ts";
 export {
   detectNovelKeys,
   KNOWN_LATEST_KEYS,
