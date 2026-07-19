@@ -3,8 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Pre-Show Hardening
 status: planning
-last_updated: "2026-07-19T07:00:00.000Z"
-last_activity: 2026-07-19
+stopped_at: Phase 11 context gathered
+last_updated: "2026-07-19T16:43:55.920Z"
+last_activity: 2026-07-19 — v1.2 roadmap created (Phases 11–16, 22/22 requirements mapped)
 progress:
   total_phases: 6
   completed_phases: 0
@@ -246,9 +247,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-19T04:30:00Z
-Stopped at: v1.1 Polish & Pre-Show Hardening milestone closed and tagged (v1.1). Archives written to .planning/milestones/. REQUIREMENTS.md removed (fresh for next milestone).
-Resume file: None
+Last session: 2026-07-19T16:43:55.915Z
+Stopped at: Phase 11 context gathered
+Resume file: .planning/phases/11-live-sync-prediction-correctness/11-CONTEXT.md
 
 ## Operator Next Steps
 
