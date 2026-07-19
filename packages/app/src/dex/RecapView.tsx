@@ -15,7 +15,7 @@
  * → footer Done. All kglw-derived song/venue names render as React text only
  * (T-06-21); the Share card CTA joins in 06-11 (no dead button here).
  */
-import { deriveRecap, type RarityTier } from "@guezzer/core";
+import { buildRecapShareStats, deriveRecap, type RarityTier } from "@guezzer/core";
 import { Share2, Sparkles } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo, useState } from "react";
@@ -92,6 +92,19 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
     albumsResult,
     rarity,
   ]);
+
+  // Per-show share card (plan 10-02): the End-Show share must reflect ONLY the
+  // night just tracked, not the lifetime GizzDex. Reuse the same `deriveRecap`
+  // output (no re-derived catch logic) via the pure core projection, and hand
+  // the result to the sheet so it builds the File from these show-scoped numbers.
+  const shareData = useMemo(() => {
+    if (recap == null || !archiveResult.ok) return undefined;
+    const show = (trackedShows ?? []).find((s) => s.sessionId === sessionId);
+    return buildRecapShareStats(recap, archiveResult.archive, {
+      date: show?.date ?? "",
+      venue: show?.venueName ?? null,
+    });
+  }, [recap, archiveResult, trackedShows, sessionId]);
 
   // Still resolving the live reads / a loader failed — hold a calm empty frame.
   if (recap == null) {
@@ -281,8 +294,9 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
         </div>
       </div>
 
-      {/* Share-card preview sheet (SHAR-02) — self-sources the live dex. */}
-      <ShareCardSheet open={shareOpen} onClose={() => setShareOpen(false)} />
+      {/* Share-card preview sheet (SHAR-02) — PER-SHOW data (plan 10-02): the
+          card reflects only the night just tracked, not the lifetime dex. */}
+      <ShareCardSheet open={shareOpen} onClose={() => setShareOpen(false)} data={shareData} />
     </div>
   );
 }

@@ -211,14 +211,22 @@ export {
 } from "./dex/compare.ts";
 
 /**
- * Phase 6 share-card stats (plan 06-11, SHAR-02/D-18/D-19). `buildShareStats`
- * is the pure projection of a derived `DexStats` into the flat, canvas-ready
- * `ShareCardData` the PNG brag card draws — all stat math stays in core so the
- * app draw layer only draws (RESEARCH Pitfall 8). Zero I/O.
+ * Phase 6 share-card stats (plan 06-11, SHAR-02/D-18/D-19). The pure projection
+ * of the dex/recap derivations into the flat, canvas-ready `ShareCardData` the
+ * PNG brag card draws — all stat math stays in core so the app draw layer only
+ * draws (RESEARCH Pitfall 8). `buildShareStats` yields the LIFETIME collection
+ * card; `buildRecapShareStats` (plan 10-02) yields the PER-SHOW recap card from
+ * one night's `deriveRecap` output. `ShareCardData` is a discriminated union on
+ * `scope` ("collection" | "show"). Zero I/O.
  */
 export {
   buildShareStats,
+  buildRecapShareStats,
   type ShareCardData,
+  type CollectionShareCard,
+  type ShowShareCard,
+  type ShareTier,
+  type ShareTierRow,
 } from "./dex/share-stats.ts";
 
 /**

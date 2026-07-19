@@ -57,10 +57,43 @@ function centerText(
   ctx.fillText(text, centerX, y);
 }
 
+/** Left-aligned text at `x` (used by the vertical tier rows). */
+function leftText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+): void {
+  ctx.font = `600 ${size}px ${FONT_STACK}`;
+  ctx.fillStyle = color;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText(text, x, y);
+}
+
+/** Right-aligned text ending at `x` (used by the tier counts). */
+function rightText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+): void {
+  ctx.font = `600 ${size}px ${FONT_STACK}`;
+  ctx.fillStyle = color;
+  ctx.textAlign = "right";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText(text, x, y);
+}
+
 /**
  * `drawShareCard(ctx, data, { width, height })` — paints the fixed portrait
- * card. Pure draw: reads only `data` (pre-assembled in core) + config copy;
- * creates no canvas and does no arithmetic beyond layout positioning.
+ * card for either the LIFETIME collection or a PER-SHOW recap (branch on
+ * `data.scope`). Pure draw: reads only `data` (pre-assembled in core) + config
+ * copy; creates no canvas and does no arithmetic beyond layout positioning.
  */
 export function drawShareCard(
   ctx: CanvasRenderingContext2D,
@@ -70,6 +103,7 @@ export function drawShareCard(
   const { width, height } = opts;
   const cardCopy = config.copy.share.card;
   const tierWord = config.copy.dex.tierLabels as Record<RarityTier, string>;
+  const debutWord = config.copy.dex.debutBadge;
   const cx = width / 2;
 
   // Dominant-surface background (§Color A) — full bleed.
@@ -77,79 +111,90 @@ export function drawShareCard(
   ctx.fillRect(0, 0, width, height);
 
   // Wordmark (fixed brand gold — decoupled from the legendary tier, now orange).
-  centerText(ctx, cardCopy.wordmark, cx, height * 0.13, 68, config.share.wordmarkGold);
+  centerText(ctx, cardCopy.wordmark, cx, height * 0.10, 68, config.share.wordmarkGold);
 
-  // Completion % hero (Display — the collection's biggest number).
-  centerText(ctx, `${data.completionPct}%`, cx, height * 0.34, 240, COLOR.primary);
-
-  // {caught}/{total} caught + show count.
-  centerText(ctx, cardCopy.caught(data.caught, data.total), cx, height * 0.42, 52, COLOR.muted);
-  centerText(ctx, cardCopy.shows(data.showCount), cx, height * 0.47, 46, COLOR.muted);
+  if (data.scope === "collection") {
+    // Completion % hero (Display — the collection's biggest number).
+    centerText(ctx, `${data.completionPct}%`, cx, height * 0.30, 240, COLOR.primary);
+    // {caught}/{total} caught — now a real HEADING (matches the GizzDex header weight).
+    centerText(ctx, cardCopy.caught(data.caught, data.total), cx, height * 0.39, 110, COLOR.primary);
+    // Show count caption.
+    centerText(ctx, cardCopy.shows(data.showCount), cx, height * 0.435, 46, COLOR.muted);
+  } else {
+    // Per-show hero: the songs-caught COUNT is the dominant Display number (no
+    // percentage — one show has no completion denominator).
+    centerText(ctx, String(data.songsCaught), cx, height * 0.30, 240, COLOR.primary);
+    centerText(ctx, cardCopy.songsCaughtLabel, cx, height * 0.375, 56, COLOR.muted);
+  }
 
   // Rarest catch + tier word (tier in its ramp color; Legendary → orange).
   if (data.rarestCatch != null) {
-    centerText(ctx, cardCopy.rarestLabel, cx, height * 0.58, 40, COLOR.muted);
-    centerText(ctx, data.rarestCatch.songName, cx, height * 0.63, 56, COLOR.primary);
+    centerText(ctx, cardCopy.rarestLabel, cx, height * 0.50, 40, COLOR.muted);
+    centerText(ctx, data.rarestCatch.songName, cx, height * 0.55, 56, COLOR.primary);
     centerText(
       ctx,
       tierWord[data.rarestCatch.tier],
       cx,
-      height * 0.67,
+      height * 0.59,
       44,
       rarityColor(data.rarestCatch.tier),
     );
   }
 
-  // Tier breakdown — segmented so each tier keeps its ramp color (Legendary orange).
-  if (data.tierBreakdown.length > 0) {
-    drawTierBreakdown(ctx, data.tierBreakdown, cx, height * 0.78, tierWord);
-  }
+  // Vertical six-row tier box (shared by both cards) — one row per tier in the
+  // fixed order, label left / count right, both in the tier's ramp color.
+  drawTierBreakdown(ctx, data.tierBreakdown, {
+    leftX: width * 0.17,
+    rightX: width * 0.83,
+    top: height * 0.65,
+    rowStep: height * 0.045,
+    size: 40,
+    tierWord,
+    debutWord,
+  });
 
-  // Latest show (date · venue) — honest, muted footer stat.
-  if (data.latestShow != null) {
-    const venue = data.latestShow.venue;
-    const line = venue ? `${data.latestShow.date} · ${venue}` : data.latestShow.date;
-    centerText(ctx, cardCopy.latestLabel, cx, height * 0.87, 38, COLOR.muted);
-    centerText(ctx, line, cx, height * 0.91, 44, COLOR.primary);
+  // Footer: honest muted date · venue — the latest attended night (collection)
+  // or the show this recap card is for (show).
+  const footer =
+    data.scope === "collection"
+      ? data.latestShow != null
+        ? { label: cardCopy.latestLabel, date: data.latestShow.date, venue: data.latestShow.venue }
+        : null
+      : { label: cardCopy.showLabel, date: data.show.date, venue: data.show.venue };
+  if (footer != null) {
+    const line = footer.venue ? `${footer.date} · ${footer.venue}` : footer.date;
+    centerText(ctx, footer.label, cx, height * 0.955, 38, COLOR.muted);
+    centerText(ctx, line, cx, height * 0.99, 44, COLOR.primary);
   }
 }
 
 /**
- * Draw the `3 Legendary · 12 Rare · …` breakdown centered on `centerX`, each
- * tier segment in its ramp color (from the shared `rarityColor` primitive) and
- * the ` · ` separators muted. Uses measureText to lay the segments out
- * left-to-right from a centered origin.
+ * Draw the VERTICAL six-row tier breakdown: one row per tier in the fixed order
+ * the core supplies (Debut Candidate → Legendary), the tier LABEL left-aligned
+ * and the caught COUNT right-aligned, both in that tier's ramp color (from the
+ * shared `rarityColor` primitive — Legendary orange, debut neutral gray). All
+ * six rows always render so the layout stays aligned and stable.
  */
 function drawTierBreakdown(
   ctx: CanvasRenderingContext2D,
-  breakdown: Array<{ tier: RarityTier; count: number }>,
-  centerX: number,
-  y: number,
-  tierWord: Record<RarityTier, string>,
+  breakdown: Array<{ tier: RarityTier | "debut"; count: number }>,
+  opts: {
+    leftX: number;
+    rightX: number;
+    top: number;
+    rowStep: number;
+    size: number;
+    tierWord: Record<RarityTier, string>;
+    debutWord: string;
+  },
 ): void {
-  const size = 44;
-  const sep = "  ·  ";
-  ctx.font = `600 ${size}px ${FONT_STACK}`;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "alphabetic";
-
-  const segments = breakdown.map((b) => `${b.count} ${tierWord[b.tier]}`);
-  const totalWidth = segments.reduce((sum, seg, i) => {
-    const sepWidth = i > 0 ? ctx.measureText(sep).width : 0;
-    return sum + sepWidth + ctx.measureText(seg).width;
-  }, 0);
-
-  let x = centerX - totalWidth / 2;
-  breakdown.forEach((b, i) => {
-    if (i > 0) {
-      ctx.fillStyle = COLOR.muted;
-      ctx.fillText(sep, x, y);
-      x += ctx.measureText(sep).width;
-    }
-    const seg = segments[i];
-    ctx.fillStyle = rarityColor(b.tier);
-    ctx.fillText(seg, x, y);
-    x += ctx.measureText(seg).width;
+  const { leftX, rightX, top, rowStep, size, tierWord, debutWord } = opts;
+  breakdown.forEach((row, i) => {
+    const y = top + i * rowStep;
+    const color = rarityColor(row.tier);
+    const label = row.tier === "debut" ? debutWord : tierWord[row.tier];
+    leftText(ctx, label, leftX, y, size, color);
+    rightText(ctx, String(row.count), rightX, y, size, color);
   });
 }
 
@@ -184,7 +229,8 @@ export async function buildShareCardFile(data: ShareCardData): Promise<ShareCard
     const blob = await canvasToBlob(canvas);
     if (blob == null) return { ok: false, error: config.copy.share.failureHeading };
 
-    const fileObj = new File([blob], "guezzer-dex.png", { type: "image/png" });
+    const fileName = data.scope === "show" ? "guezzer-show.png" : "guezzer-dex.png";
+    const fileObj = new File([blob], fileName, { type: "image/png" });
     const previewUrl = URL.createObjectURL(blob);
     return { ok: true, file: fileObj, previewUrl };
   } catch {

@@ -48,17 +48,40 @@ const { db } = await import("../src/db/db.ts");
 
 function sampleData(): ShareCardData {
   return {
+    scope: "collection",
     completionPct: 42,
     caught: 111,
     total: 264,
     showCount: 7,
     rarestCatch: { songName: "Work This Time", tier: "legendary" },
+    // Six rows, fixed order [debut … legendary], 0 where none.
     tierBreakdown: [
-      { tier: "legendary", count: 3 },
-      { tier: "rare", count: 12 },
+      { tier: "debut", count: 0 },
       { tier: "common", count: 96 },
+      { tier: "uncommon", count: 0 },
+      { tier: "rare", count: 12 },
+      { tier: "epic", count: 0 },
+      { tier: "legendary", count: 3 },
     ],
     latestShow: { date: "2026-07-13", venue: "Red Rocks" },
+  };
+}
+
+/** A per-show recap card — the songs-caught hero + show-scoped tier rows. */
+function showData(): ShareCardData {
+  return {
+    scope: "show",
+    songsCaught: 18,
+    show: { date: "2026-07-13", venue: "Red Rocks" },
+    rarestCatch: { songName: "Work This Time", tier: "legendary" },
+    tierBreakdown: [
+      { tier: "debut", count: 1 },
+      { tier: "common", count: 9 },
+      { tier: "uncommon", count: 3 },
+      { tier: "rare", count: 3 },
+      { tier: "epic", count: 1 },
+      { tier: "legendary", count: 1 },
+    ],
   };
 }
 
@@ -129,7 +152,7 @@ describe("ShareCardSheet — <Sheet> migration (A11Y-01, 08-03)", () => {
 });
 
 describe("drawShareCard — pure (ctx, data) canvas draw (Pitfall 8)", () => {
-  it("paints the #0C0C10 background, the hero %, the orange Legendary segment, and the gold wordmark", () => {
+  it("paints the #0C0C10 background, the hero %, the orange Legendary row, and the gold wordmark", () => {
     const { ctx, calls } = makeMockCtx();
 
     drawShareCard(ctx as unknown as CanvasRenderingContext2D, sampleData(), {
@@ -142,10 +165,10 @@ describe("drawShareCard — pure (ctx, data) canvas draw (Pitfall 8)", () => {
     expect(bg).toBeTruthy();
     expect(bg?.fillStyle.toUpperCase()).toBe("#0C0C10");
 
-    // Hero completion percentage rendered as text.
+    // Lifetime card keeps its completion-% hero.
     expect(calls.some((c) => c.fn === "fillText" && String(c.args[0]).includes("42%"))).toBe(true);
 
-    // Tier breakdown: the Legendary segment follows the tier map — now orange (§B3).
+    // Tier breakdown: the Legendary row label follows the tier map — now orange (§B3).
     const legendary = calls.find(
       (c) => c.fn === "fillText" && String(c.args[0]).includes("Legendary"),
     );
@@ -158,6 +181,60 @@ describe("drawShareCard — pure (ctx, data) canvas draw (Pitfall 8)", () => {
     );
     expect(wordmark).toBeTruthy();
     expect(wordmark?.fillStyle.toUpperCase()).toBe("#F2C14E");
+  });
+
+  it("draws the six-tier VERTICAL box in fixed order with right-aligned tier-colored counts", () => {
+    const { ctx, calls } = makeMockCtx();
+
+    drawShareCard(ctx as unknown as CanvasRenderingContext2D, sampleData(), {
+      width: config.share.CARD_WIDTH,
+      height: config.share.CARD_HEIGHT,
+    });
+
+    const tierWord = config.copy.dex.tierLabels;
+    const debutWord = config.copy.dex.debutBadge;
+    const tierColors = config.dex.tierColors;
+
+    // All six tier labels present, in the fixed least→most-rare order. Use
+    // findLastIndex so the box's Legendary row is picked, not the earlier
+    // rarest-catch tier word (which also renders "Legendary").
+    const labelOrder = [debutWord, tierWord.common, tierWord.uncommon, tierWord.rare, tierWord.epic, tierWord.legendary];
+    const drawnLabelIdx = labelOrder.map((label) =>
+      calls.findLastIndex((c) => c.fn === "fillText" && String(c.args[0]) === label),
+    );
+    expect(drawnLabelIdx.every((i) => i >= 0)).toBe(true);
+    // Monotonic increasing draw order = the rows render top→bottom in fixed order.
+    for (let i = 1; i < drawnLabelIdx.length; i++) {
+      expect(drawnLabelIdx[i]).toBeGreaterThan(drawnLabelIdx[i - 1]);
+    }
+
+    // Each label draws in its own tier hue (debut neutral gray, legendary orange).
+    const debut = calls.find((c) => c.fn === "fillText" && String(c.args[0]) === debutWord);
+    expect(debut?.fillStyle.toUpperCase()).toBe(tierColors.debut.toUpperCase());
+
+    // The legendary COUNT ("3") draws right-aligned (textAlign "right") in the legendary hue.
+    const legendaryCount = calls.find(
+      (c) => c.fn === "fillText" && String(c.args[0]) === "3" && c.fillStyle.toUpperCase() === "#FB923C",
+    );
+    expect(legendaryCount).toBeTruthy();
+  });
+
+  it("per-show card draws the songs-caught COUNT hero (no %) and its own tier rows", () => {
+    const { ctx, calls } = makeMockCtx();
+
+    drawShareCard(ctx as unknown as CanvasRenderingContext2D, showData(), {
+      width: config.share.CARD_WIDTH,
+      height: config.share.CARD_HEIGHT,
+    });
+
+    // Hero is the songs-caught count "18" — NOT a percentage.
+    expect(calls.some((c) => c.fn === "fillText" && String(c.args[0]) === "18")).toBe(true);
+    expect(calls.some((c) => c.fn === "fillText" && String(c.args[0]).includes("%"))).toBe(false);
+    // The show caption + footer label render.
+    expect(calls.some((c) => c.fn === "fillText" && String(c.args[0]) === config.copy.share.card.songsCaughtLabel)).toBe(true);
+    expect(calls.some((c) => c.fn === "fillText" && String(c.args[0]) === config.copy.share.card.showLabel)).toBe(true);
+    // The vertical box still renders every tier label (shared renderer).
+    expect(calls.some((c) => c.fn === "fillText" && String(c.args[0]) === config.copy.dex.tierLabels.epic)).toBe(true);
   });
 });
 

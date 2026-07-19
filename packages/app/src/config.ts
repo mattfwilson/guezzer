@@ -981,6 +981,10 @@ export const config = {
         shows: (n: number): string => (n === 1 ? "1 show" : `${n} shows`),
         rarestLabel: "Rarest catch",
         latestLabel: "Latest show",
+        /** Per-show card caption under the songs-caught hero COUNT (plan 10-02). */
+        songsCaughtLabel: "songs caught",
+        /** Per-show card footer label above the show's own date · venue (plan 10-02). */
+        showLabel: "This show",
       },
     },
 

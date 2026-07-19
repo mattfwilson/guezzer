@@ -14,7 +14,7 @@
  */
 import { CircleCheck, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { buildShareStats } from "@guezzer/core";
+import { buildShareStats, type ShareCardData } from "@guezzer/core";
 import { config } from "../config.ts";
 import { Sheet } from "../components/Sheet.tsx";
 import { buildShareCardFile, shareOrDownload, type ShareCardFile } from "./shareCard.ts";
@@ -25,12 +25,18 @@ interface ShareCardSheetProps {
   open: boolean;
   /** Dismiss — the host clears its share state. */
   onClose: () => void;
+  /**
+   * Pre-built PER-SHOW card data (RecapView passes the `buildRecapShareStats`
+   * result). When present the sheet builds the File from it; when ABSENT the
+   * sheet self-sources the LIFETIME dex exactly as before (DexHeader path).
+   */
+  data?: ShareCardData;
 }
 
 /** Post-share status the sheet surfaces (share/cancel are silent → null). */
 type ShareStatus = null | "saved" | "failed";
 
-export function ShareCardSheet({ open, onClose }: ShareCardSheetProps) {
+export function ShareCardSheet({ open, onClose, data }: ShareCardSheetProps) {
   const copy = config.copy.share;
   const stats = useDexStats();
   const [build, setBuild] = useState<ShareCardFile | null>(null);
@@ -38,7 +44,9 @@ export function ShareCardSheet({ open, onClose }: ShareCardSheetProps) {
 
   const dex = stats.dex;
   const archive = stats.archive;
-  const ready = stats.ready && dex != null && archive != null;
+  // Per-show data is ready immediately; the lifetime path waits on the live dex.
+  const selfSource = data == null;
+  const ready = !selfSource || (stats.ready && dex != null && archive != null);
 
   // On open, assemble the card numbers in core + build the File immediately
   // (Pitfall 7: the File must exist before the tap). Revoke the preview URL on
@@ -51,8 +59,9 @@ export function ShareCardSheet({ open, onClose }: ShareCardSheetProps) {
     setStatus(null);
     setBuild(null);
     void (async () => {
-      const data = buildShareStats(dex, archive);
-      const result = await buildShareCardFile(data);
+      // Prefer the pre-built per-show data; else self-source the lifetime card.
+      const cardData: ShareCardData = data ?? buildShareStats(dex!, archive!);
+      const result = await buildShareCardFile(cardData);
       if (cancelled) {
         if (result.ok) URL.revokeObjectURL(result.previewUrl);
         return;
@@ -65,7 +74,7 @@ export function ShareCardSheet({ open, onClose }: ShareCardSheetProps) {
       cancelled = true;
       if (builtUrl != null) URL.revokeObjectURL(builtUrl);
     };
-  }, [open, ready, dex, archive]);
+  }, [open, ready, data, dex, archive]);
 
   // Share tap — call shareOrDownload with the file captured from state. NO async
   // work precedes the navigator.share call inside it (the Pitfall-7 contract).
@@ -81,9 +90,27 @@ export function ShareCardSheet({ open, onClose }: ShareCardSheetProps) {
 
   return (
     <Sheet open={open} onClose={onClose} modal variant="bottom-sheet" ariaLabel={copy.sheetLabel}>
-      <p className="text-[20px] font-semibold leading-tight text-text-primary">
-        {copy.sheetLabel}
-      </p>
+      {/* Header row: title left, the accent share-ICON button upper-right
+          (mirrors the DexHeader share-icon pattern). The share action lives
+          here now; the primary full-width control below is Close. The icon stays
+          disabled until the File is built so the tap always has an already-built
+          file (Pitfall 7). */}
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[20px] font-semibold leading-tight text-text-primary">
+          {copy.sheetLabel}
+        </p>
+        {!buildFailed && (
+          <button
+            type="button"
+            disabled={build == null || !build.ok}
+            onClick={() => void handleShare()}
+            aria-label={copy.cta}
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent touch-manipulation disabled:opacity-50"
+          >
+            <Share2 size={22} aria-hidden="true" />
+          </button>
+        )}
+      </div>
 
       {/* Preview / build-failure / hold frame. */}
       <div className="mt-4 flex flex-col items-center gap-3">
@@ -120,23 +147,12 @@ export function ShareCardSheet({ open, onClose }: ShareCardSheetProps) {
         )}
       </div>
 
-      {/* Accent Share CTA (reserved accent use #1) — disabled until the File
-          is built so the tap always has an already-built file (Pitfall 7). */}
-      {!buildFailed && (
-        <button
-          type="button"
-          disabled={build == null || !build.ok}
-          onClick={() => void handleShare()}
-          className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-accent px-4 text-[14px] font-semibold text-surface touch-manipulation disabled:opacity-50"
-        >
-          <Share2 size={18} aria-hidden="true" />
-          {copy.cta}
-        </button>
-      )}
+      {/* Primary full-width control — now CLOSE (the share action moved to the
+          upper-right icon button). */}
       <button
         type="button"
         onClick={onClose}
-        className="mt-2 flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+        className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
       >
         {copy.close}
       </button>
