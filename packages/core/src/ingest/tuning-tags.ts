@@ -147,7 +147,7 @@ function extractSlugFromSongUrl(songUrl: string): string {
  * Returns the distinct non-live album titles matched, in first-encountered
  * order.
  */
-function findMatchedAlbumTitles(song: CatalogSong, albumRows: readonly AlbumRow[]): string[] {
+export function findMatchedAlbumTitles(song: CatalogSong, albumRows: readonly AlbumRow[]): string[] {
   const studioRows = albumRows.filter((row) => row.islive === 0);
   const bySlug = studioRows.filter((row) => extractSlugFromSongUrl(row.song_url) === song.slug);
   const matches =
@@ -173,7 +173,7 @@ function findMatchedAlbumTitles(song: CatalogSong, albumRows: readonly AlbumRow[
  * auto-assigned here (D-03) — they only ever enter the file via a
  * hand-edit, which mergeTuningTags preserves verbatim.
  */
-function defaultFamilyForAlbum(albumTitle: string): "standard" | "microtonal" {
+export function defaultFamilyForAlbum(albumTitle: string): "standard" | "microtonal" {
   return (config.microtonalAlbums as readonly string[]).includes(albumTitle)
     ? "microtonal"
     : "standard";
