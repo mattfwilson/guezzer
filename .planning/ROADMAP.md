@@ -98,7 +98,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 10-01-PLAN.md — VALID-01: read-only tuning-review CLI + spot-check/anomaly sweep; owner confirms or fixes+rebuilds+backtests (D-03)
+- [x] 10-01-PLAN.md — VALID-01: read-only tuning-review CLI + spot-check/anomaly sweep; owner confirms or fixes+rebuilds+backtests (D-03) — Complete 2026-07-18 (D-03 fix: 9 Infest tracks → cs-standard, zero backtest regression)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -117,7 +117,7 @@ Plans:
 | 7. Explore Mode Constellation | v1.0 | 7/7 | Complete | 2026-07-16 |
 | 8. On-Device UI Polish & Accessibility | v1.1 | 8/8 | Complete    | 2026-07-18 |
 | 9. Data Integrity & Restore UX | v1.1 | 2/2 | Complete    | 2026-07-18 |
-| 10. Pre-Show Validation & Device Dry-Run | v1.1 | 0/? | Not started | - |
+| 10. Pre-Show Validation & Device Dry-Run | v1.1 | 1/2 | In progress | - |
 
 ---
 *Roadmap created: 2026-07-08*

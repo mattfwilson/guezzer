@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Polish & Pre-Show Hardening
 status: executing
-stopped_at: Phase 10 context gathered
-last_updated: "2026-07-18T22:51:20.034Z"
-last_activity: 2026-07-18 -- Phase 10 planning complete
+stopped_at: Completed 10-01-PLAN.md (VALID-01)
+last_updated: "2026-07-18T21:36:14Z"
+last_activity: 2026-07-18 -- Completed Phase 10 Plan 01 (VALID-01 tuning spot-check + D-03 fix)
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 10
-  completed_plans: 10
-  percent: 67
+  total_plans: 12
+  completed_plans: 11
+  percent: 75
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-18 after Phase 8)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 09 — data-integrity-restore-ux
+**Current focus:** Phase 10 — pre-show-validation-device-dry-run
 
 ## Current Position
 
-Phase: 10
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-18 -- Phase 10 planning complete
+Phase: 10 (pre-show-validation-device-dry-run) — EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 10 (10-01 VALID-01 complete; 10-02 VALID-02 device dry-run next)
+Last activity: 2026-07-18 -- Completed Phase 10 Plan 01 (VALID-01 tuning spot-check + D-03 fix)
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Last activity: 2026-07-18 -- Phase 10 planning complete
 | Phase 06 P10 | 7min | 2 tasks | 9 files |
 | Phase 06 P11 | ~9min | 2 tasks | 10 files |
 | Phase 08 P08 | 40 min | 3 tasks | 7 files |
+| Phase 10 P01 | ~24min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -122,6 +123,7 @@ Recent decisions affecting current work:
 - [Phase 06]: 06-11: buildShareStats(dex, archive) is pure — latest-show date = max(perSong.lastSeenDate), venue resolved from archive by date; no attendance re-read needed (deriveDex exposes no timeline)
 - [Phase 06]: 06-11: ShareCardSheet self-sources the live dex via useDexStats (no dex/archive props) so DexHeader + RecapView both open the same whole-dex brag card; File pre-built on sheet-open, share tap has no async before navigator.share (Pitfall 7)
 - [Phase 08]: Orb-label fit is now circle-aware (per-line chord + height budget); kept CHAR_WIDTH_FACTOR 0.55, tuned LINE_HEIGHT_FACTOR 1.0 / PERCENT_LINE_PX 12 / MAX_LINES 5 / MIN_FONT_PX 7 (08-08) — Rectangular fit over-granted width and ignored height, spilling small orbs on iPhone (POLISH-01); geometric sweep [56..112] now guards it
+- [Phase 10]: 10-01 (VALID-01): read-only tuning-review CLI reuses ingest helpers (findMatchedAlbumTitles/defaultFamilyForAlbum made export-only), never touches the write path. Owner D-03 verdict: 9 Infest the Rats' Nest tracks (94/133/152/157/160/180/200/239/240) re-tagged standard→cs-standard (first non-empty cs-standard family); 12 canonical spot-checks + 36 no-album-default hand-tags confirmed as-is. Backtest top-k ZERO regression (tuning is a weak signal, ablation Δ≈0) — recorded in 10-HUMAN-UAT.md test #1 (pass)
 
 ### Pending Todos
 
@@ -190,10 +192,10 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-18T22:02:38.552Z
-Stopped at: Phase 10 context gathered
-Resume file: .planning/phases/10-pre-show-validation-device-dry-run/10-CONTEXT.md
+Last session: 2026-07-18T21:36:14Z
+Stopped at: Completed 10-01-PLAN.md (VALID-01)
+Resume file: None
 
 ## Operator Next Steps
 
-- Discuss/plan Phase 9 with `/gsd-discuss-phase 9` (or `/gsd-plan-phase 9` to plan directly)
+- Execute Phase 10 Plan 02 (VALID-02 device dry-run) with `/gsd-execute-phase 10`
