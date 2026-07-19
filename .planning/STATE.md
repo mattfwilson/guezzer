@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Polish & Pre-Show Hardening
-status: shipped
-stopped_at: v1.1 milestone closed and tagged (2026-07-19) — no milestone in progress
-last_updated: "2026-07-19T04:30:00Z"
-last_activity: 2026-07-19 -- Closed v1.1 Polish & Pre-Show Hardening milestone (archived roadmap + requirements, tagged v1.1)
+milestone: v1.2
+milestone_name: Pre-Show Hardening
+status: planning
+last_updated: "2026-07-19T06:10:52.961Z"
+last_activity: 2026-07-19
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 
 ## Current Position
 
-Milestone: v1.1 Polish & Pre-Show Hardening — SHIPPED & TAGGED (2026-07-19)
-Phase: none in progress (Phases 8–10 all complete and archived)
-Status: v1.0 MVP + v1.1 both shipped; app show-ready for the first show (late Aug/Sep 2026)
-Last activity: 2026-07-19 -- Closed v1.1 milestone (archived roadmap + requirements to milestones/, tagged v1.1)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-07-19 — Milestone v1.2 started
 
 ## Performance Metrics
 

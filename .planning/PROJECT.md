@@ -14,11 +14,19 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 
 **v1.1 COMPLETE (2026-07-18)** — Phases 8 (On-Device UI Polish & Accessibility), 9 (Data Integrity & Restore UX), and 10 (Pre-Show Validation & Device Dry-Run) all complete. Phase 9 threads `shownotes` verbatim through normalization (DATA-06, corpus regenerated for all 738 shows with a byte-identical archive proof) and hardens the own-backup restore path (PWA-05). Phase 10 closed the pre-show trust gates: VALID-01 — the owner tuning-tag spot-check confirmed the 12 canonical anchors and re-tagged the 9 *Infest the Rats' Nest* tracks to cs-standard with a zero-regression backtest; VALID-02 — the full show loop (start → predict → log → set break → encore → End Show → recap → dex credit) passed a real-device iPhone rehearsal, with three in-phase fixes/enhancements caught during the dry-run (SuggestionStrip sizing, FAB lift, and a per-show recap share card). The offline airplane-mode leg and JSON export/import round-trip were completed on-device on iPhone (over a cloudflared HTTPS tunnel, 2026-07-19) — VALID-02 is a clean full on-device pass with no open gaps. The app is ready for the first show (late Aug/Sep 2026).
 
-## Next Milestone
+## Current Milestone: v1.2 Pre-Show Hardening
 
-**No milestone in progress.** v1.0 MVP (Phases 1–7) and v1.1 Polish & Pre-Show Hardening (Phases 8–10) are both shipped and archived. The app is show-ready for the first show (late Aug/Sep 2026).
+**Goal:** Harden the live-show-critical paths (live sync, prediction correctness, data safety) before the Aug 14, 2026 residency, then ship the first casual engagement feature (Gizz Bingo).
 
-**v2 backlog (scope via `/gsd-new-milestone`):**
+**Target features:**
+- **Live-sync & prediction correctness** — no wrong-show/wrong-artist songs leak into tonight's suggestions on night 2+ of a run; live sync survives kglw.net API drift; cross-night rotation suppression actually fires (no-repeat residencies).
+- **Data safety & integrity** — the exported backup never records a corrupt/active show; iOS download never silently aborts; same-date doubleheaders are not collapsed; no false "backup saved" copy.
+- **UI/model polish fixes** — doubled safe-area inset, wake-lock release race, fill-hint off-by-N, era-prior dead floor, constellation camera snap.
+- **Gizz Bingo** — a 4×4 live auto-marking setlist bingo card (the casual +1 anchor). Gated on a fill-rate Monte-Carlo pre-plan task. Design: `.planning/notes/gizz-bingo-design-vetting.md`.
+
+**Key context:** First show Aug 14, 2026 (~4 weeks out); both 2026 runs are 3-night no-repeat residencies. Bug fixes land before Bingo (bugs are the show-#1 trust gate; Bingo is not). Triage: `.planning/notes/v1.2-scope-triage.md`.
+
+## Deferred Backlog (future milestone)
 - Set-position awareness (opener/closer/encore distributions) as a scoring signal — set-structure data already captured in v1 (MODL-V2-01)
 - Album-as-genre-proxy affinity experiment — only if it beats tuning-family backoff in backtest (MODL-V2-02)
 - Tease/jam-notation awareness beyond segue pairs — needs schema evidence first (MODL-V2-03)
@@ -179,4 +187,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-19 after the v1.1 "Polish & Pre-Show Hardening" milestone close — Phases 8–10 shipped and archived (12 plans, 9/9 requirements validated, 587 tests green). Both v1.0 MVP and v1.1 are complete; the app is show-ready. No milestone in progress — scope v2 with `/gsd-new-milestone`.*
+*Last updated: 2026-07-19 — started milestone v1.2 "Pre-Show Hardening" (13 bug fixes + Gizz Bingo). v1.0 MVP and v1.1 shipped and archived; app is show-ready. First show Aug 14, 2026.*
