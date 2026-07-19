@@ -70,7 +70,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 **Wave 2** *(blocked on Wave 1 completion)*
 
   - [x] 11-03-PLAN.md — Wave 2: prediction core — eraPrior unit fix + MatrixIndex.showCount (PRED-02), currentRunShowSets run-grouping + runGapDays (PRED-01/PRED-03)
-  - [ ] 11-04-PLAN.md — Wave 2: live app wiring — guardedRows in ShowView (LIVE-01) + amber SyncDot drift state (LIVE-03)
+  - [x] 11-04-PLAN.md — Wave 2: live app wiring — guardedRows in ShowView (LIVE-01) + amber SyncDot drift state (LIVE-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

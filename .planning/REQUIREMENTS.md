@@ -9,9 +9,9 @@ Milestone theme: harden the live-show-critical paths (live sync, prediction corr
 
 ### Live-Sync Correctness (LIVE) — Tier 1 show-critical
 
-- [ ] **LIVE-01**: On night 2+ of a run, live editor suggestions and fill-hints never offer a previous show's songs (`latestRows` is date-guarded before feeding suggestions/placeholder resolution).
+- [x] **LIVE-01**: On night 2+ of a run, live editor suggestions and fill-hints never offer a previous show's songs (`latestRows` is date-guarded before feeding suggestions/placeholder resolution). _(11-02 core `guardLatestRows` + 11-04 app: `ShowView` applies it ONCE at ingress, feeding diff/resolve/bind.)_
 - [x] **LIVE-02**: The live `latest` poll surfaces only King Gizzard rows — a side-project or other-artist show never enters suggestions or auto-bind. _(11-02: `artist_id !== 1` confirmed the sole single-ingress filter, locked by a mixed-artist regression test.)_
-- [ ] **LIVE-03**: Live sync survives additive kglw.net API schema changes — a new API field does not silently kill suggestions/auto-bind; drift is surfaced (SyncDot), not swallowed.
+- [x] **LIVE-03**: Live sync survives additive kglw.net API schema changes — a new API field does not silently kill suggestions/auto-bind; drift is surfaced (SyncDot), not swallowed. _(11-02 core `PollResult`/`detectNovelKeys` + 11-04 app: `useLatestPoll` threads drift to a quiet amber `SyncDot` state.)_
 
 ### Prediction Correctness (PRED) — Tier 1
 
@@ -73,9 +73,9 @@ Deferred to a later milestone (backlog unchanged in `.planning/todos/pending/`).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LIVE-01 | Phase 11 | Pending |
+| LIVE-01 | Phase 11 | Complete (11-02 + 11-04) |
 | LIVE-02 | Phase 11 | Complete (11-02) |
-| LIVE-03 | Phase 11 | Pending |
+| LIVE-03 | Phase 11 | Complete (11-02 + 11-04) |
 | PRED-01 | Phase 11 | Pending |
 | PRED-02 | Phase 11 | Complete |
 | PRED-03 | Phase 11 | Pending |

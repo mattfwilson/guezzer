@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Pre-Show Hardening
 status: executing
-stopped_at: Completed 11-03-PLAN.md
-last_updated: "2026-07-19T18:00:00Z"
-last_activity: 2026-07-19 -- Completed Phase 11 plan 03 (prediction core: eraPrior fix + run-grouping)
+stopped_at: Completed 11-04-PLAN.md
+last_updated: "2026-07-19T21:12:00Z"
+last_activity: 2026-07-19 -- Completed Phase 11 plan 04 (live app wiring: PollResult + guardLatestRows + amber SyncDot)
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 ## Current Position
 
 Phase: 11 (live-sync-prediction-correctness) — EXECUTING
-Plan: 4 of 5 (11-03 complete)
-Status: Ready to execute (Wave 2 — 11-04 unblocked; 11-05 needs 11-03 ✓ + 11-04)
-Last activity: 2026-07-19 -- Completed Phase 11 plan 03 (prediction core: eraPrior fix + run-grouping)
+Plan: 5 of 5 (11-04 complete)
+Status: Ready to execute (Wave 3 — 11-05 unblocked: needs 11-03 ✓ + 11-04 ✓)
+Last activity: 2026-07-19 -- Completed Phase 11 plan 04 (live app wiring: PollResult + guardLatestRows + amber SyncDot)
 
 ## Performance Metrics
 
@@ -79,6 +79,7 @@ Last activity: 2026-07-19 -- Completed Phase 11 plan 03 (prediction core: eraPri
 | Phase 11 P01 | ~10min | 1 tasks | 1 files |
 | Phase 11 P02 | ~9min | 3 tasks | 7 files |
 | Phase 11 P03 | ~12min | 2 tasks | 6 files |
+| Phase 11 P04 | ~7min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -132,6 +133,7 @@ Recent decisions affecting current work:
 - [Phase 10]: 10-01 (VALID-01): read-only tuning-review CLI reuses ingest helpers (findMatchedAlbumTitles/defaultFamilyForAlbum made export-only), never touches the write path. Owner D-03 verdict: 9 Infest the Rats' Nest tracks (94/133/152/157/160/180/200/239/240) re-tagged standard→cs-standard (first non-empty cs-standard family); 12 canonical spot-checks + 36 no-album-default hand-tags confirmed as-is. Backtest top-k ZERO regression (tuning is a weak signal, ablation Δ≈0) — recorded in 10-HUMAN-UAT.md test #1 (pass)
 - [Phase 11]: 11-01: replaced the masking 3-node era-prior fixture with a production-scale (~260-node, Σ playCount ~14k) matrix; the retired-song eraPriorFloor is proven unreachable on current code (returns ~0.996), RED until 11-03
 - [Phase 11]: 11-03: PRED-02 eraPrior unit fix — allTimeRate is now career plays-per-show (`node.playCount / index.showCount`, new `MatrixIndex.showCount` off the matrix header, no rebuild) instead of the catalog-marginal `basePlayRate`; `eraPriorSmoothingK` rescaled 1→0.08 (per-show scale). Retired-song floor is now reachable — the 11-01 production-scale RED test flips GREEN. PRED-01/03: new pure DOM-free `currentRunShowSets(finalized, currentDate, cfg, resetBoundaryDate?)` groups prior finalized shows into the current run by calendar-day gap (`config.runGapDays: 2`), excludes shows ≥ reset boundary and ≥ currentDate, returns the `recentShowSongSets` window `rotationSuppression` (unchanged) is starved of. App wiring is 11-05. Deviation (Rule 1): fixed the 11-01 fixture HOT node career playCount 300→120 — 300/241≈1.24 plays/show was dimensionally impossible and made the corrected per-show ratio rightly <1; retired node + all thresholds untouched. Flag for backtest/human-verify gate: eraPriorSmoothingK=0.08, runGapDays=2. Full core suite 326 green.
+- [Phase 11]: 11-04: app-tier completion of LIVE-01/LIVE-03. `useLatestPoll` callback WIDENED to `(result: PollResult) => void` (chosen over a second `onDrift` callback — one stable ref, drift coupled to its rows). `SyncDot` gained a third amber `#F59E0B` `schemaDrift` state — the ONLY interactive SyncDot state: a non-modal tap-for-detail inline popover rendering novel key NAMES only (never editor values), distinct aria-label, negative-margin tap target (no header shift). `ShowView` computes `guardedRows = guardLatestRows(latestRows, {showId,date})` ONCE at ingress and feeds it to diff/resolve/bind — single-filter, no consumer sees raw rows (a cached previous-night payload can no longer leak into night-2 suggestions). `?mockLatest=drift` injects `mock_novel_field` to exercise the amber path on-device. Full app suite 287 green, full repo 613 green — the 11-02 pollLatest signature ripple is fully resolved. DRIFT_AMBER=#F59E0B for device UAT.
 - [Phase 11]: 11-02: three pure-core live-path fixes (LIVE-01/02/03). guardLatestRows is a once-at-ingress filter (bound→show_id, unbound→show's OWN date, never wall-clock so past-midnight sets survive). latestSetlistRow switched to `.catchall(z.unknown())` so an additive API key keeps the row usable; KNOWN_LATEST_KEYS derived from the schema's `.shape` (single source of truth) feeds a names-only detectNovelKeys. pollLatest now returns `PollResult { rows, schemaDrift, novelKeys? }` — drift aggregated into a Set and logged once/poll, never-throw soft-fail preserved. artist_id!==1 confirmed as the SOLE single-ingress filter, locked by a mixed-artist regression test. 11-04 must consume PollResult (useLatestPoll/mockLatest/app tests) and wire guardLatestRows once upstream of diff/resolve.
 
 ### Pending Todos
@@ -253,8 +255,8 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-19T18:00:00Z
-Stopped at: Completed 11-03-PLAN.md (Wave 2 — 11-04 unblocked; 11-05 needs 11-04)
+Last session: 2026-07-19T21:12:00Z
+Stopped at: Completed 11-04-PLAN.md (Wave 3 — 11-05 unblocked: needs 11-03 ✓ + 11-04 ✓)
 Resume file: .planning/phases/11-live-sync-prediction-correctness/11-CONTEXT.md
 
 ## Operator Next Steps
