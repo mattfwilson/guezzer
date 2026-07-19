@@ -159,6 +159,9 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
     >
       <div
         className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-4 pt-6"
+        // Intentional +24px (not +12px like the six other top surfaces): extra breathing
+        // room for RecapView's menu-less layout. Deliberate exception (UX-01 / Open Q1) —
+        // do NOT normalize to +12px.
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 24px)" }}
       >
         {/* Heading + {date} · {venue}. */}
