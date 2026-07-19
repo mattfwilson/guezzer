@@ -59,7 +59,12 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
   3. An additive kglw.net API field does not silently kill suggestions/auto-bind — schema drift is surfaced on the SyncDot rather than swallowed (LIVE-03).
   4. On night 2+ of a run, songs already played earlier in the run are visibly down-weighted in live predictions — rotation suppression fires with real cross-night data (PRED-01).
   5. Long-retired songs sink as designed (the era-prior floor is reachable), and the user can reset cross-night rotation state before a new run/weekend so prior-run songs are no longer suppressed when the no-repeat window no longer applies (PRED-02, PRED-03).
-**Plans**: TBD
+**Plans**: 5 plans across 4 waves
+  - [ ] 11-01-PLAN.md — Wave 0: rewrite the masking era-prior test at production scale (RED gate for PRED-02)
+  - [ ] 11-02-PLAN.md — Wave 1: live-path core — guardLatestRows (LIVE-01), lenient schema + detectNovelKeys + PollResult (LIVE-03), mixed-artist regression (LIVE-02)
+  - [ ] 11-03-PLAN.md — Wave 2: prediction core — eraPrior unit fix + MatrixIndex.showCount (PRED-02), currentRunShowSets run-grouping + runGapDays (PRED-01/PRED-03)
+  - [ ] 11-04-PLAN.md — Wave 2: live app wiring — guardedRows in ShowView (LIVE-01) + amber SyncDot drift state (LIVE-03)
+  - [ ] 11-05-PLAN.md — Wave 3: prediction app wiring — feed cross-night run window into buildShowContext (PRED-01) + Settings reset control (PRED-03)
 
 ### Phase 12: Data Safety & Integrity
 **Goal**: The exported JSON backup — the iOS-eviction backstop — is always honest and complete, and same-date doubleheaders survive as distinct attendances through merge and dex derivation.
@@ -134,7 +139,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 | 8. On-Device UI Polish & Accessibility | v1.1 | 8/8 | Complete | 2026-07-18 |
 | 9. Data Integrity & Restore UX | v1.1 | 2/2 | Complete | 2026-07-18 |
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 2/2 | Complete | 2026-07-18 |
-| 11. Live-Sync & Prediction Correctness | v1.2 | 0/— | Not started | - |
+| 11. Live-Sync & Prediction Correctness | v1.2 | 0/5 | Planned | - |
 | 12. Data Safety & Integrity | v1.2 | 0/— | Not started | - |
 | 13. Interface & Explore Polish | v1.2 | 0/— | Not started | - |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 0/— | Not started | - |
