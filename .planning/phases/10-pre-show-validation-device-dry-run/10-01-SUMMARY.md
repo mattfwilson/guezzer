@@ -132,3 +132,12 @@ None - no external service configuration required.
 ---
 *Phase: 10-pre-show-validation-device-dry-run*
 *Completed: 2026-07-18*
+
+## Self-Check: PASSED
+
+- FOUND: packages/core/src/cli/review-tuning-tags.ts
+- FOUND: data/tuning-review.md
+- FOUND: .planning/phases/10-pre-show-validation-device-dry-run/10-01-SUMMARY.md
+- FOUND: .planning/phases/10-pre-show-validation-device-dry-run/10-HUMAN-UAT.md
+- FOUND commit: 79912dd (fix — D-03 re-tag)
+- FOUND commit: e4d32cc (docs — plan metadata)
