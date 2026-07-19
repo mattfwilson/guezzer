@@ -8,7 +8,7 @@ import {
   vi,
   type Mock,
 } from "vitest";
-import type { LatestSetlistRow } from "@guezzer/core";
+import type { LatestSetlistRow, PollResult } from "@guezzer/core";
 import { config } from "../src/config.ts";
 
 /**
@@ -32,6 +32,19 @@ const INTERVAL = config.live.POLL_INTERVAL_MS;
 /** A single fake latest row — enough for the diff/dedupe paths downstream. */
 function row(songId: number): LatestSetlistRow {
   return { song_id: songId, position: songId } as unknown as LatestSetlistRow;
+}
+
+/**
+ * A `PollResult` fixture (11-04): `pollLatest` now returns `{ rows, schemaDrift,
+ * novelKeys? }`, so the mock must speak that shape — the hook reads `result.rows`
+ * for the backoff bookkeeping and forwards the whole result to `onResult`.
+ */
+function poll(
+  rows: LatestSetlistRow[],
+  schemaDrift = false,
+  novelKeys?: string[],
+): PollResult {
+  return novelKeys ? { rows, schemaDrift, novelKeys } : { rows, schemaDrift };
 }
 
 /** Force `navigator.onLine` for the duration of a test. */
@@ -59,7 +72,7 @@ describe("useLatestPoll (SYNC-01 / SYNC-03 / D-06)", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     pollLatest.mockReset();
-    pollLatest.mockResolvedValue([]);
+    pollLatest.mockResolvedValue(poll([]));
     setOnline(true);
     setVisibility("visible");
   });
@@ -85,7 +98,7 @@ describe("useLatestPoll (SYNC-01 / SYNC-03 / D-06)", () => {
     const onRows = vi.fn();
     // Rows on every poll keep the cadence pinned at the floor (no backoff), so
     // this isolates the single-timer ≤1/60s guarantee from the backoff path.
-    pollLatest.mockResolvedValue([row(101)]);
+    pollLatest.mockResolvedValue(poll([row(101)]));
     renderHook(() => useLatestPoll({ sessionId: "s1" }, onRows));
 
     // No immediate burst on mount — the first tick is one interval out.
@@ -149,7 +162,7 @@ describe("useLatestPoll (SYNC-01 / SYNC-03 / D-06)", () => {
     const onRows = vi.fn();
     pollLatest
       .mockRejectedValueOnce(new Error("network blew up"))
-      .mockResolvedValue([row(101)]);
+      .mockResolvedValue(poll([row(101)]));
     renderHook(() => useLatestPoll({ sessionId: "s1" }, onRows));
 
     await advance(INTERVAL); // throws — swallowed
@@ -159,12 +172,28 @@ describe("useLatestPoll (SYNC-01 / SYNC-03 / D-06)", () => {
     await advance(INTERVAL); // loop still alive → next tick succeeds
     expect(pollLatest).toHaveBeenCalledTimes(2);
     expect(onRows).toHaveBeenCalledTimes(1);
-    expect(onRows).toHaveBeenLastCalledWith([row(101)]);
+    // The whole PollResult rides the channel (rows + drift), not a bare array.
+    expect(onRows).toHaveBeenLastCalledWith(poll([row(101)]));
+  });
+
+  it("forwards the LIVE-03 schemaDrift/novelKeys on the same channel as the rows", async () => {
+    const onRows = vi.fn();
+    // A poll that saw an additive API key: rows stay usable AND drift surfaces.
+    pollLatest.mockResolvedValue(poll([row(101)], true, ["new_api_field"]));
+    renderHook(() => useLatestPoll({ sessionId: "s1" }, onRows));
+
+    await advance(INTERVAL);
+    expect(onRows).toHaveBeenCalledTimes(1);
+    expect(onRows).toHaveBeenLastCalledWith({
+      rows: [row(101)],
+      schemaDrift: true,
+      novelKeys: ["new_api_field"],
+    });
   });
 
   it("adaptive backoff grows the delay after empty polls but never below the floor (D-06)", async () => {
     const onRows = vi.fn();
-    pollLatest.mockResolvedValue([]); // always empty → idle streak grows
+    pollLatest.mockResolvedValue(poll([])); // always empty → idle streak grows
     renderHook(() => useLatestPoll({ sessionId: "s1" }, onRows));
 
     // Tick 1 at the base floor.
@@ -182,8 +211,8 @@ describe("useLatestPoll (SYNC-01 / SYNC-03 / D-06)", () => {
 
   it("backoff snaps back to the floor the moment rows arrive", async () => {
     const onRows = vi.fn();
-    pollLatest.mockResolvedValueOnce([]); // tick 1 empty → streak = 1
-    pollLatest.mockResolvedValue([row(101)]); // subsequent ticks have rows
+    pollLatest.mockResolvedValueOnce(poll([])); // tick 1 empty → streak = 1
+    pollLatest.mockResolvedValue(poll([row(101)])); // subsequent ticks have rows
     renderHook(() => useLatestPoll({ sessionId: "s1" }, onRows));
 
     await advance(INTERVAL); // tick 1 (empty)

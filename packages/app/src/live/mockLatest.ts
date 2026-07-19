@@ -77,24 +77,42 @@ function fixtureRow(
 }
 
 /**
- * Returns a fixture-serving fetch stub when `?mockLatest=1` is in the URL,
- * else null (normal network path). Read once per call — the flag can't change
- * without a reload, so callers may cache the result at module/mount scope.
+ * The additive key injected by the `?mockLatest=drift` path (LIVE-03, 11-04).
+ * It is NOT in the schema's KNOWN_LATEST_KEYS, so `pollLatest`'s `detectNovelKeys`
+ * surfaces it as `schemaDrift` while `.catchall` keeps the row usable — exactly
+ * the additive-field scenario the amber SyncDot state exists to exercise. A key
+ * NAME only (the value is inert filler; drift detail never renders values).
+ */
+export const MOCK_NOVEL_KEY = "mock_novel_field";
+
+/**
+ * Returns a fixture-serving fetch stub when `?mockLatest=1` (or `=drift`) is in
+ * the URL, else null (normal network path). Read once per call — the flag can't
+ * change without a reload, so callers may cache the result at module/mount scope.
+ *
+ * `?mockLatest=drift` injects `MOCK_NOVEL_KEY` into every fixture row so the
+ * LIVE-03 amber drift path (pollLatest → useLatestPoll → SyncDot) can be driven
+ * on-device without waiting for kglw.net to actually add a field.
  */
 export function getMockLatestFetch(): typeof globalThis.fetch | null {
   if (typeof location === "undefined") return null;
-  if (new URLSearchParams(location.search).get("mockLatest") !== "1") {
-    return null;
-  }
+  const flag = new URLSearchParams(location.search).get("mockLatest");
+  if (flag !== "1" && flag !== "drift") return null;
+
+  const injectDrift = flag === "drift";
+  const rows: Record<string, unknown>[] = [
+    fixtureRow(168, "Rattlesnake", 1),
+    fixtureRow(172, "Robot Stop", 2),
+    fixtureRow(81, "Gaia", 3),
+    fixtureRow(133, "Mars for the Rich", 4),
+  ].map((r) =>
+    injectDrift ? { ...r, [MOCK_NOVEL_KEY]: "unexpected-additive-value" } : r,
+  );
+
   const envelope = {
     error: false,
     error_message: "",
-    data: [
-      fixtureRow(168, "Rattlesnake", 1),
-      fixtureRow(172, "Robot Stop", 2),
-      fixtureRow(81, "Gaia", 3),
-      fixtureRow(133, "Mars for the Rich", 4),
-    ],
+    data: rows,
   };
   return async () =>
     new Response(JSON.stringify(envelope), {

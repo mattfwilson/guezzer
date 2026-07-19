@@ -728,6 +728,15 @@ export const config = {
       /** SyncDot offline reassurance line, shown once per drop, auto-dismissing (D-08). */
       offlineReassurance:
         "Offline — tracking still works. It'll resync when signal returns.",
+      /**
+       * LIVE-03 (D-06) schema-drift tap-for-detail. Renders the novel API key
+       * NAMES only — NEVER editor values (T-11-04-01 / SCHEMA §12). Reassuring,
+       * not alarming: an additive field is a shrug, not an outage.
+       */
+      schemaDriftDetail: (keys: string[]): string =>
+        keys.length > 0
+          ? `Syncing — the setlist API added ${keys.length > 1 ? "fields" : "a field"} (${keys.join(", ")}). Logging still works.`
+          : "Syncing — the setlist API shape changed. Logging still works.",
     },
 
     /**

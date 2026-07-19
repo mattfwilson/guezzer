@@ -32,7 +32,7 @@
  * in-flight tick from scheduling after unmount — no post-unmount poll.
  */
 import { useEffect, useRef } from "react";
-import { pollLatest, type LatestSetlistRow } from "@guezzer/core";
+import { pollLatest, type PollResult } from "@guezzer/core";
 import { config } from "../config.ts";
 import { getMockLatestFetch, MOCK_FIRST_TICK_MS } from "./mockLatest.ts";
 import { useOnlineStatus } from "./useOnlineStatus.ts";
@@ -56,17 +56,24 @@ const mockLatestFetch = getMockLatestFetch();
 
 export function useLatestPoll(
   active: { sessionId: string } | undefined,
-  onRows: (rows: LatestSetlistRow[]) => void,
+  // LIVE-03 (11-04): the channel was WIDENED from `(rows) => void` to carry the
+  // whole `PollResult` — `result.rows` is identical to the old array return,
+  // and `result.schemaDrift`/`result.novelKeys` ride the SAME stable ref so the
+  // once-per-poll drift signal reaches ShowView without a second callback. Chosen
+  // over an `onDrift(novelKeys)` second callback: one channel keeps the stable
+  // `onResultRef` idiom (and the drift flag stays coupled to the rows it came
+  // with — never surfaced a poll out of step with its own rows).
+  onResult: (result: PollResult) => void,
 ): void {
   const online = useOnlineStatus();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleStreakRef = useRef(0);
 
-  // Keep the latest `onRows` without re-arming the loop when the callback
+  // Keep the latest `onResult` without re-arming the loop when the callback
   // identity changes (a fresh closure each ShowView render must not reset the
   // 60s cadence — that would let a busy render burst the poller).
-  const onRowsRef = useRef(onRows);
-  onRowsRef.current = onRows;
+  const onResultRef = useRef(onResult);
+  onResultRef.current = onResult;
 
   useEffect(() => {
     // SYNC-01: no active show → no timer, ever. A poll cannot happen here.
@@ -102,11 +109,13 @@ export function useLatestPoll(
       }
 
       try {
-        const rows = await pollLatest({ fetch: mockLatestFetch ?? boundFetch });
+        const result = await pollLatest({ fetch: mockLatestFetch ?? boundFetch });
         if (cancelled) return;
-        onRowsRef.current(rows);
+        // Surface the whole PollResult (rows + LIVE-03 drift signal) in one call.
+        onResultRef.current(result);
         // Backoff bookkeeping: reset on any rows, grow on an empty poll.
-        idleStreakRef.current = rows.length > 0 ? 0 : idleStreakRef.current + 1;
+        idleStreakRef.current =
+          result.rows.length > 0 ? 0 : idleStreakRef.current + 1;
       } catch {
         // D-06: tolerant — a thrown poll never stops the loop; retry next tick.
       }

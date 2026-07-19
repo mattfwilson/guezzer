@@ -1,6 +1,6 @@
 import { pollLatest } from "@guezzer/core";
 import { afterEach, describe, expect, it } from "vitest";
-import { getMockLatestFetch } from "../src/live/mockLatest.ts";
+import { getMockLatestFetch, MOCK_NOVEL_KEY } from "../src/live/mockLatest.ts";
 
 /**
  * The `?mockLatest=1` UAT harness (quick task 260713-wjd) must stay inert on
@@ -29,7 +29,7 @@ describe("getMockLatestFetch", () => {
     const mockFetch = getMockLatestFetch();
     expect(mockFetch).not.toBeNull();
 
-    const rows = await pollLatest({ fetch: mockFetch! });
+    const { rows, schemaDrift } = await pollLatest({ fetch: mockFetch! });
     // All 4 fixture rows validate and clear the artist_id === 1 gate.
     expect(rows).toHaveLength(4);
     expect(rows.map((r) => r.songname)).toEqual([
@@ -41,5 +41,20 @@ describe("getMockLatestFetch", () => {
     expect(rows.every((r) => r.artist_id === 1)).toBe(true);
     // Dated today (local) so the D-07 auto-bind date guard can match.
     expect(rows[0].showdate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // A clean fixture carries no additive key → no drift (baseline for below).
+    expect(schemaDrift).toBe(false);
+  });
+
+  it("?mockLatest=drift injects a novel key so LIVE-03 drift can be exercised", async () => {
+    history.replaceState(null, "", "/?mockLatest=drift");
+    const mockFetch = getMockLatestFetch();
+    expect(mockFetch).not.toBeNull();
+
+    const { rows, schemaDrift, novelKeys } = await pollLatest({ fetch: mockFetch! });
+    // Rows stay usable (.catchall) so the strip still works during drift…
+    expect(rows).toHaveLength(4);
+    // …and the additive key surfaces as a once-per-poll, names-only signal.
+    expect(schemaDrift).toBe(true);
+    expect(novelKeys).toContain(MOCK_NOVEL_KEY);
   });
 });
