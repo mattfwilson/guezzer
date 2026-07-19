@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Fix wake-lock acquire/release race leaving screen locked awake"
 area: bug
+resolves_phase: 13
 files:
   - packages/app/src/wakeLock.ts:49-84
 ---

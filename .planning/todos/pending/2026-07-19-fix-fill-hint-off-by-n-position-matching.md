@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Fix fill-hint off-by-N position matching after missed/deleted songs"
 area: bug
+resolves_phase: 13
 files:
   - packages/core/src/live/suggest.ts:105-122
 ---

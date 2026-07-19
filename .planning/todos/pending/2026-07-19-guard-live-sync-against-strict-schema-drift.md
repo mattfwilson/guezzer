@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Guard live sync against strict-schema silent death on API drift"
 area: bug
+resolves_phase: 11
 files:
   - packages/core/src/ingest/api-types.ts
   - packages/core/src/live/poll-latest.ts

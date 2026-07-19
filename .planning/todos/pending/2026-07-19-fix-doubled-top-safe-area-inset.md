@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Fix doubled top safe-area inset on notched iPhones (installed PWA)"
 area: bug
+resolves_phase: 13
 files:
   - packages/app/src/styles.css:186-190
   - packages/app/src/components/AppShell.tsx:41

@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Fix End-Show auto-backup racing the finalize write"
 area: bug
+resolves_phase: 12
 files:
   - packages/app/src/show/EndShowDialog.tsx:82-87
 ---

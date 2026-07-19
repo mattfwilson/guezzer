@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Wire rotation suppression into live predictions (currently dead)"
 area: bug
+resolves_phase: 11
 files:
   - packages/app/src/show/showContext.ts
   - packages/core/src/model/predict.ts

@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Verify/enforce artist filter on latest.json live poll"
 area: bug
+resolves_phase: 11
 files:
   - packages/core/src/live/poll-latest.ts
   - packages/core/src/live/bind-show.ts

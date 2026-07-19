@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Stop constellation camera snapping to zoom-to-fit on container resize"
 area: bug
+resolves_phase: 13
 files:
   - packages/app/src/explore/ConstellationCanvas.tsx:221-233
   - packages/app/src/explore/ConstellationCanvas.tsx:695-714

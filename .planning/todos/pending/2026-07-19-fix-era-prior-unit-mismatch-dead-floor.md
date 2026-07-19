@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Fix eraPrior unit mismatch — retired-song floor is unreachable"
 area: bug
+resolves_phase: 11
 files:
   - packages/core/src/model/predict.ts:280-288
   - packages/core/src/config.ts

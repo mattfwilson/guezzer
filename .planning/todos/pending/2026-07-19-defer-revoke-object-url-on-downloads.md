@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Defer revokeObjectURL after download/share clicks (iOS Safari footgun)"
 area: bug
+resolves_phase: 12
 files:
   - packages/app/src/settings/exportDownload.ts:50-61
   - packages/app/src/dex/shareCard.ts:274-288

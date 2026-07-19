@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Fix wrong-show editor suggestions — no date guard + stale latestRows"
 area: bug
+resolves_phase: 11
 files:
   - packages/app/src/show/ShowView.tsx:180-193
   - packages/app/src/show/ShowView.tsx:221-227

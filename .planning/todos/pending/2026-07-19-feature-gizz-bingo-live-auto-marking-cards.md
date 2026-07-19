@@ -3,6 +3,7 @@ created: 2026-07-19T04:48:04.422Z
 updated: 2026-07-19
 title: "Feature: Gizz Bingo — 4×4 live auto-marking bingo card (casual +1 anchor)"
 area: feature
+resolves_phase: 14
 files:
   - packages/core/src/model/predict.ts
   - packages/app/src/show/ShowView.tsx

@@ -2,6 +2,7 @@
 created: 2026-07-19T04:48:04.422Z
 title: "Fix same-date doubleheader collapse in merge + dex derivation"
 area: bug
+resolves_phase: 12
 files:
   - packages/core/src/data-safety/merge.ts:57-59
   - packages/core/src/data-safety/merge.ts:174-269
