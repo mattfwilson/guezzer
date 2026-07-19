@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import {
   db,
   deleteEntry,
@@ -8,11 +9,53 @@ import {
   markEncore,
   markSetBreak,
   renameEntry,
+  setMeta,
   startShow,
   undoLast,
   type TrackedEntry,
+  type TrackedShow,
 } from "../src/db/db.ts";
 import { classifyOutcome } from "../src/show/scoring.ts";
+import { useShowSession } from "../src/show/useShowSession.ts";
+
+/**
+ * Deterministic 3-node stand-in for the 141 KB bundled matrix (mirrors the
+ * dexView.test.tsx `@archive` stub idiom). The opener 500 has two structurally
+ * IDENTICAL successors — 200 and 300 — same node stats, same edge weights — so
+ * their base scores are exactly equal. The ONLY thing that can separate them in
+ * the hook's ranked `candidates` is the cross-night `rotationSuppression` fed by
+ * `currentRunShowSets`, which is precisely the PRED-01 wiring under test.
+ */
+vi.mock("@matrix", () => {
+  const node = (songId: number, songName: string) => ({
+    songId,
+    songName,
+    playCount: 40,
+    eraPlayCount: 10,
+    tuningFamily: "standard" as const,
+  });
+  const edge = (from: number, to: number) => ({
+    from,
+    to,
+    count: 5,
+    weightedCount: 5,
+    segueCount: 0,
+    firstDate: "2024-01-01",
+    lastDate: "2025-01-01",
+  });
+  return {
+    default: {
+      schemaVersion: 1,
+      generatedAt: "2026-01-01T00:00:00.000Z",
+      asOfDate: "2026-01-01",
+      showCount: 100,
+      nodeCount: 3,
+      edgeCount: 2,
+      nodes: [node(500, "Opener A"), node(200, "Runner"), node(300, "Fresh")],
+      edges: [edge(500, 200), edge(500, 300)],
+    },
+  };
+});
 
 /**
  * Helper: a minimal hit entry for a real catalog song. logSong stamps
@@ -334,5 +377,155 @@ describe("showSession: Dexie version(2) tracked-show lifecycle", () => {
     expect(renamed?.songId).toBe(205);
     expect(renamed?.songName).toBe("Work This Time");
     expect(renamed?.isPlaceholder).toBe(false);
+  });
+});
+
+/**
+ * PRED-01 cross-night wiring: `useShowSession` must feed the current run's prior
+ * finalized-show song sets into `buildShowContext`'s 3rd arg (replacing the
+ * hardcoded `[]`), so the already-correct `rotationSuppression` finally fires
+ * live — a song played earlier in the run sinks below an equivalent un-played
+ * song in tonight's ranked predictions (implicit rank drop, D-11).
+ */
+describe("useShowSession: cross-night rotation window wiring (PRED-01)", () => {
+  const ACTIVE_DATE = "2026-08-16";
+
+  /** Seed the one active show + its opener (current song 500), controlling the
+   *  active date so `currentRunShowSets` grouping is deterministic. */
+  async function seedActiveWithOpener(): Promise<void> {
+    const active: TrackedShow = {
+      sessionId: "active-session",
+      date: ACTIVE_DATE,
+      status: "active",
+      currentSetNumber: "1",
+      startedAt: 0,
+      showId: null,
+      venueId: null,
+      venueName: null,
+      city: null,
+    };
+    await db.trackedShows.put(active);
+    await db.trackedEntries.add({
+      sessionId: "active-session",
+      position: 1,
+      songId: 500,
+      songName: "Opener A",
+      setNumber: "1",
+      outcome: "hit",
+      shownFanSongIds: [500],
+      isPlaceholder: false,
+      source: "manual",
+      loggedAt: 0,
+    });
+  }
+
+  /** Put a FINALIZED prior show on `date` whose set contains `songIds`. */
+  async function putFinalized(
+    sessionId: string,
+    date: string,
+    songIds: number[],
+  ): Promise<void> {
+    const show: TrackedShow = {
+      sessionId,
+      date,
+      status: "finalized",
+      currentSetNumber: "1",
+      startedAt: 0,
+      showId: null,
+      venueId: null,
+      venueName: null,
+      city: null,
+    };
+    await db.trackedShows.put(show);
+    let position = 1;
+    for (const songId of songIds) {
+      await db.trackedEntries.add({
+        sessionId,
+        position: position++,
+        songId,
+        songName: `Song ${songId}`,
+        setNumber: "1",
+        outcome: "hit",
+        shownFanSongIds: [songId],
+        isPlaceholder: false,
+        source: "manual",
+        loggedAt: 0,
+      });
+    }
+  }
+
+  /** Render the hook and wait until predictions for the opener are ready. */
+  async function renderReady() {
+    const view = renderHook(() => useShowSession());
+    await waitFor(() => {
+      expect(view.result.current.active?.date).toBe(ACTIVE_DATE);
+      expect(view.result.current.candidates.length).toBeGreaterThan(0);
+    });
+    return view;
+  }
+
+  function scoreOf(
+    candidates: { songId: number; score: number }[],
+    songId: number,
+  ): number {
+    const c = candidates.find((x) => x.songId === songId);
+    expect(c, `candidate ${songId} present`).toBeDefined();
+    return c!.score;
+  }
+
+  beforeEach(async () => {
+    await db.trackedEntries.clear();
+    await db.trackedShows.clear();
+    await db.meta.clear();
+  });
+  afterEach(async () => {
+    cleanup();
+    await db.trackedEntries.clear();
+    await db.trackedShows.clear();
+    await db.meta.clear();
+  });
+
+  it("a song played earlier in the run ranks strictly below an equivalent un-played song", async () => {
+    await seedActiveWithOpener();
+    // Two consecutive prior nights of THIS run both played 200 (never 300).
+    await putFinalized("night-15", "2026-08-15", [200]);
+    await putFinalized("night-14", "2026-08-14", [200]);
+
+    const view = await renderReady();
+    const { candidates } = view.result.current;
+
+    // 200 (played across the run) is suppressed; 300 (never played) is not.
+    // Equal base ⇒ the ONLY separation is the cross-night rotation window.
+    expect(scoreOf(candidates, 200)).toBeLessThan(scoreOf(candidates, 300));
+  });
+
+  it("a show beyond runGapDays does not suppress (separate weekend leaves scores equal)", async () => {
+    await seedActiveWithOpener();
+    // A single prior show 8 days back — a separate weekend, gap > runGapDays(2).
+    await putFinalized("far-08", "2026-08-08", [200]);
+
+    const view = await renderReady();
+    const { candidates } = view.result.current;
+
+    // The gap breaks the run, so 200 is NOT in the window — equal to 300.
+    expect(scoreOf(candidates, 200)).toBeCloseTo(scoreOf(candidates, 300), 10);
+  });
+
+  it("the reset marker drops a prior-run night back out of the window (PRED-03)", async () => {
+    await seedActiveWithOpener();
+    await putFinalized("night-15", "2026-08-15", [200]);
+    await putFinalized("night-14", "2026-08-14", [200]);
+    // Owner reset AT the 15th: every show on/after the boundary drops out, so
+    // only the 14th remains in the window (still suppresses, but the reset is
+    // honored — the 15th no longer counts). With the boundary at the 14th,
+    // NOTHING pre-boundary remains and 200 is no longer suppressed at all.
+    await setMeta("rotationRunResetDate", "2026-08-14");
+
+    const view = await renderReady();
+    const { candidates } = view.result.current;
+
+    // Boundary at the 14th excludes both the 15th and 14th (date >= boundary),
+    // so 200 is no longer down-weighted — equal to the un-played 300.
+    expect(scoreOf(candidates, 200)).toBeCloseTo(scoreOf(candidates, 300), 10);
   });
 });

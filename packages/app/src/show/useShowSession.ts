@@ -16,8 +16,13 @@
  */
 import { useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import type { TuningFamily } from "@guezzer/core";
-import { db, type TrackedEntry, type TrackedShow } from "../db/db.ts";
+import {
+  currentRunShowSets,
+  type FinalizedShowInput,
+  type TuningFamily,
+} from "@guezzer/core";
+import { config as coreConfig } from "@guezzer/core/config";
+import { db, getMeta, type TrackedEntry, type TrackedShow } from "../db/db.ts";
 import { deriveTally, type Tally } from "./scoring.ts";
 import { getMatrixIndex, loadMatrix } from "./matrix.ts";
 import { buildShowContext, predictFan } from "./showContext.ts";
@@ -79,6 +84,63 @@ export function useShowSession(): ShowSession {
   // (c) The derived tally — never hand-synced; recomputed only when entries change.
   const tally = useMemo(() => deriveTally(entries), [entries]);
 
+  // (c1) The prior FINALIZED shows of the current run — the cross-night rotation
+  // window (PRED-01). `status === "finalized"` inherently EXCLUDES the active
+  // in-progress show (its own row is `active`, and its trail is handled by
+  // core's `alreadyPlayedFactor`, not rotation — Pitfall 4). Each finalized show
+  // projects to a `FinalizedShowInput { date, songIds }` (real songs only) for
+  // the pure DOM-free core `currentRunShowSets` grouper. Kept OUTSIDE the
+  // `currentSongId !== null` prediction gate — it is independent of the current
+  // song and reactive to any show being finalized.
+  const finalizedRunInputs =
+    useLiveQuery(async () => {
+      const shows = await db.trackedShows
+        .where("status")
+        .equals("finalized")
+        .toArray();
+      const inputs: FinalizedShowInput[] = [];
+      for (const show of shows) {
+        const showEntries = await db.trackedEntries
+          .where("sessionId")
+          .equals(show.sessionId)
+          .toArray();
+        inputs.push({
+          date: show.date,
+          songIds: showEntries
+            .filter((e) => e.songId != null)
+            .map((e) => e.songId as number),
+        });
+      }
+      return inputs;
+    }) ?? [];
+
+  // (c2) Owner reset marker (PRED-03) — a single free-form `db.meta` row written
+  // by the Settings "start a fresh run" control. When set, `currentRunShowSets`
+  // drops every show on/after this boundary out of the window, so a distinct
+  // weekend no longer down-weights tonight. `undefined` = never reset.
+  const rotationResetDate = useLiveQuery(() =>
+    getMeta<string>("rotationRunResetDate"),
+  );
+
+  // (c3) The current run's prior-show song sets — the `recentShowSongSets`
+  // window that the already-correct core `rotationSuppression` is starved of in
+  // live use (RESEARCH §PRED-01). The active show's OWN date anchors the run
+  // (never wall-clock), and the reset marker bounds it. Decision logic lives in
+  // core (`currentRunShowSets`); the app only supplies Dexie data (CLAUDE.md
+  // strict core/UI separation).
+  const recentRunShowSets = useMemo(
+    () =>
+      active
+        ? currentRunShowSets(
+            finalizedRunInputs,
+            active.date,
+            { runGapDays: coreConfig.runGapDays },
+            rotationResetDate ?? undefined,
+          )
+        : [],
+    [active, finalizedRunInputs, rotationResetDate],
+  );
+
   // The current centre = the last CONFIRMED real song (placeholders excluded).
   // `null` until the opener is seeded (04-05) — the pre-opener state.
   const currentEntry = useMemo(
@@ -119,8 +181,10 @@ export function useShowSession(): ShowSession {
     }
 
     // Past the guard: a real number reaches core. Assemble ShowContext from the
-    // persisted trail and re-predict (SHOW-03; night-1 recentShowSongSets = []).
-    const ctx = buildShowContext(currentSongId, entries, []);
+    // persisted trail + the current run's prior-show sets and re-predict
+    // (SHOW-03 / PRED-01). `recentRunShowSets` finally feeds the cross-night
+    // rotationSuppression (was a hardcoded `[]`); night 1 of a run is `[]`.
+    const ctx = buildShowContext(currentSongId, entries, recentRunShowSets);
     const candidates: OrbitCandidate[] = predictFan(result.matrix, ctx).map(
       (c) => ({
         ...c,
@@ -136,7 +200,7 @@ export function useShowSession(): ShowSession {
       isWeakFan: isWeakFan(candidates),
       currentSong,
     };
-  }, [currentSongId, currentEntry, entries]);
+  }, [currentSongId, currentEntry, entries, recentRunShowSets]);
 
   return {
     active: active ?? undefined,
