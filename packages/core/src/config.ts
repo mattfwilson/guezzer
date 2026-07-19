@@ -132,6 +132,9 @@ export const config = {
   /** [ASSUMED] M3/A4 (02-RESEARCH.md), MODL-06: number of most-recent shows in the current tour that feed rotation suppression. */
   rotationWindowShows: 3,
 
+  /** [ASSUMED] D-03/A2 (11-RESEARCH.md), PRED-01/PRED-03: max calendar-day gap between consecutive shows for them to count as the SAME run (currentRunShowSets). 2 keeps back-to-back / one-night-off residency nights in one run while a separate weekend breaks it. Backtestable / owner-tunable. */
+  runGapDays: 2,
+
   /** [ASSUMED] M3/A4 (02-RESEARCH.md), MODL-06: per-show multiplicative penalty applied for each of the last rotationWindowShows shows a candidate was played in — e.g. played all 3 recent nights scores this value cubed. Never a hard zero. */
   rotationPenaltyPerShow: 0.5,
 

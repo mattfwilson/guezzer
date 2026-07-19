@@ -139,6 +139,17 @@ export {
   type TrackedShowInput,
   type ShowBinding,
 } from "./live/bind-show.ts";
+/**
+ * Run-grouping (plan 11-03, PRED-01/PRED-03). `currentRunShowSets` groups the
+ * prior finalized shows into the current run by date gap (`config.runGapDays`),
+ * honoring a manual reset boundary (D-04), and yields the `recentShowSongSets`
+ * window the already-correct `rotationSuppression` is starved of in live use.
+ * Pure, DOM-free; app wiring lands in plan 11-05.
+ */
+export {
+  currentRunShowSets,
+  type FinalizedShowInput,
+} from "./live/run-grouping.ts";
 
 /**
  * Phase 5 data-safety core (plan 05-02). Pure, DOM-free, dependency-injected —
