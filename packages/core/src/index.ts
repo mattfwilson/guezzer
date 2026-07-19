@@ -119,7 +119,12 @@ export {
  * dedicated schema; the suggest/bind functions are pure decision fns.
  */
 export { pollLatest, type PollDeps } from "./live/poll-latest.ts";
-export { latestSetlistRow, type LatestSetlistRow } from "./ingest/latest-types.ts";
+export {
+  detectNovelKeys,
+  KNOWN_LATEST_KEYS,
+  latestSetlistRow,
+  type LatestSetlistRow,
+} from "./ingest/latest-types.ts";
 export {
   diffLatestAgainstTrail,
   guardLatestRows,

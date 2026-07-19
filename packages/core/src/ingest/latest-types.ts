@@ -12,15 +12,18 @@
  * live path never inherits the census's requirement of the 5 absent keys.
  *
  * WHY every present key is still enumerated (not just the consumed subset):
- * `strictObject` rejects UNKNOWN keys, which is the drift-detection contract
- * (T-05-01). A real latest row carries ~36 keys; a schema listing only the
- * 11 consumed fields would reject the real row as "unknown keys". So the
- * schema lists the full present shape, but types ONLY the 11 fields the
- * poller/binder actually consume (show_id, showdate, song_id, songname,
- * artist_id, position, setnumber, settype, venue_id, venuename, city) —
- * everything else is `z.unknown()` (present, value-ignored). Net effect: a
- * genuinely NOVEL key (API drift) is rejected, a wrong-typed CONSUMED field
- * is rejected, and the real 36-key row parses cleanly.
+ * the enumerated shape now feeds `KNOWN_LATEST_KEYS`, driving drift DETECTION
+ * (LIVE-03) rather than `strictObject` REJECTION. The schema is
+ * `.catchall(z.unknown())`, so an additive API key leaves the row USABLE — one
+ * new kglw.net field never silently empties suggestions mid-set. A real latest
+ * row carries 36 keys; the schema lists that full present shape (each present-
+ * but-unconsumed key `z.unknown()`, value-ignored) and types ONLY the 11 fields
+ * the poller/binder actually consume (show_id, showdate, song_id, songname,
+ * artist_id, position, setnumber, settype, venue_id, venuename, city). Net
+ * effect: a genuinely NOVEL key is TOLERATED (kept usable) yet surfaced by
+ * `detectNovelKeys` for a one-per-poll drift signal, while a wrong-typed
+ * CONSUMED field is still rejected per-row (D-07 unchanged), and the real
+ * 36-key row parses cleanly.
  *
  * Enum-ish consumed fields stay structurally loose (`setnumber`/`settype`
  * as `z.string()`) mirroring api-types.ts:35-36 — the live path must not
@@ -33,7 +36,7 @@
  */
 import { z } from "zod";
 
-export const latestSetlistRow = z.strictObject({
+export const latestSetlistRow = z.object({
   // ── The 11 consumed fields — precisely typed ──────────────────────────────
   show_id: z.number().int(),
   showdate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -47,9 +50,10 @@ export const latestSetlistRow = z.strictObject({
   venuename: z.string(), // untrusted editor content — carry verbatim, never render (SCHEMA §12)
   city: z.string(),
 
-  // ── Present-but-unconsumed keys — enumerated for strict drift detection,
-  //    value-ignored (z.unknown()). This is the full latest key set (census
-  //    41 keys minus the 5 latest omits) MINUS the 11 consumed above. ────────
+  // ── Present-but-unconsumed keys — enumerated so KNOWN_LATEST_KEYS knows the
+  //    full present shape for drift DETECTION, value-ignored (z.unknown()).
+  //    This is the full latest key set (census 41 keys minus the 5 latest
+  //    omits) MINUS the 11 consumed above. ────────────────────────────────────
   uniqueid: z.unknown(),
   showtitle: z.unknown(),
   artist: z.unknown(),
@@ -75,9 +79,30 @@ export const latestSetlistRow = z.strictObject({
   country: z.unknown(),
   isreprise: z.unknown(),
   isjam: z.unknown(),
-});
+}).catchall(z.unknown()); // LIVE-03: additive API keys stay usable, not rejected.
 
 export type LatestSetlistRow = z.infer<typeof latestSetlistRow>;
+
+/**
+ * Every key the schema knows about (the full present latest shape). Derived
+ * from the schema's own `.shape` so the two can never drift — no second hand-
+ * maintained list (CLAUDE.md: no scattered magic numbers). `detectNovelKeys`
+ * diffs a raw row against this to surface API drift (LIVE-03).
+ */
+export const KNOWN_LATEST_KEYS: ReadonlySet<string> = new Set(
+  Object.keys(latestSetlistRow.shape),
+);
+
+/**
+ * Return the NAME(s) of any key on `raw` the schema does not know about — the
+ * drift signal for a new kglw.net field (LIVE-03). Returns `[]` for a row with
+ * only known keys. Returns key NAMES ONLY, never any editor-supplied value
+ * string (`songname`/`venuename` are untrusted editor content, SCHEMA §12) —
+ * the poller logs these names, so a value must never ride along (T-11-02-03).
+ */
+export function detectNovelKeys(raw: Record<string, unknown>): string[] {
+  return Object.keys(raw).filter((k) => !KNOWN_LATEST_KEYS.has(k));
+}
 
 /**
  * Re-exported so the live poller (poll-latest.ts) appends show-identifying
