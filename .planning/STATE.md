@@ -139,6 +139,35 @@ Recent decisions affecting current work:
 - [ui] Rebrand tabs: Dex→GizzDex, Explore→GizzVerse, Show→LiveGizz (`BottomTabBar.tsx:5-7`) — **layer-1 (visible labels) DONE (260716-wwj / `ba775f0`)**; only optional layer-2 (internal code-identifier consistency) remains, deferred — `.planning/todos/pending/2026-07-17-rebrand-tabs-dex-to-gizzdex-explore-to-gizzverse-show-to-liv.md`. **Do NOT blind-rename route strings or persisted Dexie/storage keys** (breaks nav + orphans saved data) — decouple display name from route/storage key.
 - [ui] ~~Final-show recap Share card shows **all-time GizzDex totals, not that night's show**~~ — **RESOLVED 2026-07-18** in Phase 10-02 (owner-directed inline fix during the VALID-02 device rehearsal, commit `3c09839`): new per-show recap Share card via core `buildRecapShareStats` off `deriveRecap` (six-tier rarity box, share-icon chrome; DexHeader all-time path preserved). `.planning/todos/pending/2026-07-18-final-show-share-card-uses-gizzdex-totals.md`.
 
+**Bug fixes from 2026-07-19 research/bug-hunt session** (capture only — not yet built; each file carries full context + fix approach; run via /gsd-quick). Top 3 flagged pre-show (Aug 14):
+
+- [bug] **HIGH, pre-show** — Wrong-show editor suggestions: no date guard + stale latestRows on night 2 of a run — `2026-07-19-fix-wrong-show-editor-suggestions-stale-latest-rows.md`
+- [bug] **MED, pre-show** — End-Show auto-backup races finalize write; backup can capture show as "active" — `2026-07-19-fix-end-show-backup-race-with-finalize.md`
+- [bug] **MED, pre-show** — Rotation suppression dead in live use (empty `recentFinalizedShowSongSets`) — `2026-07-19-wire-rotation-suppression-into-live-predictions.md`
+- [bug] MED — eraPrior compares incommensurate rates; retired-song floor unreachable — `2026-07-19-fix-era-prior-unit-mismatch-dead-floor.md`
+- [bug] MED — Same-date doubleheader shows collapsed in merge + dex derivation (+ midnight date-mismatch edge) — `2026-07-19-fix-same-date-doubleheader-collapse.md`
+- [bug] MED — Live sync dies silently if kglw.net adds an API field (strict zod on live path) — `2026-07-19-guard-live-sync-against-strict-schema-drift.md`
+- [bug] VERIFY — latest.json returns any tracked artist (Stu DJ set observed); audit artist filter on poll path — `2026-07-19-verify-artist-filter-on-latest-poll.md`
+- [bug] MED-LOW — Top safe-area inset applied twice on notched iPhones (installed PWA) — `2026-07-19-fix-doubled-top-safe-area-inset.md`
+- [bug] LOW-MED — "Backup saved" line renders before any backup exists (End Show dialog) — `2026-07-19-fix-premature-backup-saved-message.md`
+- [bug] LOW-MED — Constellation camera snaps to zoom-to-fit on any container resize — `2026-07-19-stop-constellation-camera-snap-on-resize.md`
+- [bug] LOW — Fill-hint position matching goes off-by-N after missed/deleted songs — `2026-07-19-fix-fill-hint-off-by-n-position-matching.md`
+- [bug] LOW — Wake-lock acquire/release race leaves screen locked awake post-show — `2026-07-19-fix-wake-lock-acquire-release-race.md`
+- [bug] LOW — Same-tick revokeObjectURL can silently abort downloads on iOS (backup + share card) — `2026-07-19-defer-revoke-object-url-on-downloads.md`
+
+**Feature ideas from 2026-07-19 research session** (capture only — not yet built; each file carries full concept, evidence, and architecture mapping). Casual-friendly focus: bingo, Gizzle, primer, dossiers; recommended pre-show order: Residency Mode → Bingo/League → Gizzle:
+
+- [feature] Residency Mode — no-repeat run awareness + songs-remaining pool + show-type flags — `2026-07-19-feature-residency-mode-no-repeat-run-awareness.md`
+- [feature] Guezz League — pregame 5-pick prediction game, rarity-weighted, live scoring — `2026-07-19-feature-guezz-league-setlist-prediction-game.md`
+- [feature] Gizz Bingo — auto-marking live bingo cards (casual +1 anchor) — `2026-07-19-feature-gizz-bingo-live-auto-marking-cards.md`
+- [feature] Gizzle — daily clue-based song-guessing puzzle, date-seeded, offline — `2026-07-19-feature-gizzle-daily-song-guessing-puzzle.md`
+- [feature] Couch Mode — read-only follow-from-home via existing latest.json poll — `2026-07-19-feature-couch-mode-follow-from-home.md`
+- [feature] My Stats & Want List — rarest catches + most-common-not-caught — `2026-07-19-feature-my-stats-want-list.md`
+- [feature] Shiny catches — special-version variant tiers (debuts/bustouts/20-min jams) — `2026-07-19-feature-shiny-catches-variant-tiers.md`
+- [feature] Badge system with visible unearned badges (album completion, lanes, levels) — `2026-07-19-feature-badge-system-visible-gaps.md`
+- [feature] Song Dossiers + unlockable Gizzverse lore codex — `2026-07-19-feature-song-dossiers-gizzverse-lore-codex.md`
+- [feature] Know-Before-You-Go primer + predicted-setlist playlist — `2026-07-19-feature-know-before-you-go-primer-playlist.md`
+
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
