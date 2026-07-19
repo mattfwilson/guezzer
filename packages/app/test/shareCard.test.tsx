@@ -261,16 +261,25 @@ describe("shareOrDownload — canShare-gated share vs download vs cancelled", ()
   });
 
   it("falls back to an anchor download when Web Share is unsupported", async () => {
-    vi.stubGlobal("navigator", {});
-    const createObjectURL = vi.fn(() => "blob:mock");
-    const revokeObjectURL = vi.fn();
-    vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
+    vi.useFakeTimers();
+    try {
+      vi.stubGlobal("navigator", {});
+      const createObjectURL = vi.fn(() => "blob:mock");
+      const revokeObjectURL = vi.fn();
+      vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
 
-    const result = await shareOrDownload(file());
+      const result = await shareOrDownload(file());
 
-    expect(createObjectURL).toHaveBeenCalled();
-    expect(revokeObjectURL).toHaveBeenCalled();
-    expect(result).toEqual({ ok: true, method: "download" });
+      expect(createObjectURL).toHaveBeenCalled();
+      // SAFE-02 (D-06): the revoke is now DEFERRED via triggerDownload — it must
+      // NOT fire on the click tick, only after OBJECT_URL_REVOKE_DELAY_MS.
+      expect(revokeObjectURL).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(config.dataSafety.OBJECT_URL_REVOKE_DELAY_MS);
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock");
+      expect(result).toEqual({ ok: true, method: "download" });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("treats an AbortError (user cancel) as a silent success", async () => {

@@ -17,6 +17,7 @@
  */
 import type { RarityTier, ShareCardData } from "@guezzer/core";
 import { config } from "../config.ts";
+import { triggerDownload } from "../settings/triggerDownload.ts";
 import { rarityColor } from "./rarityStyle.ts";
 
 /** System-font stack (05/06-UI-SPEC) — no web-font download; matches the app chrome. */
@@ -231,6 +232,10 @@ export async function buildShareCardFile(data: ShareCardData): Promise<ShareCard
 
     const fileName = data.scope === "show" ? "guezzer-show.png" : "guezzer-dex.png";
     const fileObj = new File([blob], fileName, { type: "image/png" });
+    // NOT a leak / NOT centralized: previewUrl is released by ShareCardSheet's
+    // effect cleanup (see ShareCardSheet L62-83), not by the download path, so
+    // it must NOT route through triggerDownload's deferred revoke (RESEARCH
+    // §SAFE-02). Do not "fix" this — it is intentionally left as-is.
     const previewUrl = URL.createObjectURL(blob);
     return { ok: true, file: fileObj, previewUrl };
   } catch {
@@ -271,20 +276,10 @@ export async function shareOrDownload(file: File): Promise<ShareOutcome> {
     }
   }
 
-  // Fallback: anchor download (exportDownload.ts idiom — revoke in finally).
+  // Fallback: the single shared anchor-download helper (SAFE-02, D-07) — it
+  // defers the object-URL revoke so iOS Safari can begin the download (D-06).
   try {
-    const url = URL.createObjectURL(file);
-    try {
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = file.name;
-      anchor.rel = "noopener";
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-    } finally {
-      URL.revokeObjectURL(url);
-    }
+    triggerDownload(file, file.name);
     return { ok: true, method: "download" };
   } catch {
     return { ok: false, method: "failed" };

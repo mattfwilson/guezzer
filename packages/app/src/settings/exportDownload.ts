@@ -17,6 +17,7 @@
 import { serializeExport } from "@guezzer/core";
 import { config } from "../config.ts";
 import { snapshot } from "../db/db.ts";
+import { triggerDownload } from "./triggerDownload.ts";
 
 /** Dated `YYYY-MM-DD` stamp for the backup filename (local time). */
 function backupDateStamp(): string {
@@ -45,20 +46,11 @@ export async function exportBackup(): Promise<{ ok: boolean }> {
     );
     const json = JSON.stringify(envelope, null, 2);
     const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
 
-    try {
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `guezzer-backup-${backupDateStamp()}.json`;
-      anchor.rel = "noopener";
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-    } finally {
-      // Always release the object URL, even if the click threw.
-      URL.revokeObjectURL(url);
-    }
+    // Single anchor-download idiom (SAFE-02, D-07): defers the object-URL
+    // revoke so iOS Safari has time to begin the download — a same-tick
+    // revoke silently aborted the backup here (D-06).
+    triggerDownload(blob, `guezzer-backup-${backupDateStamp()}.json`);
 
     return { ok: true };
   } catch {
