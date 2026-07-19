@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Pre-Show Hardening
 status: executing
-stopped_at: Phase 11 context gathered
-last_updated: "2026-07-19T17:38:00.447Z"
-last_activity: 2026-07-19 -- Phase 11 execution started
+stopped_at: Completed 11-02-PLAN.md
+last_updated: "2026-07-19T17:44:35Z"
+last_activity: 2026-07-19 -- Completed Phase 11 plan 02 (live-path core fixes)
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 ## Current Position
 
 Phase: 11 (live-sync-prediction-correctness) — EXECUTING
-Plan: 2 of 5
-Status: Ready to execute
-Last activity: 2026-07-19 -- Phase 11 execution started
+Plan: 3 of 5 (11-02 complete)
+Status: Ready to execute (Wave 2 — 11-03 / 11-04 unblocked)
+Last activity: 2026-07-19 -- Completed Phase 11 plan 02 (live-path core fixes)
 
 ## Performance Metrics
 
@@ -77,6 +77,7 @@ Last activity: 2026-07-19 -- Phase 11 execution started
 | Phase 10 P01 | ~24min | 3 tasks | 10 files |
 | Phase 10 P02 | ~2h (owner-run) | 2 tasks (1 checkpoint) | 11 files |
 | Phase 11 P01 | ~10min | 1 tasks | 1 files |
+| Phase 11 P02 | ~9min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,7 @@ Recent decisions affecting current work:
 - [Phase 10]: 10-02 (VALID-02): full show loop passed a real-device (iPhone) rehearsal on the vite production build (owner declined the tunnel — tests 2–5 on iPhone, 6–7 on desktop localhost secure-context fallback, 8 Android waived D-06). Two D-09 loop-breaking blockers found+fixed inline (SuggestionStrip slot 56→112px + overflow, `b0213c0`; FAB lifted above the reserved strip, `a60d5e2`). Owner-directed scope expansion: per-show recap Share card (core `buildRecapShareStats` off `deriveRecap`, six-tier rarity box, share-icon chrome — `3c09839`) replacing the lifetime-GizzDex card that mismatched the recap (resolves the final-show-share-card todo). Deferred non-blocking gap: iPhone-specific offline (iOS SW eviction) + import (iOS file picker) legs to confirm before show #1. Recorded in 10-HUMAN-UAT.md (status: resolved).
 - [Phase 10]: 10-01 (VALID-01): read-only tuning-review CLI reuses ingest helpers (findMatchedAlbumTitles/defaultFamilyForAlbum made export-only), never touches the write path. Owner D-03 verdict: 9 Infest the Rats' Nest tracks (94/133/152/157/160/180/200/239/240) re-tagged standard→cs-standard (first non-empty cs-standard family); 12 canonical spot-checks + 36 no-album-default hand-tags confirmed as-is. Backtest top-k ZERO regression (tuning is a weak signal, ablation Δ≈0) — recorded in 10-HUMAN-UAT.md test #1 (pass)
 - [Phase 11]: 11-01: replaced the masking 3-node era-prior fixture with a production-scale (~260-node, Σ playCount ~14k) matrix; the retired-song eraPriorFloor is proven unreachable on current code (returns ~0.996), RED until 11-03
+- [Phase 11]: 11-02: three pure-core live-path fixes (LIVE-01/02/03). guardLatestRows is a once-at-ingress filter (bound→show_id, unbound→show's OWN date, never wall-clock so past-midnight sets survive). latestSetlistRow switched to `.catchall(z.unknown())` so an additive API key keeps the row usable; KNOWN_LATEST_KEYS derived from the schema's `.shape` (single source of truth) feeds a names-only detectNovelKeys. pollLatest now returns `PollResult { rows, schemaDrift, novelKeys? }` — drift aggregated into a Set and logged once/poll, never-throw soft-fail preserved. artist_id!==1 confirmed as the SOLE single-ingress filter, locked by a mixed-artist regression test. 11-04 must consume PollResult (useLatestPoll/mockLatest/app tests) and wire guardLatestRows once upstream of diff/resolve.
 
 ### Pending Todos
 
@@ -249,8 +251,8 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-19T17:38:00.442Z
-Stopped at: Phase 11 context gathered
+Last session: 2026-07-19T17:44:35Z
+Stopped at: Completed 11-02-PLAN.md (Wave 2 — 11-03/11-04 unblocked)
 Resume file: .planning/phases/11-live-sync-prediction-correctness/11-CONTEXT.md
 
 ## Operator Next Steps
