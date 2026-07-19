@@ -1,5 +1,28 @@
 # Milestones
 
+## v1.1 Polish & Pre-Show Hardening (Shipped: 2026-07-19)
+
+**Delivered:** A small, low-risk hardening pass that closed the v1.0 audit's non-blocking gaps (UI legibility, accessibility, data integrity, restore UX) and proved the app show-ready on real hardware before show #1. No new user-facing features. The full show loop — plus the offline airplane-mode leg and JSON export/import round-trip — passed a real-device iPhone rehearsal over a cloudflared HTTPS tunnel. All 9 requirements shipped and validated.
+
+**Stats:** 3 phases (8–10) · 12 plans (8 + 2 + 2) · ~26 tasks · 587 tests green · milestone window 2026-07-16 → 2026-07-19 (~3 days). Model trust gate unchanged (VALID-01 re-tag was a weak signal, backtest top-k Δ≈0).
+
+**Milestone audit:** none run — this is a small hardening milestone with all 9/9 requirements validated on-device (owner elected to proceed without a formal audit at close).
+
+**Known deferred items at close:** 16 (see STATE.md Deferred Items) — all benign: 1 debug session (documented not-a-defect), 1 verification gap (Phase 01 human_needed, superseded by VALID-01), 10 completed-but-unmarked quick tasks, and 4 pending todos (3 genuine v2 UI ideas + 1 already resolved in Phase 10-02). None blocking; the v2 UI todos carry into the next milestone.
+
+**Key accomplishments:**
+
+- Accessibility foundation + full migration (A11Y-01): a shared portal-to-body `<Sheet>` primitive (modal/non-modal/fullscreen) with `useFocusTrap`/`useDialogDismiss`/LIFO `dialogStack`/ref-counted `inertRoot` and a `config.ui.z` named z-index tier scale, then all 7 sheet/dialog surfaces migrated onto it — Escape-dismiss, focus-trap-while-open, focus-restore-on-close, verified with VoiceOver + external keyboard on iOS (incl. `inert` propagation through `display:contents`).
+- Explore a11y hardening (A11Y-02/A11Y-03): the FilterFab lifted above the NodeSheet peek (no occlusion), a shared visible-viewport source, and resize-reframe keeping the camera on the focused node through rotate/keyboard resize.
+- Circle-aware orb-label legibility (POLISH-01) + speed-dial/banner verification (POLISH-02): `fitOrbLabel` made circle-aware (per-line chord width + stacked-height budget incl. the percent line), guarded by a geometric sweep over the real [56..112]px diameter range with an on-device `#/dev/orb-fit` harness — fixing the small-orb overflow regression found on-device; D-20 FAB speed-dial and D-22 once-per-version InstallBanner verified and their todos closed.
+- `shownotes` carried through normalization (DATA-06, resolves audit WR-01): threaded verbatim through ingestion AND normalization (position-1-wins denormalization, within-show-disagreement stats counter, byte-for-byte carry) with an end-to-end survival test, and `corpus.json` regenerated for all 738 shows with byte-stable downstream artifacts (bundled archive.json byte-identical inside its 250 KB budget).
+- Own-backup restore hardening (PWA-05): a pure `isTypedNameMine` helper so typing your own owner name into the "Whose dex is this?" prompt reaches the merge/restore path on a fresh/evicted DB — not only the explicit button — proven with a real-Dexie union-merge test that never drops local data.
+- Pre-show validation gates cleared (VALID-01/VALID-02): a read-only tuning-review CLI drove the owner spot-check (12 canonical anchors confirmed; 9 *Infest the Rats' Nest* tracks re-tagged standard→cs-standard, zero backtest regression), and the full show loop — start → predict → log → set break → encore → End Show → recap → dex credit, plus the offline airplane-mode leg and JSON export/import round-trip — passed a real-device iPhone rehearsal over a cloudflared HTTPS tunnel, with two D-09 loop-breaking blockers found+fixed inline and a per-show recap Share card added during the dry-run.
+
+Full detail: [milestones/v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md) · [requirements](./milestones/v1.1-REQUIREMENTS.md)
+
+---
+
 ## v1.0 MVP (Shipped: 2026-07-17)
 
 **Delivered:** A mobile-friendly, offline-first PWA that predicts King Gizzard's next live song from a frozen transition-matrix model, logs the setlist one-thumb in the dark, and doubles as a derived Pokédex — plus an Explore-mode constellation of the whole transition graph. All 60 v1 requirements shipped; the full Show Mode loop is device-verified on iPhone.

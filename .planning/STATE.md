@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Polish & Pre-Show Hardening
-status: executing
-stopped_at: Completed 10-02-PLAN.md (VALID-02) — Phase 10 complete
-last_updated: "2026-07-18T22:45:00Z"
-last_activity: 2026-07-18 -- Completed Phase 10 Plan 02 (VALID-02 device dry-run; 2 D-09 fixes + per-show share card)
+status: shipped
+stopped_at: v1.1 milestone closed and tagged (2026-07-19) — no milestone in progress
+last_updated: "2026-07-19T04:30:00Z"
+last_activity: 2026-07-19 -- Closed v1.1 Polish & Pre-Show Hardening milestone (archived roadmap + requirements, tagged v1.1)
 progress:
   total_phases: 3
   completed_phases: 3
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-18 after Phase 8)
+See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 10 — pre-show-validation-device-dry-run
+**Current focus:** No milestone in progress — scope v2 with `/gsd-new-milestone`. App is show-ready.
 
 ## Current Position
 
-Phase: 10 (pre-show-validation-device-dry-run) — COMPLETE
-Plan: 2 of 2 (both complete)
-Status: Phase 10 complete (10-01 VALID-01 + 10-02 VALID-02 both closed) — v1.1 Polish & Pre-Show Hardening milestone done
-Last activity: 2026-07-18 -- Completed Phase 10 Plan 02 (VALID-02 device dry-run; 2 D-09 fixes + per-show share card)
+Milestone: v1.1 Polish & Pre-Show Hardening — SHIPPED & TAGGED (2026-07-19)
+Phase: none in progress (Phases 8–10 all complete and archived)
+Status: v1.0 MVP + v1.1 both shipped; app show-ready for the first show (late Aug/Sep 2026)
+Last activity: 2026-07-19 -- Closed v1.1 milestone (archived roadmap + requirements to milestones/, tagged v1.1)
 
 ## Performance Metrics
 
@@ -180,7 +180,30 @@ Recent decisions affecting current work:
 
 ## Deferred Items
 
-Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-approved). The four non-blocking items below are now scoped into v1.1 (Phases 8–10):
+Items acknowledged and deferred at **v1.1 milestone close on 2026-07-19** (owner-approved [A] Acknowledge-all). The pre-close audit flagged 16 open artifacts; all are benign — completed-but-unmarked, superseded, or intentionally deferred to v2. None blocking. The 3 genuine v2 UI todos carry into the next milestone.
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | knowledge-base | not-a-defect (resolved-sessions index, false alarm — same as v1.0 close) |
+| verification | Phase 01: 01-VERIFICATION.md (human_needed) | superseded — the DATA-04 tuning spot-check was resolved by VALID-01 (Phase 10) |
+| quick_task | 260717-gvm (LiveGizz crossfade background) | complete (SUMMARY on file; no parseable completion marker) |
+| quick_task | 260717-ij8 (pre-show background cycle) | complete (SUMMARY on file) |
+| quick_task | 260717-k1v (GizzDex responsive layout) | complete (SUMMARY on file) |
+| quick_task | 260717-kxs (orbit centering + recolor) | complete (SUMMARY on file) |
+| quick_task | 260717-n6a (Epic rarity tier) | complete (SUMMARY on file) |
+| quick_task | 260717-onl (recolor rarity chips) | complete (SUMMARY on file) |
+| quick_task | 260717-p4s (rarity colors on orbs) | complete (SUMMARY on file) |
+| quick_task | 260717-sjg (galaxy backdrop) | complete (SUMMARY on file) |
+| quick_task | 260718-12j (constellation labels on top) | complete (SUMMARY on file) |
+| quick_task | 260718-1no (auto-populate opener search) | complete (SUMMARY on file) |
+| todo/ui | 2026-07-17-gizzverse-animate-directional-flow-particles | pending — genuine v2 UI idea (conflicts with settle-and-freeze; carry to v2) |
+| todo/ui | 2026-07-17-bottom-sheets-smooth-up-down-animation-always-on-top | pending — genuine v2 UI idea (carry to v2) |
+| todo/ui | 2026-07-17-readable-full-date-format-mon-d-yyyy-app-wide | pending — genuine v2 UI idea (carry to v2) |
+| todo/ui | 2026-07-18-final-show-share-card-uses-gizzdex-totals | resolved 2026-07-18 in Phase 10-02 (per-show recap share card, `3c09839`) — stale flag |
+
+---
+
+Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-approved). The four non-blocking items below were scoped into v1.1 (Phases 8–10) and are now resolved:
 
 | Category | Item | Status | Deferred At | v1.1 Mapping |
 |----------|------|--------|-------------|--------------|
@@ -194,11 +217,12 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-18T22:45:00Z
-Stopped at: Completed 10-02-PLAN.md (VALID-02) — Phase 10 complete, v1.1 milestone done
+Last session: 2026-07-19T04:30:00Z
+Stopped at: v1.1 Polish & Pre-Show Hardening milestone closed and tagged (v1.1). Archives written to .planning/milestones/. REQUIREMENTS.md removed (fresh for next milestone).
 Resume file: None
 
 ## Operator Next Steps
 
-- Phase 10 complete; v1.1 Polish & Pre-Show Hardening milestone (Phases 8–10) done. Consider a milestone audit / evolve PROJECT.md.
-- Deferred (non-blocking) before show #1: a short tunnel-backed iPhone pass to confirm the iOS-specific offline (SW eviction under airplane mode) + import (Files/share-sheet picker) legs — see 10-HUMAN-UAT.md ## Gaps.
+- v1.1 milestone complete, archived, and tagged (`v1.1`). Both v1.0 and v1.1 shipped; the app is show-ready for the first show (late Aug/Sep 2026).
+- No milestone in progress. To start the next one: `/clear` then `/gsd-new-milestone` (v2 backlog in PROJECT.md ## Next Milestone — set-position signal, album-genre experiment, Explore era-slider, shared setlists, + 3 carried UI todos).
+- Push the tag when ready: `git push origin v1.1` (asked at close; push separately if declined).

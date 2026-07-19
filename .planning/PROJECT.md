@@ -14,17 +14,18 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 
 **v1.1 COMPLETE (2026-07-18)** — Phases 8 (On-Device UI Polish & Accessibility), 9 (Data Integrity & Restore UX), and 10 (Pre-Show Validation & Device Dry-Run) all complete. Phase 9 threads `shownotes` verbatim through normalization (DATA-06, corpus regenerated for all 738 shows with a byte-identical archive proof) and hardens the own-backup restore path (PWA-05). Phase 10 closed the pre-show trust gates: VALID-01 — the owner tuning-tag spot-check confirmed the 12 canonical anchors and re-tagged the 9 *Infest the Rats' Nest* tracks to cs-standard with a zero-regression backtest; VALID-02 — the full show loop (start → predict → log → set break → encore → End Show → recap → dex credit) passed a real-device iPhone rehearsal, with three in-phase fixes/enhancements caught during the dry-run (SuggestionStrip sizing, FAB lift, and a per-show recap share card). The offline airplane-mode leg and JSON export/import round-trip were completed on-device on iPhone (over a cloudflared HTTPS tunnel, 2026-07-19) — VALID-02 is a clean full on-device pass with no open gaps. The app is ready for the first show (late Aug/Sep 2026).
 
-## Current Milestone: v1.1 Polish & Pre-Show Hardening
+## Next Milestone
 
-**Goal:** Close the v1.0 audit's non-blocking gaps and prove the app show-ready on real hardware before show #1 (late Aug/Sep 2026).
+**No milestone in progress.** v1.0 MVP (Phases 1–7) and v1.1 Polish & Pre-Show Hardening (Phases 8–10) are both shipped and archived. The app is show-ready for the first show (late Aug/Sep 2026).
 
-**Target features:**
-- On-device Show-Mode UI polish — orb/center song-name legibility; verify & close the FAB-consolidation and once-per-version InstallBanner todos (both implemented in Phase 6, D-20/D-22)
-- Accessibility — Escape/keyboard dismissal + focus management on every sheet/dialog; fix NodeSheet occluding the FilterFab and the resize-while-focused camera snap
-- Data integrity — carry `shownotes` through normalization per SCHEMA.md §12 (with a survival test); polish the own-backup restore name-match path (PWA-05)
-- Pre-show validation — owner tuning-tag spot-check (DATA-04); a full real-device dry-run of the show loop (Android if available)
-
-**Key context:** Small, low-risk hardening milestone — no new user-facing features. Deferred v2 work (set-position signal, album-genre experiment, Explore era-slider, shared setlists) is out of scope for v1.1 and remains in the v2 backlog.
+**v2 backlog (scope via `/gsd-new-milestone`):**
+- Set-position awareness (opener/closer/encore distributions) as a scoring signal — set-structure data already captured in v1 (MODL-V2-01)
+- Album-as-genre-proxy affinity experiment — only if it beats tuning-family backoff in backtest (MODL-V2-02)
+- Tease/jam-notation awareness beyond segue pairs — needs schema evidence first (MODL-V2-03)
+- Explore era slider (2010 → present) scrubbing the constellation through time (EXPL-V2-01)
+- Real-time shared setlist state between friends during shows — reopens the "no backend" constraint (SOCL-V2-01)
+- Non-blocking UI ideas carried from v1.1: directional-flow edge particles, unified bottom-sheet animation, app-wide "Mon D, YYYY" date format
+- iOS <18.4 Wake Lock fallback path — exercise on-device if a pre-18.4 device becomes available (unit-covered today)
 
 ## Requirements
 
@@ -155,6 +156,10 @@ _All v1.0 requirements shipped and validated above. The items below are delibera
 | Pokédex counts derived, never hand-tallied | Attendance marking is the single source of truth; sighting counts computed from it | ✓ Validated v1.0 (Phase 6) — `deriveDex` is the single derivation entry point; unmark is free, friend files get full stats, nothing stored |
 | Schema verification before extraction code | Segue notation/set delimiting must be documented empirically, not assumed | Validated Phase 1 — `docs/SCHEMA.md` committed before any normalize/extraction code existed (git history confirms ordering) |
 | Show-#1 bar = MVP features 1–4 | Full Show Mode loop incl. live sync; Explore Mode may ship after show #1 but matrix feeds it from day one | ✓ Validated v1.0 — all 7 phases shipped before show #1; Explore + Dex fed from the same frozen matrix, no data-loss risk |
+| One shared `<Sheet>` primitive for a11y | Escape/focus-trap/focus-restore must be consistent across all 7 dialog surfaces; ad-hoc per-sheet handling drifts | ✓ Validated v1.1 (Phase 8) — portal-to-body `<Sheet>` + LIFO `dialogStack` + `config.ui.z` tier scale; verified with VoiceOver + external keyboard on iOS |
+| `shownotes` carried through normalization now, not later | A future show-prose feature would otherwise force a full re-normalize; carry-tolerant vs fail-loud split keeps prose non-fatal | ✓ Validated v1.1 (Phase 9, DATA-06) — verbatim carry on all 738 shows, survival test, byte-stable downstream artifacts; resolves audit WR-01 |
+| Tuning tags are a weak signal — re-tag freely, trust the backtest | VALID-01 spot-check found 9 mis-tagged *Infest* tracks; the model must prove any tag change is safe | ✓ Validated v1.1 (Phase 10) — 9 tracks re-tagged standard→cs-standard, backtest top-k Δ≈0 (zero regression); confirms tuning affinity lives only in the sparse-data backoff tier |
+| Prove show-readiness on real hardware before show #1 | A live-venue tool can't be trusted from unit tests alone; iOS PWA quirks need device confirmation | ✓ Validated v1.1 (Phase 10, VALID-02) — full show loop + offline airplane-mode leg + export/import round-trip passed on iPhone over a cloudflared HTTPS tunnel; Android waived (no device, D-06) |
 
 ## Evolution
 
@@ -174,4 +179,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-19 after Phase 10 (Pre-Show Validation & Device Dry-Run) — VALID-01 + VALID-02 fully validated (owner tuning spot-check + complete real-device iPhone show-loop rehearsal incl. the offline airplane-mode + export/import legs), 587 tests green. This closes the v1.1 "Polish & Pre-Show Hardening" milestone; no open gaps.*
+*Last updated: 2026-07-19 after the v1.1 "Polish & Pre-Show Hardening" milestone close — Phases 8–10 shipped and archived (12 plans, 9/9 requirements validated, 587 tests green). Both v1.0 MVP and v1.1 are complete; the app is show-ready. No milestone in progress — scope v2 with `/gsd-new-milestone`.*
