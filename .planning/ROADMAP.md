@@ -105,8 +105,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
   2. The screen wake lock is reliably released after End Show even when release races an in-flight acquire (UX-02).
   3. Fill-hints name the correct song even after skipped or deleted trail entries — no off-by-N (UX-03).
   4. The constellation keeps the user's pan/zoom across container resizes (address-bar collapse, orientation) instead of snapping to fit-all (UX-04).
-
-**Plans**: 4 plans, 1 wave (independent fixes, parallel-eligible)
+**Plans**: 4 plans, 1 wave (independent fixes, parallel-eligible)
 
   - [ ] 13-01-PLAN.md — UX-01: delete the doubled top safe-area inset (styles.css); audit all 7 top surfaces; document RecapView +24px; author consolidated device-UAT checklist
   - [ ] 13-02-PLAN.md — UX-02: post-await showActive re-check in acquireWakeLock so a late-resolving lock is released, not orphaned (+ jsdom race regression test)

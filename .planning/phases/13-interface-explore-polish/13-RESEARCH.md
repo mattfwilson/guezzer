@@ -484,18 +484,25 @@ No threat-model changes; no new dependencies to audit.
 | A6 | RecapView's `+24px` is intentional breathing room, not a bug | UX-01 | LOW — planning decides; normalizing changes recap layout |
 | A7 | `FOCUS_OFFSCREEN_MARGIN_PX` is the only genuinely new config constant needed (re-center reuses `FOCUS_CAMERA_DURATION_MS`, pans at current zoom) | UX-04 | LOW — value is device-tunable like its `explore` peers |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All three resolved during planning (2026-07-19); decisions are locked in the plans cited below.
 
 1. **RecapView `+24px` normalization** — leave as deliberate exception or normalize to `+12px`?
    - Known: it will sit 12px lower than the other six headers after the fix.
    - Recommendation: leave `+24px` and add a one-line comment marking it intentional, unless the
      owner wants pixel-identical headers.
+   - **RESOLVED (13-01):** leave `+24px` as an intentional exception, mark with a code comment; do
+     not normalize (smallest-hardening posture, within D-01 discretion).
 2. **UX-02 rapid-restart residual** — accept & document, or add the 3-line epoch token?
    - Recommendation: accept for the smallest-hardening posture; note the token as a cheap upgrade
      if planning wants zero residual.
+   - **RESOLVED (13-02):** accept & document; D-02 boolean re-check only, no epoch token.
 3. **UX-04 re-center: pan-only vs re-zoom** — preserve the user's zoom on re-center, or snap to
    `FOCUS_ZOOM_K`?
    - Recommendation: pan-only (smallest intervention; the camera belongs to the user).
+   - **RESOLVED (13-04):** pan-only at current zoom, reusing `FOCUS_CAMERA_DURATION_MS`; no re-zoom
+     constant added.
 
 ## Sources
 

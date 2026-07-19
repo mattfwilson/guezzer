@@ -1,10 +1,11 @@
 ---
 phase: 13
 slug: interface-explore-polish
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-07-19
+finalized: 2026-07-19
 ---
 
 # Phase 13 — Validation Strategy
@@ -38,8 +39,8 @@ created: 2026-07-19
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 13-XX-XX | XX | 1 | UX-03 | — | Fill-hint never names wrong song; suppress on ambiguity | unit | `npx vitest run --project core suggest` | ✅ | ⬜ pending |
-| 13-XX-XX | XX | 1 | UX-02 | — | Wake lock released when release races in-flight acquire | unit (jsdom) | `npx vitest run --project app wakeLock` | ✅ | ⬜ pending |
+| 13-03-02 | 13-03 | 1 | UX-03 | — | Fill-hint never names wrong song; suppress on ambiguity | unit | `npx vitest run --project core suggest` | ✅ | ⬜ pending |
+| 13-02-02 | 13-02 | 1 | UX-02 | — | Wake lock released when release races in-flight acquire | unit (jsdom) | `npx vitest run --project app wakeLock` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -63,11 +64,11 @@ created: 2026-07-19
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (zero Wave 0 gaps — both test files exist)
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-07-19 (plan-checker VERIFICATION PASSED — Dimension 8 all green)
