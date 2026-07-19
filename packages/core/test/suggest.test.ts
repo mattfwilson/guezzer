@@ -3,7 +3,9 @@ import latestSample from "../../../data/samples/latest.sample.json" with { type:
 import type { LatestSetlistRow } from "../src/ingest/latest-types.ts";
 import {
   diffLatestAgainstTrail,
+  guardLatestRows,
   resolvePlaceholders,
+  type TonightGuardInput,
   type TrailEntryInput,
 } from "../src/live/suggest.ts";
 
@@ -112,6 +114,63 @@ describe("diffLatestAgainstTrail (SYNC-02 / D-02)", () => {
       position: 1,
       setnumber: "2",
     });
+  });
+});
+
+describe("guardLatestRows — tonight/show guard (LIVE-01)", () => {
+  it("bound show: keeps only rows whose show_id matches guard.showId, drops the rest (D-09)", () => {
+    const rows = [
+      row({ song_id: 100, show_id: 555, position: 1 }),
+      row({ song_id: 200, show_id: 999, position: 2 }), // previous-night cached row
+      row({ song_id: 300, show_id: 555, position: 3 }),
+    ];
+    const guard: TonightGuardInput = { showId: 555, date: "2026-08-14" };
+    const kept = guardLatestRows(rows, guard);
+    expect(kept.map((r) => r.song_id)).toEqual([100, 300]);
+    expect(kept.every((r) => r.show_id === 555)).toBe(true);
+  });
+
+  it("bound show: a previous-night row (different show_id) is dropped even if its date matches", () => {
+    const rows = [
+      row({ song_id: 100, show_id: 555, showdate: "2026-08-14", position: 1 }),
+      row({ song_id: 200, show_id: 888, showdate: "2026-08-14", position: 2 }),
+    ];
+    const kept = guardLatestRows(rows, { showId: 555, date: "2026-08-14" });
+    expect(kept.map((r) => r.song_id)).toEqual([100]);
+  });
+
+  it("unbound show: keeps only rows whose showdate equals the show's OWN date, drops the rest", () => {
+    const rows = [
+      row({ song_id: 100, showdate: "2026-08-14", position: 1 }),
+      row({ song_id: 200, showdate: "2026-08-13", position: 2 }), // yesterday's cached latest
+      row({ song_id: 300, showdate: "2026-08-14", position: 3 }),
+    ];
+    const guard: TonightGuardInput = { showId: null, date: "2026-08-14" };
+    const kept = guardLatestRows(rows, guard);
+    expect(kept.map((r) => r.song_id)).toEqual([100, 300]);
+  });
+
+  it("past-midnight: a row whose showdate is the show's own date is retained (never wall-clock, D-10)", () => {
+    // Wall-clock "today" has rolled to the 15th, but the show's stored date is
+    // the 14th — the guard keys off the show's OWN date, so the row survives.
+    const rows = [row({ song_id: 100, showdate: "2026-08-14", position: 1 })];
+    const kept = guardLatestRows(rows, { showId: null, date: "2026-08-14" });
+    expect(kept.map((r) => r.song_id)).toEqual([100]);
+  });
+
+  it("empty input → empty output, no throw", () => {
+    expect(guardLatestRows([], { showId: 1, date: "2026-08-14" })).toEqual([]);
+    expect(guardLatestRows([], { showId: null, date: "2026-08-14" })).toEqual([]);
+  });
+
+  it("does not sort — preserves input order of the kept rows", () => {
+    const rows = [
+      row({ song_id: 300, show_id: 555, position: 3 }),
+      row({ song_id: 100, show_id: 555, position: 1 }),
+      row({ song_id: 200, show_id: 555, position: 2 }),
+    ];
+    const kept = guardLatestRows(rows, { showId: 555, date: "2026-08-14" });
+    expect(kept.map((r) => r.song_id)).toEqual([300, 100, 200]);
   });
 });
 
