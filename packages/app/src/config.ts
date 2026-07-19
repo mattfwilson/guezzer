@@ -219,8 +219,17 @@ export const config = {
 
   /** Phase-5 UI geometry (05-UI-SPEC §Config surface). */
   ui: {
-    /** Fixed SuggestionStrip slot height in px so the orbit never re-lays-out (SHOW-02 preservation). */
-    SUGGESTION_STRIP_HEIGHT: 56,
+    /**
+     * Fixed SuggestionStrip slot height in px so the orbit never re-lays-out
+     * (SHOW-02 preservation). MUST hold `live.SUGGESTION_COUNT` rows without
+     * clipping: each StripRow is `min-h-11` (44px), so 2 rows need ~88px — the
+     * old 56px (sized for 1 row) clipped the 2nd suggestion against the tab bar
+     * (VALID-02 device dry-run, D-09). 112px = 2 rows with calm vertical
+     * breathing room; rarer suggestion+fill-hint overflow scrolls inside the
+     * slot (`overflow-y-auto`) rather than clipping, so the fixed height — and
+     * the no-relayout invariant — is preserved.
+     */
+    SUGGESTION_STRIP_HEIGHT: 112,
     /** SyncDot glyph diameter in px (online = filled, offline = hollow ring). */
     SYNC_DOT_DIAMETER: 8,
     /** Phase-6 D-20: collapsed Show-Mode FAB diameter in px (≥44px hit floor cleared). */

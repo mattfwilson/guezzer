@@ -139,7 +139,7 @@ export function SuggestionStrip({
     // orb centers and there's no bar. Visible chrome (border/bg) only when there's
     // actual content — an empty reserved slot is invisible calm space, not a bar.
     <div
-      className={`flex shrink-0 flex-col justify-center overflow-hidden ${
+      className={`flex shrink-0 flex-col justify-center overflow-y-auto ${
         hasContent ? "border-t border-hairline bg-elevated" : ""
       }`}
       style={{
