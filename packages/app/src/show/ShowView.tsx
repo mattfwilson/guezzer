@@ -30,6 +30,7 @@ import { useReducedMotion } from "motion/react";
 import {
   bindShowFromLatest,
   diffLatestAgainstTrail,
+  guardLatestRows,
   resolvePlaceholders,
   type FillHint,
   type LatestSetlistRow,
@@ -152,14 +153,40 @@ export function ShowView() {
     </div>
   );
 
-  // ── Live sync (Plan 05-04) ─────────────────────────────────────────────────
+  // ── Live sync (Plan 05-04, LIVE-01/LIVE-03 in 11-04) ───────────────────────
   // The one poll timer is owned here: gated on active-show + online + visible
-  // (SYNC-01/SYNC-03), it write-throughs the raw latest rows into local state.
-  // Mounted UNCONDITIONALLY above the early returns (same discipline as the
-  // wake-lock effect) so hook order never changes across the show lifecycle.
+  // (SYNC-01/SYNC-03), it write-throughs the whole PollResult — rows + the
+  // LIVE-03 drift signal — into local state. Mounted UNCONDITIONALLY above the
+  // early returns (same discipline as the wake-lock effect) so hook order never
+  // changes across the show lifecycle.
   const [latestRows, setLatestRows] = useState<LatestSetlistRow[]>([]);
+  const [schemaDrift, setSchemaDrift] = useState(false);
+  const [novelKeys, setNovelKeys] = useState<string[] | undefined>(undefined);
   const online = useOnlineStatus();
-  useLatestPoll(session.active, setLatestRows);
+  useLatestPoll(session.active, (result) => {
+    setLatestRows(result.rows);
+    // LIVE-03 (D-06): surface the additive-key drift as a quiet amber SyncDot
+    // state — never swallowed, never blocking. Key NAMES only cross this seam.
+    setSchemaDrift(result.schemaDrift);
+    setNovelKeys(result.novelKeys);
+  });
+
+  // LIVE-01: guard the raw latest rows ONCE at ingress — drop a cached
+  // previous-night payload (bound show → show_id identity; unbound → the show's
+  // OWN stored date, past-midnight-safe) BEFORE it can reach any consumer. This
+  // is the single-filter ingress point (RESEARCH anti-pattern: never re-filter
+  // per consumer); `diffLatestAgainstTrail`, `resolvePlaceholders`, and
+  // `bindShowFromLatest` all read `guardedRows`, never `latestRows`.
+  const guardedRows = useMemo(
+    () =>
+      session.active
+        ? guardLatestRows(latestRows, {
+            showId: session.active.showId,
+            date: session.active.date,
+          })
+        : latestRows,
+    [latestRows, session.active?.showId, session.active?.date],
+  );
 
   // Dismissed advisory rows (by song id) — non-destructive, local-only (SYNC-02).
   const [dismissedIds, setDismissedIds] = useState<Set<number>>(new Set());
@@ -180,16 +207,16 @@ export function ShowView() {
   const suggestions = useMemo(
     () =>
       diffLatestAgainstTrail(
-        latestRows,
+        guardedRows,
         session.entries,
         config.live.SUGGESTION_COUNT,
         dismissedIds,
       ),
-    [latestRows, session.entries, dismissedIds],
+    [guardedRows, session.entries, dismissedIds],
   );
   const fillHints = useMemo(
-    () => resolvePlaceholders(latestRows, session.entries),
-    [latestRows, session.entries],
+    () => resolvePlaceholders(guardedRows, session.entries),
+    [guardedRows, session.entries],
   );
 
   // D-07 guarded auto-bind: after a poll, if the show is unbound AND latest's
@@ -199,9 +226,9 @@ export function ShowView() {
   useEffect(() => {
     if (!activeShow) return;
     if (activeShow.showId !== null) return;
-    const binding = bindShowFromLatest(latestRows, activeShow, activeShow.date);
+    const binding = bindShowFromLatest(guardedRows, activeShow, activeShow.date);
     if (binding) void bindShow(activeShow.sessionId, binding);
-  }, [latestRows, activeShow]);
+  }, [guardedRows, activeShow]);
 
   // Hold a screen wake lock while a show is active (SHOW-12); reacquire on
   // return-to-visible is handled inside wakeLock.ts. The effect runs before the
@@ -399,7 +426,7 @@ export function ShowView() {
           {/* Quiet online/offline indicator (D-08) — passive, next to the tally.
               End Show moved into the FAB speed-dial (last item) — the header now
               carries only passive status (SyncDot + tally). */}
-          <SyncDot online={online} />
+          <SyncDot online={online} schemaDrift={schemaDrift} novelKeys={novelKeys} />
           <TallyReadout tally={session.tally} />
         </div>
       </div>

@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   bindShowFromLatest,
   diffLatestAgainstTrail,
+  guardLatestRows,
+  resolvePlaceholders,
   type LatestSetlistRow,
 } from "@guezzer/core";
 import {
@@ -118,6 +120,45 @@ describe("live-sync adopt + bind wiring (SYNC-02 / D-02 / D-07)", () => {
     const after = diffLatestAgainstTrail(latestRows, await trail(sessionId), 2);
     expect(after.map((s) => s.songId)).not.toContain(101);
     expect(after.map((s) => s.songId)).toContain(102);
+  });
+
+  it("guard: a previous-night cached latest row cannot leak into tonight's suggestions or fill-hints (LIVE-01)", async () => {
+    const { sessionId } = await startShow();
+    const showDate = "2026-07-14";
+    // Tonight's editor row (matches the show's OWN date) + a stale row still
+    // cached from a previous show under a different show_id/showdate (the D-09
+    // night-2-of-a-run leak this guard exists to stop).
+    const tonightRow = latestRow({
+      show_id: 555,
+      showdate: showDate,
+      song_id: 101,
+      songname: "Rattlesnake",
+      position: 1,
+    });
+    const staleRow = latestRow({
+      show_id: 554,
+      showdate: "2026-07-13",
+      song_id: 999,
+      songname: "Yesterday's Closer",
+      position: 2,
+    });
+
+    // ShowView's single ingress guard: unbound show (showId null) → keep only
+    // rows on the show's own date, applied ONCE before every consumer.
+    const guarded = guardLatestRows([tonightRow, staleRow], {
+      showId: null,
+      date: showDate,
+    });
+    expect(guarded.map((r) => r.song_id)).toEqual([101]);
+
+    // Suggestions derive from the guarded rows → the stale song is never offered.
+    const suggestions = diffLatestAgainstTrail(guarded, await trail(sessionId), 5);
+    expect(suggestions.map((s) => s.songId)).toContain(101);
+    expect(suggestions.map((s) => s.songId)).not.toContain(999);
+
+    // Fill-hints read the SAME guarded rows → no stale position-2 hint either.
+    const hints = resolvePlaceholders(guarded, await trail(sessionId));
+    expect(hints.map((h) => h.songId)).not.toContain(999);
   });
 
   it("bind: auto-binds an unbound show only when latest's date matches (D-07)", async () => {
