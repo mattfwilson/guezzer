@@ -249,7 +249,11 @@ function clamp(value: number, min: number, max: number): number {
  * Pitfall "Hard-zeros anywhere").
  */
 export function rotationSuppression(B: number, ctx: ShowContext, cfg: ScoringConfig): number {
-  const window = ctx.recentShowSongSets.slice(-cfg.rotationWindowShows);
+  // CR-01 / PRED-03: recentShowSongSets is NEWEST-FIRST (currentRunShowSets,
+  // run-grouping.ts:45,66), so the most-recent `rotationWindowShows` shows are
+  // at the FRONT of the array — slice(0, N), never slice(-N) (which would take
+  // the OLDEST N and invert recency on any run longer than the window).
+  const window = ctx.recentShowSongSets.slice(0, cfg.rotationWindowShows);
   const timesPlayed = window.filter((songSet) => songSet.includes(B)).length;
   return Math.pow(cfg.rotationPenaltyPerShow, timesPlayed);
 }

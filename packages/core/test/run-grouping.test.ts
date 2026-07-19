@@ -106,4 +106,34 @@ describe("currentRunShowSets (PRED-01/PRED-03, D-02/D-03/D-04)", () => {
     // Never a hard zero (no exclusion), matching MODL-06 intent.
     expect(playedEveryNight).toBeGreaterThan(0);
   });
+
+  it("CR-01/PRED-03: rotation window takes the MOST-RECENT rotationWindowShows nights, not the oldest", () => {
+    // Regression guard for the slice-direction defect (CR-01). currentRunShowSets
+    // is NEWEST-FIRST, so rotationSuppression must slice(0, N) (front = newest),
+    // NOT slice(-N) (tail = oldest). This only bites when the run is LONGER than
+    // rotationWindowShows (default 3), so build a continuous 5-night residency
+    // where slice(0,3) and slice(-3) select disjoint windows.
+    const finalized = [
+      show("2026-08-11", [800, 900]), // oldest — OUTSIDE the newest-3 window
+      show("2026-08-12", [800, 900]), // oldest — OUTSIDE the newest-3 window
+      show("2026-08-13", [900]),
+      show("2026-08-14", [900]),
+      show("2026-08-15", [700, 900]), // newest — INSIDE the newest-3 window
+    ];
+    const recentShowSongSets = currentRunShowSets(finalized, "2026-08-16", CFG);
+    // Full 5-night run, newest-first: [15, 14, 13, 12, 11].
+    expect(recentShowSongSets).toEqual([[700, 900], [900], [900], [800, 900], [800, 900]]);
+
+    const ctx: ShowContext = { currentSongId: 500, trail: [], recentShowSongSets };
+
+    // 700 played ONLY on the most-recent night (15) → inside slice(0,3) → suppressed.
+    // Under the old slice(-3) window {13,12,11} it would be absent → factor 1 → this fails.
+    const recentSong = rotationSuppression(700, ctx, config);
+    expect(recentSong).toBeLessThan(1);
+
+    // 800 played ONLY on the two OLDEST nights (11,12) → outside slice(0,3) → NOT suppressed.
+    // Under the old slice(-3) window {13,12,11} it would appear twice → factor 0.25 → this fails.
+    const staleSong = rotationSuppression(800, ctx, config);
+    expect(staleSong).toBe(1);
+  });
 });
