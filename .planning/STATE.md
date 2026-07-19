@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** No milestone in progress — scope v2 with `/gsd-new-milestone`. App is show-ready.
+**Current focus:** v1.2 scoped (not yet started) — Pre-Show Hardening: 13 bug fixes (Tier 1→3, first) + Gizz Bingo (after). See `.planning/notes/v1.2-scope-triage.md`. Run `/gsd-new-milestone` to formalize. App is show-ready; first show Aug 14, 2026.
 
 ## Current Position
 
