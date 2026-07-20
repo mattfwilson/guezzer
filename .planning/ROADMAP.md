@@ -126,7 +126,16 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
   3. A seeded deal always produces a complete 4×4 card (never blank), and the same seed reproduces an identical card. The v1 auto-mark catalog is opener + microtonal + marathon-jam + bust-out + never-caught + album-membership + song squares — **"segue" is excluded** (not trail-derivable; `TrackedEntry` is song-level).
   4. The Monte-Carlo calibration CLI reports P(line) / P(blackout) / dark-square share per vibe over the 241-show corpus, enforces a per-square fire-rate floor, and writes the locked constants to config (GATE 2 cleared — the Bingo equivalent of the backtest trust gate).
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 14-01-PLAN.md — Foundations: BingoCard contract + zod schema, string-seeded PRNG (xmur3/mulberry32), config.bingo scaffold
+- [ ] 14-02-PLAN.md — buildBingoContext (shipped-artifact lookups) + detectWins (4×4 geometry) + shared fixtures
+- [ ] 14-03-PLAN.md — deriveMarks consume-once fold + live==replay==catch-up / tie-break tests (load-bearing)
+- [ ] 14-04-PLAN.md — deal seeded card generator + same-seed / never-blank tests
+- [ ] 14-05-PLAN.md — bingo barrel exports + bingo-calibrate.ts Monte-Carlo report + hard-assert gate + --candidates mode
+- [ ] 14-06-PLAN.md — D-20 process: roster candidates → human sign-off checkpoint → lock constants (GATE 2 cleared)
+
 
 ### Phase 15: Gizz Bingo — Persistence, Lock & Replay
 
