@@ -42,7 +42,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 
 - [x] **Phase 11: Live-Sync & Prediction Correctness** — Tier-1 show-critical: no wrong-show/wrong-artist leakage, drift-tolerant sync, rotation suppression fires on night 2+ (LIVE-01/02/03, PRED-01/02/03) (completed 2026-07-19)
 - [x] **Phase 12: Data Safety & Integrity** — the exported backup is always honest and complete; same-date doubleheaders survive (SAFE-01/02/03/04) (completed 2026-07-19)
-- [ ] **Phase 13: Interface & Explore Polish** — safe-area inset, wake-lock release race, fill-hint accuracy, constellation camera (UX-01/02/03/04)
+- [x] **Phase 13: Interface & Explore Polish** — safe-area inset, wake-lock release race, fill-hint accuracy, constellation camera (UX-01/02/03/04) (completed 2026-07-20)
 - [ ] **Phase 14: Gizz Bingo — Core Marking & Generation** — deterministic consume-once `deriveMarks` fold + seeded generator, behind the calibration gate (BINGO-03)
 - [ ] **Phase 15: Gizz Bingo — Persistence, Lock & Replay** — Dexie v5 `bingoCards` + lock-on-Start-Show + export/import + catch-up + GizzDex replay (BINGO-06/07)
 - [ ] **Phase 16: Gizz Bingo — Build, Live Marking & Celebrations** — deal + vibe + swap + fill meter, "one away" tension, celebrations, share card (BINGO-01/02/04/05/08)
@@ -107,10 +107,10 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
   4. The constellation keeps the user's pan/zoom across container resizes (address-bar collapse, orientation) instead of snapping to fit-all (UX-04).
 **Plans**: 4 plans, 1 wave (independent fixes, parallel-eligible)
 
-  - [ ] 13-01-PLAN.md — UX-01: delete the doubled top safe-area inset (styles.css); audit all 7 top surfaces; document RecapView +24px; author consolidated device-UAT checklist
-  - [ ] 13-02-PLAN.md — UX-02: post-await showActive re-check in acquireWakeLock so a late-resolving lock is released, not orphaned (+ jsdom race regression test)
-  - [ ] 13-03-PLAN.md — UX-03: rewrite pure-core resolvePlaceholders to interval-count-match anchoring (correct-or-suppress, never off-by-N) + regression fixtures
-  - [ ] 13-04-PLAN.md — UX-04: first-settle ref gates constellation zoomToFit (camera survives resize) + off-screen focus pan re-center + FOCUS_OFFSCREEN_MARGIN_PX
+  - [x] 13-01-PLAN.md — UX-01: delete the doubled top safe-area inset (styles.css); audit all 7 top surfaces; document RecapView +24px; author consolidated device-UAT checklist
+  - [x] 13-02-PLAN.md — UX-02: post-await showActive re-check in acquireWakeLock so a late-resolving lock is released, not orphaned (+ jsdom race regression test)
+  - [x] 13-03-PLAN.md — UX-03: rewrite pure-core resolvePlaceholders to interval-count-match anchoring (correct-or-suppress, never off-by-N) + regression fixtures
+  - [x] 13-04-PLAN.md — UX-04: first-settle ref gates constellation zoomToFit (camera survives resize) + off-screen focus pan re-center + FOCUS_OFFSCREEN_MARGIN_PX
 
 **UI hint**: yes
 
@@ -175,7 +175,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 | 10. Pre-Show Validation & Device Dry-Run | v1.1 | 2/2 | Complete | 2026-07-18 |
 | 11. Live-Sync & Prediction Correctness | v1.2 | 5/5 | Complete    | 2026-07-19 |
 | 12. Data Safety & Integrity | v1.2 | 3/3 | Complete    | 2026-07-19 |
-| 13. Interface & Explore Polish | v1.2 | 0/— | Not started | - |
+| 13. Interface & Explore Polish | v1.2 | 4/4 | Complete   | 2026-07-20 |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 0/— | Not started | - |
 | 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 0/— | Not started | - |
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 0/— | Not started | - |
