@@ -31,10 +31,40 @@ build UX, live-marking surface, "one away" surfacing, celebrations, share card
 ### Vibes & win-rate calibration targets (locked to per-vibe config constants this phase)
 - **D-01:** Vibes shift **both** the square mix **and** the winnability targets — not one
   or the other. A vibe changes what's on the card *and* how likely it is to win.
-- **D-02:** Per-vibe **line** targets over a median 15-song show — **Chill ~82%**,
-  **Balanced ~70%**, **Glory-hunter ~50%**. Line = the common reward; blackout = the rare crown.
-- **D-03:** Per-vibe **blackout** targets — **Balanced ~2–5%** (rare crown), **Glory-hunter
-  ~5–10%** (roughly double Balanced). Chill blackout stays rare (not a Chill goal).
+- **D-02:** Per-vibe **line** targets over a median 15-song show — ~~**Chill ~82%**,
+  **Balanced ~70%**, **Glory-hunter ~50%**~~ (SUPERSEDED — see amendment below).
+  Line = the common reward; blackout = the rare crown.
+- **D-03:** Per-vibe **blackout** targets — ~~**Balanced ~2–5%** (rare crown), **Glory-hunter
+  ~5–10%** (roughly double Balanced)~~ (SUPERSEDED — see amendment below). Chill blackout
+  stays rare (not a Chill goal).
+
+> **AMENDMENT — D-02/D-03 retarget (2026-07-20, Plan 06 D-20 calibration).**
+> Authorized by the owner (Option 1) after the D-20 gate **proved the original
+> targets structurally unreachable** under D-11 consume-once single-show marking.
+> With exactly one mark per logged song over a median-15-song show, the engine's
+> real achievable ceiling is far below the originals and P(blackout) collapses to
+> ~0.00 in *every* reachable mix — no mix-weight assignment can close a 30–40-point
+> line gap or manufacture an unreachable blackout floor. The bands were retargeted
+> to the engine's **measured** range, preserving the **chill > balanced > glory**
+> ordering with meaningful separation, and the lock was finished against a
+> genuinely green gate (bingo-calibrate.ts exit 0).
+>
+> **Measured-ceiling evidence (mid-collection dex, 241 recent-era shows, 500 cards/vibe):**
+>
+> | Vibe | Orig. P(line) target (D-02) | Max achievable P(line) | Orig. P(blackout) target (D-03) | Max achievable P(blackout) |
+> |---|---|---|---|---|
+> | Chill | ~0.82 | ~0.42 | rare cap | ~0.00 |
+> | Balanced | ~0.70 | ~0.37 | 0.02–0.05 (floor) | ~0.00 |
+> | Glory-hunter | ~0.50 | ~0.22 | 0.05–0.10 (floor) | ~0.00 |
+>
+> **Retargeted bands (now LOCKED in `config.bingo.vibes`, gate-green):**
+> - **P(line)** (± 0.05 tolerance): **Chill 0.42**, **Balanced 0.35**, **Glory-hunter 0.20**.
+>   As measured at lock: chill 42.4% / balanced 32.4% / glory 19.9% — ordering + separation intact.
+> - **P(blackout)**: the balanced/glory **floors are REMOVED** (unreachable — the crown is never
+>   *mandatory*). Only a small **upper cap** remains per vibe (`blackoutMax`: chill 0.02,
+>   balanced 0.03, glory 0.05); measured ~0.00 clears all three.
+> - **D-05 unchanged and still enforced** — every reliable event/album square clears the ≥20%
+>   dark-floor in the gated run (bustOut + neverCaught EXEMPT, D-15).
 - **D-04:** **Glory-hunter** mix leans into bust-out + never-caught + rarer album/song
   squares — deliberately high-variance risk/reward (some nights a dud, some the supernova).
   The vibe pick is a real gamble, not just re-skinned squares.
