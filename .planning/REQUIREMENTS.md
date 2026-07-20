@@ -39,7 +39,7 @@ Milestone theme: harden the live-show-critical paths (live sync, prediction corr
 
 - [ ] **BINGO-01**: User can deal a 4×4 card in one tap with a vibe pick (Chill/Balanced/Glory-hunter) — never a blank grid.
 - [ ] **BINGO-02**: User can reshuffle the whole card and swap any individual square from suggestions (album/event cards with catchability hints, model-bucketed song chips, search), guided by a live expected-fill/difficulty meter, until Start Show locks the card.
-- [ ] **BINGO-03**: The locked card auto-marks itself (deterministic consume-once) as the show's setlist is logged — live in the GizzGames tab, with no manual daubing required.
+- [x] **BINGO-03**: The locked card auto-marks itself (deterministic consume-once) as the show's setlist is logged — live in the GizzGames tab, with no manual daubing required.
 - [ ] **BINGO-04**: User gets continuous "one away" feedback when a line is one square from completing.
 - [ ] **BINGO-05**: Completing a line / four-corners / X / blackout triggers a celebration (per-square stamps throughout; a big supernova on first line + blackout only), reduced-motion aware.
 - [ ] **BINGO-06**: User can "Catch me up" on a late-joined show (bulk-mark from the live `latest` feed) and manually mark/search squares the tracker missed.
@@ -87,7 +87,7 @@ Deferred to a later milestone (backlog unchanged in `.planning/todos/pending/`).
 | UX-02 | Phase 13 | Complete |
 | UX-03 | Phase 13 | Complete |
 | UX-04 | Phase 13 | Complete |
-| BINGO-03 | Phase 14 | Pending |
+| BINGO-03 | Phase 14 | Complete |
 | BINGO-06 | Phase 15 | Pending |
 | BINGO-07 | Phase 15 | Pending |
 | BINGO-01 | Phase 16 | Pending |
