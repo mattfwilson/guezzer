@@ -125,6 +125,10 @@ None. The empty rosters (`jamVehicleSongIds`, `albumSquarePool`) and the empty `
 - `bingoCardSchema` gives Phase-15 persistence a validated contract to reject malformed cards (T-14-01).
 - Roster values and per-vibe `mix` weights remain empty by design — Plan 06's calibration gate locks them.
 
+## Self-Check: PASSED
+
+All 5 created/modified files exist on disk; all 5 commits (822d908, a87b77e, f958124, d6f28b9, 0f77d5d) present in git log.
+
 ---
 *Phase: 14-gizz-bingo-core-marking-generation*
 *Completed: 2026-07-19*
