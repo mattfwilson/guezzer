@@ -183,6 +183,15 @@ export function ConstellationCanvas({
   // graphData, only a view change does — so the reset key is strictly [graphData]).
   const firstSettleRef = useRef(true);
 
+  // UX-04: remembers the (focusId, graphData) the focus-camera effect last FRAMED, so
+  // that effect can tell a genuine new-focus / view-switch (re-frame at FOCUS_ZOOM_K,
+  // unchanged behavior) apart from a pure container resize of the SAME focused node
+  // (pan-only, and only when the node has actually left the viewport).
+  const focusFrameKeyRef = useRef<{
+    focusId: number;
+    graphData: ConstellationData;
+  } | null>(null);
+
   // A11Y-03: the SAME shared visible-viewport source the NodeSheet peek + FAB lift
   // read. The container ResizeObserver already catches element-box resizes (address-
   // bar collapse, orientation, Android keyboard that reflows the layout box), but
@@ -342,7 +351,10 @@ export function ConstellationCanvas({
   // motion → instant jump (0ms). The on-load zoomToFit (onEngineStop) is untouched;
   // this only fires while a node is focused.
   useEffect(() => {
-    if (focusId == null) return;
+    if (focusId == null) {
+      focusFrameKeyRef.current = null;
+      return;
+    }
     const fg = fgRef.current;
     if (!fg) return;
     const node = graphData.nodes.find((n) => n.id === focusId) as
@@ -353,18 +365,46 @@ export function ConstellationCanvas({
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
     const ms = reduced ? 0 : config.explore.FOCUS_CAMERA_DURATION_MS;
-    const k = config.explore.FOCUS_ZOOM_K;
-    // Shift the viewport centre DOWN in world units so the node sits at
-    // FOCUS_TARGET_TOP_FRACTION from the top rather than dead-centre.
+
+    // Distinguish a genuine (re)frame — a new focus or a view switch (graphData) —
+    // from a pure container-resize re-run of the SAME focused node (UX-04). Only the
+    // latter is gated on the off-screen test; the former keeps the original behavior.
+    const prev = focusFrameKeyRef.current;
+    const isFreshFrame =
+      prev == null || prev.focusId !== focusId || prev.graphData !== graphData;
+    focusFrameKeyRef.current = { focusId, graphData };
+
+    if (isFreshFrame) {
+      // Initial focus / chain-hop (D-13/D-16, unchanged): frame at FOCUS_ZOOM_K with
+      // the node in the upper 60% (above the 40%-peek NodeSheet). `size.height` /
+      // `visibleViewportHeight` in the deps (A11Y-03) also re-issue this move on an
+      // iOS keyboard show/hide, which changes visualViewport but not the container box.
+      const k = config.explore.FOCUS_ZOOM_K;
+      const offsetWorld =
+        ((0.5 - config.explore.FOCUS_TARGET_TOP_FRACTION) * size.height) / k;
+      fg.zoom(k, ms);
+      fg.centerAt(node.x, node.y + offsetWorld, ms);
+      return;
+    }
+
+    // UX-04 resize path: a container resize (address-bar collapse / orientation /
+    // keyboard) re-ran this effect for the SAME focused node. The camera belongs to
+    // the user — do NOT reframe. Pan back ONLY if the node has actually left the
+    // viewport, and keep the user's CURRENT zoom `k` (pan-only, never FOCUS_ZOOM_K —
+    // Open Question 3 / Pitfall 5). A still-visible focus is left untouched.
+    const margin = config.explore.FOCUS_OFFSCREEN_MARGIN_PX;
+    const screen = fg.graph2ScreenCoords(node.x, node.y);
+    const offscreen =
+      screen.x < -margin ||
+      screen.y < -margin ||
+      screen.x > size.width + margin ||
+      screen.y > size.height + margin;
+    if (!offscreen) return;
+    const k = fg.zoom();
     const offsetWorld =
       ((0.5 - config.explore.FOCUS_TARGET_TOP_FRACTION) * size.height) / k;
-    fg.zoom(k, ms);
     fg.centerAt(node.x, node.y + offsetWorld, ms);
-    // `visibleViewportHeight` is in the deps (A11Y-03) so an iOS keyboard show/hide
-    // — which changes visualViewport but NOT the container box / `size.height` —
-    // still re-frames the focused node instead of leaving it snapped off. The frozen
-    // fx/fy layout is untouched (EXPL-06): this only re-issues the camera move.
-  }, [focusId, graphData, size.height, visibleViewportHeight]);
+  }, [focusId, graphData, size.width, size.height, visibleViewportHeight]);
 
   const nodeCanvasObject = (
     node: FgNode,

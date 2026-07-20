@@ -14,9 +14,15 @@ import { ExploreFilterFab } from "../../src/explore/ExploreFilterFab.tsx";
 // A11Y-03 reframe harness: mock react-force-graph-2d so the imperative camera
 // methods (`zoom`/`centerAt`) are spies we can assert on. The FAB tests below do
 // NOT import ForceGraph2D, so this mock is inert for them.
-const { zoomSpy, centerAtSpy } = vi.hoisted(() => ({
-  zoomSpy: vi.fn(),
+const { zoomSpy, centerAtSpy, graph2ScreenCoordsSpy } = vi.hoisted(() => ({
+  // `zoom()` (no args) returns the CURRENT zoom the UX-04 resize path reads to
+  // pan at the user's chosen scale; as a setter (initial focus) the return is
+  // ignored. A constant keeps both call shapes valid.
+  zoomSpy: vi.fn((..._args: unknown[]) => 1),
   centerAtSpy: vi.fn(),
+  // UX-04 off-screen test source. Tests override the return to place the focused
+  // node inside or outside the viewport box.
+  graph2ScreenCoordsSpy: vi.fn(() => ({ x: 0, y: 0 })),
 }));
 
 vi.mock("react-force-graph-2d", async () => {
@@ -26,6 +32,7 @@ vi.mock("react-force-graph-2d", async () => {
       React.useImperativeHandle(ref, () => ({
         zoom: zoomSpy,
         centerAt: centerAtSpy,
+        graph2ScreenCoords: graph2ScreenCoordsSpy,
         zoomToFit: vi.fn(),
         // ConstellationCanvas reads these two forces (both optional-chained).
         d3Force: () => undefined,
@@ -164,6 +171,9 @@ describe("ConstellationCanvas reframe on viewport resize (A11Y-03)", () => {
     }
     zoomSpy.mockClear();
     centerAtSpy.mockClear();
+    // Default: focused node sits comfortably inside the 800×600 viewport box.
+    graph2ScreenCoordsSpy.mockReset();
+    graph2ScreenCoordsSpy.mockReturnValue({ x: 400, y: 300 });
   });
 
   afterEach(() => {
@@ -187,12 +197,15 @@ describe("ConstellationCanvas reframe on viewport resize (A11Y-03)", () => {
     links: [],
   } as unknown as ConstellationData;
 
-  it("re-invokes fg.zoom/fg.centerAt when the shared viewport height changes with a node focused", () => {
+  it("pans (at current zoom, no re-zoom) a focused node that a viewport change pushes off-screen (UX-04)", () => {
+    // The focused node lands OUTSIDE the 800×600 box after the resize.
+    graph2ScreenCoordsSpy.mockReturnValue({ x: 400, y: 5000 });
     render(
       <ConstellationCanvas graphData={graphData} focusId={1} onFocus={noop} />,
     );
 
-    // Initial focus reframed the node once (baseline sanity — the effect ran).
+    // Initial focus reframed the node once (baseline sanity — the effect ran with
+    // the full zoom-to-FOCUS_ZOOM_K frame; unchanged behavior).
     expect(zoomSpy).toHaveBeenCalled();
     expect(centerAtSpy).toHaveBeenCalled();
     zoomSpy.mockClear();
@@ -200,15 +213,38 @@ describe("ConstellationCanvas reframe on viewport resize (A11Y-03)", () => {
 
     // A visualViewport-only change: window.innerHeight shrinks (keyboard shows) and
     // fires `resize`. The container box (size.height) is UNCHANGED — the mock RO
-    // only fired on observe — so ONLY visibleViewportHeight moves. The reframe must
-    // still re-fire (A11Y-03: no snap-off).
+    // only fired on observe — so ONLY visibleViewportHeight moves. Because the
+    // focused node is now off-screen, UX-04 PANS it back (centerAt) but keeps the
+    // user's current zoom — no re-zoom to FOCUS_ZOOM_K (Open Question 3 / Pitfall 5).
     act(() => {
       window.innerHeight = Math.round(originalInnerHeight * 0.6);
       window.dispatchEvent(new Event("resize"));
     });
 
-    expect(zoomSpy).toHaveBeenCalled();
     expect(centerAtSpy).toHaveBeenCalled();
+    // Pan-only: the only `zoom` calls on the resize path are argument-less READS
+    // (`fg.zoom()`), never a `zoom(scale, ms)` re-zoom.
+    expect(zoomSpy.mock.calls.every((call) => call.length === 0)).toBe(true);
+  });
+
+  it("leaves a still-visible focused node untouched on a viewport change (the camera belongs to the user)", () => {
+    // Default mock keeps the focused node inside the 800×600 box.
+    render(
+      <ConstellationCanvas graphData={graphData} focusId={1} onFocus={noop} />,
+    );
+
+    // Consume the initial-focus frame, then assert the resize does NOT re-center.
+    zoomSpy.mockClear();
+    centerAtSpy.mockClear();
+
+    act(() => {
+      window.innerHeight = Math.round(originalInnerHeight * 0.6);
+      window.dispatchEvent(new Event("resize"));
+    });
+
+    // On-screen focus: UX-04 preserves the user's exact pan/zoom — no camera move.
+    expect(centerAtSpy).not.toHaveBeenCalled();
+    expect(zoomSpy.mock.calls.every((call) => call.length === 0)).toBe(true);
   });
 
   it("does not reframe when no node is focused", () => {
