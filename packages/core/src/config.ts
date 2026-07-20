@@ -347,4 +347,105 @@ export const config = {
      */
     BARS_TOP_N: 10,
   },
+
+  // --- Phase 14: Gizz-Bingo — pure-core marking & generation constants ---
+  // Every numeric value here is [ASSUMED] until the Plan 06 Monte-Carlo
+  // calibration gate (bingo-calibrate.ts) either confirms it or fails loudly
+  // and forces a change. The path keys mirror the backtest/census path-key
+  // idiom; the rosters (jamVehicleSongIds, albumSquarePool) ship EMPTY and are
+  // only populated at the D-20 owner checkpoint. Consumed by later plans in
+  // this phase, not yet by any pure fn — interface-first (D-16).
+  bingo: {
+    /** [ASSUMED] Human-readable calibration report, mirrors backtestReportPath. */
+    calibrationReportPath: "data/bingo-calibration-report.md",
+
+    /** [ASSUMED] Machine-readable calibration output, paired with calibrationReportPath. */
+    calibrationJsonPath: "data/bingo-calibration.json",
+
+    /** [ASSUMED] Owner-facing roster-candidate worksheet (D-20 checkpoint input). */
+    rosterCandidatesPath: "data/bingo-roster-candidates.md",
+
+    /**
+     * [ASSUMED] Board index of the pre-marked free center (0..15, row-major).
+     * One of the four center-ish cells {5,6,9,10} on a 4x4 grid (Open Item 1);
+     * 5 = row 1, col 1. Locked by the Plan 06 gate.
+     */
+    freeIndex: 5,
+
+    /**
+     * [ASSUMED] D-05: minimum fraction of a card's non-free squares that must be
+     * "dark" (low base-rate) so a card is never trivially all-likely. Tuned by
+     * the calibration gate against per-vibe fill-rate targets.
+     */
+    darkSquareFloor: 0.2,
+
+    /**
+     * [ASSUMED] Bust-out predicate threshold: a song is a bust-out candidate when
+     * its corpusGap (shows since last played) is >= this. Vetting floor is >=50;
+     * re-confirm in Plan 06.
+     */
+    bustOutGapShows: 50,
+
+    /** [ASSUMED] Monte-Carlo cards simulated per vibe in the calibration gate. */
+    simCardsPerVibe: 500,
+
+    /**
+     * D-08/D-09/D-10: total order over the seven square-kinds for the
+     * consume-once marking fold (lower rank wins a contested trail position;
+     * ties broken by lowest board index in mark.ts). song (0) is the most
+     * specific; neverCaught (1) — personal glory — outranks bustOut (2, D-09);
+     * the generic reliable events + album share the least-specific rank (3).
+     * Never inline these literals in mark.ts — always look them up here.
+     */
+    specificityRank: {
+      song: 0,
+      neverCaught: 1,
+      bustOut: 2,
+      opener: 3,
+      microtonal: 3,
+      marathonJam: 3,
+      album: 3,
+    },
+
+    /**
+     * D-05: events whose base rate is high enough to count as "reliable" (not
+     * dark). Album squares are also reliable (handled separately — album is not
+     * an event). Disjoint from gloryEvents.
+     */
+    reliableEvents: ["opener", "microtonal", "marathonJam"],
+
+    /**
+     * D-15: glory events exempt from the dark-square floor — they are SUPPOSED
+     * to be rare and thrilling. Disjoint from reliableEvents; together the two
+     * lists cover the full bingoEvent union.
+     */
+    gloryEvents: ["bustOut", "neverCaught"],
+
+    /**
+     * [ASSUMED] Marathon-jam vehicle song IDs. Ships EMPTY — populated only at
+     * the D-20 owner checkpoint (which songs count as jam vehicles is owner
+     * knowledge, not derivable).
+     */
+    jamVehicleSongIds: [] as number[],
+
+    /**
+     * [ASSUMED] Album-membership square pool (album_urls eligible as album
+     * squares). Ships EMPTY — populated at the D-20 checkpoint. DISTINCT from
+     * dex.cardAlbumUrls: the dex shelf and the bingo album-square pool are
+     * curated independently (RESEARCH §Config surface).
+     */
+    albumSquarePool: [] as string[],
+
+    /**
+     * D-02/D-03: per-vibe target bands the calibration gate asserts against.
+     * `line` = target P(at least one line) for a simulated card over the era;
+     * chill caps blackout with `blackoutMax`, balanced/glory pin a `[min,max]`
+     * blackout band. `mix` = square-kind mixture weights, filled by Plan 06.
+     */
+    vibes: {
+      chill: { line: 0.82, blackoutMax: 0.02, mix: {} },
+      balanced: { line: 0.7, blackout: [0.02, 0.05], mix: {} },
+      glory: { line: 0.5, blackout: [0.05, 0.1], mix: {} },
+    },
+  },
 } as const;
