@@ -498,12 +498,12 @@ export function deriveDex(snapshot, archive, albums, rarity, cfg = config): DexS
 | A6 | `deriveMarks` naming + `seed: string` field shape | Patterns / BingoCard | Low — internal naming/shape, no external contract yet (persistence is Phase 15) |
 | A7 | N=500–1000 cards/vibe gives stable Monte-Carlo estimates | Calibration | Low — SE formula backs it; bump N if report drifts across reruns |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **`freeIndex` on an even 4×4.** No true center; must pick one of {5,6,9,10}. Affects which diagonals/lines get the free boost. **Recommendation:** decide in the calibration step, hold constant; default 5 as a starting value. MEDIUM.
-2. **Never-caught dex assumption for calibration** (A3). The sim needs a personal-dex model. **Recommendation:** report empty-dex (edge) + mid-collection (gated); confirm the mid-collection definition with the user, since it materially affects the glory-vibe numbers. MEDIUM.
-3. **Placeholder policy** (A2). Skip null-songId entirely vs let it mark positional opener. **Recommendation:** skip entirely for v1; rename relights via re-derivation. Fixture-test both. LOW-MEDIUM.
-4. **corpusVersion source.** Use `corpus.generatedAt` or a dedicated version tag as the `corpusVersion` component of the seed string. **Recommendation:** `corpus.generatedAt` (already a frozen field), so a corpus refresh deterministically re-scopes new deals without touching locked historical cards. LOW.
+1. **`freeIndex` on an even 4×4.** No true center; must pick one of {5,6,9,10}. Affects which diagonals/lines get the free boost. **Recommendation:** decide in the calibration step, hold constant; default 5 as a starting value. MEDIUM. **RESOLVED:** default `freeIndex: 5` set in Plan 14-01 Task 3 (config.bingo, domain {5,6,9,10}); final value picked by the user at the Plan 14-06 Task 2 human checkpoint before constants lock.
+2. **Never-caught dex assumption for calibration** (A3). The sim needs a personal-dex model. **Recommendation:** report empty-dex (edge) + mid-collection (gated); confirm the mid-collection definition with the user, since it materially affects the glory-vibe numbers. MEDIUM. **RESOLVED:** dual dex model implemented in Plan 14-05 Task 2 (empty-dex reported/not gated, mid-collection ~50%-caught subset gated); the mid-collection definition is signed off by the user at the Plan 14-06 Task 2 human checkpoint before constants lock.
+3. **Placeholder policy** (A2). Skip null-songId entirely vs let it mark positional opener. **Recommendation:** skip entirely for v1; rename relights via re-derivation. Fixture-test both. LOW-MEDIUM. **RESOLVED:** skip-null policy implemented in Plan 14-03 (marking fold) and fixture-tested (BINGO-03 placeholder case).
+4. **corpusVersion source.** Use `corpus.generatedAt` or a dedicated version tag as the `corpusVersion` component of the seed string. **Recommendation:** `corpus.generatedAt` (already a frozen field), so a corpus refresh deterministically re-scopes new deals without touching locked historical cards. LOW. **RESOLVED:** `corpusVersion` is an explicit `deal` parameter (Plan 14-04 generate.ts) sourced from `corpus.generatedAt`, so the seed string is caller-supplied and deterministic.
 
 ## Environment Availability
 

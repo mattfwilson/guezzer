@@ -40,7 +40,7 @@ updated: 2026-07-20
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 14-01-01 | 01 | 1 | BINGO-03 | T-14-01 | zod strictObject BingoCard contract | unit/typecheck | `npx vitest run --project @guezzer/core config; npx tsc -p packages/core --noEmit` | ❌ W0 | ⬜ pending |
+| 14-01-01 | 01 | 1 | BINGO-03 | T-14-01 | zod strictObject BingoCard contract | typecheck | `npx tsc -p packages/core --noEmit` | ❌ W0 | ⬜ pending |
 | 14-01-02 | 01 | 1 | BINGO-03 | T-14-02 | pure non-crypto PRNG, no Math.random/Date.now | unit | `npx vitest run --project @guezzer/core bingo/prng` | ❌ W0 | ⬜ pending |
 | 14-01-03 | 01 | 1 | BINGO-03 | — | config.bingo total-order specificityRank | unit | `npx vitest run --project @guezzer/core config` | ❌ W0 | ⬜ pending |
 | 14-02-01 | 02 | 2 | BINGO-03 | T-14-03/04 | deterministic Map resolution, empty-roster safe | unit | `npx vitest run --project @guezzer/core bingo/context` | ❌ W0 | ⬜ pending |
