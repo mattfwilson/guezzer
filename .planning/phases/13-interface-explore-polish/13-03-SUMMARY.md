@@ -94,6 +94,11 @@ None - plan executed exactly as written.
 - UX-03 is fully automated (pure-core) — no device UAT item required per the plan.
 - Fill-hints in Show Mode now name the correct song after gaps or emit nothing; the app tier consumes `resolvePlaceholders` through the unchanged signature, so no app-side change is needed.
 
+## Self-Check: PASSED
+
+- Files verified present: `packages/core/src/live/suggest.ts`, `packages/core/test/suggest.test.ts`, `.planning/phases/13-interface-explore-polish/13-03-SUMMARY.md`
+- Commits verified in history: `192e07e` (test), `204c0bd` (feat), `b71dd41` (docs)
+
 ---
 *Phase: 13-interface-explore-polish*
 *Completed: 2026-07-19*
