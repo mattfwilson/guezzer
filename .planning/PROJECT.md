@@ -208,4 +208,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-19 — milestone v1.2 "Pre-Show Hardening" underway: Phase 12 (Data Safety & Integrity) COMPLETE — SAFE-01/02/03/04, 3/3 plans, verifier 4/4 must-haves, 627 tests green, 3 advisory code-review warnings (non-blocking), on-device UAT 3/3 passed on iPhone Safari. Phase 11 (Live-Sync & Prediction Correctness) previously complete. Next: Phase 13 (Interface & Explore Polish). v1.0 MVP and v1.1 shipped and archived; app is show-ready. First show Aug 14, 2026.*
+*Last updated: 2026-07-19 — milestone v1.2 "Pre-Show Hardening" underway: Phase 13 (Interface & Explore Polish) COMPLETE — UX-01/02/03/04, 4/4 plans, verifier 4/4 must-haves, 636 tests green, 3 advisory code-review warnings (non-blocking), on-device UAT 3/3 passed on iPhone. Phases 11 (Live-Sync & Prediction Correctness) and 12 (Data Safety & Integrity) previously complete. Next: Phase 14 (Gizz Bingo — Core Marking & Generation). v1.0 MVP and v1.1 shipped and archived; app is show-ready. First show Aug 14, 2026.*
