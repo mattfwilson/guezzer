@@ -19,7 +19,7 @@ created: 2026-07-19
 |----------|-------|
 | **Framework** | Vitest (core project, `environment: 'node'`) |
 | **Config file** | `vitest.config.ts` (root; `test.projects` includes `packages/*`) |
-| **Quick run command** | `npx vitest run packages/core/src/bingo` |
+| **Quick run command** | `npx vitest run bingo` (path-substring filter over `packages/core/test/bingo/`) |
 | **Full suite command** | `npx vitest run` |
 | **Estimated runtime** | ~10–30 seconds |
 
@@ -27,7 +27,7 @@ created: 2026-07-19
 
 ## Sampling Rate
 
-- **After every task commit:** Run `npx vitest run packages/core/src/bingo`
+- **After every task commit:** Run `npx vitest run bingo`
 - **After every plan wave:** Run `npx vitest run`
 - **Before `/gsd-verify-work`:** Full suite must be green + calibration CLI exits 0
 - **Max feedback latency:** 30 seconds
@@ -50,8 +50,8 @@ created: 2026-07-19
 
 ## Wave 0 Requirements
 
-- [ ] `packages/core/src/bingo/*.test.ts` — fold, generator, wins fixture + property test stubs for BINGO-03
-- [ ] `packages/core/src/bingo/__fixtures__/` — small headless fixture setlists with known expected marks
+- [ ] `packages/core/test/bingo/*.test.ts` — fold, generator, wins fixture + property test stubs for BINGO-03
+- [ ] `packages/core/test/fixtures/bingo/synthetic.ts` — small headless fixture setlists with known expected marks
 - [ ] Vitest already installed (core project configured) — no framework install needed
 
 *Existing Vitest infrastructure covers all phase requirements; only new bingo test files are added.*
