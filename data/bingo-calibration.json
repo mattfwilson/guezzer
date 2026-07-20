@@ -1,0 +1,296 @@
+{
+  "generatedAt": "2026-07-18T21:36:14.453Z",
+  "corpusVersion": "2026-07-18T21:36:14.453Z",
+  "showCount": 241,
+  "simCardsPerVibe": 500,
+  "assumptions": [
+    {
+      "assumption": "empty",
+      "gated": false,
+      "vibes": [
+        {
+          "vibe": "chill",
+          "cards": 500,
+          "shows": 241,
+          "trials": 120500,
+          "pLine": 0.4235103734439834,
+          "pBlackout": 0,
+          "pCorners": 0.03938589211618257,
+          "pX": 0.0031203319502074688,
+          "expectedMarks": {
+            "median": 8,
+            "mean": 7.890730290456432,
+            "min": 1,
+            "max": 13
+          },
+          "reliableSquares": [
+            {
+              "type": "album",
+              "trials": 120500,
+              "fires": 119097,
+              "fireRate": 0.988356846473029,
+              "darkShare": 0.011643153526970984
+            },
+            {
+              "type": "marathonJam",
+              "trials": 120500,
+              "fires": 81793,
+              "fireRate": 0.6787800829875519,
+              "darkShare": 0.3212199170124481
+            },
+            {
+              "type": "microtonal",
+              "trials": 118813,
+              "fires": 59923,
+              "fireRate": 0.504347167397507,
+              "darkShare": 0.49565283260249304
+            },
+            {
+              "type": "opener",
+              "trials": 120018,
+              "fires": 63759,
+              "fireRate": 0.5312453132030196,
+              "darkShare": 0.4687546867969804
+            }
+          ]
+        },
+        {
+          "vibe": "balanced",
+          "cards": 500,
+          "shows": 241,
+          "trials": 120500,
+          "pLine": 0.3726721991701245,
+          "pBlackout": 0,
+          "pCorners": 0.03491286307053942,
+          "pX": 0.0025311203319502073,
+          "expectedMarks": {
+            "median": 8,
+            "mean": 7.581385892116183,
+            "min": 1,
+            "max": 14
+          },
+          "reliableSquares": [
+            {
+              "type": "album",
+              "trials": 120500,
+              "fires": 116145,
+              "fireRate": 0.9638589211618257,
+              "darkShare": 0.0361410788381743
+            },
+            {
+              "type": "marathonJam",
+              "trials": 86278,
+              "fires": 54781,
+              "fireRate": 0.6349359048656668,
+              "darkShare": 0.36506409513433324
+            },
+            {
+              "type": "microtonal",
+              "trials": 85796,
+              "fires": 42318,
+              "fireRate": 0.4932397780782321,
+              "darkShare": 0.506760221921768
+            },
+            {
+              "type": "opener",
+              "trials": 80735,
+              "fires": 5316,
+              "fireRate": 0.06584504861584195,
+              "darkShare": 0.934154951384158
+            }
+          ]
+        },
+        {
+          "vibe": "glory",
+          "cards": 500,
+          "shows": 241,
+          "trials": 120500,
+          "pLine": 0.21707883817427387,
+          "pBlackout": 0,
+          "pCorners": 0.018315352697095437,
+          "pX": 0.0009211618257261411,
+          "expectedMarks": {
+            "median": 6,
+            "mean": 6.478290456431536,
+            "min": 2,
+            "max": 14
+          },
+          "reliableSquares": [
+            {
+              "type": "album",
+              "trials": 119777,
+              "fires": 100570,
+              "fireRate": 0.839643671155564,
+              "darkShare": 0.16035632884443596
+            },
+            {
+              "type": "marathonJam",
+              "trials": 108209,
+              "fires": 60925,
+              "fireRate": 0.5630308015044959,
+              "darkShare": 0.4369691984955041
+            },
+            {
+              "type": "microtonal",
+              "trials": 110378,
+              "fires": 60771,
+              "fireRate": 0.5505716718911378,
+              "darkShare": 0.44942832810886224
+            },
+            {
+              "type": "opener",
+              "trials": 108691,
+              "fires": 225,
+              "fireRate": 0.002070088599792071,
+              "darkShare": 0.9979299114002079
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "assumption": "mid-collection",
+      "gated": true,
+      "vibes": [
+        {
+          "vibe": "chill",
+          "cards": 500,
+          "shows": 241,
+          "trials": 120500,
+          "pLine": 0.4235103734439834,
+          "pBlackout": 0,
+          "pCorners": 0.03938589211618257,
+          "pX": 0.0031203319502074688,
+          "expectedMarks": {
+            "median": 8,
+            "mean": 7.890730290456432,
+            "min": 1,
+            "max": 13
+          },
+          "reliableSquares": [
+            {
+              "type": "album",
+              "trials": 120500,
+              "fires": 119097,
+              "fireRate": 0.988356846473029,
+              "darkShare": 0.011643153526970984
+            },
+            {
+              "type": "marathonJam",
+              "trials": 120500,
+              "fires": 81793,
+              "fireRate": 0.6787800829875519,
+              "darkShare": 0.3212199170124481
+            },
+            {
+              "type": "microtonal",
+              "trials": 118813,
+              "fires": 59923,
+              "fireRate": 0.504347167397507,
+              "darkShare": 0.49565283260249304
+            },
+            {
+              "type": "opener",
+              "trials": 120018,
+              "fires": 63759,
+              "fireRate": 0.5312453132030196,
+              "darkShare": 0.4687546867969804
+            }
+          ]
+        },
+        {
+          "vibe": "balanced",
+          "cards": 500,
+          "shows": 241,
+          "trials": 120500,
+          "pLine": 0.3236348547717842,
+          "pBlackout": 0,
+          "pCorners": 0.02908713692946058,
+          "pX": 0.0016846473029045643,
+          "expectedMarks": {
+            "median": 7,
+            "mean": 7.25903734439834,
+            "min": 1,
+            "max": 14
+          },
+          "reliableSquares": [
+            {
+              "type": "album",
+              "trials": 120500,
+              "fires": 116368,
+              "fireRate": 0.9657095435684647,
+              "darkShare": 0.03429045643153528
+            },
+            {
+              "type": "marathonJam",
+              "trials": 86278,
+              "fires": 57179,
+              "fireRate": 0.6627297804770625,
+              "darkShare": 0.33727021952293745
+            },
+            {
+              "type": "microtonal",
+              "trials": 85796,
+              "fires": 43704,
+              "fireRate": 0.50939437736025,
+              "darkShare": 0.49060562263975005
+            },
+            {
+              "type": "opener",
+              "trials": 80735,
+              "fires": 47423,
+              "fireRate": 0.5873908465968911,
+              "darkShare": 0.4126091534031089
+            }
+          ]
+        },
+        {
+          "vibe": "glory",
+          "cards": 500,
+          "shows": 241,
+          "trials": 120500,
+          "pLine": 0.19858921161825727,
+          "pBlackout": 0,
+          "pCorners": 0.013609958506224066,
+          "pX": 0.0005560165975103734,
+          "expectedMarks": {
+            "median": 6,
+            "mean": 6.246697095435684,
+            "min": 1,
+            "max": 14
+          },
+          "reliableSquares": [
+            {
+              "type": "album",
+              "trials": 119777,
+              "fires": 101719,
+              "fireRate": 0.849236497825125,
+              "darkShare": 0.150763502174875
+            },
+            {
+              "type": "marathonJam",
+              "trials": 108209,
+              "fires": 64469,
+              "fireRate": 0.5957822362280402,
+              "darkShare": 0.40421776377195984
+            },
+            {
+              "type": "microtonal",
+              "trials": 110378,
+              "fires": 61566,
+              "fireRate": 0.5577741941328888,
+              "darkShare": 0.44222580586711124
+            },
+            {
+              "type": "opener",
+              "trials": 108691,
+              "fires": 70710,
+              "fireRate": 0.6505598439613215,
+              "darkShare": 0.3494401560386785
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
