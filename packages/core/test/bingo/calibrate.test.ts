@@ -75,7 +75,9 @@ function greenResult(): CalibrationResult {
     shows: 4,
     trials: 40,
     pLine: config.bingo.vibes[v].line, // exactly on target — inside any tolerance
-    pBlackout: v === "chill" ? 0 : v === "balanced" ? 0.03 : 0.07,
+    // D-03 amendment: blackout is now UPPER-CAP-ONLY per vibe (no floor). Keep each
+    // value under its cap (chill 0.02 / balanced 0.03 / glory 0.05).
+    pBlackout: v === "chill" ? 0 : v === "balanced" ? 0.02 : 0.04,
     pCorners: 0.1,
     pX: 0.05,
     expectedMarks: { median: 6, mean: 6, min: 3, max: 9 },
@@ -167,7 +169,7 @@ describe("assertCalibrationInvariants — the D-02/D-03/D-05 hard gate", () => {
   it("flags a P(line) outside its per-vibe target band", () => {
     const broken = brokenClone();
     const mid = broken.assumptions.find((a) => a.assumption === "mid-collection")!;
-    mid.vibes[0].pLine = 0.1; // chill target is 0.82 — wildly off
+    mid.vibes[0].pLine = 0.1; // chill target is 0.42 (D-02 amendment) — wildly off
     const failures = assertCalibrationInvariants(broken, config);
     expect(failures.some((f) => /line/i.test(f))).toBe(true);
   });

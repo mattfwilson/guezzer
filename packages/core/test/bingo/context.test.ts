@@ -87,12 +87,24 @@ describe("buildBingoContext — resolve shipped artifacts into lookup Maps (D-25
     expect([...(albumMembers ?? [])]).toEqual([SONG_ALBUM]); // null track dropped
   });
 
-  it("builds jamVehicleSongIds from cfg (empty when the roster is empty)", () => {
-    // Default config ships an EMPTY roster (pre-Plan-06) — must not crash.
-    const empty = buildBingoContext(matrix, archive, rarity, albums);
-    expect(empty.jamVehicleSongIds.size).toBe(0);
+  it("builds jamVehicleSongIds from cfg (locked roster flows through; overridable)", () => {
+    // Default config now ships the Plan-06 D-20 locked roster (9 jam vehicles);
+    // buildBingoContext copies it straight into the lookup Set.
+    const locked = buildBingoContext(matrix, archive, rarity, albums);
+    expect(locked.jamVehicleSongIds.size).toBe(config.bingo.jamVehicleSongIds.length);
+    for (const songId of config.bingo.jamVehicleSongIds) {
+      expect(locked.jamVehicleSongIds.has(songId)).toBe(true);
+    }
 
-    // A populated roster flows straight through.
+    // An explicit roster override flows straight through (e.g. an empty roster
+    // must not crash — degrades to zero jam-vehicle squares).
+    const empty = {
+      ...config,
+      bingo: { ...config.bingo, jamVehicleSongIds: [] as number[] },
+    } as unknown as typeof config;
+    expect(buildBingoContext(matrix, archive, rarity, albums, empty).jamVehicleSongIds.size).toBe(0);
+
+    // A populated override roster flows straight through.
     const cfgWithRoster = {
       ...config,
       bingo: { ...config.bingo, jamVehicleSongIds: [SONG_JAMISH, SONG_MICROTONAL] },
