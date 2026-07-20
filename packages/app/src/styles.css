@@ -182,8 +182,9 @@ body {
     "Helvetica Neue",
     Arial,
     sans-serif;
-  /* Safe-area awareness for notches / home indicators (venue reality: fat-thumb, edge-to-edge). */
-  padding-top: env(safe-area-inset-top);
+  /* Safe-area awareness for notches / home indicators (venue reality: fat-thumb, edge-to-edge).
+     NOTE: no `padding-top` here by design (UX-01 / D-01). Each top-anchored surface applies its
+     own `calc(env(safe-area-inset-top) + Npx)`; a body-level top inset would double it. */
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
