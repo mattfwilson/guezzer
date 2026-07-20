@@ -349,20 +349,16 @@ export function runBingoCalibration(
 
 // ── The hard-assert gate (D-19b) ─────────────────────────────────────────────
 
-/** The per-vibe blackout band: chill is upper-bound-only; balanced/glory pin [min,max]. */
+/**
+ * The per-vibe blackout band. AMENDED 2026-07-20 (D-03 retarget): all three
+ * vibes are now UPPER-CAP-ONLY (`min: null`). The original balanced/glory
+ * blackout FLOORS ([0.02,0.05] / [0.05,0.10]) were proven unreachable under D-11
+ * consume-once single-show marking (P(blackout) ≈ 0.00 in every reachable
+ * config), so gating on a floor would be an eternally-red gate. Only the small
+ * `blackoutMax` upper cap is enforced — the crown stays rare, never mandatory.
+ */
 function blackoutBand(vibe: BingoVibe, cfg: typeof config): { min: number | null; max: number } {
-  switch (vibe) {
-    case "chill":
-      return { min: null, max: cfg.bingo.vibes.chill.blackoutMax };
-    case "balanced": {
-      const [lo, hi] = cfg.bingo.vibes.balanced.blackout;
-      return { min: lo, max: hi };
-    }
-    case "glory": {
-      const [lo, hi] = cfg.bingo.vibes.glory.blackout;
-      return { min: lo, max: hi };
-    }
-  }
+  return { min: null, max: cfg.bingo.vibes[vibe].blackoutMax };
 }
 
 /**

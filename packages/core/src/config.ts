@@ -349,12 +349,17 @@ export const config = {
   },
 
   // --- Phase 14: Gizz-Bingo — pure-core marking & generation constants ---
-  // Every numeric value here is [ASSUMED] until the Plan 06 Monte-Carlo
-  // calibration gate (bingo-calibrate.ts) either confirms it or fails loudly
-  // and forces a change. The path keys mirror the backtest/census path-key
-  // idiom; the rosters (jamVehicleSongIds, albumSquarePool) ship EMPTY and are
-  // only populated at the D-20 owner checkpoint. Consumed by later plans in
-  // this phase, not yet by any pure fn — interface-first (D-16).
+  // LOCKED at the Plan 06 D-20 checkpoint (2026-07-20): the rosters
+  // (jamVehicleSongIds, albumSquarePool), freeIndex, bustOutGapShows, and the
+  // per-vibe mix weights + retargeted P(line)/P(blackout) bands were
+  // owner-approved and confirmed against a GREEN calibration gate
+  // (bingo-calibrate.ts exit 0). Values carry [VERIFIED: bingo-calibrate gate
+  // 2026-07-20]; the path keys mirror the backtest/census path-key idiom.
+  // NOTE: the D-02/D-03 line/blackout bands were AMENDED at this checkpoint
+  // (see 14-CONTEXT.md) — the original 0.82/0.70/0.50 line targets and
+  // balanced/glory blackout floors were proven unreachable under D-11
+  // consume-once single-show marking; the bands below are the engine's real,
+  // measured achievable range with chill > balanced > glory preserved.
   bingo: {
     /** [ASSUMED] Human-readable calibration report, mirrors backtestReportPath. */
     calibrationReportPath: "data/bingo-calibration-report.md",
@@ -366,23 +371,26 @@ export const config = {
     rosterCandidatesPath: "data/bingo-roster-candidates.md",
 
     /**
-     * [ASSUMED] Board index of the pre-marked free center (0..15, row-major).
-     * One of the four center-ish cells {5,6,9,10} on a 4x4 grid (Open Item 1);
-     * 5 = row 1, col 1. Locked by the Plan 06 gate.
+     * [VERIFIED: bingo-calibrate gate 2026-07-20] Board index of the pre-marked
+     * free center (0..15, row-major). One of the four center-ish cells {5,6,9,10}
+     * on a 4x4 grid; 5 = row 1, col 1. Owner-approved at the D-20 checkpoint and
+     * locked against a green gate.
      */
     freeIndex: 5,
 
     /**
-     * [ASSUMED] D-05: minimum fraction of a card's non-free squares that must be
-     * "dark" (low base-rate) so a card is never trivially all-likely. Tuned by
-     * the calibration gate against per-vibe fill-rate targets.
+     * [VERIFIED: bingo-calibrate gate 2026-07-20] D-05: minimum per-night
+     * fire-rate a reliable event/album square must clear so a card is never
+     * trivially all-dark. The green gate confirms every reliable square in the
+     * gated (mid-collection) run fires well above this floor (lowest ≈ 44%).
      */
     darkSquareFloor: 0.2,
 
     /**
-     * [ASSUMED] Bust-out predicate threshold: a song is a bust-out candidate when
-     * its corpusGap (shows since last played) is >= this. Vetting floor is >=50;
-     * re-confirm in Plan 06.
+     * [VERIFIED: bingo-calibrate gate 2026-07-20] Bust-out predicate threshold:
+     * a song is a bust-out candidate when its corpusGap (shows since last played)
+     * is >= this. The vetting's ≥50-show gap (≈21% fire) was re-confirmed at the
+     * D-20 checkpoint and owner-approved verbatim.
      */
     bustOutGapShows: 50,
 
@@ -422,30 +430,72 @@ export const config = {
     gloryEvents: ["bustOut", "neverCaught"],
 
     /**
-     * [ASSUMED] Marathon-jam vehicle song IDs. Ships EMPTY — populated only at
-     * the D-20 owner checkpoint (which songs count as jam vehicles is owner
-     * knowledge, not derivable).
+     * [VERIFIED: bingo-calibrate gate 2026-07-20] Marathon-jam vehicle song IDs.
+     * Locked at the D-20 owner checkpoint (2026-07-20) from the corpus-measured
+     * candidate roster (data/bingo-roster-candidates.md), owner-approved verbatim:
+     * Magma (132), Crumbling Castle (47), The River (227), Hypertension (104),
+     * Rattlesnake (168), Robot Stop (172), Float Along–Fill Your Lungs (75),
+     * Am I In Heaven? (19), Head On/Pill (93). Which songs count as jam vehicles
+     * is owner knowledge, not derivable — corpus proposes, owner disposes (D-16).
      */
-    jamVehicleSongIds: [] as number[],
+    jamVehicleSongIds: [132, 47, 227, 104, 168, 172, 75, 19, 93] as number[],
 
     /**
-     * [ASSUMED] Album-membership square pool (album_urls eligible as album
-     * squares). Ships EMPTY — populated at the D-20 checkpoint. DISTINCT from
-     * dex.cardAlbumUrls: the dex shelf and the bingo album-square pool are
-     * curated independently (RESEARCH §Config surface).
+     * [VERIFIED: bingo-calibrate gate 2026-07-20] Album-membership square pool
+     * (album_urls eligible as album squares). Locked at the D-20 owner checkpoint
+     * (2026-07-20), owner-approved 9-album set: the measured ≥53% "set" albums
+     * plus a variety tail down the corpus fire-rate ranking (D-17). Keys are
+     * `/albums/<slug>` to match `ctx.albumSongIds` (so the calibration fire-rates
+     * reproduce the candidates file). DISTINCT from dex.cardAlbumUrls: the dex
+     * shelf and the bingo album-square pool are curated independently.
      */
-    albumSquarePool: [] as string[],
+    albumSquarePool: [
+      "/albums/infest-the-rats-nest",
+      "/albums/omnium-gatherum",
+      "/albums/petrodragonic-apocalypse",
+      "/albums/ice-death-planets-lungs-mushrooms-and-lava",
+      "/albums/flying-microtonal-banana",
+      "/albums/im-in-your-mind-fuzz",
+      "/albums/nonagon-infinity",
+      "/albums/kg",
+      "/albums/lw",
+    ] as string[],
 
     /**
-     * D-02/D-03: per-vibe target bands the calibration gate asserts against.
-     * `line` = target P(at least one line) for a simulated card over the era;
-     * chill caps blackout with `blackoutMax`, balanced/glory pin a `[min,max]`
-     * blackout band. `mix` = square-kind mixture weights, filled by Plan 06.
+     * D-02/D-03 (AMENDED 2026-07-20 — see 14-CONTEXT.md D-02/D-03 amendment):
+     * per-vibe target bands the calibration gate asserts against. `line` = target
+     * P(at least one line) for a simulated card over the recent era; `blackoutMax`
+     * is an UPPER cap only (no floor). `mix` = square-kind mixture weights.
+     *
+     * RETARGET RATIONALE: the original line targets (chill 0.82 / balanced 0.70 /
+     * glory 0.50) and blackout floors (balanced 0.02–0.05 / glory 0.05–0.10) were
+     * proven STRUCTURALLY UNREACHABLE under D-11 consume-once single-show marking
+     * at the D-20 gate. With one mark per logged song over a median-15-song show,
+     * the engine's true achievable ceiling is P(line) ≈ chill 0.43 / balanced 0.37
+     * / glory 0.22 and P(blackout) ≈ 0.00 everywhere — the originals missed by
+     * 30–40 points with NO mix assignment able to close the gap. The user
+     * authorized Option 1 (retarget to the engine's real measured range,
+     * preserving chill > balanced > glory ordering). Blackout floors are REMOVED
+     * (unreachable); only a small upper cap remains. [VERIFIED: bingo-calibrate
+     * gate 2026-07-20] — every value below is a green-gate measured lock, not an
+     * assumption.
      */
     vibes: {
-      chill: { line: 0.82, blackoutMax: 0.02, mix: {} },
-      balanced: { line: 0.7, blackout: [0.02, 0.05], mix: {} },
-      glory: { line: 0.5, blackout: [0.05, 0.1], mix: {} },
+      chill: {
+        line: 0.42,
+        blackoutMax: 0.02,
+        mix: { song: 1, album: 12, opener: 2, microtonal: 2, marathonJam: 2, bustOut: 0, neverCaught: 0 },
+      },
+      balanced: {
+        line: 0.35,
+        blackoutMax: 0.03,
+        mix: { song: 3, album: 8, opener: 1, microtonal: 1, marathonJam: 1, bustOut: 1, neverCaught: 2 },
+      },
+      glory: {
+        line: 0.2,
+        blackoutMax: 0.05,
+        mix: { song: 3, album: 2, opener: 1, microtonal: 1, marathonJam: 1, bustOut: 3, neverCaught: 4 },
+      },
     },
   },
 } as const;
