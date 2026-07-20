@@ -213,4 +213,129 @@ describe("resolvePlaceholders (D-04)", () => {
     const hints = resolvePlaceholders(latest, trail);
     expect(hints.map((h) => h.songId)).toEqual([100, 200]);
   });
+
+  // --- UX-03: position-gap / skipped-song / count-mismatch regression ---
+  // Trail TrackedEntry.position is monotonic max+1 and GAPS on skipped/deleted
+  // entries (db.ts), while editor LatestSetlistRow.position is contiguous 1,2,3.
+  // The pre-fix raw `row.position === entry.position` matcher confidently names
+  // an off-by-N song after the first divergence. These lock the interval-count-
+  // match contract: correct bracketed hint, or nothing — never a wrong song.
+
+  it("deleted mid-trail entry (trail positions 1,3,4): the placeholder resolves to the bracketed B, never the off-by-N same-position C (UX-03)", () => {
+    const editor = [
+      row({ song_id: 100, songname: "A", position: 1 }),
+      row({ song_id: 200, songname: "B", position: 2 }),
+      row({ song_id: 300, songname: "C", position: 3 }),
+    ];
+    // A logged @1, a placeholder @3 (the entry at position 2 was deleted), C
+    // logged @4. Raw same-position matching names C (300) — the off-by-N bug.
+    const trail = [
+      entry({ position: 1, songId: 100, isPlaceholder: false }),
+      entry({ position: 3, songId: null, isPlaceholder: true }),
+      entry({ position: 4, songId: 300, isPlaceholder: false }),
+    ];
+    const hints = resolvePlaceholders(editor, trail);
+    expect(hints).toHaveLength(1);
+    expect(hints[0]).toMatchObject({
+      position: 2,
+      songId: 200,
+      songName: "B",
+      entryPosition: 3,
+    });
+    expect(hints.map((h) => h.songId)).not.toContain(300);
+  });
+
+  it("skipped song: A(logged) ??(placeholder) C(logged) over editor A,B,C resolves the placeholder to B, not C (UX-03)", () => {
+    const editor = [
+      row({ song_id: 100, songname: "A", position: 1 }),
+      row({ song_id: 200, songname: "B", position: 2 }),
+      row({ song_id: 300, songname: "C", position: 3 }),
+    ];
+    // Positions gapped by earlier deletes: the placeholder sits at 4, past every
+    // editor position — the raw matcher finds nothing; the bracket names B.
+    const trail = [
+      entry({ position: 1, songId: 100, isPlaceholder: false }),
+      entry({ position: 4, songId: null, isPlaceholder: true }),
+      entry({ position: 5, songId: 300, isPlaceholder: false }),
+    ];
+    const hints = resolvePlaceholders(editor, trail);
+    expect(hints.map((h) => h.songId)).toEqual([200]);
+    expect(hints.map((h) => h.songId)).not.toContain(300);
+    expect(hints[0]).toMatchObject({ position: 2, songName: "B", entryPosition: 4 });
+  });
+
+  it("count mismatch: two editor rows bracket a single placeholder → SUPPRESS, no coin-flip (UX-03)", () => {
+    const editor = [
+      row({ song_id: 100, songname: "A", position: 1 }),
+      row({ song_id: 200, songname: "B", position: 2 }),
+      row({ song_id: 300, songname: "C", position: 3 }),
+      row({ song_id: 400, songname: "D", position: 4 }),
+    ];
+    // One placeholder between anchors A and D, but the editor has TWO rows (B,C)
+    // in that interval — ambiguous, so emit nothing rather than guess.
+    const trail = [
+      entry({ position: 1, songId: 100, isPlaceholder: false }),
+      entry({ position: 3, songId: null, isPlaceholder: true }),
+      entry({ position: 4, songId: 400, isPlaceholder: false }),
+    ];
+    expect(resolvePlaceholders(editor, trail)).toEqual([]);
+  });
+
+  it("a logged trail song absent from the editor suppresses (safe fallback) (UX-03)", () => {
+    const editor = [
+      row({ song_id: 100, songname: "A", position: 1 }),
+      row({ song_id: 200, songname: "B", position: 2 }),
+    ];
+    // Z (999) is not in the editor at all → the interval can't be anchored.
+    const trail = [
+      entry({ position: 1, songId: 100, isPlaceholder: false }),
+      entry({ position: 2, songId: null, isPlaceholder: true }),
+      entry({ position: 3, songId: 999, isPlaceholder: false }),
+    ];
+    expect(resolvePlaceholders(editor, trail)).toEqual([]);
+  });
+
+  it("an out-of-order anchor (logged songs not an increasing editor subsequence) suppresses (UX-03)", () => {
+    const editor = [
+      row({ song_id: 100, songname: "A", position: 1 }),
+      row({ song_id: 200, songname: "B", position: 2 }),
+      row({ song_id: 300, songname: "C", position: 3 }),
+    ];
+    // The trail logs C before A — anchors map to editor indices [2, 0], which is
+    // not strictly increasing → suppress rather than mis-bracket.
+    const trail = [
+      entry({ position: 1, songId: 300, isPlaceholder: false }),
+      entry({ position: 2, songId: null, isPlaceholder: true }),
+      entry({ position: 3, songId: 100, isPlaceholder: false }),
+    ];
+    expect(resolvePlaceholders(editor, trail)).toEqual([]);
+  });
+
+  it("a trailing placeholder with more tail editor rows than placeholders suppresses (UX-03)", () => {
+    const editor = [
+      row({ song_id: 100, songname: "A", position: 1 }),
+      row({ song_id: 200, songname: "B", position: 2 }),
+      row({ song_id: 300, songname: "C", position: 3 }),
+    ];
+    // One trailing placeholder after anchor A, but two editor rows (B,C) remain.
+    const trail = [
+      entry({ position: 1, songId: 100, isPlaceholder: false }),
+      entry({ position: 2, songId: null, isPlaceholder: true }),
+    ];
+    expect(resolvePlaceholders(editor, trail)).toEqual([]);
+  });
+
+  it("regression: a contiguous gap-free [??, ??] over editor A,B still resolves to [100, 200]", () => {
+    const editor = [
+      row({ song_id: 100, songname: "A", position: 1 }),
+      row({ song_id: 200, songname: "B", position: 2 }),
+    ];
+    const trail = [
+      entry({ position: 1, songId: null, isPlaceholder: true }),
+      entry({ position: 2, songId: null, isPlaceholder: true }),
+    ];
+    const hints = resolvePlaceholders(editor, trail);
+    expect(hints.map((h) => h.songId)).toEqual([100, 200]);
+    expect(hints.map((h) => h.entryPosition)).toEqual([1, 2]);
+  });
 });

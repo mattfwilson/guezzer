@@ -134,28 +134,92 @@ export function diffLatestAgainstTrail(
 }
 
 /**
- * Fill hints for "???" placeholders the editor's `latest` can now name (D-04).
+ * Fill hints for "???" placeholders the editor's `latest` can now name (D-04 /
+ * UX-03).
  *
- * For each trail entry with `isPlaceholder === true`, emit a `FillHint` iff a
- * latest row exists at the SAME position with a real song. Never returns a
- * hint for an already-named (non-placeholder) entry, and returns `[]` when no
- * placeholder positions align with a latest song.
+ * Conservative-suppress contract — NO hint beats a WRONG hint. Trail
+ * `TrackedEntry.position` is monotonic max+1 and GAPS on skipped/deleted
+ * entries (db.ts), while editor `LatestSetlistRow.position` is contiguous. The
+ * old raw `row.position === entry.position` matcher named an off-by-N song
+ * after the first divergence — one tap from applying the wrong song via
+ * `renameEntry`. This resolver instead brackets placeholders between logged
+ * anchors and only names one when the bracket is unambiguous:
+ *
+ *   1. Sort copies of `latestRows` and `trail` by `position`.
+ *   2. Anchors = logged trail entries (`!isPlaceholder && songId !== null`),
+ *      matched to editor rows BY `songId` (the sibling `diffLatestAgainstTrail`
+ *      keying), required to form a strictly-increasing editor-index subsequence.
+ *      Any anchor absent-from-editor or out-of-order → suppress everything
+ *      (safe fallback).
+ *   3. Partition both sequences into intervals bounded by consecutive anchors —
+ *      including the head (before the first anchor) and tail (after the last).
+ *   4. Per interval: emit `FillHint`s 1:1 from the BRACKETED editor rows ONLY
+ *      when `#placeholder-slots === #editor-rows-in-interval`; otherwise emit
+ *      nothing for that interval.
+ *
+ * `FillHint.entryPosition` stays the placeholder's own position (the UI's
+ * `renameEntry` handle); `position`/`songId`/`songName` come from the bracketed
+ * editor row, never the raw same-position row. Pure: no DOM, no db import, no
+ * clock; empty in → empty out.
  */
 export function resolvePlaceholders(
   latestRows: LatestSetlistRow[],
   trail: TrailEntryInput[],
 ): FillHint[] {
+  const rows = [...latestRows].sort((a, b) => a.position - b.position);
+  const entries = [...trail].sort((a, b) => a.position - b.position);
+
+  // Editor-row index keyed by songId (first occurrence), the anchor lookup.
+  const editorIndexBySongId = new Map<number, number>();
+  rows.forEach((r, i) => {
+    if (!editorIndexBySongId.has(r.song_id)) editorIndexBySongId.set(r.song_id, i);
+  });
+
+  // Anchors: logged trail entries matched to an editor row by songId, requiring
+  // a strictly-increasing editor-index subsequence. Any broken anchor
+  // (absent-from-editor or out-of-order) trips the safe fallback → suppress all.
+  const anchors: { trailIdx: number; editorIdx: number }[] = [];
+  let lastEditorIdx = -1;
+  for (let trailIdx = 0; trailIdx < entries.length; trailIdx++) {
+    const e = entries[trailIdx];
+    if (e.isPlaceholder || e.songId === null) continue;
+    const editorIdx = editorIndexBySongId.get(e.songId);
+    if (editorIdx === undefined || editorIdx <= lastEditorIdx) {
+      return []; // absent-from-editor or out-of-order anchor → suppress everything
+    }
+    lastEditorIdx = editorIdx;
+    anchors.push({ trailIdx, editorIdx });
+  }
+
+  // Partition into intervals bounded by consecutive anchors, including the head
+  // (prev = -1) and the tail (sentinel past the ends). Emit 1:1 only on a count
+  // match; otherwise suppress that interval.
   const hints: FillHint[] = [];
-  for (const entry of trail) {
-    if (!entry.isPlaceholder) continue;
-    const match = latestRows.find((row) => row.position === entry.position);
-    if (!match) continue;
-    hints.push({
-      position: match.position,
-      songId: match.song_id,
-      songName: match.songname,
-      entryPosition: entry.position,
-    });
+  const boundaries = [
+    ...anchors,
+    { trailIdx: entries.length, editorIdx: rows.length },
+  ];
+  let prevTrailIdx = -1;
+  let prevEditorIdx = -1;
+  for (const boundary of boundaries) {
+    const slots: TrailEntryInput[] = [];
+    for (let t = prevTrailIdx + 1; t < boundary.trailIdx; t++) {
+      if (entries[t].isPlaceholder) slots.push(entries[t]);
+    }
+    const bracket = rows.slice(prevEditorIdx + 1, boundary.editorIdx);
+    if (slots.length > 0 && slots.length === bracket.length) {
+      slots.forEach((slot, k) => {
+        const r = bracket[k];
+        hints.push({
+          position: r.position,
+          songId: r.song_id,
+          songName: r.songname,
+          entryPosition: slot.position,
+        });
+      });
+    }
+    prevTrailIdx = boundary.trailIdx;
+    prevEditorIdx = boundary.editorIdx;
   }
   return hints;
 }
