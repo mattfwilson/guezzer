@@ -1,10 +1,11 @@
 ---
-status: pending
+status: passed
 phase: 13-interface-explore-polish
 source: [13-VALIDATION.md, 13-CONTEXT.md]
 owner_plan: 13-01
 requirements: [UX-01, UX-02, UX-04]
 created: 2026-07-19
+verified: 2026-07-19
 ---
 
 # Phase 13 — On-Device iOS Safari UAT Checklist
@@ -52,7 +53,7 @@ Owner: **13-01** (this plan).
 - RecapView intentionally sits **12px lower** than the other headers (+24px vs +12px by
   design — see 13-01 Task 1); this offset is expected, not a regression.
 
-- [ ] UX-01 verified on device
+- [x] UX-01 verified on device — passed (2026-07-19, standalone PWA on physical notched iPhone)
 
 ---
 
@@ -71,7 +72,7 @@ the on-device confirmation of the released wake lock.
 - After End Show the screen **dims and sleeps** on the normal iOS auto-lock timer and
   **stays asleep** — the wake lock is released, not lingering.
 
-- [ ] UX-02 verified on device
+- [x] UX-02 verified on device — passed (2026-07-19, screen slept and stayed asleep after End Show)
 
 ---
 
@@ -83,10 +84,12 @@ Owner: **13-04** (constellation camera stability). On-device confirmation.
 1. In the installed PWA (over the cloudflared HTTPS tunnel with `--http-host-header
    localhost`), open Explore / the constellation.
 2. Pan and zoom into a specific region of the graph.
-3. Trigger an address-bar collapse (scroll) and **rotate** the device
-   (portrait ↔ landscape).
-4. Separately, focus a node, then drive that focused node off-screen via a resize
-   (rotate / address-bar collapse).
+3. **Rotate** the device (portrait ↔ landscape). NOTE: in the installed/standalone PWA
+   there is no address bar and no keyboard (Explore's only control is a slider), so
+   **rotation is the container-resize trigger** — it fires the same ResizeObserver event
+   the fix gates on. (Address-bar collapse only applies when running in a Safari browser
+   tab, not the home-screen app.)
+4. Separately, focus a node, then drive that focused node off-screen via a rotation.
 
 **Expected:**
 - After address-bar collapse + rotation the **camera stays put** — no fit-all snap, no
@@ -94,14 +97,13 @@ Owner: **13-04** (constellation camera stability). On-device confirmation.
 - When a focused node would leave the screen, the view **smoothly re-centers pan-only**
   onto it (does NOT fit-all / reset zoom).
 
-- [ ] UX-04 verified on device
+- [x] UX-04 verified on device — passed (2026-07-19, rotation preserved pan/zoom; off-screen focus panned back at current zoom)
 
 ---
 
 ## Sign-off
 
-- [ ] All three device items verified on a physical notched iPhone
-- [ ] Tunnel torn down (both preview + cloudflared background processes stopped)
+- [x] All three device items verified on a physical notched iPhone — owner-approved 2026-07-19
+- [x] Tunnel torn down (both preview + cloudflared background processes stopped)
 
-Record the outcome for each item above (`passed` / `issue: <detail>`) before
-`/gsd-verify-work`.
+Outcome: **UX-01 passed · UX-02 passed · UX-04 passed** — owner sign-off 2026-07-19.

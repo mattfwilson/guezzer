@@ -28,10 +28,10 @@ Milestone theme: harden the live-show-critical paths (live sync, prediction corr
 
 ### Interface & Explore Polish (UX) — Tier 3
 
-- [ ] **UX-01**: On a notched iPhone installed PWA, the top safe-area inset applies once (no doubled dead band); overlay headers align with the shell header.
-- [ ] **UX-02**: The screen wake lock is reliably released after End Show even when release races an in-flight acquire.
-- [ ] **UX-03**: Fill-hints name the correct song even after skipped or deleted trail entries (no off-by-N).
-- [ ] **UX-04**: The constellation keeps the user's pan/zoom across container resizes (address-bar collapse, orientation) instead of snapping to fit-all.
+- [x] **UX-01**: On a notched iPhone installed PWA, the top safe-area inset applies once (no doubled dead band); overlay headers align with the shell header.
+- [x] **UX-02**: The screen wake lock is reliably released after End Show even when release races an in-flight acquire.
+- [x] **UX-03**: Fill-hints name the correct song even after skipped or deleted trail entries (no off-by-N).
+- [x] **UX-04**: The constellation keeps the user's pan/zoom across container resizes (address-bar collapse, orientation) instead of snapping to fit-all.
 
 ### Gizz Bingo (BINGO) — feature
 
@@ -83,10 +83,10 @@ Deferred to a later milestone (backlog unchanged in `.planning/todos/pending/`).
 | SAFE-02 | Phase 12 | Complete |
 | SAFE-03 | Phase 12 | Complete |
 | SAFE-04 | Phase 12 | Complete |
-| UX-01 | Phase 13 | Pending |
-| UX-02 | Phase 13 | Pending |
-| UX-03 | Phase 13 | Pending |
-| UX-04 | Phase 13 | Pending |
+| UX-01 | Phase 13 | Complete |
+| UX-02 | Phase 13 | Complete |
+| UX-03 | Phase 13 | Complete |
+| UX-04 | Phase 13 | Complete |
 | BINGO-03 | Phase 14 | Pending |
 | BINGO-06 | Phase 15 | Pending |
 | BINGO-07 | Phase 15 | Pending |

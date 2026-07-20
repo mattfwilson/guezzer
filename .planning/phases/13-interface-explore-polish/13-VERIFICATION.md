@@ -1,8 +1,9 @@
 ---
 phase: 13-interface-explore-polish
 verified: 2026-07-19T20:42:00Z
-status: human_needed
-score: 4/4 must-haves code-verified
+status: passed
+score: 4/4 must-haves code-verified; 3/3 device UAT items owner-approved 2026-07-19
+device_uat: passed (UX-01, UX-02, UX-04 — see 13-HUMAN-UAT.md)
 overrides_applied: 0
 human_verification:
   - test: "UX-01: On a notched iPhone installed (standalone) PWA over the cloudflared HTTPS tunnel, open the AppShell header then each top overlay (SearchSheet, ArchiveBrowser, AlbumDetail, CompareView, SetlistView, RecapView)."
