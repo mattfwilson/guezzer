@@ -59,6 +59,14 @@ function syntheticShows(): CalibrationShow[] {
   ];
 }
 
+/** Recursively strips `readonly` so a test can clone a result and break one field. */
+type DeepMutable<T> = { -readonly [K in keyof T]: DeepMutable<T[K]> };
+
+/** A deep, mutable clone of a green result — mutate one field to build a broken variant. */
+function brokenClone(): DeepMutable<CalibrationResult> {
+  return structuredClone(greenResult()) as DeepMutable<CalibrationResult>;
+}
+
 /** A hand-built passing result: every reliable square clears the floor, every band holds. */
 function greenResult(): CalibrationResult {
   const vibe = (v: BingoVibe): VibeCalibration => ({
@@ -143,7 +151,7 @@ describe("assertCalibrationInvariants — the D-02/D-03/D-05 hard gate", () => {
   });
 
   it("flags a reliable square with dark-share == 1.0 (never fired)", () => {
-    const broken = greenResult();
+    const broken = brokenClone();
     const mid = broken.assumptions.find((a) => a.assumption === "mid-collection")!;
     // Force the balanced vibe's microtonal square to never fire.
     const microtonal = mid.vibes[1].reliableSquares.find((r) => r.type === "microtonal")!;
@@ -157,7 +165,7 @@ describe("assertCalibrationInvariants — the D-02/D-03/D-05 hard gate", () => {
   });
 
   it("flags a P(line) outside its per-vibe target band", () => {
-    const broken = greenResult();
+    const broken = brokenClone();
     const mid = broken.assumptions.find((a) => a.assumption === "mid-collection")!;
     mid.vibes[0].pLine = 0.1; // chill target is 0.82 — wildly off
     const failures = assertCalibrationInvariants(broken, config);
@@ -165,7 +173,7 @@ describe("assertCalibrationInvariants — the D-02/D-03/D-05 hard gate", () => {
   });
 
   it("only gates the mid-collection assumption (empty is the reported edge)", () => {
-    const broken = greenResult();
+    const broken = brokenClone();
     const empty = broken.assumptions.find((a) => a.assumption === "empty")!;
     empty.vibes[0].pLine = 0.01; // break the NON-gated assumption only
     const microtonal = empty.vibes[1].reliableSquares.find((r) => r.type === "microtonal")!;

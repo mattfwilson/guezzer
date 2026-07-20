@@ -323,8 +323,8 @@ export {
  * the shipped matrix/archive/rarity/dex-albums artifacts into the fast lookup
  * bundle the fold and generator read. All DOM/DB-free — the app (Phase 16)
  * adapts its setlist rows to the minimal `MarkTrailEntry` contract (D-22). The
- * calibration CLI (`cli/bingo-calibrate.ts`) stays behind the boundary and is
- * never barrel-exported (matches `run-backtest.ts`).
+ * calibration CLI stays behind the boundary and is never barrel-exported
+ * (matches `run-backtest.ts`).
  */
 export { deal } from "./bingo/generate.ts";
 export { deriveMarks, type MarkTrailEntry } from "./bingo/mark.ts";
