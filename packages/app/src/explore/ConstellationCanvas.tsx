@@ -175,6 +175,23 @@ export function ConstellationCanvas({
   const fgRef = useRef<FgMethods | undefined>(undefined);
   const [size, setSize] = useState({ width: 0, height: 0 });
 
+  // UX-04: gate the onEngineStop zoomToFit so it fires ONLY on the FIRST settle per
+  // graphData change (a genuine Rotation ↔ Full-catalog view switch), never on the
+  // inert reheats a resize/filter triggers. The camera belongs to the user — a
+  // resize is not a request to reframe. Reset to true only when graphData rebuilds
+  // (Pitfall 4: filters like topK/overlay/visibleNodeIds provably never rebuild
+  // graphData, only a view change does — so the reset key is strictly [graphData]).
+  const firstSettleRef = useRef(true);
+
+  // UX-04: remembers the (focusId, graphData) the focus-camera effect last FRAMED, so
+  // that effect can tell a genuine new-focus / view-switch (re-frame at FOCUS_ZOOM_K,
+  // unchanged behavior) apart from a pure container resize of the SAME focused node
+  // (pan-only, and only when the node has actually left the viewport).
+  const focusFrameKeyRef = useRef<{
+    focusId: number;
+    graphData: ConstellationData;
+  } | null>(null);
+
   // A11Y-03: the SAME shared visible-viewport source the NodeSheet peek + FAB lift
   // read. The container ResizeObserver already catches element-box resizes (address-
   // bar collapse, orientation, Android keyboard that reflows the layout box), but
@@ -231,6 +248,17 @@ export function ConstellationCanvas({
     link?.distance(config.explore.LINK_DISTANCE);
     fg.d3ReheatSimulation();
   }, [graphData, size.width, size.height]);
+
+  // UX-04: a genuine view switch (Rotation ↔ Full catalog) rebuilds graphData and
+  // legitimately warrants a fresh fit — arm the first-settle gate. Keyed STRICTLY on
+  // [graphData] (never [size] or a filter dep, Pitfall 4): the spacing effect above
+  // reheats on size changes too, but its async onEngineStop must NOT re-fit then.
+  // Timing is safe: onEngineStop fires after cooldownTicks, i.e. after this reset
+  // effect has already run, so the flag is reliably true before the first post-change
+  // settle.
+  useEffect(() => {
+    firstSettleRef.current = true;
+  }, [graphData]);
 
   // Node ids that carry at least one edge — the "main grouping" the on-load camera
   // frames. Uses the immutable fromId/toId copies, never the post-tick-mutated
@@ -323,7 +351,10 @@ export function ConstellationCanvas({
   // motion → instant jump (0ms). The on-load zoomToFit (onEngineStop) is untouched;
   // this only fires while a node is focused.
   useEffect(() => {
-    if (focusId == null) return;
+    if (focusId == null) {
+      focusFrameKeyRef.current = null;
+      return;
+    }
     const fg = fgRef.current;
     if (!fg) return;
     const node = graphData.nodes.find((n) => n.id === focusId) as
@@ -334,18 +365,46 @@ export function ConstellationCanvas({
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
     const ms = reduced ? 0 : config.explore.FOCUS_CAMERA_DURATION_MS;
-    const k = config.explore.FOCUS_ZOOM_K;
-    // Shift the viewport centre DOWN in world units so the node sits at
-    // FOCUS_TARGET_TOP_FRACTION from the top rather than dead-centre.
+
+    // Distinguish a genuine (re)frame — a new focus or a view switch (graphData) —
+    // from a pure container-resize re-run of the SAME focused node (UX-04). Only the
+    // latter is gated on the off-screen test; the former keeps the original behavior.
+    const prev = focusFrameKeyRef.current;
+    const isFreshFrame =
+      prev == null || prev.focusId !== focusId || prev.graphData !== graphData;
+    focusFrameKeyRef.current = { focusId, graphData };
+
+    if (isFreshFrame) {
+      // Initial focus / chain-hop (D-13/D-16, unchanged): frame at FOCUS_ZOOM_K with
+      // the node in the upper 60% (above the 40%-peek NodeSheet). `size.height` /
+      // `visibleViewportHeight` in the deps (A11Y-03) also re-issue this move on an
+      // iOS keyboard show/hide, which changes visualViewport but not the container box.
+      const k = config.explore.FOCUS_ZOOM_K;
+      const offsetWorld =
+        ((0.5 - config.explore.FOCUS_TARGET_TOP_FRACTION) * size.height) / k;
+      fg.zoom(k, ms);
+      fg.centerAt(node.x, node.y + offsetWorld, ms);
+      return;
+    }
+
+    // UX-04 resize path: a container resize (address-bar collapse / orientation /
+    // keyboard) re-ran this effect for the SAME focused node. The camera belongs to
+    // the user — do NOT reframe. Pan back ONLY if the node has actually left the
+    // viewport, and keep the user's CURRENT zoom `k` (pan-only, never FOCUS_ZOOM_K —
+    // Open Question 3 / Pitfall 5). A still-visible focus is left untouched.
+    const margin = config.explore.FOCUS_OFFSCREEN_MARGIN_PX;
+    const screen = fg.graph2ScreenCoords(node.x, node.y);
+    const offscreen =
+      screen.x < -margin ||
+      screen.y < -margin ||
+      screen.x > size.width + margin ||
+      screen.y > size.height + margin;
+    if (!offscreen) return;
+    const k = fg.zoom();
     const offsetWorld =
       ((0.5 - config.explore.FOCUS_TARGET_TOP_FRACTION) * size.height) / k;
-    fg.zoom(k, ms);
     fg.centerAt(node.x, node.y + offsetWorld, ms);
-    // `visibleViewportHeight` is in the deps (A11Y-03) so an iOS keyboard show/hide
-    // — which changes visualViewport but NOT the container box / `size.height` —
-    // still re-frames the focused node instead of leaving it snapped off. The frozen
-    // fx/fy layout is untouched (EXPL-06): this only re-issues the camera move.
-  }, [focusId, graphData, size.height, visibleViewportHeight]);
+  }, [focusId, graphData, size.width, size.height, visibleViewportHeight]);
 
   const nodeCanvasObject = (
     node: FgNode,
@@ -693,6 +752,8 @@ export function ConstellationCanvas({
           d3AlphaDecay={config.explore.ALPHA_DECAY}
           d3VelocityDecay={config.explore.VELOCITY_DECAY}
           onEngineStop={() => {
+            // Settle-and-freeze (EXPL-06): pin EVERY node on EVERY stop, unconditionally
+            // — this must keep running on resize-driven reheats or the layout unfreezes.
             for (const raw of graphData.nodes) {
               const n = raw as FgNode;
               n.fx = n.x;
@@ -701,16 +762,22 @@ export function ConstellationCanvas({
             // Frame the connected main grouping cleanly on load (D-15 reads at this
             // rest zoom). Falls back to fitting all nodes if there are no edges.
             // Also honours the active filter (07-05): the default Rotation view
-            // frames its ~56 visible nodes, not the whole catalog. Runs at settle;
-            // the layout is frozen so the frame never drifts after (and a later
-            // toggle never re-fires this — positions stay put).
-            fgRef.current?.zoomToFit(
-              config.explore.ZOOM_TO_FIT_DURATION_MS,
-              config.explore.ZOOM_TO_FIT_PADDING_PX,
-              (n: FgNode) =>
-                (connectedIds.size === 0 || connectedIds.has(n.id)) &&
-                isNodeVisible(n.id),
-            );
+            // frames its ~56 visible nodes, not the whole catalog.
+            //
+            // UX-04: gate on firstSettleRef so this fires ONLY on the first settle per
+            // graphData change (a real view switch). Pure size changes / filter toggles
+            // still reheat and re-fire onEngineStop, but skip zoomToFit — preserving the
+            // user's exact pan/zoom instead of yanking back to fit-all.
+            if (firstSettleRef.current) {
+              firstSettleRef.current = false;
+              fgRef.current?.zoomToFit(
+                config.explore.ZOOM_TO_FIT_DURATION_MS,
+                config.explore.ZOOM_TO_FIT_PADDING_PX,
+                (n: FgNode) =>
+                  (connectedIds.size === 0 || connectedIds.has(n.id)) &&
+                  isNodeVisible(n.id),
+              );
+            }
           }}
         />
       )}

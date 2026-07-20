@@ -464,6 +464,15 @@ export const config = {
     /** [ASSUMED] ms ease for the focus pan/zoom camera move (0 under prefers-reduced-motion). */
     FOCUS_CAMERA_DURATION_MS: 400,
     /**
+     * [ASSUMED] UX-04: screen-px a focused node must fall PAST the viewport edge
+     * before a container resize pans it back into view. Inflating the on-screen test
+     * box by this margin avoids re-centering a node that is merely grazing the edge
+     * (a still-visible focus is left alone — the camera belongs to the user).
+     * Device-tune: raise if edge-grazing focus nodes feel jumpy on address-bar
+     * collapse / orientation; lower if a barely-clipped focus should still recenter.
+     */
+    FOCUS_OFFSCREEN_MARGIN_PX: 24,
+    /**
      * [ASSUMED] Bars shown before the "Show all N" expander in NodeSheet (D-04).
      * MIRRORS `config.explore.BARS_TOP_N` in @guezzer/core (not re-exported from
      * the core barrel — same mirror pattern as `dex.OWNER_NAME_MAX_LENGTH`); the
