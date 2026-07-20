@@ -313,3 +313,30 @@ export {
   type TopOpener,
   type DeriveTopOpenersOptions,
 } from "./dex/openers.ts";
+
+/**
+ * Gizz Bingo core (Phase 14, BINGO-03) — the third pure derivation over the
+ * trail, alongside the predictor and the dex. A seeded `deal` mints a
+ * serializable `BingoCard`; `deriveMarks` is the deterministic consume-once
+ * marking fold (live == replay == catch-up by construction); `detectWins` +
+ * `expectedFill` are the pure 4×4 win geometry; `buildBingoContext` resolves
+ * the shipped matrix/archive/rarity/dex-albums artifacts into the fast lookup
+ * bundle the fold and generator read. All DOM/DB-free — the app (Phase 16)
+ * adapts its setlist rows to the minimal `MarkTrailEntry` contract (D-22). The
+ * calibration CLI stays behind the boundary and is never barrel-exported
+ * (matches `run-backtest.ts`).
+ */
+export { deal } from "./bingo/generate.ts";
+export { deriveMarks, type MarkTrailEntry } from "./bingo/mark.ts";
+export { detectWins, expectedFill } from "./bingo/wins.ts";
+export { buildBingoContext, type BingoContext } from "./bingo/context.ts";
+export type {
+  BingoCard,
+  BingoSquareDef,
+  MarkedCard,
+  MarkedSquare,
+  Win,
+  BingoVibe,
+  BingoEvent,
+  BingoWinKind,
+} from "./bingo/types.ts";
