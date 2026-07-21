@@ -7,6 +7,7 @@
  * rewriting version(1).
  */
 import Dexie, { type Table } from "dexie";
+import type { BingoCard } from "@guezzer/core";
 import { config } from "../config.ts";
 import { classifyOutcome } from "../show/scoring.ts";
 import { randomUUID } from "../uuid.ts";
@@ -138,6 +139,46 @@ export interface ArchiveShowRow {
   sets: Array<{ n: SetNumber; songs: Array<{ songId: number; songName: string }> }>;
 }
 
+/**
+ * One persisted Gizz-Bingo card (Phase 15, BINGO-07) — the frozen artifact a
+ * past show's board is replayed from (D-08). Wraps the pure core `BingoCard`
+ * (embedding its resolved, display-frozen `squares`) under `card:` so the
+ * shipped `bingoCardSchema` validates it verbatim at the import trust boundary
+ * (RESEARCH Pattern 2). Additive-only: written by `saveDraftCard`/`lockCard`,
+ * never touched by any v1-v4 helper.
+ *
+ * Keyed by `cardId` — the D-12 STABLE, device-independent, merge-safe primary
+ * key (NOT the volatile `++id`), set equal to `sessionId` (RESEARCH Pattern 6 /
+ * A3: one card per show, D-07). A pre-lock reshuffle therefore OVERWRITES the
+ * same row in place (the deal seed lives IN `card.seed`), never orphaning a
+ * draft. Mirrors the stable-key discipline of `archiveShows.show_id` /
+ * `trackedShows.sessionId`.
+ */
+export interface BingoCardRow {
+  /** D-12 stable inbound PK (== sessionId), NOT the volatile ++id. */
+  cardId: string;
+  /** FK → TrackedShow.sessionId (indexed for replay lookup). */
+  sessionId: string;
+  /** The pure core card, embedding its frozen `squares` (resolvedDefs, D-08). */
+  card: BingoCard;
+  /**
+   * The D-08/D-12 frozen catch-set stamped at lock time (REQUIRED per RESEARCH
+   * Pitfall 1). `[]` on an unlocked draft; the replay fold reads it for
+   * `neverCaught`, so it must be the caught songIds AS OF the lock, never the
+   * live dex. Derivable from `deriveDex(...).perSong.keys()` at lock time
+   * (RESEARCH A1) — Phase 16 wires the real Start-Show/deal trigger.
+   */
+  caughtSnapshot: number[];
+  /** null = unlocked draft; a ms-epoch stamp once locked (D-08). */
+  lockedAt: number | null;
+  /** ISO YYYY-MM-DD (denormalized show identity, D-11). */
+  showDate: string;
+  /** kglw.net venue name, null pre-bind (denormalized identity, D-11). */
+  venueName: string | null;
+  /** kglw.net venue city, null pre-bind (denormalized identity, D-11). */
+  city: string | null;
+}
+
 /** Binding written onto a provisional show by `bindShow` on kglw.net reconciliation (D-07). */
 export interface ShowBinding {
   showId: number;
@@ -176,6 +217,7 @@ export class GuezzerDB extends Dexie {
   archiveShows!: Table<ArchiveShowRow, number>;
   trackedShows!: Table<TrackedShow, string>;
   trackedEntries!: Table<TrackedEntry, number>;
+  bingoCards!: Table<BingoCardRow, string>;
 
   constructor() {
     super(config.DB_NAME);
@@ -232,6 +274,16 @@ export class GuezzerDB extends Dexie {
     // table has no pre-existing rows to backfill.
     this.version(4).stores({
       archiveShows: "&show_id",
+    });
+
+    // Version 5 (Phase 15 Gizz Bingo): ADDITIVE only — v1/v2/v3/v4 above are
+    // untouched, so a populated v4 DB upgrades in place losslessly (D-14, SC-4).
+    // Adds a SINGLE new table, `bingoCards`, keyed by the stable inbound
+    // `&cardId` (D-12, == sessionId — NOT the volatile ++id); `sessionId` is
+    // indexed for replay lookup. No `.upgrade` is needed: a new table has no
+    // pre-existing rows to backfill (the v4 precedent).
+    this.version(5).stores({
+      bingoCards: "&cardId, sessionId",
     });
   }
 }
@@ -398,6 +450,89 @@ export async function renameEntry(
 /** Finalize a show read-only (D-04) — required before the next night can start (D-03). */
 export async function endShow(sessionId: string): Promise<void> {
   await db.trackedShows.update(sessionId, { status: "finalized" });
+}
+
+// ── Phase 15 Gizz-Bingo write helpers (persistence + lock, BINGO-07) ──────────
+// Mirror the `startShow` transaction+assertion idiom. The `bingoCards` row is
+// the frozen replayable artifact (D-08); replay stores NO marks — it re-derives
+// from the persisted trail, so these helpers only ever write the card + its
+// lock state (D-23).
+
+/** The fields a caller supplies to deal/reshuffle a draft card (cardId is derived). */
+export interface DraftCardInput {
+  /** FK → TrackedShow.sessionId; also becomes the row's stable `cardId` (D-12). */
+  sessionId: string;
+  /** The pure core card to freeze onto the row (embeds resolved squares, D-08). */
+  card: BingoCard;
+  showDate: string;
+  venueName: string | null;
+  city: string | null;
+}
+
+/**
+ * Write (or reshuffle) an UNLOCKED draft card for a session (D-08). `cardId` is
+ * set equal to `sessionId` (D-12), so a pre-lock reshuffle with a new seed
+ * OVERWRITES the same row in place — no orphaned drafts (RESEARCH Pattern 6).
+ *
+ * The D-10 reshuffle-rejection invariant is enforced HERE, app-side (RESEARCH
+ * Pitfall 5 — never in packages/core, which stays DB-free): the write THROWS if
+ * the session is `finalized` or the existing card is already locked
+ * (`lockedAt != null`), mirroring `startShow`'s single-active throw. Locked
+ * historical cards can never be re-dealt (SC-1).
+ */
+export async function saveDraftCard(input: DraftCardInput): Promise<void> {
+  await db.transaction("rw", db.trackedShows, db.bingoCards, async () => {
+    const show = await db.trackedShows.get(input.sessionId);
+    if (show?.status === "finalized") {
+      throw new Error(
+        `Cannot deal a bingo card for a finalized show (session ${input.sessionId}) — reshuffle rejected (SC-1/D-10).`,
+      );
+    }
+    const existing = await db.bingoCards.get(input.sessionId);
+    if (existing?.lockedAt != null) {
+      throw new Error(
+        `Bingo card for session ${input.sessionId} is locked — reshuffle rejected (SC-1/D-10).`,
+      );
+    }
+    await db.bingoCards.put({
+      cardId: input.sessionId, // == sessionId (D-12): reshuffle overwrites in place
+      sessionId: input.sessionId,
+      card: input.card,
+      caughtSnapshot: [], // frozen only at lock time (D-08)
+      lockedAt: null,
+      showDate: input.showDate,
+      venueName: input.venueName,
+      city: input.city,
+    });
+  });
+}
+
+/**
+ * Lock a session's card (D-08/D-12): stamp `lockedAt` and FREEZE `caughtSnapshot`
+ * to the caught songIds passed at lock time. Idempotent — a second call on an
+ * already-locked card is a no-op (the first freeze wins, D-10). A no-op (not a
+ * throw) when the session has no card row, so wiring this into a card-less Start
+ * Show is safe (D-09: the same helper serves the Start-Show lock and the
+ * late-deal lock-on-deal path; Phase 16 wires whichever trigger fires).
+ *
+ * The `caughtSongIds` the caller passes is derivable from
+ * `deriveDex(...).perSong.keys()` at lock time (RESEARCH A1) — it MUST be the
+ * frozen set as of the lock, never the live dex, or `neverCaught` drifts on
+ * replay (RESEARCH Pitfall 1).
+ */
+export async function lockCard(
+  sessionId: string,
+  caughtSongIds: number[],
+): Promise<void> {
+  await db.transaction("rw", db.bingoCards, async () => {
+    const card = await db.bingoCards.where("sessionId").equals(sessionId).first();
+    if (!card) return; // no card dealt — safe no-op (card-less Start Show, D-09)
+    if (card.lockedAt != null) return; // idempotent — first freeze wins (D-10)
+    await db.bingoCards.update(card.cardId, {
+      lockedAt: Date.now(),
+      caughtSnapshot: caughtSongIds,
+    });
+  });
 }
 
 // ── Phase 5 write helpers (live sync + data safety) ──────────────────────────
