@@ -27,6 +27,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useReducedMotion } from "motion/react";
+import { useLiveQuery } from "dexie-react-hooks";
 import {
   bindShowFromLatest,
   diffLatestAgainstTrail,
@@ -40,6 +41,7 @@ import { config } from "../config.ts";
 import {
   adoptSuggestion,
   bindShow,
+  db,
   logSong,
   markEncore,
   markSetBreak,
@@ -65,6 +67,7 @@ import { OrbitStage } from "./OrbitStage.tsx";
 import { TallyReadout } from "./TallyReadout.tsx";
 import { TrailNodeSheet } from "./TrailNodeSheet.tsx";
 import { PreShowLauncher } from "./PreShowLauncher.tsx";
+import { BingoPeekStrip } from "./BingoPeekStrip.tsx";
 import { SearchSheet, type SearchSelection } from "./SearchSheet.tsx";
 import { getOpenerSuggestions } from "./openerSuggestions.ts";
 import { WakeLockNotice } from "./WakeLockNotice.tsx";
@@ -280,6 +283,20 @@ export function ShowView() {
     };
   }, [isActive]);
 
+  // BINGO-04 (D-21): the active session's bingo card, if any — reactive via Dexie
+  // so a Start-Show lock (Task 3) makes the peek strip appear live with no manual
+  // refresh. Mounted UNCONDITIONALLY above the early returns (hook order must stay
+  // stable across the lifecycle). Keyed off the active sessionId; the strip renders
+  // only when this resolves to a LOCKED card (see `lockedBingoCard` below, D-21) —
+  // a draft never shows on the trust-critical LiveGizz screen.
+  const bingoCardRow = useLiveQuery(
+    () =>
+      activeSessionId
+        ? db.bingoCards.where("sessionId").equals(activeSessionId).first()
+        : undefined,
+    [activeSessionId],
+  );
+
   // D-13 recap seam (06-09) — LOAD-BEARING ORDER (RESEARCH Pattern 6): confirming
   // End Show finalizes the session synchronously, so the `!session.active` early
   // return below fires the instant the show ends. The recap MUST be checked FIRST
@@ -470,6 +487,15 @@ export function ShowView() {
           nodes, +N compression at 30. Reactive over the live entries; returns
           null pre-opener. Node taps open the TrailNodeSheet for edit/delete/rename. */}
       <CometTrail entries={session.entries} onNodeTap={setTrailNode} />
+
+      {/* BINGO-04 (D-21): the in-flow bingo peek strip — a board thumbnail + the
+          single closest one-away banner, re-derived live on every logSong. Rendered
+          ONLY for a LOCKED active card (lockedAt != null) — a draft never shows here.
+          In the show column adjacent to the trail, NEVER fixed, never over the
+          FAB/orbit (the setlist log is sacred); taps route to the full GamesView board. */}
+      {bingoCardRow != null && bingoCardRow.lockedAt != null && (
+        <BingoPeekStrip card={bingoCardRow.card} entries={session.entries} />
+      )}
 
       {/* Region 3 — the orbit stage. Pre-opener (currentSongId === null): the
           CenterNode shows the "Tap the opener" prompt and NO fan is passed, so
