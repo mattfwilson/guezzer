@@ -56,14 +56,18 @@ function sampleSnapshot(): ExportSnapshot {
         loggedAt: 1_700_000_000_001,
       },
     ],
+    bingoCards: [],
   };
 }
 
-// Envelope v2 (plan 06-07): the six D-09 keys plus `owner` (D-17 fork key) and
-// `archiveShows` (the online-fallback setlist cache — Pitfall 5).
-const V2_KEYS = [
+// Envelope v3 (plan 15-01): the eight v2 keys plus `bingoCards` (the persisted
+// Gizz-Bingo cards — BINGO-07). serializeExport always emits `bingoCards` (it
+// mirrors `archiveShows`, no volatile id to strip), so a v3 output carries nine
+// top-level keys.
+const V3_KEYS = [
   "archiveShows",
   "attendedShows",
+  "bingoCards",
   "exportedAt",
   "meta",
   "owner",
@@ -72,10 +76,10 @@ const V2_KEYS = [
   "trackedShows",
 ];
 
-describe("serializeExport — envelope v2 shape", () => {
-  it("produces exactly the eight v2 top-level keys, no extras", () => {
-    const out = serializeExport(sampleSnapshot(), 2);
-    expect(Object.keys(out).sort()).toEqual(V2_KEYS);
+describe("serializeExport — envelope v3 shape", () => {
+  it("produces exactly the nine v3 top-level keys, no extras", () => {
+    const out = serializeExport(sampleSnapshot(), 3);
+    expect(Object.keys(out).sort()).toEqual(V3_KEYS);
   });
 
   it("carries schemaVersion through verbatim", () => {

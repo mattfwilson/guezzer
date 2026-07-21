@@ -25,6 +25,7 @@
  */
 import { z } from "zod";
 import { config } from "../config.ts";
+import { bingoCardSchema } from "../bingo/types.ts";
 
 /** Generic key/value settings row (mirrors db.ts `MetaRow`). */
 export const metaRow = z.strictObject({
@@ -105,6 +106,35 @@ export const trackedEntryRow = z.strictObject({
 });
 
 /**
+ * One persisted Gizz-Bingo card (envelope v3, plan 15-01). Mirrors the app's
+ * `BingoCardRow` (packages/app/src/db/db.ts) but is RE-DECLARED here to keep
+ * core app-free. The pure `BingoCard` is NESTED under `card:` so the shipped
+ * `bingoCardSchema` — a `z.discriminatedUnion("kind", …)` on the squares
+ * (bingo/types.ts) — validates the card verbatim (RESEARCH Pattern 2), so an
+ * unknown square `kind` or a leaked extra key hard-fails at the import trust
+ * boundary (T-15-01). `cardId` is the stable inbound PK (D-12) — unlike
+ * `trackedEntryRow`'s volatile `++id`, it is never stripped on serialize.
+ *
+ * CRITICAL (RESEARCH Pitfall 1): `caughtSnapshot` is REQUIRED even though
+ * CONTEXT D-11's field list omits it — it is the frozen catch-set (D-08/D-12)
+ * the replay fold reads for `neverCaught`; without it `neverCaught` drifts on
+ * replay. `lockedAt` is `null` for a draft, a ms-epoch stamp once locked. The
+ * inferred row type must stay assignable to `Table<BingoCardRow>` at
+ * `db.importSnapshot` (the app's `tsc --noEmit` cross-boundary contract) — do
+ * NOT widen any field.
+ */
+export const bingoCardRow = z.strictObject({
+  cardId: z.string(),
+  sessionId: z.string(),
+  card: bingoCardSchema,
+  caughtSnapshot: z.array(z.number().int()),
+  lockedAt: z.number().nullable(),
+  showDate: z.string(),
+  venueName: z.string().nullable(),
+  city: z.string().nullable(),
+});
+
+/**
  * The export envelope (v2, plan 06-07): a versioned wrapper carrying all four
  * tables plus provenance metadata, the D-17 `owner` identity fork key, and the
  * `archiveShows` online-fallback setlist cache. `strictObject` at the top level
@@ -128,6 +158,10 @@ export const exportEnvelope = z.strictObject({
   archiveShows: z.array(archiveShowRow).default([]),
   trackedShows: z.array(trackedShowRow),
   trackedEntries: z.array(trackedEntryRow),
+  // envelope v3 (plan 15-01): the persisted Gizz-Bingo cards. `.default([])`
+  // mirrors `archiveShows` so a genuine v2 backup lacking this key still
+  // PARSES (BINGO-07 / D-14); the v2→v3 MIGRATIONS[2] entry normalizes it.
+  bingoCards: z.array(bingoCardRow).default([]),
 });
 
 /** The full validated export shape — inferred from the schema (single source of truth). */

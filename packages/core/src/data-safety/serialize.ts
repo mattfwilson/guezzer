@@ -14,6 +14,7 @@ import type {
   ExportEnvelope,
   archiveShowRow,
   attendedShowRow,
+  bingoCardRow,
   metaRow,
   trackedEntryRow,
   trackedShowRow,
@@ -37,6 +38,8 @@ export interface ExportSnapshot {
   archiveShows: z.infer<typeof archiveShowRow>[];
   trackedShows: z.infer<typeof trackedShowRow>[];
   trackedEntries: z.infer<typeof trackedEntryRow>[];
+  // envelope v3 (plan 15-01): persisted Gizz-Bingo cards (BINGO-07).
+  bingoCards: z.infer<typeof bingoCardRow>[];
 }
 
 /**
@@ -61,5 +64,8 @@ export function serializeExport(
     archiveShows: snapshot.archiveShows,
     trackedShows: snapshot.trackedShows,
     trackedEntries: snapshot.trackedEntries.map(({ id: _id, ...rest }) => rest),
+    // Verbatim passthrough like archiveShows — `cardId` is a stable PK, so
+    // there is no volatile `++id` to strip (unlike trackedEntries above).
+    bingoCards: snapshot.bingoCards,
   };
 }
