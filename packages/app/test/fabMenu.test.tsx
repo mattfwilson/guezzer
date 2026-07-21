@@ -11,6 +11,7 @@ import { config } from "../src/config.ts";
  * exactly once and the menu closes), and the never-accent floor.
  */
 const actionLabels = [
+  config.copy.catchUp.cta, // Catch me up (BINGO-06, plan 15-04) — top FAB item
   config.copy.show.searchCta,
   config.copy.show.unknownCta,
   config.copy.show.setBreakCta,
@@ -26,6 +27,7 @@ function renderMenu(stripHasContent = false) {
     onSetBreak: vi.fn(),
     onEncore: vi.fn(),
     onUndo: vi.fn(),
+    onCatchUp: vi.fn(),
     onEndShow: vi.fn(),
   };
   render(<FabMenu {...handlers} stripHasContent={stripHasContent} />);
@@ -69,7 +71,7 @@ describe("FabMenu (D-20 speed-dial replacing ActionBar)", () => {
     }
   });
 
-  it("expands to six action rows when the FAB is tapped", () => {
+  it("expands to all action rows when the FAB is tapped", () => {
     renderMenu();
     openMenu();
     for (const label of actionLabels) {
@@ -105,6 +107,7 @@ describe("FabMenu (D-20 speed-dial replacing ActionBar)", () => {
 
   it("each action fires exactly its own callback once and auto-collapses", () => {
     const cases = [
+      { label: config.copy.catchUp.cta, key: "onCatchUp" },
       { label: config.copy.show.searchCta, key: "onSearch" },
       { label: config.copy.show.unknownCta, key: "onUnknown" },
       { label: config.copy.show.setBreakCta, key: "onSetBreak" },

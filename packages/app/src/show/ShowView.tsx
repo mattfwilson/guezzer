@@ -55,6 +55,7 @@ import { SyncDot } from "../live/SyncDot.tsx";
 import { RecapView } from "../dex/RecapView.tsx";
 import { coverUrlList } from "../dex/covers.ts";
 import { coverUrlForSong } from "../dex/song-cover.ts";
+import { CatchUpSheet, type CatchUpCandidate } from "../games/CatchUpSheet.tsx";
 import { classifyOutcome } from "./scoring.ts";
 import { FabMenu } from "./FabMenu.tsx";
 import { ShowBackground } from "./ShowBackground.tsx";
@@ -75,6 +76,7 @@ export function ShowView() {
   const session = useShowSession();
   const [whyCandidate, setWhyCandidate] = useState<OrbitCandidate | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [catchUpOpen, setCatchUpOpen] = useState(false);
   const [trailNode, setTrailNode] = useState<TrackedEntry | null>(null);
   const [endOpen, setEndOpen] = useState(false);
   // D-13 recap seam (06-09): set by EndShowDialog.onEnded when a show finalizes.
@@ -216,6 +218,21 @@ export function ShowView() {
   );
   const fillHints = useMemo(
     () => resolvePlaceholders(guardedRows, session.entries),
+    [guardedRows, session.entries],
+  );
+
+  // BINGO-06 catch-up candidates (15-04): ALL guarded `latest`-feed songs the
+  // tracker has not yet logged — the same pure diff the SuggestionStrip uses, but
+  // uncapped (guardedRows.length is a safe upper bound since the diff dedupes by
+  // song_id). Fed PRE-CHECKED to CatchUpSheet; committing a row grows the trail
+  // via adoptSuggestion and `deriveMarks` re-lights the square as a consequence.
+  const catchUpCandidates = useMemo<CatchUpCandidate[]>(
+    () =>
+      diffLatestAgainstTrail(
+        guardedRows,
+        session.entries,
+        guardedRows.length,
+      ).map((s) => ({ songId: s.songId, songName: s.songName })),
     [guardedRows, session.entries],
   );
 
@@ -490,6 +507,7 @@ export function ShowView() {
         onSetBreak={handleSetBreak}
         onEncore={handleEncore}
         onUndo={handleUndo}
+        onCatchUp={() => setCatchUpOpen(true)}
         onEndShow={() => setEndOpen(true)}
         stripHasContent={stripHasContent}
       />
@@ -507,6 +525,19 @@ export function ShowView() {
         openerSuggestions={
           session.currentSongId === null ? openerSuggestions : undefined
         }
+      />
+
+      {/* BINGO-06 catch-up (15-04): a late-joiner's pre-checked confirm-list of the
+          tracker-missed feed songs (Add {n} → adoptSuggestion per row) + manual
+          search (→ logSong miss). Never touches a square — the trail-grow re-lights
+          squares via deriveMarks (D-03/D-04). Offline → feed-error copy + manual
+          search (never a dead end). */}
+      <CatchUpSheet
+        open={catchUpOpen}
+        onClose={() => setCatchUpOpen(false)}
+        sessionId={sessionId}
+        candidates={catchUpCandidates}
+        feedError={!online}
       />
 
       {/* Older-entry edit / delete (confirm) / rename-??? from a trail tap

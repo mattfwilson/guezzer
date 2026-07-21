@@ -5,8 +5,8 @@
  * orbit stage absorbs the reclaimed vertical height (owner chose max orbit
  * space, accepting the extra tap on ???/Undo, 2026-07-14).
  *
- * Contract (identical callback bag to the old ActionBar so ShowView barely
- * changes): onSearch/onUnknown/onSetBreak/onEncore/onUndo.
+ * Contract (the old ActionBar callback bag + onCatchUp/onEndShow so ShowView
+ * barely changes): onSearch/onUnknown/onSetBreak/onEncore/onUndo/onCatchUp.
  *
  * Anatomy:
  *   - Collapsed default: only the FAB renders — NO action buttons are in the
@@ -32,7 +32,7 @@
  * motion-safe transition glides the reposition. Never accent — gold is reserved
  * for Start Show / focus ring (UI-SPEC §Color).
  */
-import { CircleHelp, CircleStop, Minus, Plus, Search, Star, Undo2 } from "lucide-react";
+import { CircleHelp, CircleStop, ListChecks, Minus, Plus, Search, Star, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { config } from "../config.ts";
 
@@ -47,6 +47,8 @@ interface FabMenuProps {
   onEncore: () => void;
   /** Remove the most recent entry in one tap, NO confirm (D-15/SHOW-07). */
   onUndo: () => void;
+  /** Open the BINGO-06 catch-up confirm-list (bulk-backfill the missed feed songs). */
+  onCatchUp: () => void;
   /** Open the End Show finalize confirm (D-04) — the LAST FAB item; the dialog
    *  still gates the actual finalize, so functionality is unchanged from the old
    *  header button. */
@@ -67,6 +69,7 @@ export function FabMenu({
   onSetBreak,
   onEncore,
   onUndo,
+  onCatchUp,
   onEndShow,
   stripHasContent,
 }: FabMenuProps) {
@@ -78,6 +81,7 @@ export function FabMenu({
   // End Show still opens the EndShowDialog confirm, so its bottom placement can't
   // accidentally finalize the show.
   const actions = [
+    { key: "catchUp", label: config.copy.catchUp.cta, Icon: ListChecks, onClick: onCatchUp },
     { key: "encore", label: copy.encoreCta, Icon: Star, onClick: onEncore },
     { key: "setBreak", label: copy.setBreakCta, Icon: Minus, onClick: onSetBreak },
     { key: "search", label: copy.searchCta, Icon: Search, onClick: onSearch },
