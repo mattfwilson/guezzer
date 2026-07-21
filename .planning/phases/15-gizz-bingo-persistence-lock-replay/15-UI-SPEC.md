@@ -1,10 +1,11 @@
 ---
 phase: 15
 slug: gizz-bingo-persistence-lock-replay
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-20
+reviewed_at: 2026-07-20
 ---
 
 # Phase 15 — UI Design Contract
