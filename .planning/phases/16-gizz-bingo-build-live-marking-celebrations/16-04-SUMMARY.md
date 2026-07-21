@@ -125,3 +125,8 @@ No new security-relevant surface beyond the plan's `<threat_model>`. T-16-06 (es
 ---
 *Phase: 16-gizz-bingo-build-live-marking-celebrations*
 *Completed: 2026-07-21*
+
+## Self-Check: PASSED
+- Created files verified on disk: BingoPeekStrip.tsx, StartShowNudge.tsx, 16-04-SUMMARY.md
+- Task commits verified in git: f5f23b2, 08ef110, 99ef738; docs commit 598c043
+- `npx tsc --noEmit` exits 0; full suite 729 tests green
