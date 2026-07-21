@@ -289,9 +289,12 @@ export const config = {
      * Export envelope `schemaVersion` stamped by serializeExport / checked on
      * import (D-09/D-12). Bumped 1 → 2 in plan 06-07: the v2 envelope adds the
      * `owner` identity fork key + the `archiveShows` fallback setlist cache.
-     * v1 backups migrate forward losslessly via core MIGRATIONS[1].
+     * Bumped 2 → 3 in plan 15-02: the v3 envelope adds the `bingoCards`
+     * persisted Gizz-Bingo cards (BINGO-07). v1/v2 backups migrate forward
+     * losslessly via core MIGRATIONS[1]/MIGRATIONS[2] (pre-v3 backups lack the
+     * `bingoCards` key, which `.default([])` fills at the import trust boundary).
      */
-    SCHEMA_VERSION: 2,
+    SCHEMA_VERSION: 3,
     /**
      * Deferred object-URL revoke delay in ms (SAFE-02, D-06). The
      * triggerDownload helper frees the anchor's object URL only after this
@@ -959,6 +962,77 @@ export const config = {
       newCatches: (n: number): string => `+${n} new catches`,
       /** Footer neutral CTA — returns to Show/Dex (Share card joins in 06-11). */
       done: "Done",
+
+      /**
+       * Phase-15 Gizz-Bingo replay section (15-UI-SPEC §Copywriting Contract,
+       * D-05/D-06). Rendered inside RecapView ONLY when a card row matches the
+       * show's sessionId (absent otherwise — never an empty shell). All
+       * kglw-derived song names render as escaped React text only (T-06-21).
+       */
+      bingoHeading: "Bingo",
+      /** Win-badge labels, keyed by core `BingoWinKind` (D-06). */
+      bingoWinLabels: {
+        line: "Line",
+        corners: "Four corners",
+        x: "X",
+        blackout: "Blackout",
+      },
+      /** No-win state (the board still renders full marks; section still present). */
+      bingoNoWin: "No lines this show",
+      /** Per-square "which song lit this" caption (D-06); song name is kglw-derived (React text). */
+      bingoLitBy: (songName: string): string => `Lit by ${songName}`,
+      /** Free-center square label (the pre-marked center). */
+      bingoFreeLabel: "Free",
+      /** Reshuffle-lock explainer — the guard lands this phase; the greyed control is Phase 16. */
+      bingoLockExplainer: "Locked at Start Show",
+    },
+
+    /**
+     * Phase-15 GizzGames tab copy (15-UI-SPEC §Copywriting Contract, D-01/D-02) —
+     * verbatim. The replay-only home for Gizz Bingo: a "Deal — coming soon"
+     * teaser + the replayable-card list. The empty state must feel INTENTIONAL,
+     * not broken (D-02) — always render the teaser + a friendly empty-list
+     * message, never a bare blank screen or an error. Read-only this phase; the
+     * Deal entry point is a Phase-16 stub. Consumed read-only by plan 15-03.
+     */
+    games: {
+      /** GizzGames section heading (mirrors LiveGizz/GizzVerse/GizzDex). */
+      sectionHeading: "GizzGames",
+      /** Deal teaser title. */
+      teaserTitle: "Gizz Bingo",
+      /** Deal teaser body (D-02). */
+      teaserBody: "Deal a bingo card before your next show.",
+      /** Disabled deal control label — reads as forthcoming, never broken/errored. */
+      teaserAffordance: "Coming soon",
+      /** Replay-list empty-state heading. */
+      emptyHeading: "No cards yet",
+      /** Replay-list empty-state body. */
+      emptyBody: "Cards you play at a show will show up here to relive.",
+    },
+
+    /**
+     * Phase-15 catch-up copy (15-UI-SPEC §Copywriting Contract, BINGO-06,
+     * D-03/D-04) — verbatim. Catch-up is a glance-and-correct confirm-list, never
+     * a silent bulk-adopt: the human stays the honest hit/miss denominator. The
+     * feed-error path falls back to the manual search — never a dead end.
+     * Consumed read-only by plan 15-04.
+     */
+    catchUp: {
+      /** Primary CTA (BINGO-06). */
+      cta: "Catch me up",
+      /** Confirm-list submit — n = checked rows (`n === 1` → "Add 1 song"). */
+      addN: (n: number): string => (n === 1 ? "Add 1 song" : `Add ${n}`),
+      /** Confirm-list heading. */
+      heading: "Songs the tracker missed",
+      /** Confirm-list body. */
+      body: "Untick anything wrong, then add the rest to your setlist.",
+      /** Manual-add affordance (reuses the shipped fuse.js catalog search, D-04). */
+      searchAffordance: "Search to add a song",
+      /** Nothing-to-add state. */
+      allCaughtUp: "You're all caught up — nothing to add.",
+      /** Feed-unavailable error — offline-safe fallback to the manual path. */
+      feedError:
+        "Couldn't reach the setlist feed. Search to add songs manually.",
     },
 
     /**
