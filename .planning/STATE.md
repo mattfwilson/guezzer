@@ -4,14 +4,14 @@ milestone: v1.2
 milestone_name: Pre-Show Hardening
 status: executing
 stopped_at: Phase 15 UI-SPEC approved
-last_updated: "2026-07-21T00:48:04.469Z"
-last_activity: 2026-07-21 -- Phase 15 planning complete
+last_updated: "2026-07-21T01:16:00.000Z"
+last_activity: 2026-07-21 -- Phase 15 Plan 01 complete (envelope v3 core)
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
-  percent: 67
+  total_plans: 22
+  completed_plans: 19
+  percent: 68
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 14 — gizz-bingo-core-marking-generation
+**Current focus:** Phase 15 — gizz-bingo-persistence-lock-replay
 
 ## Current Position
 
-Phase: 15
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-21 -- Phase 15 planning complete
+Phase: 15 (gizz-bingo-persistence-lock-replay) — EXECUTING
+Plan: 2 of 4
+Status: Executing Phase 15 (15-01 complete)
+Last activity: 2026-07-21 -- Phase 15 Plan 01 complete (envelope v3 core)
 
 ## Performance Metrics
 
@@ -88,6 +88,7 @@ Last activity: 2026-07-21 -- Phase 15 planning complete
 | Phase 12 P01 | 6min | 2 tasks | 5 files |
 | Phase 12 P02 | 25min | 3 tasks | 4 files |
 | Phase 12 P03 | 3min | 2 tasks | 6 files |
+| Phase 15 P01 | ~12min | 2 tasks (TDD) | 5 files |
 
 ## Accumulated Context
 
@@ -146,6 +147,7 @@ Recent decisions affecting current work:
 - [Phase 12]: 12-01 (SAFE-04): unified the two duplicated `attendanceGroupKey` twins (merge.ts + derive-dex.ts) into ONE shared pure-core `attendance-key.ts` exporting `attendanceKey(showId, date, sessionId)`. Mechanism A: unbound branch now keys by `date:${date}#${sessionId}` (was `date:${date}`) so two DISTINCT unbound same-date sessions are two attendances — a caught doubleheader survives both merge and dex (D-01). Bound `id:${showId}` branch UNTOUCHED → every show_id join + online multi-device dedup preserved (D-02). derive-dex L126-166 grouping/archive-join + `group.showIds.add` guard left byte-for-byte; retro call passes dummy `""` sessionId (showId always non-null there). Two inverted regression tests (merge → 2 attendances, dex → showCount 2) with D-01 no-restore comments; bound-dedup cases retained + new bound+unbound same-date case + D-03 sightings-survive guard. No schema/stored-data change (key is a transient Map key). Full core 328 green, full repo 621 green, core tsc clean.
 - [Phase 11]: 11-02: three pure-core live-path fixes (LIVE-01/02/03). guardLatestRows is a once-at-ingress filter (bound→show_id, unbound→show's OWN date, never wall-clock so past-midnight sets survive). latestSetlistRow switched to `.catchall(z.unknown())` so an additive API key keeps the row usable; KNOWN_LATEST_KEYS derived from the schema's `.shape` (single source of truth) feeds a names-only detectNovelKeys. pollLatest now returns `PollResult { rows, schemaDrift, novelKeys? }` — drift aggregated into a Set and logged once/poll, never-throw soft-fail preserved. artist_id!==1 confirmed as the SOLE single-ingress filter, locked by a mixed-artist regression test. 11-04 must consume PollResult (useLatestPoll/mockLatest/app tests) and wire guardLatestRows once upstream of diff/resolve.
 - [Phase ?]: 12-02: End-Show finalizes before backup snapshot (SAFE-01); Backup-saved toast is App-level, emitter-triggered, shown only on real export success (SAFE-03)
+- [Phase 15]: 15-01 (BINGO-07 persistence half): envelope v3 core. `bingoCardRow` = `z.strictObject` nesting the shipped `bingoCardSchema` verbatim (RESEARCH Pattern 2 — an unknown square `kind`/extra key hard-fails at the import boundary, T-15-01); `caughtSnapshot` kept REQUIRED (Pitfall 1 — the frozen catch-set drives `neverCaught` on replay). `bingoCards: z.array(bingoCardRow).default([])` on the envelope (pre-v3 backups parse). `bingoCards` on `ExportSnapshot` + verbatim `serializeExport` passthrough (stable `cardId`, no `++id` strip). `MIGRATIONS[2]` mandatory (migration loop errors "too old" if missing). **D-13 Open-Q1 resolution (locked, tested rule):** the `bingoCards` union merge keys by `cardId`; on a same-`cardId` collision the LOCKED row wins (`lockedAt != null` beats `null`, never revert a locked card to a draft), and when both share lock-state the INCOMING row wins per D-13's literal first clause — deliberately NOT the blind local-wins `archiveShows` loop. Deviation (Rule 3): defensive `?? []` on `local`/`incoming` bingoCards decouples core from the app-threading order (15-02); serialize.test updated to the nine v3 keys. Core `tsc` clean, full suite 692 green. **Expected intermediate state:** app `tsc` has 4 errors (`DbSnapshot` lacks `bingoCards`) that Phase 15-02 resolves — the plan scopes `tsc` to core only.
 - [Phase 12]: 12-03 (SAFE-02): centralized the two copied anchor-download idioms (exportDownload.ts + shareCard.ts fallback) into ONE app-only triggerDownload(data, filename) helper that defers URL.revokeObjectURL via setTimeout(config.dataSafety.OBJECT_URL_REVOKE_DELAY_MS=5000ms), never same-tick (D-06/D-07). Fixes iOS Safari aborting backup-JSON and share-card-PNG downloads. previewUrl untouched (released by ShareCardSheet cleanup, not a leak). App-only constant, no core mirror. 299 app tests green, app tsc clean. Device UAT (D-08) remains.
 
 ### Pending Todos
@@ -267,9 +269,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-21T00:10:51.424Z
-Stopped at: Phase 15 UI-SPEC approved
-Resume file: .planning/phases/15-gizz-bingo-persistence-lock-replay/15-UI-SPEC.md
+Last session: 2026-07-21T01:16:00.000Z
+Stopped at: Completed 15-01-PLAN.md (envelope v3 core)
+Resume file: .planning/phases/15-gizz-bingo-persistence-lock-replay/15-02-PLAN.md
 
 ## Operator Next Steps
 

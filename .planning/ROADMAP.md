@@ -166,7 +166,7 @@ Plans:
 
 **Wave 1**
 
-  - [ ] 15-01-PLAN.md — core envelope v3: `bingoCardRow` schema + `bingoCards` field (default []) + `MIGRATIONS[2]` + union merge (locked-wins collision, resolves D-13) (BINGO-07)
+  - [x] 15-01-PLAN.md — core envelope v3: `bingoCardRow` schema + `bingoCards` field (default []) + `MIGRATIONS[2]` + union merge (locked-wins collision, resolves D-13) (BINGO-07)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -216,7 +216,7 @@ Plans:
 | 12. Data Safety & Integrity | v1.2 | 3/3 | Complete    | 2026-07-19 |
 | 13. Interface & Explore Polish | v1.2 | 4/4 | Complete    | 2026-07-20 |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 6/6 | Complete    | 2026-07-20 |
-| 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 0/— | Not started | - |
+| 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 1/4 | In progress | - |
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 0/— | Not started | - |
 
 ---
