@@ -383,19 +383,19 @@ Not a rename/refactor phase, but two persistence touchpoints matter:
 | A5 | Celebration z-tier `celebration: 18` (above page 15, below toast 20, below sheetScrim 40) | z-index | Wrong layering hides toasts or blocks sheet; discretion per UI-SPEC |
 | A6 | Peek-strip expand routes to `#/games` (vs. in-place overlay) | ShowView seam | UI-SPEC discretion default; either works |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Matrix era window vs. calibration 2022 cutoff (A3)**
+1. **Matrix era window vs. calibration 2022 cutoff (A3)** — RESOLVED: planned into 16-01 Task 1.
    - Known: matrix nodes carry `eraPlayCount`; calibration used year ≥ 2022 (241 shows). Matrix total showCount = 738.
-   - Unclear: whether `eraPlayCount`'s era == 2022 window.
-   - Recommendation: one-line check of the matrix build's era cutoff; if it differs, add `config.bingo.eraShowCount` matching the matrix era and label song fire-rate an approximation.
+   - Was unclear: whether `eraPlayCount`'s era == 2022 window.
+   - **Disposition:** 16-01 Task 1 now performs the one-line era-cutoff check BEFORE accepting `eraShowCount = 241`. Outcome is recorded in the `config.bingo.eraShowCount` comment: if the matrix `eraPlayCount` era == 2022 the song fire-rate is EXACT (verified-consistent, not an approximation); if the windows differ, the fire-rate stays a deliberately-labeled approximation with both cutoff years recorded (honest-number risk documented, not silent). An acceptance criterion in 16-01 T1 enforces this.
 
-2. **neverCaught fire-rate as a single constant vs. per-song**
+2. **neverCaught fire-rate as a single constant vs. per-song** — RESOLVED: single constant.
    - Known: neverCaught truly depends on which song is the hint and the live dex.
-   - Recommendation: a single representative `config.bingo.fireRates.event.neverCaught` is proportionate for a <10-user tool (D-24 spirit); revisit only if the hint reads dishonestly.
+   - **Disposition:** 16-01 Task 1 (part a) bakes a single representative `config.bingo.fireRates.event.neverCaught` (≈0.15), proportionate for a <10-user tool (D-24 spirit). Revisit only if the hint reads dishonestly in device UAT.
 
-3. **Extract `<BingoBoard>` now vs. duplicate**
-   - Recommendation: extract from `RecapView.tsx:341-375` in Wave 0 so all three surfaces render identically — cheap now, expensive to reconcile later.
+3. **Extract `<BingoBoard>` now vs. duplicate** — RESOLVED: extracted in Wave 1.
+   - **Disposition:** 16-02 extracts the shared `<BingoBoard>` from `RecapView.tsx:344-381` in Wave 1, with an explicit `captionMode: 'persistent' | 'tapReveal'` prop so replay (persistent captions, Phase-15 D-06) and the live board (clean stamp + tap-to-reveal, D-16) render from ONE component — all three surfaces stay identical. Cheap now, expensive to reconcile later.
 
 ## Environment Availability
 
