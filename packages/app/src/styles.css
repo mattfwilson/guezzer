@@ -136,6 +136,38 @@ body {
   }
 }
 
+/* Gizz-Bingo one-away glow (Phase 16, D-14): the single closest near-miss square
+   wears an accent #f2c14e ring so it reads as "one away" without color being the
+   sole carrier (WCAG 1.4.1 — the board word/glyph always renders). Unlike the
+   decorative orb-ripple, this is a FUNCTIONAL indicator, so the ring is a STATIC
+   accent outline by default (visible under prefers-reduced-motion); a gentle pulse
+   is ADDED ONLY inside the no-preference block below (the orb-ripple/orb-breathe
+   keyframe-gate idiom). */
+.bingo-oneaway-glow {
+  box-shadow:
+    0 0 0 2px #f2c14e,
+    0 0 8px 1px rgba(242, 193, 78, 0.55);
+}
+@keyframes bingo-oneaway-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px #f2c14e,
+      0 0 6px 1px rgba(242, 193, 78, 0.45);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px #f2c14e,
+      0 0 12px 3px rgba(242, 193, 78, 0.75);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bingo-oneaway-glow {
+    animation: bingo-oneaway-pulse 1.8s ease-in-out infinite;
+    will-change: box-shadow;
+  }
+}
+
 /* GizzVerse (Explore) ambient galaxy backdrop (quick task 260717-sjg): the soft
    nebula blooms in ExploreBackground very slowly drift + gently pulse behind the
    constellation canvas. Mirrors the orb-float idiom exactly — DEFAULT is STATIC
