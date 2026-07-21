@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Pre-Show Hardening
 status: executing
-stopped_at: Phase 15 UI-SPEC approved
-last_updated: "2026-07-21T01:16:00.000Z"
+stopped_at: Completed 15-01-PLAN.md (envelope v3 core)
+last_updated: "2026-07-21T01:26:32.480Z"
 last_activity: 2026-07-21 -- Phase 15 Plan 01 complete (envelope v3 core)
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 22
-  completed_plans: 19
-  percent: 68
+  completed_plans: 20
+  percent: 67
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 ## Current Position
 
 Phase: 15 (gizz-bingo-persistence-lock-replay) — EXECUTING
-Plan: 2 of 4
-Status: Executing Phase 15 (15-01 complete)
+Plan: 3 of 4
+Status: Ready to execute
 Last activity: 2026-07-21 -- Phase 15 Plan 01 complete (envelope v3 core)
 
 ## Performance Metrics
@@ -89,6 +89,7 @@ Last activity: 2026-07-21 -- Phase 15 Plan 01 complete (envelope v3 core)
 | Phase 12 P02 | 25min | 3 tasks | 4 files |
 | Phase 12 P03 | 3min | 2 tasks | 6 files |
 | Phase 15 P01 | ~12min | 2 tasks (TDD) | 5 files |
+| Phase 15 P02 | 8min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 12-02: End-Show finalizes before backup snapshot (SAFE-01); Backup-saved toast is App-level, emitter-triggered, shown only on real export success (SAFE-03)
 - [Phase 15]: 15-01 (BINGO-07 persistence half): envelope v3 core. `bingoCardRow` = `z.strictObject` nesting the shipped `bingoCardSchema` verbatim (RESEARCH Pattern 2 — an unknown square `kind`/extra key hard-fails at the import boundary, T-15-01); `caughtSnapshot` kept REQUIRED (Pitfall 1 — the frozen catch-set drives `neverCaught` on replay). `bingoCards: z.array(bingoCardRow).default([])` on the envelope (pre-v3 backups parse). `bingoCards` on `ExportSnapshot` + verbatim `serializeExport` passthrough (stable `cardId`, no `++id` strip). `MIGRATIONS[2]` mandatory (migration loop errors "too old" if missing). **D-13 Open-Q1 resolution (locked, tested rule):** the `bingoCards` union merge keys by `cardId`; on a same-`cardId` collision the LOCKED row wins (`lockedAt != null` beats `null`, never revert a locked card to a draft), and when both share lock-state the INCOMING row wins per D-13's literal first clause — deliberately NOT the blind local-wins `archiveShows` loop. Deviation (Rule 3): defensive `?? []` on `local`/`incoming` bingoCards decouples core from the app-threading order (15-02); serialize.test updated to the nine v3 keys. Core `tsc` clean, full suite 692 green. **Expected intermediate state:** app `tsc` has 4 errors (`DbSnapshot` lacks `bingoCards`) that Phase 15-02 resolves — the plan scopes `tsc` to core only.
 - [Phase 12]: 12-03 (SAFE-02): centralized the two copied anchor-download idioms (exportDownload.ts + shareCard.ts fallback) into ONE app-only triggerDownload(data, filename) helper that defers URL.revokeObjectURL via setTimeout(config.dataSafety.OBJECT_URL_REVOKE_DELAY_MS=5000ms), never same-tick (D-06/D-07). Fixes iOS Safari aborting backup-JSON and share-card-PNG downloads. previewUrl untouched (released by ShareCardSheet cleanup, not a leak). App-only constant, no core mirror. 299 app tests green, app tsc clean. Device UAT (D-08) remains.
+- [Phase ?]: 15-02: cardId == sessionId (D-12) — one card per show, pre-lock reshuffle overwrites in place
+- [Phase ?]: 15-02: reshuffle-rejection guard is app-side in saveDraftCard (SC-1/D-10); core stays DB-free
+- [Phase ?]: 15-02: bingoCards imports via stable-cardId union-only bulkPut (D-13), never clear+rewrite
 
 ### Pending Todos
 
@@ -269,7 +273,7 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-21T01:16:00.000Z
+Last session: 2026-07-21T01:26:03.431Z
 Stopped at: Completed 15-01-PLAN.md (envelope v3 core)
 Resume file: .planning/phases/15-gizz-bingo-persistence-lock-replay/15-02-PLAN.md
 

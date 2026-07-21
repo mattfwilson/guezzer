@@ -43,7 +43,7 @@ Milestone theme: harden the live-show-critical paths (live sync, prediction corr
 - [ ] **BINGO-04**: User gets continuous "one away" feedback when a line is one square from completing.
 - [ ] **BINGO-05**: Completing a line / four-corners / X / blackout triggers a celebration (per-square stamps throughout; a big supernova on first line + blackout only), reduced-motion aware.
 - [ ] **BINGO-06**: User can "Catch me up" on a late-joined show (bulk-mark from the live `latest` feed) and manually mark/search squares the tracker missed.
-- [ ] **BINGO-07**: User can view any past show's frozen card with its final marks and win state from GizzDex history.
+- [x] **BINGO-07**: User can view any past show's frozen card with its final marks and win state from GizzDex history.
 - [ ] **BINGO-08**: User can share a bingo result-card image.
 
 ## Future Requirements
