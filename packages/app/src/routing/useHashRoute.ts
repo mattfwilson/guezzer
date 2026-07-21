@@ -6,7 +6,7 @@ import { useSyncExternalStore } from "react";
  * allow-list and only ever used to SELECT a view; never assigned to
  * `innerHTML`, `location`, or passed to `eval`.
  */
-export const ROUTES = ["show", "explore", "dex", "settings"] as const;
+export const ROUTES = ["show", "explore", "dex", "games", "settings"] as const;
 export type Route = (typeof ROUTES)[number];
 
 function isRoute(value: string): value is Route {

@@ -8,6 +8,7 @@ import { UpdateToast } from "./components/UpdateToast";
 import { OrbFitHarness } from "./dev/OrbFitHarness.tsx";
 import { DexView } from "./dex/DexView.tsx";
 import { ExploreView } from "./explore/ExploreView.tsx";
+import { GamesView } from "./games/GamesView.tsx";
 import { requestPersistenceOnce } from "./pwa/persist.ts";
 import { useHashRoute } from "./routing/useHashRoute";
 import { SettingsView } from "./settings/SettingsView.tsx";
@@ -74,6 +75,8 @@ export function App() {
           <SettingsView />
         ) : route === "dex" ? (
           <DexView />
+        ) : route === "games" ? (
+          <GamesView />
         ) : (
           <PlaceholderView route={route} />
         )}
