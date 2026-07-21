@@ -260,6 +260,15 @@ export const config = {
        * backdrop dim + tap-to-dismiss (WR-01 regression guard: page < sheetScrim).
        */
       page: 15,
+      /**
+       * Phase-16 (BINGO-05, D-17) Gizz-Bingo supernova celebration overlay.
+       * ABOVE `page` (15) so it blooms over an opaque in-tree page, BELOW `toast`
+       * (20) and STRICTLY below `sheetScrim` (40) so an open sheet still covers
+       * it (16-UI-SPEC §Layering / RESEARCH A5). The overlay is
+       * `pointer-events-none` and auto-fades ~2–3s — the live logging loop is
+       * never blocked (the loop is sacred).
+       */
+      celebration: 18,
       /** Transient bottom notifications — UpdateToast + InstallBanner. */
       toast: 20,
       /**
@@ -1008,6 +1017,102 @@ export const config = {
       emptyHeading: "No cards yet",
       /** Replay-list empty-state body. */
       emptyBody: "Cards you play at a show will show up here to relive.",
+
+      /**
+       * Phase-16 (BINGO-01/02/04/05) Gizz-Bingo live-play copy (16-UI-SPEC
+       * §Copywriting Contract) — verbatim. Celebration/tension glyphs are literal
+       * emoji per D-13/D-15/D-16/D-18 (🔥 one-away, 👑 blackout crown, ✦ mark, ✨
+       * badge, 🌟 bust-out). kglw-derived song/square names are passed through as
+       * escaped React text only (T-06-21) — never HTML. No component under
+       * packages/app/src/games may hardcode a bingo string; they READ these keys.
+       */
+      bingo: {
+        /** Deal-screen heading (D-01). */
+        dealHeading: "Deal a card for tonight",
+        /** The 3 vibe buttons ARE the deal (D-01), keyed by core `BingoVibe`. */
+        vibeLabels: {
+          chill: "Deal Chill",
+          balanced: "Deal Balanced",
+          glory: "Deal Glory-hunter",
+        },
+        /** One-line gamble hint under each vibe button, keyed by core `BingoVibe`. */
+        gambleHints: {
+          chill: "Lines come easy",
+          balanced: "A fair fight",
+          glory: "Boom or bust",
+        },
+        /** Swap-sheet title (D-02). */
+        swapSheetTitle: "Swap this square",
+        /** Swap-sheet section labels, fixed order Events → Albums → Songs → Search (D-02). */
+        swapSections: {
+          events: "Events",
+          albums: "Albums",
+          songs: "Songs",
+          search: "Search",
+        },
+        /** Songs sub-group headers inside the swap sheet (D-02). */
+        swapSongGroups: {
+          likely: "Likely",
+          stretch: "A stretch",
+        },
+        /** Swap-sheet search field placeholder (reuses the shipped fuse.js catalog search). */
+        swapSearchPlaceholder: "Search the catalog",
+        /** Inline per-candidate/card fire-rate hint (D-03) — `{pct}%`. */
+        fireRateHint: (pct: number): string => `${pct}%`,
+        /** Bust-out fire-rate hint (D-03) — prefixed 🌟 to read as the glory gamble. */
+        bustOutFireRateHint: (pct: number): string => `🌟 ${pct}%`,
+        /** Vibe label once the card deviates from its dealt vibe (D-04). */
+        customVibeLabel: "Custom",
+        /**
+         * Fill-meter caption (D-11) — both odds always shown, e.g.
+         * "Line likely · blackout: unlikely". `line`/`blackout` are the band
+         * words from `lineBandLabels`/`blackoutBandLabels`.
+         */
+        fillMeterCaption: (line: string, blackout: string): string =>
+          `Line ${line} · blackout: ${blackout}`,
+        /** Band words for the line odds, keyed by core `FillEstimate.lineLikelihood`. */
+        lineBandLabels: {
+          likely: "likely",
+          possible: "possible",
+          unlikely: "unlikely",
+        },
+        /** Band words for the blackout odds, keyed by core `FillEstimate.blackoutLikelihood`. */
+        blackoutBandLabels: {
+          likely: "likely",
+          possible: "possible",
+          unlikely: "unlikely",
+        },
+        /** Fill-meter expected-marks figure (D-11) — e.g. "~11/15" (15 fillable squares). */
+        expectedMarksFormat: (marks: number): string => `~${marks}/15`,
+        /** Fill-meter amber warning (D-12) — quiet, non-blocking. */
+        fillMeterAmberWarning: "This card may not complete a line",
+        /** Line one-away banner (D-13/D-14) — single closest near-miss; `bucket` is the needed square's human word. */
+        lineOneAwayBanner: (bucket: string): string =>
+          `🔥 One away — need a ${bucket} song!`,
+        /** Blackout one-away callout (D-15) — the higher-intensity crown build-up. */
+        blackoutOneAwayCallout: "👑 ONE SQUARE FROM BLACKOUT",
+        /** Auto-mark toast (D-16) — `{song}` lit `{square}`; both kglw-derived (React text). */
+        autoMarkToast: (song: string, square: string): string =>
+          `✦ ${song} lit ${square}!`,
+        /** Medium-tier badge toasts (D-18). */
+        badgeFourCorners: "✨ Four corners!",
+        badgeX: "✨ X!",
+        badgeAnotherLine: "✨ Another line!",
+        /** Big-tier supernova headlines (D-17/D-18). */
+        supernovaFirstLine: "First line!",
+        supernovaBlackout: "BLACKOUT!",
+        /** Start-Show nudge (D-08) — heading + the two dialog actions (D-09). */
+        startShowNudgeHeading: "Deal a bingo card for tonight?",
+        startShowNudgeDeal: "Deal",
+        startShowNudgeNotNow: "Not now",
+        /** Locked-card explainer (D-10) — informational, greys the reshuffle/swap controls. */
+        lockedExplainer: "Locked at Start Show",
+        /** Reshuffle-with-custom-swaps confirm (D-06) — the ONLY destructive control this phase. */
+        reshuffleConfirmHeading: "Reshuffle the whole card?",
+        reshuffleConfirmBody: "Your custom swaps will be replaced.",
+        reshuffleConfirmCta: "Reshuffle",
+        reshuffleConfirmCancel: "Keep card",
+      },
     },
 
     /**
