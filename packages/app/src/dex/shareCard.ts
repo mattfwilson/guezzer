@@ -114,6 +114,14 @@ export function drawShareCard(
   // Wordmark (fixed brand gold — decoupled from the legendary tier, now orange).
   centerText(ctx, cardCopy.wordmark, cx, height * 0.10, 68, config.share.wordmarkGold);
 
+  if (data.scope === "bingo") {
+    // Phase-16 Plan 06 (SHAR) paints the final 4×4 board + win badges here. Until
+    // `buildBingoShareCard` ships, no bingo ShareCardData is ever produced, so this
+    // early return keeps the discriminated union exhaustive (narrowing the rest of
+    // the fn to Collection|Show) without duplicating the show/collection layout.
+    return;
+  }
+
   if (data.scope === "collection") {
     // Completion % hero (Display — the collection's biggest number).
     centerText(ctx, `${data.completionPct}%`, cx, height * 0.30, 240, COLOR.primary);
