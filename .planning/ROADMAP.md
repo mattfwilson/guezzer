@@ -162,7 +162,7 @@ Plans:
   3. User can view any past show's frozen card with its final marks and win state from GizzDex history — a pure re-derivation, not stored marks (BINGO-07).
   4. A populated v4 database upgrades to Dexie `version(5)` preserving all prior tables, and bingo cards round-trip through JSON export/import (envelope `SCHEMA_VERSION` bumped, `MIGRATIONS` added, `bulkPut` by stable `cardId`).
 
-**Plans**: 4 plans across 3 waves
+**Plans**: 4 plans across 4 waves
 
 **Wave 1**
 
@@ -172,9 +172,12 @@ Plans:
 
   - [ ] 15-02-PLAN.md — app persistence: Dexie `version(5)` + `bingoCards` table + `BingoCardRow` + `saveDraftCard`/`lockCard` freeze + reshuffle guard (SC-1) + snapshot/import threading + `SCHEMA_VERSION` 3 + Phase-15 copy (BINGO-07)
 
-**Wave 3** *(blocked on Wave 2; 15-03 and 15-04 parallel — no file overlap)*
+**Wave 3** *(blocked on Wave 2)*
 
   - [ ] 15-03-PLAN.md — replay + GizzGames tab: `replayCard` adapter (0-based reindex + frozen `caughtSnapshot`) + RecapView Bingo section + 4th `games` tab/route (BINGO-07)
+
+**Wave 4** *(blocked on Wave 3; 15-04 reuses the `replayCard` adapter from 15-03)*
+
   - [ ] 15-04-PLAN.md — catch-up: `CatchUpSheet` pre-checked confirm-list + manual search, committing via `adoptSuggestion`/`logSong` (BINGO-06)
 
 **UI hint**: yes

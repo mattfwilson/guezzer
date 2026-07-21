@@ -406,20 +406,25 @@ Not applicable — this phase uses in-repo patterns exclusively; there is no ext
 | A4 | "Core hard-rejects reshuffle" (D-10) means the app domain-logic layer, not `packages/core` | Pitfall 5 | Misplacement would violate core purity; low risk (purity is a hard constraint elsewhere). [ASSUMED] |
 | A5 | RecapView is reachable for every show that can have a card (tracked shows), so attaching the bingo section there covers BINGO-07's "any past show" | Pattern 4 | If some card-bearing shows aren't RecapView-reachable, replay coverage gaps; RecapView is documented as reachable "forever from Dex Shows history" (RecapView.tsx:6). [ASSUMED] |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Merge-collision direction for `bingoCards`.**
+> All three questions are resolved by the Phase-15 plan set. Annotations record the resolution and the plan that carries it.
+
+1. **Merge-collision direction for `bingoCards`. — RESOLVED (plan 15-01).**
    - What we know: D-13 says "imported wins"; the cited precedent (`archiveShows`/`trackedShows`) is actually "local wins" (`merge.ts`). Cards are immutable once locked, so the only meaningful collision is draft-vs-locked.
    - What's unclear: whether to follow D-13's literal "imported wins" or the safer "locked wins."
    - Recommendation: **prefer the locked row on collision**; if both same lock-state, imported wins (D-13 literal). Surface in discuss/plan-check.
+   - **RESOLUTION:** locked-wins-then-imported-wins is the locked, tested rule in **plan 15-01 Task 2** (`bingoCards` union merge: on a same-`cardId` collision the LOCKED row wins; when both rows share lock-state the INCOMING row wins per D-13's literal first clause), pinned by four `merge.test.ts` cases. A locked historical card is never reverted to a draft.
 
-2. **Corpus-refresh drift for `bustOut` squares on replay.**
+2. **Corpus-refresh drift for `bustOut` squares on replay. — RESOLVED (accepted limitation).**
    - What we know: `resolvedDefs` and `caughtSnapshot` are frozen, but `bustOut` matching depends on live `corpusGap` from `buildBingoContext` (`mark.ts:90`). A corpus rebuild changes `corpusGap`.
    - What's unclear: whether `bustOut` replay drift is acceptable, or whether the resolved `corpusGap`/context inputs must also freeze.
    - Recommendation: for the summer-2026 residency the corpus is effectively fixed, so accept the drift and document it (store `corpusVersion` to detect a mismatch). Do NOT expand the freeze scope in Phase 15 unless discuss decides otherwise — it risks re-litigating the Phase-14 freeze contract.
+   - **RESOLUTION:** accepted limitation for the fixed 2026 corpus. `corpusVersion` is persisted on the `BingoCardRow` (plan 15-02 / RESEARCH Pattern 2) to detect a mismatch; the freeze scope is deliberately NOT expanded in Phase 15.
 
-3. **Where the catch-up surface lives** (Claude's discretion per CONTEXT).
+3. **Where the catch-up surface lives (Claude's discretion per CONTEXT). — RESOLVED (plan 15-04).**
    - Recommendation: a shared component invoked from the active-card view, so the same confirm-list + search-log wiring serves both the live catch-up and (Phase 16) the active card. Keep the trail-write path (`adoptSuggestion`/`logSong`) identical to live.
+   - **RESOLUTION:** a shared `CatchUpSheet` component, wired from ShowView's active surface, delivered in **plan 15-04**. It reuses the shipped `adoptSuggestion`/`logSong` trail-write paths (identical to live) and the `replayCard` fold from 15-03, so `live == replay == catch-up` holds.
 
 ## Environment Availability
 
