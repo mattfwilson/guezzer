@@ -209,6 +209,8 @@ export interface DbSnapshot {
   archiveShows: ArchiveShowRow[];
   trackedShows: TrackedShow[];
   trackedEntries: TrackedEntry[];
+  /** Persisted Gizz-Bingo cards (envelope v3, plan 15-02). Union-merged by stable `cardId`. */
+  bingoCards: BingoCardRow[];
 }
 
 export class GuezzerDB extends Dexie {
@@ -634,16 +636,31 @@ export async function unmarkShowAttended(show_id: number): Promise<void> {
  * read both route through here so the export shape is defined in ONE place.
  */
 export async function snapshot(): Promise<DbSnapshot> {
-  const [meta, attendedShows, archiveShows, trackedShows, trackedEntries] =
-    await Promise.all([
-      db.meta.toArray(),
-      db.attendedShows.toArray(),
-      db.archiveShows.toArray(),
-      db.trackedShows.toArray(),
-      db.trackedEntries.toArray(),
-    ]);
+  const [
+    meta,
+    attendedShows,
+    archiveShows,
+    trackedShows,
+    trackedEntries,
+    bingoCards,
+  ] = await Promise.all([
+    db.meta.toArray(),
+    db.attendedShows.toArray(),
+    db.archiveShows.toArray(),
+    db.trackedShows.toArray(),
+    db.trackedEntries.toArray(),
+    db.bingoCards.toArray(),
+  ]);
   const owner = (await getMeta<string>("ownerName")) ?? null;
-  return { owner, meta, attendedShows, archiveShows, trackedShows, trackedEntries };
+  return {
+    owner,
+    meta,
+    attendedShows,
+    archiveShows,
+    trackedShows,
+    trackedEntries,
+    bingoCards,
+  };
 }
 
 /**
@@ -667,13 +684,19 @@ export async function snapshot(): Promise<DbSnapshot> {
  * too, so a failed import can never leave the dex half-wiped (no partial state).
  */
 export async function importSnapshot(snapshot: DbSnapshot): Promise<void> {
+  // Six tables now exceed Dexie's positional `transaction(mode, ...t5, cb)`
+  // overload (max 5 stores), so pass the stores as an array — same single
+  // atomic rw transaction, just the array-arity signature.
   await db.transaction(
     "rw",
-    db.meta,
-    db.attendedShows,
-    db.archiveShows,
-    db.trackedShows,
-    db.trackedEntries,
+    [
+      db.meta,
+      db.attendedShows,
+      db.archiveShows,
+      db.trackedShows,
+      db.trackedEntries,
+      db.bingoCards,
+    ],
     async () => {
       await db.meta.bulkPut(snapshot.meta);
       await db.attendedShows.bulkPut(snapshot.attendedShows);
@@ -682,6 +705,11 @@ export async function importSnapshot(snapshot: DbSnapshot): Promise<void> {
       // clear-and-rewrite (plan 06-07). `owner` is deliberately NOT written into
       // meta here: it is a device-local fork key, not portable state (D-17).
       await db.archiveShows.bulkPut(snapshot.archiveShows);
+      // bingoCards has a stable `&cardId` key and is union-only (the merge never
+      // reduces it, D-13) — commit via bulkPut upsert, NOT the clear-and-rewrite
+      // path used for trackedShows/trackedEntries. A locally-present card absent
+      // from the merged snapshot therefore survives (no destructive clear).
+      await db.bingoCards.bulkPut(snapshot.bingoCards);
       await db.trackedShows.clear();
       await db.trackedShows.bulkPut(snapshot.trackedShows);
       await db.trackedEntries.clear();

@@ -71,10 +71,11 @@ describe("db version(3) additive migration", () => {
     oldDb.close();
 
     // Reopen through the real schema → the version(3) upgrade callback runs.
-    // The DB now opens at version(4) (Phase 6 added the additive archiveShows
-    // table); the v3 upgrade still runs on the way up from the seeded v2 data.
+    // The DB now opens at version(5) (Phase 6 added archiveShows; Phase 15 added
+    // the additive bingoCards table); the v3 upgrade still runs on the way up
+    // from the seeded v2 data.
     await db.open();
-    expect(db.verno).toBe(4);
+    expect(db.verno).toBe(5);
 
     // Backfill: the pre-existing source-less entry now reads "manual".
     const entry = await db.trackedEntries.where("sessionId").equals("s1").first();
@@ -196,6 +197,7 @@ describe("db version(3) write helpers", () => {
           loggedAt: 6,
         },
       ],
+      bingoCards: [],
     });
 
     expect(await getMeta("persistStatus")).toBe("best-effort");
@@ -249,6 +251,7 @@ describe("db version(3) write helpers", () => {
         } as unknown as TrackedShow,
       ],
       trackedEntries: [],
+      bingoCards: [],
     } satisfies DbSnapshot;
 
     await expect(importSnapshot(badSnapshot)).rejects.toBeTruthy();

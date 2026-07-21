@@ -303,6 +303,7 @@ describe("import into a populated DB with overlapping ids preserves every local 
         archiveShows: [],
         trackedShows: [incomingShow],
         trackedEntries: [incomingEntry1, incomingEntry2],
+        bingoCards: [],
       },
       config.dataSafety.SCHEMA_VERSION,
     );
@@ -426,6 +427,7 @@ describe("import into a populated DB with overlapping ids preserves every local 
         archiveShows: [],
         trackedShows: [incomingRichShow],
         trackedEntries: [incomingRichEntry1, incomingRichEntry2],
+        bingoCards: [],
       },
       config.dataSafety.SCHEMA_VERSION,
     );
