@@ -68,6 +68,8 @@ import { TallyReadout } from "./TallyReadout.tsx";
 import { TrailNodeSheet } from "./TrailNodeSheet.tsx";
 import { PreShowLauncher } from "./PreShowLauncher.tsx";
 import { BingoPeekStrip } from "./BingoPeekStrip.tsx";
+import { StartShowNudge } from "./StartShowNudge.tsx";
+import { navigate } from "../routing/useHashRoute.ts";
 import { SearchSheet, type SearchSelection } from "./SearchSheet.tsx";
 import { getOpenerSuggestions } from "./openerSuggestions.ts";
 import { WakeLockNotice } from "./WakeLockNotice.tsx";
@@ -82,6 +84,10 @@ export function ShowView() {
   const [catchUpOpen, setCatchUpOpen] = useState(false);
   const [trailNode, setTrailNode] = useState<TrackedEntry | null>(null);
   const [endOpen, setEndOpen] = useState(false);
+  // BINGO-04 (D-08): the sessionId whose card-less Start Show fired the "Deal a
+  // card for tonight?" nudge, or null. Pure per-session UI state (no persistence,
+  // D-09) — set by PreShowLauncher's card-less callback, cleared on Deal/Not-now.
+  const [nudgeSessionId, setNudgeSessionId] = useState<string | null>(null);
   // D-13 recap seam (06-09): set by EndShowDialog.onEnded when a show finalizes.
   const [recapSessionId, setRecapSessionId] = useState<string | null>(null);
   const [wakeNoticeVisible, setWakeNoticeVisible] = useState(false);
@@ -309,9 +315,13 @@ export function ShowView() {
     );
   }
 
-  // No active show → the pre-show launcher (D-01/D-03).
+  // No active show → the pre-show launcher (D-01/D-03). The card-less callback
+  // (D-08) surfaces the nudge in the ACTIVE return below (ShowView survives the
+  // pre-show → active transition; PreShowLauncher unmounts the instant it does).
   if (!session.active) {
-    return withBackground(<PreShowLauncher />);
+    return withBackground(
+      <PreShowLauncher onStartedWithoutCard={setNudgeSessionId} />,
+    );
   }
 
   // Bundled matrix failed its schemaVersion guard → a calm full-stage failure
@@ -580,6 +590,18 @@ export function ShowView() {
       />
 
       <WhyDetail candidate={whyCandidate} onClose={() => setWhyCandidate(null)} />
+
+      {/* BINGO-04 (D-08/D-09): the card-less Start-Show nudge. [Deal] routes to
+          GizzGames to deal a card for the now-active session; [Not now] dismisses
+          for THIS show only (per-session state, no persisted suppression). */}
+      <StartShowNudge
+        open={nudgeSessionId != null}
+        onDeal={() => {
+          setNudgeSessionId(null);
+          navigate("games");
+        }}
+        onDismiss={() => setNudgeSessionId(null)}
+      />
     </>,
   );
 }
