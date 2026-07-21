@@ -20,7 +20,7 @@
  */
 import { useMemo, useState, type ReactElement } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { buildBingoShareCard, deal, estimateFill, type BingoCard } from "@guezzer/core";
+import { buildBingoShareCard, deal, estimateFill, nearMiss, type BingoCard } from "@guezzer/core";
 import { Share2 } from "lucide-react";
 import { BingoBoard } from "../components/BingoBoard.tsx";
 import { config } from "../config.ts";
@@ -164,6 +164,10 @@ export function GamesView() {
       ctx,
       boardCaught,
     );
+    // Live one-away glow (D-14/D-15) — the single closest needed square, mirroring
+    // the LiveGizz peek strip so the glow is consistent across both surfaces. Only
+    // the LOCKED/live board has marks to be one-away from; a draft has none.
+    const miss = unlocked ? null : nearMiss(board.marked, activeCard.card, ctx, boardCaught);
     const custom = isCardCustom(activeCard.card, ctx, snapshot);
     const vibeLabel = custom
       ? bingoCopy.customVibeLabel
@@ -191,6 +195,7 @@ export function GamesView() {
           wins={board.wins}
           songNameByPosition={board.songNameByPosition}
           captionMode="tapReveal"
+          oneAwayIndex={miss?.neededSquareIndex ?? null}
           onSquareTap={unlocked ? openSwap : undefined}
         />
 
