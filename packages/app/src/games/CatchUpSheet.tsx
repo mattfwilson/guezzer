@@ -18,7 +18,7 @@
  * All copy is read from `config.copy.catchUp.*`; kglw-derived song names render as
  * escaped React text only — never `dangerouslySetInnerHTML` (T-15-10/T-15-11).
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { Sheet } from "../components/Sheet.tsx";
 import { config } from "../config.ts";
@@ -57,15 +57,34 @@ export function CatchUpSheet({
 }: CatchUpSheetProps) {
   const copy = config.copy.catchUp;
   // Pre-checked confirm-list (D-03): every candidate starts ticked; unticking
-  // drops a wrong row. Re-seeded whenever the candidate set changes (a fresh poll).
-  const [checked, setChecked] = useState<Set<number>>(
-    () => new Set(candidates.map((c) => c.songId)),
-  );
+  // drops a wrong row.
+  const [checked, setChecked] = useState<Set<number>>(new Set());
   const [searchOpen, setSearchOpen] = useState(false);
+  // Song ids already folded into `checked` this open-session. Lets a later
+  // `latest` poll add NEWLY-surfaced misses (pre-checked) without touching rows
+  // the user already unticked. Without this, the parent hands us a fresh
+  // `candidates` array every poll and a naive full re-seed would silently wipe
+  // the user's corrections mid-show, then re-adopt mis-scraped songs (CR-01).
+  const seenIdsRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
-    setChecked(new Set(candidates.map((c) => c.songId)));
-  }, [candidates]);
+    // Closed: forget everything so the next open starts fresh (all pre-checked).
+    if (!open) {
+      seenIdsRef.current = new Set();
+      setChecked(new Set());
+      return;
+    }
+    // Open: seed on first run, then only ADD candidates we have not seen yet —
+    // preserving any unticks the user made since the sheet opened.
+    setChecked((prev) => {
+      const next = new Set(prev);
+      for (const c of candidates) {
+        if (!seenIdsRef.current.has(c.songId)) next.add(c.songId);
+      }
+      return next;
+    });
+    seenIdsRef.current = new Set(candidates.map((c) => c.songId));
+  }, [open, candidates]);
 
   const close = () => {
     setSearchOpen(false);

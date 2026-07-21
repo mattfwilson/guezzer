@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { CatchUpSheet } from "../src/games/CatchUpSheet.tsx";
 import { config } from "../src/config.ts";
@@ -91,6 +91,43 @@ describe("CatchUpSheet — pre-checked confirm-list surface (BINGO-06)", () => {
     expect(screen.getByText(copy.feedError)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: copy.searchAffordance }),
+    ).toBeInTheDocument();
+  });
+
+  it("preserves an untick across a live `latest` poll and pre-checks only newly-surfaced songs (CR-01)", () => {
+    const initial = [
+      { songId: 101, songName: "Rattlesnake" },
+      { songId: 102, songName: "Robot Stop" },
+    ];
+    const { rerender } = render(
+      <CatchUpSheet open onClose={() => {}} sessionId="s1" candidates={initial} />,
+    );
+
+    // User unticks a wrongly-scraped row.
+    const rattlesnake = screen.getByRole("checkbox", { name: /Rattlesnake/ });
+    fireEvent.click(rattlesnake);
+    expect(rattlesnake).not.toBeChecked();
+
+    // A poll hands down a FRESH array (same songs + one newly-missed song).
+    rerender(
+      <CatchUpSheet
+        open
+        onClose={() => {}}
+        sessionId="s1"
+        candidates={[...initial, { songId: 103, songName: "Gaia" }]}
+      />,
+    );
+
+    // The untick survives the poll — NOT re-checked (CR-01 regression).
+    expect(
+      screen.getByRole("checkbox", { name: /Rattlesnake/ }),
+    ).not.toBeChecked();
+    // The still-checked row stays checked; the new song arrives pre-checked.
+    expect(screen.getByRole("checkbox", { name: /Robot Stop/ })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /Gaia/ })).toBeChecked();
+    // Add reflects 2 checked (Robot Stop + Gaia), not 3.
+    expect(
+      screen.getByRole("button", { name: copy.addN(2) }),
     ).toBeInTheDocument();
   });
 
