@@ -6,6 +6,8 @@
  * for delay/timeout/year bounds, or a string literal for the API base URL,
  * User-Agent, sentinel song IDs, or settype allowlist.
  */
+import type { BingoEvent } from "./bingo/types.ts";
+
 export const config = {
   /** kglw.net API v2 base URL. No auth. Source: PROJECT.md Context / ARCHITECTURE.md Part 1. */
   apiBase: "https://kglw.net/api/v2",
@@ -460,6 +462,98 @@ export const config = {
       "/albums/kg",
       "/albums/lw",
     ] as string[],
+
+    /**
+     * [VERIFIED: bingo-calibration-report.md / bingo-roster-candidates.md]
+     * Phase-16 (BINGO-02/04): per-square fire-rates the pure `estimateFill`
+     * difficulty meter (D-10) and `nearMiss` (D-13/14/15) read to score a card
+     * BEFORE the show. Corpus-measured, transcribed verbatim from the two
+     * committed calibration artifacts (241 recent-era shows, mid-collection dex).
+     *   - `album`: keyed by the 9 `albumSquarePool` urls; each value is that
+     *     album's measured "≥1 member played tonight" fire-rate from
+     *     data/bingo-roster-candidates.md (infest 80.1% … lw 42.7%).
+     *   - `event`: the mid-collection reliable-square fire-rates from
+     *     data/bingo-calibration-report.md (opener ≈53–65% → 0.55, microtonal
+     *     ≈51–56% → 0.51, marathonJam ≈60–68% → 0.66) plus bust-out ≈21% (the
+     *     ≥50-show-gap fire, roster file) and a single representative
+     *     neverCaught ≈0.15 (RESEARCH Open Q2 — one proportionate constant per
+     *     the D-24 single-glory spirit).
+     * These are the honest per-square marginals; the consume-once overcount is
+     * corrected downstream by `fillMeter.consumeOnceDiscount`.
+     */
+    fireRates: {
+      album: {
+        "/albums/infest-the-rats-nest": 0.801,
+        "/albums/omnium-gatherum": 0.797,
+        "/albums/petrodragonic-apocalypse": 0.602,
+        "/albums/ice-death-planets-lungs-mushrooms-and-lava": 0.589,
+        "/albums/flying-microtonal-banana": 0.531,
+        "/albums/im-in-your-mind-fuzz": 0.527,
+        "/albums/nonagon-infinity": 0.461,
+        "/albums/kg": 0.444,
+        "/albums/lw": 0.427,
+      } as Record<string, number>,
+      event: {
+        opener: 0.55,
+        microtonal: 0.51,
+        marathonJam: 0.66,
+        bustOut: 0.21,
+        neverCaught: 0.15,
+      } as Record<BingoEvent, number>,
+    },
+
+    /**
+     * [VERIFIED: bingo-calibrate.ts RECENT_ERA_MIN_YEAR=2022 / matrix era check]
+     * Phase-16 song-square denominator (BINGO-08 A3): the recent-era show count
+     * the calibration replays (year ≥ 2022 → 241 shows). `estimateFill` scores a
+     * song square as `min(1, eraPlayRate/eraShowCount)`.
+     *
+     * RESEARCH A3 ERA CHECK — WINDOWS DIFFER → LABELED APPROXIMATION (not exact):
+     * `ctx.eraPlayRate` is `MatrixNode.eraPlayCount`, which model/matrix.ts bakes
+     * over the TRAILING `cfg.eraWindowShows = 40` shows before the matrix cutoff
+     * (config.ts:157). The calibration's recent era is instead a YEAR cutoff
+     * (RECENT_ERA_MIN_YEAR = 2022, bingo-calibrate.ts:59) spanning 241 shows.
+     * 40-show trailing window ≠ 2022 year cutoff (241 shows), so
+     * `eraPlayCount / 241` is a DELIBERATE, LABELED APPROXIMATION of a song's
+     * per-show fire-rate — it under-counts (a 40-show-window numerator over a
+     * 241-show denominator). The honest-number risk is documented here, not
+     * silent; the `fillMeter.consumeOnceDiscount` is tuned (Plan 01 Task 3)
+     * against the Monte-Carlo means so the meter still tracks reality despite the
+     * divergent denominator.
+     */
+    eraShowCount: 241,
+
+    /**
+     * Phase-16 (BINGO-02) `estimateFill` tunables. `consumeOnceDiscount` scales
+     * the summed per-square marginals down to correct the consume-once overcount
+     * (one logged song lights ≤1 square, and overlapping album/event squares
+     * cannot all fire). `lineLikelyThreshold` / `linePossibleThreshold` map the
+     * predicted `expectedMarks` (1..16, free cell included) to the meter's
+     * likely/possible/unlikely bands.
+     *
+     * [VERIFIED: estimate.test.ts trust gate — TUNED 2026-07-21] These three were
+     * SEEDED at 0.45 / 7.6 / 6.6 and then tuned in Plan 01 Task 3 until the mean
+     * predicted `expectedMarks` per vibe tracked the calibration Monte-Carlo means
+     * (chill 7.89 / balanced 7.26 / glory 6.25) within ±0.75 and the band ordering
+     * matched measured pLine (chill > balanced > glory). Do not hand-edit without
+     * re-greening estimate.test.ts.
+     *
+     * NOTE on the ≈1.0 discount: because the song-square denominator is a LABELED
+     * APPROXIMATION that UNDER-counts (eraPlayCount over a 40-show window ÷ a
+     * 241-show denominator — see `eraShowCount` above), the summed marginals come
+     * in LOW, and the consume-once overcount that a <1 discount would correct is
+     * roughly cancelled by that undercount. The tuned factor therefore lands just
+     * above 1.0 (≈1.02) — the single value that centers all three vibe means
+     * inside ±0.75 (measured errors +0.37 / +0.12 / −0.35 at N=500). A single
+     * discount suffices; the per-kind/saturation escalation (RESEARCH A2) was NOT
+     * needed. Thresholds 7.6 / 6.6 sit cleanly between the three tuned means
+     * (≈8.26 > 7.6 > 7.38 > 6.6 > 5.90), giving each vibe a distinct modal band.
+     */
+    fillMeter: {
+      consumeOnceDiscount: 1.02,
+      lineLikelyThreshold: 7.6,
+      linePossibleThreshold: 6.6,
+    },
 
     /**
      * D-02/D-03 (AMENDED 2026-07-20 — see 14-CONTEXT.md D-02/D-03 amendment):

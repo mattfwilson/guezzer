@@ -329,6 +329,13 @@ export {
 export { deal } from "./bingo/generate.ts";
 export { deriveMarks, type MarkTrailEntry } from "./bingo/mark.ts";
 export { detectWins, expectedFill } from "./bingo/wins.ts";
+export {
+  estimateFill,
+  nearMiss,
+  type FillEstimate,
+  type FillBand,
+  type NearMiss,
+} from "./bingo/estimate.ts";
 export { buildBingoContext, type BingoContext } from "./bingo/context.ts";
 export type {
   BingoCard,

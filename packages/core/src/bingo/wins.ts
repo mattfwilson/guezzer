@@ -15,26 +15,28 @@
  */
 import type { MarkedCard, Win } from "./types.ts";
 
-// Row-major 4×4 geometry. Every constant is a board-index tuple.
-const ROWS: readonly (readonly number[])[] = [
+// Row-major 4×4 geometry. Every constant is a board-index tuple. These are
+// `export const` so the Phase-16 `estimate.ts` (nearMiss) reuses the identical
+// line/diagonal/corners/X geometry — one geometry source, never a second copy.
+export const ROWS: readonly (readonly number[])[] = [
   [0, 1, 2, 3],
   [4, 5, 6, 7],
   [8, 9, 10, 11],
   [12, 13, 14, 15],
 ];
-const COLS: readonly (readonly number[])[] = [
+export const COLS: readonly (readonly number[])[] = [
   [0, 4, 8, 12],
   [1, 5, 9, 13],
   [2, 6, 10, 14],
   [3, 7, 11, 15],
 ];
-const DIAG_MAIN: readonly number[] = [0, 5, 10, 15];
-const DIAG_ANTI: readonly number[] = [3, 6, 9, 12];
-const CORNERS: readonly number[] = [0, 3, 12, 15];
+export const DIAG_MAIN: readonly number[] = [0, 5, 10, 15];
+export const DIAG_ANTI: readonly number[] = [3, 6, 9, 12];
+export const CORNERS: readonly number[] = [0, 3, 12, 15];
 const ALL_INDICES: readonly number[] = Array.from({ length: 16 }, (_unused, i) => i);
 
 // Union of the two diagonals, ascending — the `x` win's indices.
-const X_INDICES: readonly number[] = [
+export const X_INDICES: readonly number[] = [
   ...new Set<number>([...DIAG_MAIN, ...DIAG_ANTI]),
 ].sort((a, b) => a - b);
 

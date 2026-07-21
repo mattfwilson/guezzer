@@ -17,6 +17,7 @@
  * DB imports — mirrors the pure-derivation shape of derive-dex.ts / compare.ts.
  */
 import { config } from "../config.ts";
+import type { BingoWinKind } from "../bingo/types.ts";
 import type { ArchiveArtifact } from "./archive-types.ts";
 import type { DexStats } from "./derive-dex.ts";
 import type { RarityTier } from "./rarity.ts";
@@ -82,8 +83,27 @@ export interface ShowShareCard extends ShareCardCommon {
   show: { date: string; venue: string | null };
 }
 
+/**
+ * The PER-CARD Gizz-Bingo brag card (SHAR / Phase-16 Plan 06) — scoped to one
+ * played bingo card. A flat, canvas-ready projection: the 16 board squares
+ * (row-major, each with its display label + marked/free flags), the detected
+ * wins, and the show it was played at. Plan 06 adds the `buildBingoShareCard`
+ * builder that assembles this from a locked card + its `MarkedCard`; this plan
+ * only lands the union member so downstream app waves compile against a stable
+ * `ShareCardData` (BINGO share scope).
+ */
+export interface BingoShareCard {
+  scope: "bingo";
+  /** The 16 board squares, row-major (index 0..15), frozen for the canvas draw. */
+  squares: { label: string; marked: boolean; isFree: boolean }[];
+  /** Every win the marked board completed (line/corners/x/blackout), in detection order. */
+  wins: BingoWinKind[];
+  /** The show this card was played at — date always honest, venue nullable. */
+  show: { date: string; venue: string | null };
+}
+
 /** The flat, canvas-ready shape the share card draws — a discriminated union on `scope`. */
-export type ShareCardData = CollectionShareCard | ShowShareCard;
+export type ShareCardData = CollectionShareCard | ShowShareCard | BingoShareCard;
 
 /** Build the fixed six-row breakdown from a tier→count map (0-filled, ordered). */
 function orderedTierRows(counts: Map<ShareTier, number>): ShareTierRow[] {
