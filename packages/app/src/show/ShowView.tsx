@@ -504,7 +504,11 @@ export function ShowView() {
           In the show column adjacent to the trail, NEVER fixed, never over the
           FAB/orbit (the setlist log is sacred); taps route to the full GamesView board. */}
       {bingoCardRow != null && bingoCardRow.lockedAt != null && (
-        <BingoPeekStrip card={bingoCardRow.card} entries={session.entries} />
+        <BingoPeekStrip
+          card={bingoCardRow.card}
+          caughtSnapshot={bingoCardRow.caughtSnapshot}
+          entries={session.entries}
+        />
       )}
 
       {/* Region 3 — the orbit stage. Pre-opener (currentSongId === null): the

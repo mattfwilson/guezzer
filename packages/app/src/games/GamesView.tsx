@@ -152,11 +152,17 @@ export function GamesView() {
         : [];
 
     // Draft = all-unmarked (empty trail); live = the growing session trail.
+    // A LOCKED board marks over the FROZEN caughtSnapshot (CR-01), not the growing
+    // live dex — otherwise a song caught for the first time TONIGHT reads as
+    // already-caught and its `neverCaught` square never lights, contradicting the
+    // celebration toast + replay ("live == replay == catch-up"). A draft (empty
+    // trail) has nothing to mark, so the live snapshot is harmless there.
+    const boardCaught = unlocked ? snapshot : new Set<number>(activeCard.caughtSnapshot);
     const board = deriveLiveBoard(
       activeCard.card,
       unlocked ? [] : sessionEntries,
       ctx,
-      snapshot,
+      boardCaught,
     );
     const custom = isCardCustom(activeCard.card, ctx, snapshot);
     const vibeLabel = custom
