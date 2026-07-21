@@ -14,7 +14,7 @@ updated: 2026-07-21T09:15:00Z
 
 ### 1. Deal each vibe on GizzGames, then swap and reshuffle squares
 expected: One tap deals a full 4×4 (never blank); the fill meter reacts on every swap/reshuffle and turns amber (never red) below the likely-line threshold; the vibe label flips to "Custom" after an individual swap; reshuffle with custom swaps prompts a confirm.
-result: [pending]
+result: passed (confirmed on device 2026-07-21)
 
 ### 2. Lock a card at Start Show, then log songs on LiveGizz
 expected: The in-flow peek strip appears (never over the FAB/orbit), auto-marks square-by-square as songs land, glows the single closest needed square, and shows the "🔥 One away…" / "👑 ONE SQUARE FROM BLACKOUT" banner; tapping a stamped square on the full GamesView board reveals which song lit it.
@@ -35,9 +35,9 @@ result: [pending]
 ## Summary
 
 total: 5
-passed: 0
+passed: 1
 issues: 0
-pending: 5
+pending: 4
 skipped: 0
 blocked: 0
 
