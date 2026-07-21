@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AppMenu } from "./components/AppMenu";
 import { AppShell } from "./components/AppShell";
 import { BackupToast } from "./components/BackupToast";
+import { BingoCelebration } from "./components/BingoCelebration.tsx";
 import { InstallBanner } from "./components/InstallBanner";
 import { PlaceholderView } from "./components/PlaceholderView";
 import { UpdateToast } from "./components/UpdateToast";
@@ -9,6 +10,7 @@ import { OrbFitHarness } from "./dev/OrbFitHarness.tsx";
 import { DexView } from "./dex/DexView.tsx";
 import { ExploreView } from "./explore/ExploreView.tsx";
 import { GamesView } from "./games/GamesView.tsx";
+import { useBingoCelebrations } from "./games/useBingoCelebrations.ts";
 import { requestPersistenceOnce } from "./pwa/persist.ts";
 import { useHashRoute } from "./routing/useHashRoute";
 import { SettingsView } from "./settings/SettingsView.tsx";
@@ -17,6 +19,12 @@ import { ShowView } from "./show/ShowView.tsx";
 export function App() {
   const route = useHashRoute();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Phase-16 (BINGO-05): App-level celebration driver. Diffs live bingo-board
+  // win/mark transitions and fires the module emitter that `<BingoCelebration/>`
+  // below renders — mounted once here so a celebration survives the
+  // ShowView→RecapView unmount and fires over any tab (BackupToast precedent).
+  useBingoCelebrations();
 
   // Plan 04 (D-09): request eviction-resistant storage early on first run —
   // on mount AND (idempotently) again on the first user interaction, since
@@ -85,6 +93,7 @@ export function App() {
       <InstallBanner />
       <UpdateToast />
       <BackupToast />
+      <BingoCelebration />
       <AppMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </div>
   );
