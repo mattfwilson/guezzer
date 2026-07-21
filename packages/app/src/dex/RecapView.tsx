@@ -21,6 +21,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo, useState } from "react";
 import { config } from "../config.ts";
 import { db } from "../db/db.ts";
+import { replayCard } from "../games/bingoReplay.ts";
+import { loadMatrix } from "../show/matrix.ts";
 import { loadArchive } from "./archive-loader.ts";
 import { loadDexAlbums } from "./dex-albums-loader.ts";
 import { getRarityIndex } from "./rarityIndex.ts";
@@ -58,10 +60,15 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
   const trackedEntries = useLiveQuery(() => db.trackedEntries.toArray());
   const attendedShows = useLiveQuery(() => db.attendedShows.toArray());
   const archiveShows = useLiveQuery(() => db.archiveShows.toArray());
+  // Phase-15 (BINGO-07, D-05): the persisted bingo cards. A row keyed to this
+  // session drives the read-only replay board below; when none matches, NO Bingo
+  // section renders (the `bingo` memo returns null → the block is absent).
+  const bingoCards = useLiveQuery(() => db.bingoCards.toArray());
 
   // Guarded, memoized static artifacts + the module-memoized rarity index.
   const archiveResult = loadArchive();
   const albumsResult = loadDexAlbums();
+  const matrixResult = loadMatrix();
   const rarity = getRarityIndex();
 
   const recap = useMemo(() => {
@@ -105,6 +112,34 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
       venue: show?.venueName ?? null,
     });
   }, [recap, archiveResult, trackedShows, sessionId]);
+
+  // Phase-15 replay board (BINGO-07, D-05/D-06/D-23). A PURE re-derivation over
+  // the persisted trail via the shared `replayCard` adapter — marks are never
+  // stored, so `live == replay == catch-up`. Returns null (→ section absent) when
+  // this session has no card, or any loader/live read is not yet ready.
+  const bingo = useMemo(() => {
+    if (!matrixResult.ok || !archiveResult.ok || !albumsResult.ok || rarity == null) return null;
+    if (bingoCards === undefined || trackedEntries === undefined) return null;
+    const cardRow = bingoCards.find((c) => c.sessionId === sessionId);
+    if (cardRow == null) return null; // D-05: no card → no Bingo section.
+    const sessionEntries = trackedEntries.filter((e) => e.sessionId === sessionId);
+    return replayCard(
+      cardRow,
+      sessionEntries,
+      matrixResult.matrix,
+      archiveResult.archive,
+      rarity,
+      albumsResult.albums,
+    );
+  }, [
+    bingoCards,
+    trackedEntries,
+    sessionId,
+    matrixResult,
+    archiveResult,
+    albumsResult,
+    rarity,
+  ]);
 
   // Still resolving the live reads / a loader failed — hold a calm empty frame.
   if (recap == null) {
@@ -273,6 +308,79 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
             </div>
           ))}
         </div>
+
+        {/* Bingo replay (BINGO-07, D-05/D-06) — a read-only frozen board, present
+            ONLY when this session has a card. Pure re-derivation; NO tap-to-mark
+            (D-04), NO celebration (Phase 16). All labels/song names are escaped
+            React text (T-06-21). */}
+        {bingo != null && (
+          <div className="flex flex-col gap-3">
+            <h2 className="text-[20px] font-semibold leading-tight text-text-primary">
+              {copy.bingoHeading}
+            </h2>
+
+            {/* Win badges (earned-payoff accent chips) or the honest no-win line. */}
+            {bingo.wins.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {bingo.wins.map((win, i) => (
+                  <span
+                    key={`${win.kind}-${i}`}
+                    className="rounded-full px-2 py-1 text-[14px] font-semibold"
+                    // Accent gold chip (#F2C14E) — the restrained replay payoff; the
+                    // big supernova is Phase 16 (15-UI-SPEC §Color).
+                    style={{ backgroundColor: "#F2C14E", color: "#0C0C10" }}
+                  >
+                    {copy.bingoWinLabels[win.kind]}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[14px] leading-tight text-text-muted">{copy.bingoNoWin}</p>
+            )}
+
+            {/* 4×4 read-only board (row-major). Marked → caught-green #22C55E /
+                near-black label; unmarked → elevated #17171F / primary label /
+                hairline; the free center wears the marked treatment + "Free". */}
+            <div className="grid grid-cols-4 gap-2">
+              {bingo.marked.squares.map((square) => {
+                const isMarked = square.markedByPosition !== null;
+                const isFree = square.def.kind === "free";
+                const label = square.def.kind === "free" ? copy.bingoFreeLabel : square.def.label;
+                const litName =
+                  isMarked && !isFree
+                    ? bingo.songNameByPosition.get(square.markedByPosition as number)
+                    : null;
+                return (
+                  <div
+                    key={square.index}
+                    className="flex min-h-[80px] flex-col items-center justify-center gap-1 rounded-md p-2 text-center"
+                    style={
+                      isMarked
+                        ? { backgroundColor: "#22C55E", color: "#0C0C10" }
+                        : {
+                            backgroundColor: "#17171F",
+                            color: "#F5F5F7",
+                            border: "1px solid #2A2A34",
+                          }
+                    }
+                  >
+                    <span className="line-clamp-2 text-[12px] font-semibold leading-tight">
+                      {label}
+                    </span>
+                    {litName != null && litName !== "" && (
+                      <span
+                        className="line-clamp-1 text-[10px] leading-tight"
+                        style={{ color: "#0C0C10", opacity: 0.72 }}
+                      >
+                        {copy.bingoLitBy(litName)}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Footer — Share card (accent) · Done (neutral). */}
         <div

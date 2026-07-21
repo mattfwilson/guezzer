@@ -37,6 +37,9 @@ vi.mock("@archive", () => ({ default: stubArchive }));
 vi.mock("@dexAlbums", () => ({
   default: { schemaVersion: 1, albums: [], buckets: { covers: [], miscellaneous: [] } },
 }));
+// Phase-15: RecapView now calls loadMatrix() to build the bingo-replay context.
+// The real bundled @matrix artifact is used (the seam test already renders
+// ShowView through getMatrixIndex), so no @matrix mock is needed here.
 
 const { config } = await import("../src/config.ts");
 const { db } = await import("../src/db/db.ts");
@@ -49,6 +52,33 @@ async function clearTables() {
   await db.archiveShows.clear();
   await db.trackedShows.clear();
   await db.trackedEntries.clear();
+  await db.bingoCards.clear();
+}
+
+/** A minimal locked BingoCardRow for `sessionId` — 16 filler song squares + free. */
+function makeCardRow(sessionId: string) {
+  const squares = Array.from({ length: 16 }, (_unused, i) =>
+    i === 5
+      ? ({ kind: "free" } as const)
+      : ({ kind: "song", songId: 900 + i, label: `Filler ${i}` } as const),
+  );
+  return {
+    cardId: sessionId,
+    sessionId,
+    card: {
+      schemaVersion: 1 as const,
+      seed: "seed",
+      vibe: "balanced" as const,
+      corpusVersion: "corpus",
+      freeIndex: 5,
+      squares,
+    },
+    caughtSnapshot: [] as number[],
+    lockedAt: 1,
+    showDate: "2026-07-14",
+    venueName: "Test Arena",
+    city: "Testville",
+  };
 }
 
 async function seedSession() {
@@ -148,6 +178,25 @@ describe("RecapView — the payoff screen (SHOW-14, D-14/D-15)", () => {
     await screen.findByText(copy.heading);
     fireEvent.click(screen.getByRole("button", { name: copy.done }));
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe("Bingo replay section (BINGO-07, D-05 present/absent contract)", () => {
+  it("renders the Bingo section when the session has a locked card", async () => {
+    await seedSession();
+    await db.bingoCards.put(makeCardRow("s1"));
+    render(<RecapView sessionId="s1" onClose={() => {}} />);
+    await screen.findByText(copy.heading);
+    // D-05: a card exists → the Bingo section (heading) renders.
+    expect(await screen.findByText(copy.bingoHeading)).toBeInTheDocument();
+  });
+
+  it("renders NO Bingo section when the session has no card (D-05)", async () => {
+    await seedSession();
+    render(<RecapView sessionId="s1" onClose={() => {}} />);
+    await screen.findByText(copy.heading);
+    // D-05: no card row for this session → the Bingo section is absent entirely.
+    expect(screen.queryByText(copy.bingoHeading)).toBeNull();
   });
 });
 
