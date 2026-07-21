@@ -42,6 +42,7 @@ import {
   adoptSuggestion,
   bindShow,
   db,
+  lockCard,
   logSong,
   markEncore,
   markSetBreak,
@@ -49,6 +50,8 @@ import {
   undoLast,
   type TrackedEntry,
 } from "../db/db.ts";
+import { useDexStats } from "../dex/useDexStats.ts";
+import { dexSnapshot } from "../games/bingoContext.ts";
 import { acquireWakeLock, releaseWakeLock } from "../wakeLock.ts";
 import { useLatestPoll } from "../live/useLatestPoll.ts";
 import { useOnlineStatus } from "../live/useOnlineStatus.ts";
@@ -302,6 +305,36 @@ export function ShowView() {
         : undefined,
     [activeSessionId],
   );
+
+  // BINGO-04 (D-07/D-08/D-09): auto-lock the active session's draft card the
+  // moment tracking actually begins — the first logged song. Dealing a card
+  // auto-starts the show (DealScreen: `getActiveShow() ?? startShow()`), so by
+  // the time the user reaches LiveGizz the show is already active and the explicit
+  // Start-Show lock in PreShowLauncher never fires. Without this, the card stays an
+  // unlocked draft forever: GamesView renders it over an empty trail (no live
+  // marks), the peek strip never appears, and celebrations never fire — even
+  // though songs are being logged. Locking here freezes the caught-set and flips
+  // every lockedAt-gated surface on at once. lockCard is idempotent
+  // (first-freeze-wins) and useLiveQuery re-renders with lockedAt set, so this
+  // locks at most once per session; the pre-first-song build/swap phase (BINGO-02)
+  // is preserved because it only fires once an entry exists.
+  const { dex } = useDexStats();
+  useEffect(() => {
+    if (bingoCardRow == null || bingoCardRow.lockedAt != null) return;
+    if (activeSessionId == null || dex == null) return;
+    if (session.entries.length === 0) return;
+    // Freeze the PRE-tonight caught-set: the live dex MINUS songs already logged
+    // this session. deriveDex has no status filter, so tonight's plays are already
+    // in the live dex; subtracting them keeps a first-catch-tonight eligible to
+    // light its `neverCaught` square (live == replay == catch-up, CR-01/Pitfall 1).
+    const tonight = new Set(
+      session.entries
+        .map((e) => e.songId)
+        .filter((id): id is number => id != null),
+    );
+    const caughtSongIds = [...dexSnapshot(dex)].filter((id) => !tonight.has(id));
+    void lockCard(activeSessionId, caughtSongIds);
+  }, [bingoCardRow, activeSessionId, session.entries, dex]);
 
   // D-13 recap seam (06-09) — LOAD-BEARING ORDER (RESEARCH Pattern 6): confirming
   // End Show finalizes the session synchronously, so the `!session.active` early
