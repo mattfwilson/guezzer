@@ -60,7 +60,15 @@ export function AppShell({
             : "flex min-h-0 flex-1 flex-col overflow-hidden"
         }
         style={{
-          paddingBottom: `calc(4rem + env(safe-area-inset-bottom) + ${overlayInset}px)`,
+          // Scrolling routes RESERVE space for the transient fixed-bottom overlays
+          // (InstallBanner/UpdateToast) so their content is never covered/untappable.
+          // Non-scrolling routes (the orbit stage, the constellation) instead let
+          // those overlays FLOAT over the bottom edge — reserving the inset here would
+          // permanently squish a `flex-1` full-height stage every time a transient
+          // banner appears. Only the static tab-bar height is reserved for them.
+          paddingBottom: scroll
+            ? `calc(4rem + env(safe-area-inset-bottom) + ${overlayInset}px)`
+            : `calc(4rem + env(safe-area-inset-bottom))`,
         }}
       >
         {children}
