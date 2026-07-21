@@ -123,6 +123,17 @@ function rawExport(snap: ExportSnapshot, version = SCHEMA_VERSION): string {
   return JSON.stringify(serializeExport(snap, version));
 }
 
+/**
+ * Serialize a snapshot as a GENUINE v2 raw file: strip the v3-only `bingoCards`
+ * key so the fixture matches a backup written before plan 15-01 (exercises the
+ * v2→v3 MIGRATIONS[2] step, not just the parse-time `.default([])`).
+ */
+function rawV2Export(snap: ExportSnapshot): string {
+  const env = serializeExport(snap, 2) as Record<string, unknown>;
+  delete env.bingoCards;
+  return JSON.stringify(env);
+}
+
 describe("parseAndMergeImport — validation gate (D-12 / T-05-05 / T-05-06)", () => {
   it("rejects malformed JSON without referencing local data", () => {
     const result = parseAndMergeImport("{not json", emptySnapshot(), SCHEMA_VERSION);
@@ -701,5 +712,127 @@ describe("envelope v3 — bingoCardRow schema + serialize passthrough (Task 1, D
       SCHEMA_VERSION_V3,
     );
     expect(env.bingoCards).toEqual(rows);
+  });
+});
+
+describe("parseAndMergeImport — v3 bingoCards migration + union merge (Task 2, D-13 / Open-Q1)", () => {
+  // MIGRATIONS[2] is MANDATORY even though `.default([])` fills the field at
+  // parse — the migration loop errors "too old" if MIGRATIONS[v] is missing for
+  // any step it must take (v2→v3 here).
+  it("migrates a GENUINE v2 file (no bingoCards key) to v3, defaulting bingoCards to []", () => {
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      trackedShows: [show({ sessionId: "x", showId: 5 })],
+    };
+    const result = parseAndMergeImport(
+      rawV2Export(incoming),
+      emptySnapshot(),
+      SCHEMA_VERSION_V3,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.merged.bingoCards).toEqual([]);
+      expect(result.merged.trackedShows).toHaveLength(1); // v2 payload still merged
+    }
+  });
+
+  it("unions non-colliding cards from local and incoming (both survive)", () => {
+    const local: ExportSnapshot = {
+      ...emptySnapshot(),
+      bingoCards: [bingoRow({ cardId: "local-1", sessionId: "local-1" })],
+    };
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      bingoCards: [bingoRow({ cardId: "inc-1", sessionId: "inc-1" })],
+    };
+    const result = parseAndMergeImport(
+      rawExport(incoming, SCHEMA_VERSION_V3),
+      local,
+      SCHEMA_VERSION_V3,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const ids = result.merged.bingoCards.map((c) => c.cardId).sort();
+      expect(ids).toEqual(["inc-1", "local-1"]);
+    }
+  });
+
+  // D-13 contradiction resolution (RESEARCH Open Q1): D-13 says "imported wins"
+  // yet cites the local-wins `archiveShows` precedent — a genuine contradiction.
+  // LOCKED wins so a locked historical card is never reverted to a draft.
+  it("locked-vs-draft collision: the LOCAL locked card survives (never reverts to a draft)", () => {
+    const local: ExportSnapshot = {
+      ...emptySnapshot(),
+      bingoCards: [
+        bingoRow({ cardId: "c1", sessionId: "c1", lockedAt: 1_700_000_000_000 }),
+      ],
+    };
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      bingoCards: [bingoRow({ cardId: "c1", sessionId: "c1", lockedAt: null })],
+    };
+    const result = parseAndMergeImport(
+      rawExport(incoming, SCHEMA_VERSION_V3),
+      local,
+      SCHEMA_VERSION_V3,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.merged.bingoCards).toHaveLength(1);
+      // Locked wins: the surviving row keeps its lock stamp (Open-Q1 resolution).
+      expect(result.merged.bingoCards[0].lockedAt).not.toBeNull();
+    }
+  });
+
+  // Symmetric to the above (locked-wins is direction-independent): an INCOMING
+  // locked card must beat a LOCAL draft on the same cardId.
+  it("draft-vs-locked collision: the INCOMING locked card wins over a local draft", () => {
+    const local: ExportSnapshot = {
+      ...emptySnapshot(),
+      bingoCards: [bingoRow({ cardId: "c1", sessionId: "c1", lockedAt: null })],
+    };
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      bingoCards: [
+        bingoRow({ cardId: "c1", sessionId: "c1", lockedAt: 1_700_000_000_000 }),
+      ],
+    };
+    const result = parseAndMergeImport(
+      rawExport(incoming, SCHEMA_VERSION_V3),
+      local,
+      SCHEMA_VERSION_V3,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.merged.bingoCards).toHaveLength(1);
+      expect(result.merged.bingoCards[0].lockedAt).not.toBeNull();
+    }
+  });
+
+  // When both rows share lock-state (both draft OR both locked), D-13's literal
+  // first clause governs: the INCOMING (imported) row wins.
+  it("same-lock-state collision (both draft): the INCOMING row wins (D-13 literal)", () => {
+    const local: ExportSnapshot = {
+      ...emptySnapshot(),
+      bingoCards: [
+        bingoRow({ cardId: "c1", sessionId: "c1", lockedAt: null, venueName: "LOCAL" }),
+      ],
+    };
+    const incoming: ExportSnapshot = {
+      ...emptySnapshot(),
+      bingoCards: [
+        bingoRow({ cardId: "c1", sessionId: "c1", lockedAt: null, venueName: "INCOMING" }),
+      ],
+    };
+    const result = parseAndMergeImport(
+      rawExport(incoming, SCHEMA_VERSION_V3),
+      local,
+      SCHEMA_VERSION_V3,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.merged.bingoCards).toHaveLength(1);
+      expect(result.merged.bingoCards[0].venueName).toBe("INCOMING"); // D-13 literal
+    }
   });
 });
