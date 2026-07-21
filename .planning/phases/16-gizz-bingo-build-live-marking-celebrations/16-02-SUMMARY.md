@@ -124,6 +124,13 @@ None - no external service configuration required.
 - `deriveLiveBoard` + `dexSnapshot` give the live board its non-frozen caught-set derivation; `getBingoContext().corpusVersion` feeds the Plan-04 `deal` generator's seed.
 - No blockers.
 
+## Self-Check: PASSED
+
+- All 3 created + 3 modified files verified present on disk.
+- All 4 commits (cc37951, e7d46d2, 86ea125, f2995f4) verified in git log.
+- Acceptance greps: BingoBoard/getBingoContext/deriveLiveBoard exports present; buildBingoContext memoized; RecapView migrated to `captionMode="persistent"` with the inline `grid-cols-4` board removed.
+- Verification: app `tsc --noEmit` exits 0; BingoBoard test 6/6 green; full suite 723/723 green.
+
 ---
 *Phase: 16-gizz-bingo-build-live-marking-celebrations*
 *Completed: 2026-07-21*
