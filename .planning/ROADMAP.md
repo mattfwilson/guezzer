@@ -105,7 +105,8 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
   2. The screen wake lock is reliably released after End Show even when release races an in-flight acquire (UX-02).
   3. Fill-hints name the correct song even after skipped or deleted trail entries — no off-by-N (UX-03).
   4. The constellation keeps the user's pan/zoom across container resizes (address-bar collapse, orientation) instead of snapping to fit-all (UX-04).
-**Plans**: 4 plans, 1 wave (independent fixes, parallel-eligible)
+
+**Plans**: 4 plans, 1 wave (independent fixes, parallel-eligible)
 
   - [x] 13-01-PLAN.md — UX-01: delete the doubled top safe-area inset (styles.css); audit all 7 top surfaces; document RecapView +24px; author consolidated device-UAT checklist
   - [x] 13-02-PLAN.md — UX-02: post-await showActive re-check in acquireWakeLock so a late-resolving lock is released, not orphaned (+ jsdom race regression test)
@@ -161,7 +162,21 @@ Plans:
   3. User can view any past show's frozen card with its final marks and win state from GizzDex history — a pure re-derivation, not stored marks (BINGO-07).
   4. A populated v4 database upgrades to Dexie `version(5)` preserving all prior tables, and bingo cards round-trip through JSON export/import (envelope `SCHEMA_VERSION` bumped, `MIGRATIONS` added, `bulkPut` by stable `cardId`).
 
-**Plans**: TBD
+**Plans**: 4 plans across 3 waves
+
+**Wave 1**
+
+  - [ ] 15-01-PLAN.md — core envelope v3: `bingoCardRow` schema + `bingoCards` field (default []) + `MIGRATIONS[2]` + union merge (locked-wins collision, resolves D-13) (BINGO-07)
+
+**Wave 2** *(blocked on Wave 1)*
+
+  - [ ] 15-02-PLAN.md — app persistence: Dexie `version(5)` + `bingoCards` table + `BingoCardRow` + `saveDraftCard`/`lockCard` freeze + reshuffle guard (SC-1) + snapshot/import threading + `SCHEMA_VERSION` 3 + Phase-15 copy (BINGO-07)
+
+**Wave 3** *(blocked on Wave 2; 15-03 and 15-04 parallel — no file overlap)*
+
+  - [ ] 15-03-PLAN.md — replay + GizzGames tab: `replayCard` adapter (0-based reindex + frozen `caughtSnapshot`) + RecapView Bingo section + 4th `games` tab/route (BINGO-07)
+  - [ ] 15-04-PLAN.md — catch-up: `CatchUpSheet` pre-checked confirm-list + manual search, committing via `adoptSuggestion`/`logSong` (BINGO-06)
+
 **UI hint**: yes
 
 ### Phase 16: Gizz Bingo — Build, Live Marking & Celebrations
