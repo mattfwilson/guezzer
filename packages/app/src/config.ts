@@ -1117,6 +1117,15 @@ export const config = {
           `🔥 One away — need a ${bucket} song!`,
         /** Blackout one-away callout (D-15) — the higher-intensity crown build-up. */
         blackoutOneAwayCallout: "👑 ONE SQUARE FROM BLACKOUT",
+        /** Collapsed peek-strip resting label (D-21) when no one-away is live. */
+        peekLabel: "Bingo card",
+        /** Collapsed peek-strip progress — lit fillable squares out of 15 (free excluded), matching the fill-meter basis. */
+        peekFill: (lit: number): string => `${lit}/15 lit`,
+        /** Peek-strip collapse-toggle aria-labels (D-21 — the strip defaults collapsed so the orbit keeps its room). */
+        peekExpandAria: "Show bingo board",
+        peekCollapseAria: "Hide bingo board",
+        /** Peek-strip "open the full board" aria-label (the expanded thumbnail routes to GizzGames). */
+        peekOpenBoardAria: "Open your bingo board",
         /** Auto-mark toast (D-16) — `{song}` lit `{square}`; both kglw-derived (React text). */
         autoMarkToast: (song: string, square: string): string =>
           `✦ ${song} lit ${square}!`,
