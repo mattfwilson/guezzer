@@ -252,6 +252,13 @@ export const config = {
       /** In-flow raised content (e.g. the ShowView column). */
       content: 10,
       /**
+       * BINGO-04 (D-21): the LiveGizz bingo peek strip's EXPANDED board panel —
+       * lifted just above the orbit stage so it overlays the orbs (never pushes
+       * them down) when the user opens it, while staying below `page`/celebration/
+       * toast/fab/sheet so a page, celebration, FAB, or sheet always wins.
+       */
+      peek: 12,
+      /**
        * Opaque full-screen PAGES rendered in-tree (e.g. RecapView) — above
        * content, but BELOW every modal/scrim tier. A full-screen opaque page
        * is NOT a scrim-backed modal, so it must never occupy the `sheet` tier:

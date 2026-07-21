@@ -84,16 +84,18 @@ export function BingoPeekStrip({ card, caughtSnapshot, entries }: BingoPeekStrip
   const goToBoard = () => navigate("games");
 
   return (
-    <div className="mx-3 mb-2 shrink-0 overflow-hidden rounded-md border border-hairline bg-elevated">
-      {/* Collapsed header — always a single thin line. Tapping toggles the board;
-          it carries the LIVE one-away banner (the tension signal, D-14/D-15) even
-          while collapsed, so the orbit keeps its room without losing the payoff. */}
+    // Full-bleed (no side margins) so the toggle bar reads as a clean edge-to-edge
+    // strip; `relative` so the expanded panel can absolutely overlay the orbit.
+    <div className="relative shrink-0">
+      {/* Collapsed header — a single full-width thin line. Tapping toggles the
+          board; it carries the LIVE one-away banner (the tension signal, D-14/D-15)
+          even while collapsed, so the orbit keeps its room without losing the payoff. */}
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
         aria-label={expanded ? copy.peekCollapseAria : copy.peekExpandAria}
-        className="flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left touch-manipulation"
+        className="flex min-h-11 w-full items-center gap-2 border-y border-hairline bg-elevated px-4 py-2 text-left touch-manipulation"
       >
         <LayoutGrid size={16} aria-hidden className="shrink-0 text-text-muted" />
         {banner ? (
@@ -115,9 +117,11 @@ export function BingoPeekStrip({ card, caughtSnapshot, entries }: BingoPeekStrip
         />
       </button>
 
-      {/* Expanded body — the board thumbnail, a SEPARATE tap target that opens the
-          full GamesView board (its live tap-to-reveal lives there, not here). Only
-          mounted when expanded, so the orbit is never pushed down by default. */}
+      {/* Expanded body — ABSOLUTELY positioned so it overlays the orbit (never
+          pushes it down). Full-width, opaque, lifted to the `peek` z-tier (above
+          the orbs, below the FAB/sheets). A SEPARATE tap target from the toggle:
+          tapping the board opens the full GamesView board (its live tap-to-reveal
+          lives there, not here). */}
       {expanded && (
         <div
           role="link"
@@ -130,9 +134,10 @@ export function BingoPeekStrip({ card, caughtSnapshot, entries }: BingoPeekStrip
               goToBoard();
             }
           }}
-          className="cursor-pointer border-t border-hairline p-3"
+          style={{ zIndex: config.ui.z.peek }}
+          className="absolute inset-x-0 top-full cursor-pointer border-b border-hairline bg-elevated px-4 pb-4 pt-3 shadow-lg"
         >
-          <div aria-hidden className="pointer-events-none">
+          <div aria-hidden className="pointer-events-none mx-auto max-w-sm">
             <BingoBoard
               marked={board.marked}
               wins={board.wins}
