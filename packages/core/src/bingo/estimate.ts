@@ -152,7 +152,11 @@ export function estimateFill(
 
   // Honest: a full blackout is effectively unreachable — only near-16 lifts it.
   const blackoutLikelihood: FillBand =
-    expectedMarks >= 15.5 ? "likely" : expectedMarks >= 14 ? "possible" : "unlikely";
+    expectedMarks >= cfg.bingo.fillMeter.blackoutLikelyThreshold
+      ? "likely"
+      : expectedMarks >= cfg.bingo.fillMeter.blackoutPossibleThreshold
+        ? "possible"
+        : "unlikely";
 
   return { expectedMarks, fillFraction, lineLikelihood, blackoutLikelihood };
 }

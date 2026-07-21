@@ -553,6 +553,11 @@ export const config = {
       consumeOnceDiscount: 1.02,
       lineLikelyThreshold: 7.6,
       linePossibleThreshold: 6.6,
+      // Blackout is effectively unreachable — only a board expected to mark near-16
+      // lifts the band above "unlikely". Same expectedMarks basis as the line
+      // thresholds (out of 16 incl. the free center).
+      blackoutLikelyThreshold: 15.5,
+      blackoutPossibleThreshold: 14,
     },
 
     /**

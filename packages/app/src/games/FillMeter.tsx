@@ -33,12 +33,14 @@ export function FillMeter({ estimate }: FillMeterProps) {
   const isAmber = estimate.lineLikelihood !== "likely";
   const barColor = isAmber ? BAR_AMBER : BAR_HEALTHY;
 
-  // Bar width from the fill fraction (free cell included); clamped to [0,100]%.
-  const widthPct = Math.max(0, Math.min(100, Math.round(estimate.fillFraction * 100)));
-
   // Honest "~N/15" figure: expected marks EXCLUDING the always-marked free cell,
   // out of the 15 fillable squares (config copy denominator).
   const fillableMarks = Math.max(0, Math.round(estimate.expectedMarks - 1));
+
+  // Bar width shares the SAME fillable basis (N/15, free excluded) as the figure
+  // and the progressbar ARIA values, so the bar, the "~N/15" caption, and the
+  // screen-reader percentage all agree; clamped to [0,100]%.
+  const widthPct = Math.max(0, Math.min(100, Math.round((fillableMarks / 15) * 100)));
 
   const caption = copy.fillMeterCaption(
     copy.lineBandLabels[estimate.lineLikelihood],

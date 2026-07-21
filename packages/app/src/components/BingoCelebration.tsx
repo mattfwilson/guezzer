@@ -164,7 +164,14 @@ export function BingoCelebration() {
       if (payload.tier === "supernova") {
         setSupernova({ id, kind: payload.kind });
         if (superTimer.current) clearTimeout(superTimer.current);
-        superTimer.current = setTimeout(() => setSupernova(null), SUPERNOVA_MS);
+        // Trigger the exit fade FADE_MS before the budget end so bloom + hold +
+        // fade all land within SUPERNOVA_MS total on-screen time (the documented
+        // ≤2.7s D-17 budget) — dismissing at SUPERNOVA_MS would append the fade
+        // AFTER the budget (~3.5s). Clamp to 0 for safety.
+        superTimer.current = setTimeout(
+          () => setSupernova(null),
+          Math.max(0, SUPERNOVA_MS - SUPERNOVA_FADE_MS),
+        );
         return;
       }
       const text =
@@ -196,7 +203,7 @@ export function BingoCelebration() {
             animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-x-0 bottom-16 flex items-center border-t border-hairline bg-elevated px-4 py-4"
+            className="pointer-events-none fixed inset-x-0 bottom-16 flex items-center border-t border-hairline bg-elevated px-4 py-4"
             style={{
               zIndex: config.ui.z.toast,
               paddingBottom: "env(safe-area-inset-bottom)",
