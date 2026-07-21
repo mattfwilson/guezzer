@@ -199,8 +199,8 @@ Plans:
 
 **Wave 1** *(core + shared app foundation — gates all app waves)*
 
-  - [ ] 16-01-PLAN.md — core: `estimateFill` + `nearMiss` (estimate.ts) + geometry export + `config.bingo.fireRates/eraShowCount/fillMeter` + copy + `z.celebration` + `"bingo"` share scope; the D-10 Monte-Carlo trust gate (BINGO-02/04/08)
-  - [ ] 16-02-PLAN.md — app foundation: shared `<BingoBoard>` (extracted from RecapView) + `deriveLiveBoard` + memoized `getBingoContext` (BINGO-04)
+  - [x] 16-01-PLAN.md — core: `estimateFill` + `nearMiss` (estimate.ts) + geometry export + `config.bingo.fireRates/eraShowCount/fillMeter` + copy + `z.celebration` + `"bingo"` share scope; the D-10 Monte-Carlo trust gate (BINGO-02/04/08)
+  - [x] 16-02-PLAN.md — app foundation: shared `<BingoBoard>` (extracted from RecapView) + `deriveLiveBoard` + memoized `getBingoContext` (BINGO-04)
 
 **Wave 2** *(app surfaces on the foundation; parallel, no file overlap)*
 
@@ -233,7 +233,7 @@ Plans:
 | 13. Interface & Explore Polish | v1.2 | 4/4 | Complete    | 2026-07-20 |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 6/6 | Complete    | 2026-07-20 |
 | 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 4/4 | Complete    | 2026-07-21 |
-| 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 0/— | Not started | - |
+| 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 2/6 | In Progress|  |
 
 ---
 *Roadmap created: 2026-07-08*

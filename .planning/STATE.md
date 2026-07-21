@@ -4,14 +4,14 @@ milestone: v1.2
 milestone_name: Pre-Show Hardening
 status: executing
 stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-07-21T05:47:49.140Z"
-last_activity: 2026-07-21 -- Phase 16 planning complete
+last_updated: "2026-07-21T11:50:15.262Z"
+last_activity: 2026-07-21 -- Phase 16 execution started
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 22
+  total_plans: 28
   completed_plans: 22
-  percent: 83
+  percent: 79
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 15 — gizz-bingo-persistence-lock-replay
+**Current focus:** Phase 16 — gizz-bingo-build-live-marking-celebrations
 
 ## Current Position
 
-Phase: 16
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-21 -- Phase 16 planning complete
+Phase: 16 (gizz-bingo-build-live-marking-celebrations) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 16
+Last activity: 2026-07-21 -- Phase 16 execution started
 
 ## Performance Metrics
 
