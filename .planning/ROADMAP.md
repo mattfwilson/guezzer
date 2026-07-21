@@ -44,7 +44,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 - [x] **Phase 12: Data Safety & Integrity** — the exported backup is always honest and complete; same-date doubleheaders survive (SAFE-01/02/03/04) (completed 2026-07-19)
 - [x] **Phase 13: Interface & Explore Polish** — safe-area inset, wake-lock release race, fill-hint accuracy, constellation camera (UX-01/02/03/04) (completed 2026-07-20)
 - [x] **Phase 14: Gizz Bingo — Core Marking & Generation** — deterministic consume-once `deriveMarks` fold + seeded generator, behind the calibration gate (BINGO-03) (completed 2026-07-20)
-- [ ] **Phase 15: Gizz Bingo — Persistence, Lock & Replay** — Dexie v5 `bingoCards` + lock-on-Start-Show + export/import + catch-up + GizzDex replay (BINGO-06/07)
+- [x] **Phase 15: Gizz Bingo — Persistence, Lock & Replay** — Dexie v5 `bingoCards` + lock-on-Start-Show + export/import + catch-up + GizzDex replay (BINGO-06/07) (completed 2026-07-21)
 - [ ] **Phase 16: Gizz Bingo — Build, Live Marking & Celebrations** — deal + vibe + swap + fill meter, "one away" tension, celebrations, share card (BINGO-01/02/04/05/08)
 
 ## Phase Details
@@ -178,7 +178,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3; 15-04 reuses the `replayCard` adapter from 15-03)*
 
-  - [ ] 15-04-PLAN.md — catch-up: `CatchUpSheet` pre-checked confirm-list + manual search, committing via `adoptSuggestion`/`logSong` (BINGO-06)
+  - [x] 15-04-PLAN.md — catch-up: `CatchUpSheet` pre-checked confirm-list + manual search, committing via `adoptSuggestion`/`logSong` (BINGO-06)
 
 **UI hint**: yes
 
@@ -216,7 +216,7 @@ Plans:
 | 12. Data Safety & Integrity | v1.2 | 3/3 | Complete    | 2026-07-19 |
 | 13. Interface & Explore Polish | v1.2 | 4/4 | Complete    | 2026-07-20 |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 6/6 | Complete    | 2026-07-20 |
-| 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 3/4 | In Progress|  |
+| 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 4/4 | Complete   | 2026-07-21 |
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 0/— | Not started | - |
 
 ---

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Pre-Show Hardening
-status: executing
-stopped_at: Completed 15-01-PLAN.md (envelope v3 core)
-last_updated: "2026-07-21T01:41:40.233Z"
+status: verifying
+stopped_at: Completed 15-04-PLAN.md (BINGO-06 catch-up)
+last_updated: "2026-07-21T01:52:20.793Z"
 last_activity: 2026-07-21 -- Phase 15 Plan 01 complete (envelope v3 core)
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 22
-  completed_plans: 21
-  percent: 67
+  completed_plans: 22
+  percent: 83
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 
 Phase: 15 (gizz-bingo-persistence-lock-replay) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-21 -- Phase 15 Plan 01 complete (envelope v3 core)
 
 ## Performance Metrics
@@ -91,6 +91,7 @@ Last activity: 2026-07-21 -- Phase 15 Plan 01 complete (envelope v3 core)
 | Phase 15 P01 | ~12min | 2 tasks (TDD) | 5 files |
 | Phase 15 P02 | 8min | 3 tasks | 7 files |
 | Phase 15 P03 | ~12min | 3 tasks | 9 files |
+| Phase 15 P04 | ~10min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -155,6 +156,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 15-02: reshuffle-rejection guard is app-side in saveDraftCard (SC-1/D-10); core stays DB-free
 - [Phase ?]: 15-02: bingoCards imports via stable-cardId union-only bulkPut (D-13), never clear+rewrite
 - [Phase ?]: 15-03: replayCard is the shared app->core replay adapter (0-based opener reindex + frozen caughtSnapshot); RecapView Bingo section + GamesView are pure read-only re-derivations (marks never stored, D-23)
+- [Phase 15]: 15-04 (BINGO-06): catch-up grows the trail via shipped adoptSuggestion/logSong paths; deriveMarks/replayCard re-lights squares as a pure consequence (live == replay == catch-up). 'Catch me up' is the top FabMenu item; candidate list = uncapped diffLatestAgainstTrail; every backfill carries shownFanSongIds:[] -> a MISS (honest denominator).
 
 ### Pending Todos
 
@@ -275,8 +277,8 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-21T01:41:25.385Z
-Stopped at: Completed 15-01-PLAN.md (envelope v3 core)
+Last session: 2026-07-21T01:52:13.209Z
+Stopped at: Completed 15-04-PLAN.md (BINGO-06 catch-up)
 Resume file: .planning/phases/15-gizz-bingo-persistence-lock-replay/15-02-PLAN.md
 
 ## Operator Next Steps

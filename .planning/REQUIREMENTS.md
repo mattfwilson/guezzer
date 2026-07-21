@@ -42,7 +42,7 @@ Milestone theme: harden the live-show-critical paths (live sync, prediction corr
 - [x] **BINGO-03**: The locked card auto-marks itself (deterministic consume-once) as the show's setlist is logged — live in the GizzGames tab, with no manual daubing required.
 - [ ] **BINGO-04**: User gets continuous "one away" feedback when a line is one square from completing.
 - [ ] **BINGO-05**: Completing a line / four-corners / X / blackout triggers a celebration (per-square stamps throughout; a big supernova on first line + blackout only), reduced-motion aware.
-- [ ] **BINGO-06**: User can "Catch me up" on a late-joined show (bulk-mark from the live `latest` feed) and manually mark/search squares the tracker missed.
+- [x] **BINGO-06**: User can "Catch me up" on a late-joined show (bulk-mark from the live `latest` feed) and manually mark/search squares the tracker missed.
 - [x] **BINGO-07**: User can view any past show's frozen card with its final marks and win state from GizzDex history.
 - [ ] **BINGO-08**: User can share a bingo result-card image.
 
@@ -88,7 +88,7 @@ Deferred to a later milestone (backlog unchanged in `.planning/todos/pending/`).
 | UX-03 | Phase 13 | Complete |
 | UX-04 | Phase 13 | Complete |
 | BINGO-03 | Phase 14 | Complete |
-| BINGO-06 | Phase 15 | Pending |
+| BINGO-06 | Phase 15 | Complete |
 | BINGO-07 | Phase 15 | In progress (15-01 persistence core done; app replay in 15-02/03) |
 | BINGO-01 | Phase 16 | Pending |
 | BINGO-02 | Phase 16 | Pending |
