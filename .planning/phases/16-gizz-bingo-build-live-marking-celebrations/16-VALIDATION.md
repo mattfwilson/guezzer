@@ -1,7 +1,7 @@
 ---
 phase: 16
 slug: gizz-bingo-build-live-marking-celebrations
-status: draft
+status: approved
 nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-21
