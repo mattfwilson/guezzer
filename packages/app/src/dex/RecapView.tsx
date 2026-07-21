@@ -15,7 +15,12 @@
  * → footer Done. All kglw-derived song/venue names render as React text only
  * (T-06-21); the Share card CTA joins in 06-11 (no dead button here).
  */
-import { buildRecapShareStats, deriveRecap, type RarityTier } from "@guezzer/core";
+import {
+  buildBingoShareCard,
+  buildRecapShareStats,
+  deriveRecap,
+  type RarityTier,
+} from "@guezzer/core";
 import { Share2, Sparkles } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo, useState } from "react";
@@ -55,6 +60,10 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
   const shareCopy = config.copy.share;
   const setLabels = config.copy.dex.setLabels as Record<string, string>;
   const [shareOpen, setShareOpen] = useState(false);
+  // A SECOND, independent sheet for the bingo trophy (BINGO-08) — the bingo card
+  // is a distinct share target from the per-show recap card, so it gets its own
+  // open state + pre-built File rather than swapping the recap sheet's data.
+  const [bingoShareOpen, setBingoShareOpen] = useState(false);
 
   // Live reads — Dexie is the single source of truth (a rename/edit re-derives).
   const trackedShows = useLiveQuery(() => db.trackedShows.toArray());
@@ -141,6 +150,20 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
     albumsResult,
     rarity,
   ]);
+
+  // The bingo TROPHY share data (BINGO-08, D-22): the pure `buildBingoShareCard`
+  // projection of this session's re-derived board + wins + show identity. A stable
+  // memo ref so ShareCardSheet builds the File exactly once on open (Pitfall 7 —
+  // no async before navigator.share). Undefined until the replay board resolves
+  // (→ the share trigger only renders inside the `bingo != null` section anyway).
+  const bingoShareData = useMemo(() => {
+    if (bingo == null) return undefined;
+    const bingoShow = (trackedShows ?? []).find((s) => s.sessionId === sessionId);
+    return buildBingoShareCard(bingo.marked, bingo.wins, {
+      date: bingoShow?.date ?? "",
+      venue: bingoShow?.venueName ?? null,
+    });
+  }, [bingo, trackedShows, sessionId]);
 
   // Still resolving the live reads / a loader failed — hold a calm empty frame.
   if (recap == null) {
@@ -350,6 +373,18 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
               wins={bingo.wins}
               songNameByPosition={bingo.songNameByPosition}
             />
+
+            {/* Bingo trophy share (BINGO-08) — auto-offered here at the win. A
+                SEPARATE sheet from the recap-card share below (distinct target),
+                pre-building its File on open so the share tap has no async. */}
+            <button
+              type="button"
+              onClick={() => setBingoShareOpen(true)}
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-accent px-4 text-[14px] font-semibold text-surface touch-manipulation"
+            >
+              <Share2 size={18} aria-hidden="true" />
+              {shareCopy.cta}
+            </button>
           </div>
         )}
 
@@ -379,6 +414,14 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
       {/* Share-card preview sheet (SHAR-02) — PER-SHOW data (plan 10-02): the
           card reflects only the night just tracked, not the lifetime dex. */}
       <ShareCardSheet open={shareOpen} onClose={() => setShareOpen(false)} data={shareData} />
+
+      {/* Bingo trophy sheet (BINGO-08) — bingo-scoped `ShareCardData`; the sheet
+          pre-builds the PNG File on open exactly as the per-show path does. */}
+      <ShareCardSheet
+        open={bingoShareOpen}
+        onClose={() => setBingoShareOpen(false)}
+        data={bingoShareData}
+      />
     </div>
   );
 }
