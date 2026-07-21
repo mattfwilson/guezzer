@@ -537,9 +537,20 @@ export const config = {
      * (chill 7.89 / balanced 7.26 / glory 6.25) within ±0.75 and the band ordering
      * matched measured pLine (chill > balanced > glory). Do not hand-edit without
      * re-greening estimate.test.ts.
+     *
+     * NOTE on the ≈1.0 discount: because the song-square denominator is a LABELED
+     * APPROXIMATION that UNDER-counts (eraPlayCount over a 40-show window ÷ a
+     * 241-show denominator — see `eraShowCount` above), the summed marginals come
+     * in LOW, and the consume-once overcount that a <1 discount would correct is
+     * roughly cancelled by that undercount. The tuned factor therefore lands just
+     * above 1.0 (≈1.02) — the single value that centers all three vibe means
+     * inside ±0.75 (measured errors +0.37 / +0.12 / −0.35 at N=500). A single
+     * discount suffices; the per-kind/saturation escalation (RESEARCH A2) was NOT
+     * needed. Thresholds 7.6 / 6.6 sit cleanly between the three tuned means
+     * (≈8.26 > 7.6 > 7.38 > 6.6 > 5.90), giving each vibe a distinct modal band.
      */
     fillMeter: {
-      consumeOnceDiscount: 0.45,
+      consumeOnceDiscount: 1.02,
       lineLikelyThreshold: 7.6,
       linePossibleThreshold: 6.6,
     },
