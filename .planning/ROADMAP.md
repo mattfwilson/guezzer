@@ -174,7 +174,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-  - [ ] 15-03-PLAN.md — replay + GizzGames tab: `replayCard` adapter (0-based reindex + frozen `caughtSnapshot`) + RecapView Bingo section + 4th `games` tab/route (BINGO-07)
+  - [x] 15-03-PLAN.md — replay + GizzGames tab: `replayCard` adapter (0-based reindex + frozen `caughtSnapshot`) + RecapView Bingo section + 4th `games` tab/route (BINGO-07)
 
 **Wave 4** *(blocked on Wave 3; 15-04 reuses the `replayCard` adapter from 15-03)*
 
@@ -216,7 +216,7 @@ Plans:
 | 12. Data Safety & Integrity | v1.2 | 3/3 | Complete    | 2026-07-19 |
 | 13. Interface & Explore Polish | v1.2 | 4/4 | Complete    | 2026-07-20 |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 6/6 | Complete    | 2026-07-20 |
-| 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 2/4 | In Progress|  |
+| 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 3/4 | In Progress|  |
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 0/— | Not started | - |
 
 ---
