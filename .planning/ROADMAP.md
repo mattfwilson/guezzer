@@ -195,7 +195,23 @@ Plans:
   4. Completing a line / four-corners / X / blackout triggers a reduced-motion-aware celebration — per-square stamps throughout, a big supernova on first line + blackout only (at most two big moments per show) (BINGO-05).
   5. User can share a bingo result-card image (BINGO-08).
 
-**Plans**: TBD
+**Plans**: 6 plans across 3 waves
+
+**Wave 1** *(core + shared app foundation — gates all app waves)*
+
+  - [ ] 16-01-PLAN.md — core: `estimateFill` + `nearMiss` (estimate.ts) + geometry export + `config.bingo.fireRates/eraShowCount/fillMeter` + copy + `z.celebration` + `"bingo"` share scope; the D-10 Monte-Carlo trust gate (BINGO-02/04/08)
+  - [ ] 16-02-PLAN.md — app foundation: shared `<BingoBoard>` (extracted from RecapView) + `deriveLiveBoard` + memoized `getBingoContext` (BINGO-04)
+
+**Wave 2** *(app surfaces on the foundation; parallel, no file overlap)*
+
+  - [ ] 16-03-PLAN.md — GamesView build surface: DealScreen (3 vibe buttons = deal) + FillMeter + SwapSheet + draft/live board (BINGO-01/02/04)
+  - [ ] 16-04-PLAN.md — LiveGizz: BingoPeekStrip + closest one-away banner + Start-Show lock/nudge (BINGO-04)
+  - [ ] 16-05-PLAN.md — celebrations: BingoCelebration emitter/host (stamp<badge<supernova) + useBingoCelebrations transition driver, ≤2 big moments, reduced-motion (BINGO-05)
+
+**Wave 3** *(blocked on 16-01/02/03)*
+
+  - [ ] 16-06-PLAN.md — share card: `buildBingoShareCard` + `"bingo"` `drawShareCard` branch + RecapView auto-offer + GamesView replay re-share (BINGO-08)
+
 **UI hint**: yes
 
 ## Progress
