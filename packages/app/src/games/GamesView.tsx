@@ -18,16 +18,22 @@
  * single source of truth via `useLiveQuery`. All kglw-derived strings render as
  * escaped React text only (T-16-04).
  */
-import { useState, type ReactElement } from "react";
+import { useMemo, useState, type ReactElement } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { deal, estimateFill, type BingoCard } from "@guezzer/core";
+import { buildBingoShareCard, deal, estimateFill, type BingoCard } from "@guezzer/core";
+import { Share2 } from "lucide-react";
 import { BingoBoard } from "../components/BingoBoard.tsx";
 import { config } from "../config.ts";
 import { db, saveDraftCard, type BingoCardRow } from "../db/db.ts";
+import { loadArchive } from "../dex/archive-loader.ts";
+import { loadDexAlbums } from "../dex/dex-albums-loader.ts";
+import { getRarityIndex } from "../dex/rarityIndex.ts";
+import { ShareCardSheet } from "../dex/ShareCardSheet.tsx";
 import { useDexStats } from "../dex/useDexStats.ts";
+import { loadMatrix } from "../show/matrix.ts";
 import { randomUUID } from "../uuid.ts";
 import { dexSnapshot, getBingoContext } from "./bingoContext.ts";
-import { deriveLiveBoard } from "./bingoReplay.ts";
+import { deriveLiveBoard, replayCard } from "./bingoReplay.ts";
 import { getBingoNameMaps, isCardCustom, resolveCardLabels } from "./bingoLabels.ts";
 import { DealScreen } from "./DealScreen.tsx";
 import { FillMeter } from "./FillMeter.tsx";
@@ -54,7 +60,41 @@ export function GamesView() {
   const ctxResult = getBingoContext();
   const nameMaps = getBingoNameMaps();
 
+  // Guarded static artifacts for the replay re-share path (BINGO-08). A past card
+  // re-shares by re-deriving its FROZEN board via `replayCard` (D-23: marks are
+  // never stored), so the shared image always matches what the user saw live.
+  const matrixResult = loadMatrix();
+  const archiveResult = loadArchive();
+  const albumsResult = loadDexAlbums();
+  const rarity = getRarityIndex();
+
   const [swapIndex, setSwapIndex] = useState<number | null>(null);
+  // The replay row whose bingo trophy the share sheet is previewing (null = closed).
+  const [shareRow, setShareRow] = useState<BingoCardRow | null>(null);
+
+  // The bingo-scoped share data for the selected replay row — re-derives that
+  // card's frozen board + wins, then projects the pure trophy. A stable memo so
+  // ShareCardSheet pre-builds the File once on open (Pitfall 7 — no async before
+  // the share tap). Undefined until a row is picked and the artifacts are ready.
+  const gameShareData = useMemo(() => {
+    if (shareRow == null) return undefined;
+    if (!matrixResult.ok || !archiveResult.ok || !albumsResult.ok || rarity == null) {
+      return undefined;
+    }
+    const rowEntries = (trackedEntries ?? []).filter((e) => e.sessionId === shareRow.sessionId);
+    const result = replayCard(
+      shareRow,
+      rowEntries,
+      matrixResult.matrix,
+      archiveResult.archive,
+      rarity,
+      albumsResult.albums,
+    );
+    return buildBingoShareCard(result.marked, result.wins, {
+      date: shareRow.showDate,
+      venue: shareRow.venueName,
+    });
+  }, [shareRow, trackedEntries, matrixResult, archiveResult, albumsResult, rarity]);
 
   const hasCards = cards != null && cards.length > 0;
 
@@ -181,15 +221,26 @@ export function GamesView() {
         <ul className="flex flex-col gap-2">
           {cards.map((card) => (
             <li key={card.cardId}>
-              <div className="flex min-h-11 flex-col justify-center rounded-md border border-hairline bg-elevated px-4 py-3">
-                <span className="min-w-0 truncate text-base font-semibold text-text-primary">
-                  {card.venueName ?? card.showDate}
-                </span>
-                {cardSubline(card) && (
-                  <span className="min-w-0 truncate text-[14px] leading-tight text-text-muted">
-                    {cardSubline(card)}
+              <div className="flex min-h-11 items-center gap-3 rounded-md border border-hairline bg-elevated px-4 py-3">
+                <div className="flex min-w-0 flex-1 flex-col justify-center">
+                  <span className="min-w-0 truncate text-base font-semibold text-text-primary">
+                    {card.venueName ?? card.showDate}
                   </span>
-                )}
+                  {cardSubline(card) && (
+                    <span className="min-w-0 truncate text-[14px] leading-tight text-text-muted">
+                      {cardSubline(card)}
+                    </span>
+                  )}
+                </div>
+                {/* Re-share the frozen trophy from replay history (BINGO-08). */}
+                <button
+                  type="button"
+                  onClick={() => setShareRow(card)}
+                  aria-label={config.copy.share.cta}
+                  className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent touch-manipulation"
+                >
+                  <Share2 size={20} aria-hidden="true" />
+                </button>
               </div>
             </li>
           ))}
@@ -202,6 +253,14 @@ export function GamesView() {
           <p className="text-base leading-normal text-text-muted">{copy.emptyBody}</p>
         </div>
       )}
+
+      {/* Replay re-share sheet (BINGO-08) — bingo-scoped data for the tapped row;
+          the sheet pre-builds the PNG File on open (Pitfall 7). */}
+      <ShareCardSheet
+        open={shareRow != null}
+        onClose={() => setShareRow(null)}
+        data={gameShareData}
+      />
     </div>
   );
 }

@@ -234,15 +234,18 @@ export {
  * PNG brag card draws — all stat math stays in core so the app draw layer only
  * draws (RESEARCH Pitfall 8). `buildShareStats` yields the LIFETIME collection
  * card; `buildRecapShareStats` (plan 10-02) yields the PER-SHOW recap card from
- * one night's `deriveRecap` output. `ShareCardData` is a discriminated union on
- * `scope` ("collection" | "show"). Zero I/O.
+ * one night's `deriveRecap` output; `buildBingoShareCard` (plan 16-06) yields the
+ * PER-CARD Gizz-Bingo trophy from a marked board + its wins. `ShareCardData` is a
+ * discriminated union on `scope` ("collection" | "show" | "bingo"). Zero I/O.
  */
 export {
   buildShareStats,
   buildRecapShareStats,
+  buildBingoShareCard,
   type ShareCardData,
   type CollectionShareCard,
   type ShowShareCard,
+  type BingoShareCard,
   type ShareTier,
   type ShareTierRow,
 } from "./dex/share-stats.ts";

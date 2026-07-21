@@ -15,7 +15,7 @@
  *    ALREADY-BUILT file (no async work between the tap and the call), else the
  *    exportDownload.ts anchor idiom; an AbortError (user cancel) is silent.
  */
-import type { RarityTier, ShareCardData } from "@guezzer/core";
+import type { BingoShareCard, BingoWinKind, RarityTier, ShareCardData } from "@guezzer/core";
 import { config } from "../config.ts";
 import { triggerDownload } from "../settings/triggerDownload.ts";
 import { rarityColor } from "./rarityStyle.ts";
@@ -29,6 +29,22 @@ const COLOR = {
   bg: "#0C0C10",
   primary: "#F5F5F7",
   muted: "#A1A1AA",
+} as const;
+
+/**
+ * Data-semantic bingo-board hexes (16-UI-SPEC §Color) drawn ONLY on the bingo
+ * trophy branch: a marked square is caught-green `#22C55E` with a near-black
+ * label; an unmarked square is elevated `#17171F` with a `#2A2A34` edge/label.
+ * Win badges reuse the recap replay gold `#F2C14E` (the earned-payoff accent).
+ * Color is reinforcement only — the win WORD + free label always render, never
+ * color alone (WCAG 1.4.1 / 16-UI-SPEC). */
+const BINGO = {
+  markedFill: "#22C55E",
+  markedLabel: "#0C0C10",
+  unmarkedFill: "#17171F",
+  unmarkedEdge: "#2A2A34",
+  badgeFill: "#F2C14E",
+  badgeText: "#0C0C10",
 } as const;
 
 /** The pre-built share result — a File ready to hand to the OS + a preview URL. */
@@ -115,10 +131,11 @@ export function drawShareCard(
   centerText(ctx, cardCopy.wordmark, cx, height * 0.10, 68, config.share.wordmarkGold);
 
   if (data.scope === "bingo") {
-    // Phase-16 Plan 06 (SHAR) paints the final 4×4 board + win badges here. Until
-    // `buildBingoShareCard` ships, no bingo ShareCardData is ever produced, so this
-    // early return keeps the discriminated union exhaustive (narrowing the rest of
-    // the fn to Collection|Show) without duplicating the show/collection layout.
+    // Phase-16 Plan 06 (BINGO-08): the bingo TROPHY — the final 4×4 board + win
+    // badges + date · venue, on the SAME galaxy bg + wordmark already painted
+    // above. A clean visual brag ("my card from KGLW at X"), NOT the per-square
+    // "which song lit it" detail (that stays the in-app replay payoff, D-22).
+    drawBingoShareCard(ctx, data, { width, height });
     return;
   }
 
@@ -207,6 +224,206 @@ function drawTierBreakdown(
   });
 }
 
+/** Trace a rounded-rect path (no fill/stroke) — arcs only, so it renders on every
+ *  2D context regardless of `roundRect` support. The radius is clamped to half the
+ *  smaller side so a small cell never self-overlaps. */
+function roundRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
+  const rr = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
+/** Ellipsize `text` so it fits `maxWidth` at the CURRENT `ctx.font` (used for a
+ *  single long word or an over-long final wrapped line). */
+function truncateToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let s = text;
+  while (s.length > 0 && ctx.measureText(`${s}…`).width > maxWidth) s = s.slice(0, -1);
+  return `${s}…`;
+}
+
+/** Greedy word-wrap `text` into at most `maxLines` lines that each fit `maxWidth`
+ *  at the current font; the final line is ellipsized when words are dropped or a
+ *  single word overflows. Pure over the passed context's `measureText`. */
+function wrapLabel(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = "";
+  let truncated = false;
+  for (const word of words) {
+    const trial = current === "" ? word : `${current} ${word}`;
+    if (ctx.measureText(trial).width <= maxWidth) {
+      current = trial;
+      continue;
+    }
+    if (current !== "") lines.push(current);
+    current = word;
+    if (lines.length === maxLines) {
+      current = "";
+      truncated = true;
+      break;
+    }
+  }
+  if (current !== "") {
+    if (lines.length < maxLines) lines.push(current);
+    else truncated = true;
+  }
+  const fitted = lines.map((line) => truncateToWidth(ctx, line, maxWidth));
+  if (truncated && fitted.length > 0) {
+    const last = fitted.length - 1;
+    fitted[last] = truncateToWidth(ctx, `${fitted[last]}…`, maxWidth);
+  }
+  return fitted;
+}
+
+/** Draw a centered row (wrapping to further rows when a row overflows `maxWidth`)
+ *  of gold win-badge pills — glyph + WORD, so the badge never reads by color
+ *  alone. Returns nothing; positions are laid out from `top`. */
+function drawWinBadges(
+  ctx: CanvasRenderingContext2D,
+  labels: string[],
+  centerX: number,
+  top: number,
+  maxWidth: number,
+): void {
+  const padX = 24;
+  const gapX = 16;
+  const gapY = 16;
+  const badgeH = 60;
+  const font = 34;
+  ctx.font = `700 ${font}px ${FONT_STACK}`;
+  const items = labels.map((label) => ({ label, w: ctx.measureText(label).width + padX * 2 }));
+
+  // Greedy row packing so a full four-win board never overruns the card edge.
+  const rows: { items: typeof items; w: number }[] = [];
+  let row: typeof items = [];
+  let rowW = 0;
+  for (const item of items) {
+    const add = (row.length === 0 ? 0 : gapX) + item.w;
+    if (rowW + add > maxWidth && row.length > 0) {
+      rows.push({ items: row, w: rowW });
+      row = [item];
+      rowW = item.w;
+    } else {
+      row.push(item);
+      rowW += add;
+    }
+  }
+  if (row.length > 0) rows.push({ items: row, w: rowW });
+
+  rows.forEach((r, ri) => {
+    let x = centerX - r.w / 2;
+    const y = top + ri * (badgeH + gapY);
+    for (const item of r.items) {
+      roundRectPath(ctx, x, y, item.w, badgeH, badgeH / 2);
+      ctx.fillStyle = BINGO.badgeFill;
+      ctx.fill();
+      ctx.font = `700 ${font}px ${FONT_STACK}`;
+      ctx.fillStyle = BINGO.badgeText;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(item.label, x + item.w / 2, y + badgeH / 2);
+      x += item.w + gapX;
+    }
+  });
+}
+
+/**
+ * `drawBingoShareCard(ctx, data, { width, height })` — paint the Gizz-Bingo
+ * trophy branch of `drawShareCard`: the final 4×4 board (marked/unmarked stamps +
+ * the distinctly-marked free center), a row of win badges (or the honest no-win
+ * line), and the show date · venue — all on the galaxy bg + wordmark the caller
+ * already painted. Pure draw: every value is pre-assembled in core
+ * `buildBingoShareCard`; names go through canvas `fillText` (inert re XSS,
+ * T-16-12). No cover art, no per-square "lit by" detail (D-22).
+ */
+function drawBingoShareCard(
+  ctx: CanvasRenderingContext2D,
+  data: BingoShareCard,
+  opts: { width: number; height: number },
+): void {
+  const { width, height } = opts;
+  const cx = width / 2;
+  const recapCopy = config.copy.recap;
+  const winWord = recapCopy.bingoWinLabels as Record<BingoWinKind, string>;
+
+  // 4×4 board geometry (row-major, index 0..15), centered under the wordmark.
+  const boardMargin = width * 0.1;
+  const boardSize = width - boardMargin * 2;
+  const gap = 16;
+  const cell = (boardSize - gap * 3) / 4;
+  const boardLeft = boardMargin;
+  const boardTop = height * 0.155;
+  const radius = cell * 0.1;
+  const labelSize = 24;
+  const lineHeight = labelSize * 1.15;
+
+  data.squares.forEach((square, i) => {
+    const rowIndex = Math.floor(i / 4);
+    const colIndex = i % 4;
+    const x = boardLeft + colIndex * (cell + gap);
+    const y = boardTop + rowIndex * (cell + gap);
+
+    // Marked → caught-green fill; unmarked → elevated fill + hairline edge.
+    roundRectPath(ctx, x, y, cell, cell, radius);
+    ctx.fillStyle = square.marked ? BINGO.markedFill : BINGO.unmarkedFill;
+    ctx.fill();
+    if (!square.marked) {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = BINGO.unmarkedEdge;
+      ctx.stroke();
+    }
+
+    // Label: the free center draws its distinct free WORD; every other cell its
+    // frozen square label. Wrapped + ellipsized to stay inside the cell.
+    const text = square.isFree ? recapCopy.bingoFreeLabel : square.label;
+    ctx.font = `600 ${labelSize}px ${FONT_STACK}`;
+    const lines = wrapLabel(ctx, text, cell - 20, 3);
+    ctx.fillStyle = square.marked ? BINGO.markedLabel : BINGO.unmarkedEdge;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const blockTop = y + cell / 2 - ((lines.length - 1) * lineHeight) / 2;
+    lines.forEach((line, li) => ctx.fillText(line, x + cell / 2, blockTop + li * lineHeight));
+  });
+
+  // Win badges (glyph + word) — or the honest no-win line — below the board.
+  const badgeTop = boardTop + boardSize + height * 0.03;
+  if (data.wins.length > 0) {
+    drawWinBadges(
+      ctx,
+      data.wins.map((kind) => `★ ${winWord[kind]}`),
+      cx,
+      badgeTop,
+      width * 0.9,
+    );
+  } else {
+    centerText(ctx, recapCopy.bingoNoWin, cx, badgeTop + 44, 44, COLOR.muted);
+  }
+
+  // Footer: honest muted "This show" label + the show's own date · venue — the
+  // same footer slots the per-show recap card uses.
+  const line = data.show.venue ? `${data.show.date} · ${data.show.venue}` : data.show.date;
+  centerText(ctx, config.copy.share.card.showLabel, cx, height * 0.955, 38, COLOR.muted);
+  centerText(ctx, line, cx, height * 0.99, 44, COLOR.primary);
+}
+
 /** Promisified canvas.toBlob (PNG). Resolves null if the encode is unavailable. */
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob | null> {
   return new Promise((resolve) => {
@@ -238,7 +455,12 @@ export async function buildShareCardFile(data: ShareCardData): Promise<ShareCard
     const blob = await canvasToBlob(canvas);
     if (blob == null) return { ok: false, error: config.copy.share.failureHeading };
 
-    const fileName = data.scope === "show" ? "guezzer-show.png" : "guezzer-dex.png";
+    const fileName =
+      data.scope === "show"
+        ? "guezzer-show.png"
+        : data.scope === "bingo"
+          ? "guezzer-bingo.png"
+          : "guezzer-dex.png";
     const fileObj = new File([blob], fileName, { type: "image/png" });
     // NOT a leak / NOT centralized: previewUrl is released by ShareCardSheet's
     // effect cleanup (see ShareCardSheet L62-83), not by the download path, so
