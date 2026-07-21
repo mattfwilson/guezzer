@@ -45,7 +45,7 @@ Full phase detail, success criteria, and plan breakdowns: [milestones/v1.1-ROADM
 - [x] **Phase 13: Interface & Explore Polish** — safe-area inset, wake-lock release race, fill-hint accuracy, constellation camera (UX-01/02/03/04) (completed 2026-07-20)
 - [x] **Phase 14: Gizz Bingo — Core Marking & Generation** — deterministic consume-once `deriveMarks` fold + seeded generator, behind the calibration gate (BINGO-03) (completed 2026-07-20)
 - [x] **Phase 15: Gizz Bingo — Persistence, Lock & Replay** — Dexie v5 `bingoCards` + lock-on-Start-Show + export/import + catch-up + GizzDex replay (BINGO-06/07) (completed 2026-07-21)
-- [ ] **Phase 16: Gizz Bingo — Build, Live Marking & Celebrations** — deal + vibe + swap + fill meter, "one away" tension, celebrations, share card (BINGO-01/02/04/05/08)
+- [x] **Phase 16: Gizz Bingo — Build, Live Marking & Celebrations** — deal + vibe + swap + fill meter, "one away" tension, celebrations, share card (BINGO-01/02/04/05/08) (completed 2026-07-21)
 
 ## Phase Details
 
@@ -210,7 +210,7 @@ Plans:
 
 **Wave 3** *(blocked on 16-01/02/03)*
 
-  - [ ] 16-06-PLAN.md — share card: `buildBingoShareCard` + `"bingo"` `drawShareCard` branch + RecapView auto-offer + GamesView replay re-share (BINGO-08)
+  - [x] 16-06-PLAN.md — share card: `buildBingoShareCard` + `"bingo"` `drawShareCard` branch + RecapView auto-offer + GamesView replay re-share (BINGO-08)
 
 **UI hint**: yes
 
@@ -233,7 +233,7 @@ Plans:
 | 13. Interface & Explore Polish | v1.2 | 4/4 | Complete    | 2026-07-20 |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 6/6 | Complete    | 2026-07-20 |
 | 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 4/4 | Complete    | 2026-07-21 |
-| 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 5/6 | In Progress|  |
+| 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 6/6 | Complete   | 2026-07-21 |
 
 ---
 *Roadmap created: 2026-07-08*
