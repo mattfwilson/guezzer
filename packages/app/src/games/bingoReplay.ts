@@ -21,6 +21,8 @@ import {
   deriveMarks,
   detectWins,
   type ArchiveArtifact,
+  type BingoCard,
+  type BingoContext,
   type DexAlbumsArtifact,
   type MarkedCard,
   type MarkTrailEntry,
@@ -43,6 +45,31 @@ export interface ReplayResult {
 }
 
 /**
+ * Correctness point (1): sort a COPY of the app entries by the stored 1-based
+ * gapped `position`, then assign fresh CONTIGUOUS 0..N-1 indices — the reindex
+ * `mark.ts` relies on for `opener` (index 0). The same reindex builds the
+ * position → songName map, so the caption always resolves to the song that lit
+ * the cell. Factored here so `replayCard` (frozen snapshot) and `deriveLiveBoard`
+ * (live snapshot) share ONE reindex — `live == replay == catch-up` by construction.
+ * Only the minimal `{songId, position, isPlaceholder}` subset crosses to core (D-22).
+ */
+function adaptTrail(entries: readonly TrackedEntry[]): {
+  trail: MarkTrailEntry[];
+  songNameByPosition: Map<number, string>;
+} {
+  const sorted = [...entries].sort((a, b) => a.position - b.position);
+  const trail: MarkTrailEntry[] = sorted.map((e, index) => ({
+    songId: e.songId,
+    position: index,
+    isPlaceholder: e.isPlaceholder,
+  }));
+  const songNameByPosition = new Map<number, string>(
+    sorted.map((e, index) => [index, e.songName]),
+  );
+  return { trail, songNameByPosition };
+}
+
+/**
  * `replayCard(row, entries, matrix, archive, rarity, albums) -> ReplayResult`.
  * Reconstructs the pure `BingoCard` from `row.card`, builds the shipped-artifact
  * context, adapts the trail with the two correctness points, and folds → marks +
@@ -56,23 +83,36 @@ export function replayCard(
   rarity: RarityIndex,
   albums: DexAlbumsArtifact,
 ): ReplayResult {
-  // (1) Sort a COPY by the stored 1-based gapped position, then assign fresh
-  // contiguous 0..N-1 indices — the reindex `mark.ts` relies on for `opener`.
-  const sorted = [...entries].sort((a, b) => a.position - b.position);
-  const trail: MarkTrailEntry[] = sorted.map((e, index) => ({
-    songId: e.songId,
-    position: index,
-    isPlaceholder: e.isPlaceholder,
-  }));
-  // Same reindex → the caption always resolves to the song that lit the cell.
-  const songNameByPosition = new Map<number, string>(
-    sorted.map((e, index) => [index, e.songName]),
-  );
+  const { trail, songNameByPosition } = adaptTrail(entries);
 
   const ctx = buildBingoContext(matrix, archive, rarity, albums);
   // (2) FROZEN caught-set — never the live dex (drives `neverCaught`, D-12).
   const caughtSnapshot = new Set(row.caughtSnapshot);
   const marked = deriveMarks(row.card, trail, ctx, caughtSnapshot);
+  const wins = detectWins(marked);
+
+  return { marked, wins, songNameByPosition };
+}
+
+/**
+ * `deriveLiveBoard(card, liveEntries, ctx, liveCaughtSnapshot) -> ReplayResult`.
+ * The LIVE sibling of `replayCard` (Phase 16, BINGO-04): re-derives the board over
+ * the LIVE (unlocked, still-growing) trail with the LIVE caught-set, using the
+ * SAME 0-based opener reindex (`adaptTrail`) so the live board is byte-identical to
+ * the eventual replay of the same trail. It takes a PRE-BUILT `ctx` (callers pass
+ * `getBingoContext().ctx`, memoized once — never rebuilt per render, RESEARCH
+ * Pitfall 2) and the caller's live caught-snapshot (NON-frozen — the growing dex,
+ * NOT `row.caughtSnapshot`; freezing it here would be RESEARCH Pitfall 1). Pure
+ * over its inputs — no I/O, no Dexie writes, no wall-clock.
+ */
+export function deriveLiveBoard(
+  card: BingoCard,
+  liveEntries: readonly TrackedEntry[],
+  ctx: BingoContext,
+  liveCaughtSnapshot: ReadonlySet<number>,
+): ReplayResult {
+  const { trail, songNameByPosition } = adaptTrail(liveEntries);
+  const marked = deriveMarks(card, trail, ctx, liveCaughtSnapshot);
   const wins = detectWins(marked);
 
   return { marked, wins, songNameByPosition };

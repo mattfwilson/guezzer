@@ -19,6 +19,7 @@ import { buildRecapShareStats, deriveRecap, type RarityTier } from "@guezzer/cor
 import { Share2, Sparkles } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo, useState } from "react";
+import { BingoBoard } from "../components/BingoBoard.tsx";
 import { config } from "../config.ts";
 import { db } from "../db/db.ts";
 import { replayCard } from "../games/bingoReplay.ts";
@@ -338,47 +339,17 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
               <p className="text-[14px] leading-tight text-text-muted">{copy.bingoNoWin}</p>
             )}
 
-            {/* 4×4 read-only board (row-major). Marked → caught-green #22C55E /
-                near-black label; unmarked → elevated #17171F / primary label /
-                hairline; the free center wears the marked treatment + "Free". */}
-            <div className="grid grid-cols-4 gap-2">
-              {bingo.marked.squares.map((square) => {
-                const isMarked = square.markedByPosition !== null;
-                const isFree = square.def.kind === "free";
-                const label = square.def.kind === "free" ? copy.bingoFreeLabel : square.def.label;
-                const litName =
-                  isMarked && !isFree
-                    ? bingo.songNameByPosition.get(square.markedByPosition as number)
-                    : null;
-                return (
-                  <div
-                    key={square.index}
-                    className="flex min-h-[80px] flex-col items-center justify-center gap-1 rounded-md p-2 text-center"
-                    style={
-                      isMarked
-                        ? { backgroundColor: "#22C55E", color: "#0C0C10" }
-                        : {
-                            backgroundColor: "#17171F",
-                            color: "#F5F5F7",
-                            border: "1px solid #2A2A34",
-                          }
-                    }
-                  >
-                    <span className="line-clamp-2 text-[12px] font-semibold leading-tight">
-                      {label}
-                    </span>
-                    {litName != null && litName !== "" && (
-                      <span
-                        className="line-clamp-1 text-[10px] leading-tight"
-                        style={{ color: "#0C0C10", opacity: 0.72 }}
-                      >
-                        {copy.bingoLitBy(litName)}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            {/* 4×4 read-only replay board — the ONE shared <BingoBoard> (BINGO-04).
+                `captionMode="persistent"` renders the always-on "lit by {song}"
+                caption (Phase-15 D-06); read-only, so NO `onSquareTap` and NO
+                one-away glow. Marked → caught-green #22C55E; unmarked → elevated
+                #17171F / hairline; the free center wears the marked treatment. */}
+            <BingoBoard
+              captionMode="persistent"
+              marked={bingo.marked}
+              wins={bingo.wins}
+              songNameByPosition={bingo.songNameByPosition}
+            />
           </div>
         )}
 
