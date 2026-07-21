@@ -2,10 +2,14 @@ import { describe, expect, it } from "vitest";
 import { serializeExport } from "../src/data-safety/serialize.ts";
 import type { ExportSnapshot } from "../src/data-safety/serialize.ts";
 import { parseAndMergeImport } from "../src/data-safety/merge.ts";
+import { exportEnvelope, bingoCardRow } from "../src/data-safety/export-schema.ts";
+import type { BingoCard } from "../src/bingo/types.ts";
 
 const SCHEMA_VERSION = 1;
 /** Current schema version once envelope v2 (plan 06-07) ships. */
 const SCHEMA_VERSION_V2 = 2;
+/** Current schema version once envelope v3 (plan 15-01, bingoCards) ships. */
+const SCHEMA_VERSION_V3 = 3;
 
 function emptySnapshot(): ExportSnapshot {
   return {
@@ -15,6 +19,42 @@ function emptySnapshot(): ExportSnapshot {
     attendedShows: [],
     trackedShows: [],
     trackedEntries: [],
+    bingoCards: [],
+  };
+}
+
+/** A valid pure `BingoCard` (16 squares, one free at freeIndex 5). */
+function bingoCard(over: Partial<BingoCard> = {}): BingoCard {
+  const squares: BingoCard["squares"] = Array.from({ length: 16 }, (_, i) =>
+    i === 5
+      ? ({ kind: "free" } as const)
+      : ({ kind: "song", songId: i + 1, label: `Song ${i + 1}` } as const),
+  );
+  return {
+    schemaVersion: 1,
+    seed: "seed-abc",
+    vibe: "balanced",
+    corpusVersion: "corpus-1",
+    freeIndex: 5,
+    squares,
+    ...over,
+  };
+}
+
+/** A v3 `bingoCards` envelope row wrapping the pure card (D-11/D-12). */
+function bingoRow(
+  over: Partial<ExportSnapshot["bingoCards"][number]> = {},
+): ExportSnapshot["bingoCards"][number] {
+  return {
+    cardId: "sess-1",
+    sessionId: "sess-1",
+    card: bingoCard(),
+    caughtSnapshot: [1, 2, 3],
+    lockedAt: 1_700_000_000_000,
+    showDate: "2026-08-14",
+    venueName: "Red Rocks Amphitheatre",
+    city: "Morrison",
+    ...over,
   };
 }
 
@@ -614,5 +654,52 @@ describe("parseAndMergeImport — v2 archiveShows union-merge (plan 06-07)", () 
       SCHEMA_VERSION_V2,
     );
     expect(result.ok).toBe(false);
+  });
+});
+
+describe("envelope v3 — bingoCardRow schema + serialize passthrough (Task 1, D-11/D-13/D-14)", () => {
+  it("parses a well-formed v3 envelope carrying bingoCards", () => {
+    const env = serializeExport(
+      { ...emptySnapshot(), bingoCards: [bingoRow()] },
+      SCHEMA_VERSION_V3,
+    );
+    const parsed = exportEnvelope.safeParse(env);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.bingoCards).toHaveLength(1);
+  });
+
+  it("defaults bingoCards to [] on a pre-v3 envelope with no bingoCards key (.default([]))", () => {
+    // A genuine v2 backup lacks the bingoCards key entirely — the strict
+    // schema's `.default([])` must fill it so the file still parses (D-14).
+    const env = serializeExport(emptySnapshot(), 2) as Record<string, unknown>;
+    delete env.bingoCards;
+    const parsed = exportEnvelope.safeParse(env);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.bingoCards).toEqual([]);
+  });
+
+  it("hard-fails a bingoCards row with an extra top-level key (strictObject)", () => {
+    const row = { ...bingoRow(), injected: "surprise" };
+    expect(bingoCardRow.safeParse(row).success).toBe(false);
+  });
+
+  it("hard-fails a bingoCards row whose card.squares carries an unknown kind (reused discriminated union)", () => {
+    const base = bingoRow();
+    const badCard = {
+      ...base.card,
+      squares: base.card.squares.map((s, i) =>
+        i === 0 ? ({ kind: "mystery", label: "x" } as never) : s,
+      ),
+    };
+    expect(bingoCardRow.safeParse({ ...base, card: badCard }).success).toBe(false);
+  });
+
+  it("serializeExport passes bingoCards through verbatim (no mutation, cardId stable — unlike trackedEntries' ++id strip)", () => {
+    const rows = [bingoRow({ cardId: "s1", sessionId: "s1" })];
+    const env = serializeExport(
+      { ...emptySnapshot(), bingoCards: rows },
+      SCHEMA_VERSION_V3,
+    );
+    expect(env.bingoCards).toEqual(rows);
   });
 });
