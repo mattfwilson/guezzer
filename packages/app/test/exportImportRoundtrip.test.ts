@@ -1,4 +1,4 @@
-import { exportEnvelope, serializeExport } from "@guezzer/core";
+import { exportEnvelope, serializeExport, type BingoCard } from "@guezzer/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { config } from "../src/config.ts";
 import {
@@ -534,9 +534,106 @@ describe("envelope v2 round-trip: archiveShows + owner (plan 06-07 / Pitfall 5)"
     const json = await capturedBlob!.text();
     const parsed = exportEnvelope.parse(JSON.parse(json));
 
-    expect(parsed.schemaVersion).toBe(2);
+    expect(parsed.schemaVersion).toBe(config.dataSafety.SCHEMA_VERSION);
     expect(parsed.owner).toBe("Matt");
     expect(parsed.archiveShows).toHaveLength(1);
     expect(parsed.archiveShows[0].show_id).toBe(cachedSetlist.show_id);
+  });
+});
+
+describe("envelope v3 round-trip: bingoCards (BINGO-07, plan 15-02)", () => {
+  beforeEach(async () => {
+    await wipeAll();
+    await db.bingoCards.clear();
+    capturedBlob = null;
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      capturedBlob = blob;
+      return "blob:mock-url";
+    });
+    URL.revokeObjectURL = vi.fn();
+  });
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await wipeAll();
+    await db.bingoCards.clear();
+  });
+
+  function makeCard(seed = "seed-1"): BingoCard {
+    const squares = Array.from({ length: 16 }, (_, i) =>
+      i === 12
+        ? ({ kind: "free" } as const)
+        : ({ kind: "song", songId: i + 1, label: `Song ${i + 1}` } as const),
+    );
+    return {
+      schemaVersion: 1,
+      seed,
+      vibe: "balanced",
+      corpusVersion: "test-corpus",
+      freeIndex: 12,
+      squares,
+    };
+  }
+
+  it("the export envelope is stamped SCHEMA_VERSION 3", () => {
+    expect(config.dataSafety.SCHEMA_VERSION).toBe(3);
+  });
+
+  it("a seeded bingoCards row survives a full export -> import round-trip", async () => {
+    await db.bingoCards.put({
+      cardId: "session-abc",
+      sessionId: "session-abc",
+      card: makeCard("rocket-seed"),
+      caughtSnapshot: [42, 7],
+      lockedAt: 1_700_000_000_000,
+      showDate: "2026-08-15",
+      venueName: "Red Rocks",
+      city: "Morrison",
+    });
+
+    await exportBackup();
+    const json = await capturedBlob!.text();
+    const parsed = exportEnvelope.parse(JSON.parse(json));
+    expect(parsed.schemaVersion).toBe(3);
+    expect(parsed.bingoCards).toHaveLength(1);
+
+    // Lose the phone, then restore from the backup file.
+    await db.bingoCards.clear();
+    expect(await db.bingoCards.count()).toBe(0);
+
+    const file = new File([json], "guezzer-backup.json", {
+      type: "application/json",
+    });
+    const result = await pickAndImport(file);
+    expect(result.ok).toBe(true);
+
+    const restored = await db.bingoCards.get("session-abc");
+    expect(restored).toBeDefined();
+    expect(restored?.card.seed).toBe("rocket-seed");
+    expect(restored?.caughtSnapshot).toEqual([42, 7]);
+    expect(restored?.lockedAt).toBe(1_700_000_000_000);
+    expect(restored?.venueName).toBe("Red Rocks");
+  });
+
+  it("a v2 backup with no bingoCards key still imports (MIGRATIONS[2] / .default([]))", async () => {
+    // Hand-build a genuine pre-v3 envelope: schemaVersion 2, no bingoCards key.
+    const v2Envelope = {
+      schemaVersion: 2,
+      exportedAt: new Date().toISOString(),
+      owner: null,
+      meta: [{ key: "persistStatus", value: "persisted" }],
+      attendedShows: [{ show_id: 1234567890, showDate: "2026-08-15" }],
+      archiveShows: [],
+      trackedShows: [],
+      trackedEntries: [],
+    };
+    const file = new File([JSON.stringify(v2Envelope)], "v2-backup.json", {
+      type: "application/json",
+    });
+
+    const result = await pickAndImport(file);
+    expect(result.ok).toBe(true);
+    // The pre-v3 backup carried no cards; the field defaults to [] cleanly.
+    expect(await db.bingoCards.count()).toBe(0);
+    expect(await db.meta.get("persistStatus")).toBeDefined();
   });
 });
