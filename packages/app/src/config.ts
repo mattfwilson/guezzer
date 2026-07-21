@@ -290,6 +290,32 @@ export const config = {
     },
     /** Phase-8 D-03: gap in px between the lifted FilterFab and the sheet's top edge. */
     FAB_SHEET_GAP_PX: 12,
+
+    /**
+     * Phase-16 (BINGO-05, D-16/D-17/D-18) Gizz-Bingo celebration timings —
+     * single-config ethos (CLAUDE.md): no scattered magic numbers in
+     * BingoCelebration.tsx. Values mirror 16-UI-SPEC §Interaction & Motion —
+     * mark-toast ~1.8s, badge ~2s, supernova bloom-in ~400ms / hold ~1.5s /
+     * fade-out ~800ms (≤2.7s, inside the D-17 non-blocking 2–3s budget). Every
+     * value is honored at the call site behind `useReducedMotion` (the reduced
+     * path swaps the orb-burst for a static full-bloom crossfade, D-20).
+     */
+    celebration: {
+      /** Auto-mark toast total on-screen time in ms (D-16). */
+      MARK_TOAST_MS: 1800,
+      /** Medium badge-toast total on-screen time in ms (D-18). */
+      BADGE_TOAST_MS: 2000,
+      /** Supernova total on-screen time in ms — bloom + hold + fade, ≤ the 2–3s budget (D-17). */
+      SUPERNOVA_MS: 2700,
+      /** Supernova headline bloom-in duration in ms. */
+      SUPERNOVA_BLOOM_MS: 400,
+      /** Supernova fade-out duration in ms. */
+      SUPERNOVA_FADE_MS: 800,
+      /** Orb-burst particle count radiating from centre (motion path only; reduced-motion draws none). */
+      SUPERNOVA_ORB_COUNT: 12,
+      /** Peak radial travel in px of each burst orb from centre. */
+      SUPERNOVA_ORB_TRAVEL_PX: 180,
+    },
   },
 
   /** Phase-5 data-safety tunables (05-UI-SPEC §Config surface). */
