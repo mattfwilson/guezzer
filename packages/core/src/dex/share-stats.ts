@@ -17,7 +17,7 @@
  * DB imports — mirrors the pure-derivation shape of derive-dex.ts / compare.ts.
  */
 import { config } from "../config.ts";
-import type { BingoWinKind } from "../bingo/types.ts";
+import type { BingoWinKind, MarkedCard, Win } from "../bingo/types.ts";
 import type { ArchiveArtifact } from "./archive-types.ts";
 import type { DexStats } from "./derive-dex.ts";
 import type { RarityTier } from "./rarity.ts";
@@ -205,5 +205,54 @@ export function buildRecapShareStats(
     show: { date: meta.date, venue: meta.venue },
     rarestCatch,
     tierBreakdown: orderedTierRows(counts),
+  };
+}
+
+/**
+ * `buildBingoShareCard(marked, wins, show) -> BingoShareCard`. Pure projection of
+ * ONE played bingo card into the canvas-ready `"bingo"` scope (BINGO-08, D-22).
+ * It flattens `marked.squares` (row-major, index 0..15) into 16 `{label, marked,
+ * isFree}` stamps — a square is marked iff `markedByPosition !== null` (the free
+ * center carries the `FREE_SENTINEL`, so it reads as marked), and the free label
+ * is left empty for the draw layer to render distinctly. The badge set is the
+ * DEDUPED win kinds in detection order (a board can complete the same kind twice
+ * — e.g. two lines — but the trophy shows each kind once). `show` passes through.
+ *
+ * This is the TROPHY, not the spreadsheet: NO per-square "lit by {song}" detail
+ * ever crosses into the share shape (that stays the in-app replay payoff, D-22).
+ * A zero-win board yields a valid card (empty `wins`). Zero I/O — mirrors the
+ * pure-projection idiom of `buildShareStats` / `buildRecapShareStats`.
+ */
+export function buildBingoShareCard(
+  marked: MarkedCard,
+  wins: Win[],
+  show: { date: string; venue: string | null },
+): BingoShareCard {
+  // Row-major 16 stamps. Sort a COPY by board index so the canvas draw is always
+  // row-major regardless of the fold's emission order; the free cell's label is
+  // left empty (the draw layer paints the free treatment from `isFree`).
+  const squares = [...marked.squares]
+    .sort((a, b) => a.index - b.index)
+    .map((square) => ({
+      label: square.def.kind === "free" ? "" : square.def.label,
+      marked: square.markedByPosition !== null,
+      isFree: square.def.kind === "free",
+    }));
+
+  // Dedupe win kinds, preserving the detection order (line before corners, etc.).
+  const seen = new Set<BingoWinKind>();
+  const winKinds: BingoWinKind[] = [];
+  for (const win of wins) {
+    if (!seen.has(win.kind)) {
+      seen.add(win.kind);
+      winKinds.push(win.kind);
+    }
+  }
+
+  return {
+    scope: "bingo",
+    squares,
+    wins: winKinds,
+    show: { date: show.date, venue: show.venue },
   };
 }
