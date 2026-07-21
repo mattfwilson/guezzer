@@ -204,9 +204,9 @@ Plans:
 
 **Wave 2** *(app surfaces on the foundation; parallel, no file overlap)*
 
-  - [ ] 16-03-PLAN.md — GamesView build surface: DealScreen (3 vibe buttons = deal) + FillMeter + SwapSheet + draft/live board (BINGO-01/02/04)
-  - [ ] 16-04-PLAN.md — LiveGizz: BingoPeekStrip + closest one-away banner + Start-Show lock/nudge (BINGO-04)
-  - [ ] 16-05-PLAN.md — celebrations: BingoCelebration emitter/host (stamp<badge<supernova) + useBingoCelebrations transition driver, ≤2 big moments, reduced-motion (BINGO-05)
+  - [x] 16-03-PLAN.md — GamesView build surface: DealScreen (3 vibe buttons = deal) + FillMeter + SwapSheet + draft/live board (BINGO-01/02/04)
+  - [x] 16-04-PLAN.md — LiveGizz: BingoPeekStrip + closest one-away banner + Start-Show lock/nudge (BINGO-04)
+  - [x] 16-05-PLAN.md — celebrations: BingoCelebration emitter/host (stamp<badge<supernova) + useBingoCelebrations transition driver, ≤2 big moments, reduced-motion (BINGO-05)
 
 **Wave 3** *(blocked on 16-01/02/03)*
 
@@ -233,7 +233,7 @@ Plans:
 | 13. Interface & Explore Polish | v1.2 | 4/4 | Complete    | 2026-07-20 |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 6/6 | Complete    | 2026-07-20 |
 | 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 4/4 | Complete    | 2026-07-21 |
-| 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 2/6 | In Progress|  |
+| 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 5/6 | In Progress|  |
 
 ---
 *Roadmap created: 2026-07-08*
