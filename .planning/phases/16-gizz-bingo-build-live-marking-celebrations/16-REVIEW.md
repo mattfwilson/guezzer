@@ -38,7 +38,7 @@ findings:
   warning: 4
   info: 2
   total: 7
-status: issues_found
+status: resolved_critical_and_warnings
 ---
 
 # Phase 16: Code Review Report
@@ -234,6 +234,23 @@ swapping renders disabled among the candidate list. Harmless (you simply can't
 
 **Fix (optional):** Exclude `squareIndex` when building the dedup set so the tapped
 square's own identity is not greyed out.
+
+---
+
+## Resolution (applied during execute-phase, 2026-07-21)
+
+All Critical + Warning findings were fixed and committed before phase verification;
+the full suite (747 tests) + `tsc` (core & app) + `vite build` are green afterward.
+
+| Finding | Status | Commit |
+|---------|--------|--------|
+| CR-01 — locked board used live dex, not frozen snapshot | ✅ Fixed | `fix(16): locked bingo board marks over frozen caughtSnapshot…` |
+| WR-01 — hardcoded blackout thresholds | ✅ Fixed | `fix(16): address code-review warnings WR-01..WR-04` |
+| WR-02 — celebration toast not `pointer-events-none` | ✅ Fixed | (same as WR-01) |
+| WR-03 — supernova overshoots 2.7s budget | ✅ Fixed | (same as WR-01) |
+| WR-04 — FillMeter ÷16 vs ÷15 basis mismatch | ✅ Fixed | (same as WR-01) |
+| IN-01 — positional `squares[i]` indexing assumption | ⏸ Deferred (info) | — latent robustness; no live failure. |
+| IN-02 — SwapSheet greys the tapped square's own identity | ⏸ Deferred (info) | — minor UX polish. |
 
 ---
 
