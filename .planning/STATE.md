@@ -4,8 +4,8 @@ milestone: v1.2
 milestone_name: Pre-Show Hardening
 status: verifying
 stopped_at: Completed 15-04-PLAN.md (BINGO-06 catch-up)
-last_updated: "2026-07-21T01:52:20.793Z"
-last_activity: 2026-07-21 -- Phase 15 Plan 01 complete (envelope v3 core)
+last_updated: "2026-07-21T02:16:08.269Z"
+last_activity: 2026-07-21
 progress:
   total_phases: 6
   completed_phases: 5
@@ -25,16 +25,16 @@ See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
 
 ## Current Position
 
-Phase: 15 (gizz-bingo-persistence-lock-replay) — EXECUTING
-Plan: 4 of 4
+Phase: 16
+Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-07-21 -- Phase 15 Plan 01 complete (envelope v3 core)
+Last activity: 2026-07-21
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 98
+- Total plans completed: 102
 - Average duration: -
 - Total execution time: 0 hours
 
@@ -52,6 +52,7 @@ Last activity: 2026-07-21 -- Phase 15 Plan 01 complete (envelope v3 core)
 | 12 | 3 | - | - |
 | 13 | 4 | - | - |
 | 14 | 6 | - | - |
+| 15 | 4 | - | - |
 
 **Recent Trend:**
 

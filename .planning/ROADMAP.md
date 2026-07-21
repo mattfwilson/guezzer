@@ -216,7 +216,7 @@ Plans:
 | 12. Data Safety & Integrity | v1.2 | 3/3 | Complete    | 2026-07-19 |
 | 13. Interface & Explore Polish | v1.2 | 4/4 | Complete    | 2026-07-20 |
 | 14. Gizz Bingo — Core Marking & Generation | v1.2 | 6/6 | Complete    | 2026-07-20 |
-| 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 4/4 | Complete   | 2026-07-21 |
+| 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 4/4 | Complete    | 2026-07-21 |
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 0/— | Not started | - |
 
 ---

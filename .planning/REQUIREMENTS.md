@@ -89,7 +89,7 @@ Deferred to a later milestone (backlog unchanged in `.planning/todos/pending/`).
 | UX-04 | Phase 13 | Complete |
 | BINGO-03 | Phase 14 | Complete |
 | BINGO-06 | Phase 15 | Complete |
-| BINGO-07 | Phase 15 | In progress (15-01 persistence core done; app replay in 15-02/03) |
+| BINGO-07 | Phase 15 | Complete |
 | BINGO-01 | Phase 16 | Pending |
 | BINGO-02 | Phase 16 | Pending |
 | BINGO-04 | Phase 16 | Pending |
