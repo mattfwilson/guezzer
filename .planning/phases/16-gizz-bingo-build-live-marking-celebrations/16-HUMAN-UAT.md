@@ -18,11 +18,11 @@ result: passed (confirmed on device 2026-07-21)
 
 ### 2. Lock a card at Start Show, then log songs on LiveGizz
 expected: The in-flow peek strip appears (never over the FAB/orbit), auto-marks square-by-square as songs land, glows the single closest needed square, and shows the "🔥 One away…" / "👑 ONE SQUARE FROM BLACKOUT" banner; tapping a stamped square on the full GamesView board reveals which song lit it.
-result: [pending]
+result: passed (confirmed on device 2026-07-21, after auto-lock + glow-consistency fixes)
 
 ### 3. Complete a first line, a second line, four-corners/X, and a blackout
 expected: Per-square stamp on every mark; a medium badge toast on four-corners / X / subsequent lines; a big supernova on the FIRST line and on blackout ONLY (at most two big moments per show); you can keep logging THROUGH the supernova (it never intercepts taps).
-result: [pending]
+result: passed (confirmed on device 2026-07-21)
 
 ### 4. Enable reduced-motion (OS setting) and re-trigger celebrations
 expected: Supernova degrades to a static full-bloom headline crossfade (no particles/scale); stamps/toasts are opacity-only; the one-away ring is a static accent outline.
@@ -35,9 +35,9 @@ result: [pending]
 ## Summary
 
 total: 5
-passed: 1
+passed: 3
 issues: 0
-pending: 4
+pending: 2
 skipped: 0
 blocked: 0
 
