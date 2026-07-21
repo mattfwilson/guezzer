@@ -1002,8 +1002,11 @@ export const config = {
       rarestOfNight: (song: string): string => `Rarest catch of the night: ${song}`,
       /** New-catches row (D-14) — omitted entirely at zero (no "+0"). */
       newCatches: (n: number): string => `+${n} new catches`,
-      /** Footer neutral CTA — returns to Show/Dex (Share card joins in 06-11). */
+      /** Footer primary CTA — returns to Show/Dex. */
       done: "Done",
+      /** Icon-only share triggers (06-11/BINGO-08): the recap share sits by the "Show recap" title, the bingo share by the "Bingo" title — distinct aria-labels so screen readers tell the two apart. */
+      shareRecapAria: "Share your show recap",
+      shareBingoAria: "Share your bingo card",
 
       /**
        * Phase-15 Gizz-Bingo replay section (15-UI-SPEC §Copywriting Contract,

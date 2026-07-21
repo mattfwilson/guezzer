@@ -57,7 +57,6 @@ interface RecapViewProps {
 
 export function RecapView({ sessionId, onClose }: RecapViewProps) {
   const copy = config.copy.recap;
-  const shareCopy = config.copy.share;
   const setLabels = config.copy.dex.setLabels as Record<string, string>;
   const [shareOpen, setShareOpen] = useState(false);
   // A SECOND, independent sheet for the bingo trophy (BINGO-08) — the bingo card
@@ -223,11 +222,22 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
         // do NOT normalize to +12px.
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 24px)" }}
       >
-        {/* Heading + {date} · {venue}. */}
+        {/* Heading + {date} · {venue}, with the recap share as an icon button to the
+            right of the title (it shares THIS show — same-line affordance, D-19). */}
         <div className="flex flex-col gap-1">
-          <h1 className="text-[20px] font-semibold leading-tight text-text-primary">
-            {copy.heading}
-          </h1>
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="min-w-0 text-[20px] font-semibold leading-tight text-text-primary">
+              {copy.heading}
+            </h1>
+            <button
+              type="button"
+              onClick={() => setShareOpen(true)}
+              aria-label={copy.shareRecapAria}
+              className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent touch-manipulation"
+            >
+              <Share2 size={20} aria-hidden="true" />
+            </button>
+          </div>
           <p className="text-[14px] font-semibold leading-tight tabular-nums text-text-muted">
             {subline}
           </p>
@@ -339,9 +349,21 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
             React text (T-06-21). */}
         {bingo != null && (
           <div className="flex flex-col gap-3">
-            <h2 className="text-[20px] font-semibold leading-tight text-text-primary">
-              {copy.bingoHeading}
-            </h2>
+            {/* Bingo title + the trophy share as an icon button to its right (it
+                shares the BINGO card — BINGO-08/D-22). */}
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="min-w-0 text-[20px] font-semibold leading-tight text-text-primary">
+                {copy.bingoHeading}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setBingoShareOpen(true)}
+                aria-label={copy.shareBingoAria}
+                className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent touch-manipulation"
+              >
+                <Share2 size={20} aria-hidden="true" />
+              </button>
+            </div>
 
             {/* Win badges (earned-payoff accent chips) or the honest no-win line. */}
             {bingo.wins.length > 0 ? (
@@ -373,38 +395,19 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
               wins={bingo.wins}
               songNameByPosition={bingo.songNameByPosition}
             />
-
-            {/* Bingo trophy share (BINGO-08) — auto-offered here at the win. A
-                SEPARATE sheet from the recap-card share below (distinct target),
-                pre-building its File on open so the share tap has no async. */}
-            <button
-              type="button"
-              onClick={() => setBingoShareOpen(true)}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-accent px-4 text-[14px] font-semibold text-surface touch-manipulation"
-            >
-              <Share2 size={18} aria-hidden="true" />
-              {shareCopy.cta}
-            </button>
           </div>
         )}
 
-        {/* Footer — Share card (accent) · Done (neutral). */}
+        {/* Footer — Done is now the PRIMARY action (accent); both share triggers
+            moved up beside their respective titles as icon buttons. */}
         <div
           className="mt-auto flex flex-col gap-2 pt-4 pb-4"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
         >
           <button
             type="button"
-            onClick={() => setShareOpen(true)}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-accent px-4 text-[14px] font-semibold text-surface touch-manipulation"
-          >
-            <Share2 size={18} aria-hidden="true" />
-            {shareCopy.cta}
-          </button>
-          <button
-            type="button"
             onClick={onClose}
-            className="flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary touch-manipulation"
+            className="flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-4 text-[14px] font-semibold text-surface touch-manipulation"
           >
             {copy.done}
           </button>
