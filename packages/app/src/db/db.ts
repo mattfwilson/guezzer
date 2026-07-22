@@ -839,12 +839,16 @@ export async function snapshot(userId: string): Promise<DbSnapshot> {
  * the volatile per-device Dexie `++id` (CR-01 / T-05-07) — a plain `bulkPut`
  * upsert never deletes rows absent from the merged set, so a dedupe-dropped
  * local show would survive as an orphaned, zero-entry duplicate. Both tables
- * instead commit by full-replace: `clear()` the table, then re-add the merged
- * snapshot's rows (`bulkPut` for `trackedShows`, whose `sessionId` key is
- * stable; `bulkAdd` for `trackedEntries`, whose id-less rows need Dexie to
- * assign fresh local ids). All five calls stay inside the SAME rw transaction
- * — that is the atomicity control: a mid-write throw rolls back every clear
- * too, so a failed import can never leave the dex half-wiped (no partial state).
+ * instead commit by full-replace SCOPED to the importing identity (review WR-02
+ * / D-09): a `where("userId").equals(userId).delete()` of the importer's rows,
+ * then re-add the merged snapshot's rows (`bulkPut` for `trackedShows`, whose
+ * `sessionId` key is stable; `bulkAdd` for `trackedEntries`, whose id-less rows
+ * need Dexie to assign fresh local ids). Scoping the delete (vs the former
+ * unscoped `.clear()`) preserves the Phase-5 dedupe-drop / volatile-++id
+ * semantics for THIS identity while leaving a co-resident identity's tracked
+ * rows on a shared device intact. All five calls stay inside the SAME rw
+ * transaction — that is the atomicity control: a mid-write throw rolls back
+ * every delete too, so a failed import can never leave the dex half-wiped.
  */
 export async function importSnapshot(
   snapshot: DbSnapshot,
@@ -884,9 +888,16 @@ export async function importSnapshot(
       // path used for trackedShows/trackedEntries. A locally-present card absent
       // from the merged snapshot therefore survives (no destructive clear).
       await db.bingoCards.bulkPut(stamp(snapshot.bingoCards));
-      await db.trackedShows.clear();
+      // Scope the destructive rewrite to the IMPORTING identity (WR-01 review
+      // WR-02 / D-09): an unscoped `.clear()` here would wipe a co-resident
+      // identity's tracked shows/entries on a shared device during a full
+      // restore. Every row now carries `userId`, so delete only the importer's
+      // rows before re-adding the merged snapshot — preserving the Phase-5
+      // clear-and-rewrite semantic (drops dedupe-removed rows, resets the
+      // volatile ++id) for THIS identity while leaving others' rows intact.
+      await db.trackedShows.where("userId").equals(userId).delete();
       await db.trackedShows.bulkPut(stamp(snapshot.trackedShows));
-      await db.trackedEntries.clear();
+      await db.trackedEntries.where("userId").equals(userId).delete();
       await db.trackedEntries.bulkAdd(stamp(snapshot.trackedEntries));
     },
   );

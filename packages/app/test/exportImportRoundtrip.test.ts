@@ -773,6 +773,71 @@ describe("userId-scoped export/import isolation (AUTH-05 export half, D-09 / Pit
     expect((await db.bingoCards.get("card-theirs"))?.userId).toBe(OTHER_USER);
   });
 
+  it("a co-resident identity's trackedShows/trackedEntries SURVIVE a full scoped import (WR-02 / D-09)", async () => {
+    // OTHER_USER has tracked data on the shared device; TEST_USER (signed in)
+    // performs a full restore import. The former unscoped trackedShows.clear() /
+    // trackedEntries.clear() wiped ALL rows — destroying OTHER_USER's data. The
+    // scoped delete must leave OTHER_USER's tracked rows untouched.
+    const otherShow: TrackedShow = {
+      sessionId: "session-other",
+      date: "2026-08-02",
+      status: "finalized",
+      currentSetNumber: "e",
+      startedAt: 1_700_000_000_000,
+      showId: null,
+      venueId: null,
+      venueName: null,
+      city: null,
+      userId: OTHER_USER,
+    };
+    const otherEntry: TrackedEntry = {
+      id: 500,
+      sessionId: "session-other",
+      position: 1,
+      songId: 7,
+      songName: "TheirSong",
+      setNumber: "1",
+      outcome: "hit",
+      shownFanSongIds: [7],
+      isPlaceholder: false,
+      source: "manual",
+      loggedAt: 1_700_000_000_100,
+      userId: OTHER_USER,
+    };
+    await db.trackedShows.put(otherShow);
+    await db.trackedEntries.put(otherEntry);
+
+    // TEST_USER seeds + exports their own tracked show, then "loses the phone"
+    // (only their own rows) and restores from the backup.
+    await db.trackedShows.put(seededShow);
+    await db.trackedEntries.put(seededEntry);
+    await exportBackup();
+    const json = await capturedBlob!.text();
+
+    // Wipe ONLY TEST_USER's rows (simulate the co-resident, not-wiped device).
+    await db.trackedShows.delete(seededShow.sessionId);
+    await db.trackedEntries.where("userId").equals(TEST_USER).delete();
+
+    const file = new File([json], "guezzer-backup.json", {
+      type: "application/json",
+    });
+    const result = await pickAndImport(file);
+    expect(result.ok).toBe(true);
+
+    // TEST_USER's show round-trips, re-stamped with TEST_USER.
+    expect((await db.trackedShows.get(seededShow.sessionId))?.userId).toBe(
+      TEST_USER,
+    );
+    // OTHER_USER's tracked rows are STILL present (the scoped delete spared them).
+    expect((await db.trackedShows.get("session-other"))?.userId).toBe(OTHER_USER);
+    const otherEntriesAfter = await db.trackedEntries
+      .where("userId")
+      .equals(OTHER_USER)
+      .toArray();
+    expect(otherEntriesAfter).toHaveLength(1);
+    expect(otherEntriesAfter[0].songName).toBe("TheirSong");
+  });
+
   it("exportBackup aborts (never dumps an unscoped snapshot) when no identity is present", async () => {
     // No identity → exportBackup must NOT export a foreign/unscoped snapshot.
     localStorage.removeItem("gwf-identity");
