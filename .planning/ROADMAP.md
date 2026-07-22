@@ -75,7 +75,11 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
   2. The `public.progress` table (keyed by `user_id`) enforces read-all / write-own RLS, and is added to the `supabase_realtime` publication so `postgres_changes` actually fires (SETUP-01).
   3. No secret is committed to git — the `service_role` key and all account passwords live in env only (never `VITE_`-prefixed); the `anon` key + project URL may ship in client code (SETUP-03).
   4. `packages/core` imports zero Supabase code — a boundary check confirms the transition-matrix / dex derivations stay pure and DOM/network-free (SETUP-04).
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 17-01-PLAN.md — Supabase client dep, CLI scaffold + app-layer client module (SETUP-04 / D-14)
+- [ ] 17-02-PLAN.md — Secret hygiene (.gitignore + .env.example) + core-purity guard test (SETUP-03, SETUP-04)
+- [ ] 17-03-PLAN.md — Progress migration (schema + RLS + realtime pub) + idempotent seed script & roster (SETUP-01, SETUP-02)
+- [ ] 17-04-PLAN.md — Provision project, link, [BLOCKING] db push, seed twice for idempotency (SETUP-01, SETUP-02, SETUP-03)
 
 ### Phase 18: Accounts & Offline-Safe Identity
 **Goal**: Each friend signs into their own pre-made identity and reaches the app — and the app still cold-boots fully offline at a dead-signal venue. This owns the milestone's highest-risk seam (offline-safe identity) and is the gate for all shared state; prove offline boot on-device before Phases 19–20 build on it.
