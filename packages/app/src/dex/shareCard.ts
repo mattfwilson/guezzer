@@ -128,7 +128,9 @@ export function drawShareCard(
   ctx.fillRect(0, 0, width, height);
 
   // Wordmark (fixed brand gold — decoupled from the legendary tier, now orange).
-  centerText(ctx, cardCopy.wordmark, cx, height * 0.10, 68, config.share.wordmarkGold);
+  // Sized to fit the longer "Gizz With Friends" mark on the fixed 1080px card
+  // width (was 68 for the shorter "Guezzer" — D-15: size the mark to fit).
+  centerText(ctx, cardCopy.wordmark, cx, height * 0.10, 44, config.share.wordmarkGold);
 
   if (data.scope === "bingo") {
     // Phase-16 Plan 06 (BINGO-08): the bingo TROPHY — the final 4×4 board + win

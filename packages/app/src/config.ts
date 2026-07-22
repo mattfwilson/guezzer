@@ -361,7 +361,7 @@ export const config = {
     /** Share-card canvas height in px (4:5 portrait, SHAR-02/D-18). */
     CARD_HEIGHT: 1350,
     /**
-     * Fixed brand gold for the share-card wordmark ("Guezzer"), permanently
+     * Fixed brand gold for the share-card wordmark ("Gizz With Friends"), permanently
      * decoupled from the legendary tier hue. Legendary is now orange
      * (`config.dex.tierColors.legendary` = #FB923C); the wordmark keeps this
      * gold regardless so the brand mark never inherits a tier recolor.
@@ -757,18 +757,57 @@ export const config = {
     ACCURACY_RING_MAX_FRACTION: 0.25,
   },
 
+  /**
+   * Identity / account chrome (Phase 18, AUTH-06/07). No auth *logic* lives
+   * here — only the display palette the pure-core `identityColorIndex` helper
+   * indexes into.
+   */
+  auth: {
+    /**
+     * Per-identity avatar palette (D-13). A FRESH, decoupled 6-hue light/pastel
+     * family — deliberately NOT `config.map.MEMBER_COLORS` (that's the GizzMap
+     * marker palette; identity avatars are their own surface). Each hue clears
+     * >=4.5:1 against the `#0C0C10` initials (ORB_TEXT_COLOR reuse, D-12).
+     * Assigned by `identityColorIndex(userId, IDENTITY_COLORS.length)` — stable
+     * across devices from the Supabase user id (AUTH-07). Reused unchanged by the
+     * Phase 19 friend rows + Phase 20 presence dots.
+     */
+    IDENTITY_COLORS: ["#7DD3FC", "#FDA4AF", "#86EFAC", "#FCD34D", "#C4B5FD", "#5EEAD4"] as const,
+  },
+
   /** UI-SPEC §Copywriting Contract. */
   copy: {
+    /**
+     * Sign-in / identity copy (Phase 18, D-01/D-03/D-07/D-18). Exact strings
+     * from the 18-UI-SPEC Copywriting Contract. Password recovery is owner-only
+     * (re-mint via seed script) — hence "Ask Matt to reset it", never a
+     * self-service link, and the generic "Invalid login credentials" avoids
+     * user enumeration (D-18). No logout copy exists anywhere in this phase; a
+     * stale token is the calm "Reconnecting…" amber, never "logged out".
+     */
+    auth: {
+      signIn: "Sign in",
+      whosHere: "Who's here?",
+      passwordPlaceholder: "Your password",
+      invalidCredentials: "Invalid login credentials",
+      forgotOwner: "Forgot? Ask Matt to reset it.",
+      connectOnceHeading: "Connect once to sign in",
+      connectOnceBody:
+        "You're offline. Connect to Wi-Fi or data once to sign in — after that, Gizz With Friends works fully offline.",
+      reconnecting: "Reconnecting…",
+      signOut: "Sign out",
+      signOutSubline: "Hand this phone to another Gizz friend.",
+    },
     installBanner: {
-      headline: "Install Guezzer",
+      headline: "Install Gizz With Friends",
       body: "Add it to your home screen so it works offline at the show.",
       dismiss: "Not now",
     },
-    installCta: "Install Guezzer",
+    installCta: "Install Gizz With Friends",
     installUnavailable:
-      "Guezzer can't auto-install here — add it from your browser menu instead.",
+      "Gizz With Friends can't auto-install here — add it from your browser menu instead.",
     iosInstall: {
-      heading: "Add Guezzer to your Home Screen",
+      heading: "Add Gizz With Friends to your Home Screen",
       steps: [
         "Tap the Share button",
         "Choose Add to Home Screen",
@@ -1332,7 +1371,7 @@ export const config = {
        * colors only). Tier WORDS reuse config.copy.dex.tierLabels — no duplication.
        */
       card: {
-        wordmark: "Guezzer",
+        wordmark: "Gizz With Friends",
         caught: (caught: number, total: number): string => `${caught}/${total} caught`,
         shows: (n: number): string => (n === 1 ? "1 show" : `${n} shows`),
         rarestLabel: "Rarest catch",
