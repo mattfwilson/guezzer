@@ -9,13 +9,16 @@
     "test": "vitest run",
     "refresh": "node packages/core/src/cli/refresh.ts",
     "build:archive": "node packages/core/src/cli/build-archive.ts",
-    "build:albums": "node packages/core/src/cli/build-albums.ts"
+    "build:albums": "node packages/core/src/cli/build-albums.ts",
+    "db:push": "supabase db push --linked",
+    "seed:accounts": "node --env-file=.env supabase/seed/seed-users.ts"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
     "fake-indexeddb": "6.2.5",
     "jsdom": "29.1.1",
+    "supabase": "2.109.1",
     "typescript": "6.0.3",
     "vitest": "4.1.10"
   }

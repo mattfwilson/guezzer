@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@guezzer/core": "*",
+    "@supabase/supabase-js": "2.110.8",
     "dexie": "4.4.4",
     "dexie-react-hooks": "4.4.0",
     "lucide-react": "1.23.0",
