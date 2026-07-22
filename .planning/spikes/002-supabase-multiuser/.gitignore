@@ -1,0 +1,4 @@
+# Never commit project keys or the vendored lib
+app/config.local.js
+app/supabase.umd.js
+seed/.env
