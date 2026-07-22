@@ -13,8 +13,18 @@ import {
   type TrackedEntry,
   type TrackedShow,
 } from "../src/db/db.ts";
+import { writeIdentityRecord } from "../src/auth/identityRecord.ts";
 import { exportBackup } from "../src/settings/exportDownload.ts";
 import { pickAndImport } from "../src/settings/importPicker.ts";
+
+// The signed-in identity these tests export/import under (Plan 18-07 Task 2):
+// snapshot()/importSnapshot() are now userId-scoped, and exportBackup/
+// pickAndImport self-source this via readIdentityRecord(). Every seeded domain
+// row is stamped with it so the scoped snapshot includes it; the exported
+// envelope is userId-STRIPPED (the strict export schema forbids the key) and an
+// import re-stamps rows with the importing identity.
+const TEST_USER = "user-export";
+const OTHER_USER = "user-other";
 
 /**
  * PWA-04 lose-a-phone guarantee: a full export→import round-trip through Dexie
@@ -30,6 +40,7 @@ const seededMeta: MetaRow = { key: "persistStatus", value: "persisted" };
 const seededAttended: AttendedShow = {
   show_id: 1234567890,
   showDate: "2026-08-15",
+  userId: TEST_USER,
 };
 const seededShow: TrackedShow = {
   sessionId: "session-abc",
@@ -41,6 +52,7 @@ const seededShow: TrackedShow = {
   venueId: null,
   venueName: null,
   city: null,
+  userId: TEST_USER,
 };
 const seededEntry: TrackedEntry = {
   id: 1,
@@ -54,6 +66,7 @@ const seededEntry: TrackedEntry = {
   isPlaceholder: false,
   source: "manual",
   loggedAt: 1_700_000_000_500,
+  userId: TEST_USER,
 };
 
 let capturedBlob: Blob | null = null;
@@ -81,6 +94,13 @@ async function tableCounts() {
     trackedEntries: await db.trackedEntries.count(),
   };
 }
+
+// A signed-in identity is required for exportBackup/pickAndImport to self-source
+// a scoped userId (Plan 18-07 Task 2). Set it before every test (runs before the
+// per-describe beforeEach hooks below, which only touch Dexie/URL mocks).
+beforeEach(() => {
+  writeIdentityRecord({ userId: TEST_USER, displayName: "Export Tester" });
+});
 
 describe("export/import round-trip (PWA-04 lose-a-phone guarantee)", () => {
   beforeEach(async () => {
@@ -224,6 +244,7 @@ describe("import into a populated DB with overlapping ids preserves every local 
       venueId: null,
       venueName: null,
       city: null,
+      userId: TEST_USER,
     };
     const localEntry1: TrackedEntry = {
       id: 1,
@@ -237,6 +258,7 @@ describe("import into a populated DB with overlapping ids preserves every local 
       isPlaceholder: false,
       source: "manual",
       loggedAt: 1_700_000_000_100,
+      userId: TEST_USER,
     };
     const localEntry2: TrackedEntry = {
       id: 2,
@@ -250,6 +272,7 @@ describe("import into a populated DB with overlapping ids preserves every local 
       isPlaceholder: false,
       source: "manual",
       loggedAt: 1_700_000_000_200,
+      userId: TEST_USER,
     };
     await db.trackedShows.put(localShow);
     await db.trackedEntries.put(localEntry1);
@@ -362,6 +385,7 @@ describe("import into a populated DB with overlapping ids preserves every local 
       venueId: 5,
       venueName: "Red Rocks",
       city: "Morrison",
+      userId: TEST_USER,
     };
     const localThinEntry: TrackedEntry = {
       id: 1,
@@ -375,6 +399,7 @@ describe("import into a populated DB with overlapping ids preserves every local 
       isPlaceholder: false,
       source: "manual",
       loggedAt: 1_700_200_000_100,
+      userId: TEST_USER,
     };
     await db.trackedShows.put(localThinShow);
     await db.trackedEntries.put(localThinEntry);
@@ -476,12 +501,16 @@ describe("envelope v2 round-trip: archiveShows + owner (plan 06-07 / Pitfall 5)"
     await wipeAll();
   });
 
+  // Stamped with TEST_USER so the userId-scoped snapshot includes it; the export
+  // strips userId and the import re-stamps it, so the restored row round-trips
+  // back to exactly this (userId included) shape.
   const cachedSetlist: ArchiveShowRow = {
     show_id: 1782000000,
     date: "2026-07-13",
     venueName: "Red Rocks Amphitheatre",
     city: "Morrison",
     sets: [{ n: "1", songs: [{ songId: 42, songName: "Rattlesnake" }] }],
+    userId: TEST_USER,
   };
 
   it("a fallback-marked show's archiveShows cache row survives snapshot → clear → importSnapshot (Pitfall 5)", async () => {
@@ -491,16 +520,19 @@ describe("envelope v2 round-trip: archiveShows + owner (plan 06-07 / Pitfall 5)"
       showDate: cachedSetlist.date,
       cachedSetlist,
     });
+    // The write-side userId stamp (Dexie hooks) lands in Task 3; stamp the
+    // attendance stub here so this Task-2 scoped snapshot includes it.
+    await db.attendedShows.update(cachedSetlist.show_id, { userId: TEST_USER });
 
     // Snapshot (the backup shape), then simulate losing the phone.
-    const snap = await snapshot();
+    const snap = await snapshot(TEST_USER);
     expect(snap.archiveShows).toHaveLength(1);
     await wipeAll();
     expect(await db.archiveShows.count()).toBe(0);
 
     // Restore from the snapshot — the cached setlist must come back, or the
     // fallback mark would credit zero sightings after reload (data loss).
-    await importSnapshot(snap);
+    await importSnapshot(snap, TEST_USER);
     expect(await db.archiveShows.get(cachedSetlist.show_id)).toEqual(
       cachedSetlist,
     );
@@ -508,15 +540,15 @@ describe("envelope v2 round-trip: archiveShows + owner (plan 06-07 / Pitfall 5)"
   });
 
   it("snapshot().owner reflects the meta ownerName (set → value, unset → null)", async () => {
-    expect((await snapshot()).owner).toBeNull();
+    expect((await snapshot(TEST_USER)).owner).toBeNull();
 
     await setMeta("ownerName", "Matt");
-    expect((await snapshot()).owner).toBe("Matt");
+    expect((await snapshot(TEST_USER)).owner).toBe("Matt");
   });
 
   it("importSnapshot does NOT write owner into meta (owner is a fork key, not merged state)", async () => {
-    const snap = await snapshot();
-    await importSnapshot({ ...snap, owner: "Friend" });
+    const snap = await snapshot(TEST_USER);
+    await importSnapshot({ ...snap, owner: "Friend" }, TEST_USER);
 
     // No ownerName meta row was created by the import.
     expect(await db.meta.get("ownerName")).toBeUndefined();
@@ -529,6 +561,7 @@ describe("envelope v2 round-trip: archiveShows + owner (plan 06-07 / Pitfall 5)"
       showDate: cachedSetlist.date,
       cachedSetlist,
     });
+    await db.attendedShows.update(cachedSetlist.show_id, { userId: TEST_USER });
 
     await exportBackup();
     const json = await capturedBlob!.text();
@@ -588,6 +621,7 @@ describe("envelope v3 round-trip: bingoCards (BINGO-07, plan 15-02)", () => {
       showDate: "2026-08-15",
       venueName: "Red Rocks",
       city: "Morrison",
+      userId: TEST_USER,
     });
 
     await exportBackup();
@@ -635,5 +669,109 @@ describe("envelope v3 round-trip: bingoCards (BINGO-07, plan 15-02)", () => {
     // The pre-v3 backup carried no cards; the field defaults to [] cleanly.
     expect(await db.bingoCards.count()).toBe(0);
     expect(await db.meta.get("persistStatus")).toBeDefined();
+  });
+});
+
+describe("userId-scoped export/import isolation (AUTH-05 export half, D-09 / Pitfall 6)", () => {
+  beforeEach(async () => {
+    await wipeAll();
+    await db.bingoCards.clear();
+    capturedBlob = null;
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      capturedBlob = blob;
+      return "blob:mock-url";
+    });
+    URL.revokeObjectURL = vi.fn();
+  });
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await wipeAll();
+    await db.bingoCards.clear();
+  });
+
+  it("exports ONLY the signed-in identity's rows (a co-resident identity's are excluded) and re-imports them under that identity", async () => {
+    // Two identities coexist on one device. TEST_USER (the signed-in identity,
+    // set in the top-level beforeEach) owns some rows; OTHER_USER owns others.
+    await db.attendedShows.put({ show_id: 111, showDate: "2026-08-01", userId: TEST_USER });
+    await db.attendedShows.put({ show_id: 222, showDate: "2026-08-02", userId: OTHER_USER });
+    await db.bingoCards.put({
+      cardId: "card-mine",
+      sessionId: "card-mine",
+      card: {
+        schemaVersion: 1,
+        seed: "s",
+        vibe: "balanced",
+        corpusVersion: "c",
+        freeIndex: 12,
+        squares: [],
+      },
+      caughtSnapshot: [],
+      lockedAt: 1,
+      showDate: "2026-08-01",
+      venueName: "Mine Arena",
+      city: null,
+      userId: TEST_USER,
+    });
+    await db.bingoCards.put({
+      cardId: "card-theirs",
+      sessionId: "card-theirs",
+      card: {
+        schemaVersion: 1,
+        seed: "s",
+        vibe: "balanced",
+        corpusVersion: "c",
+        freeIndex: 12,
+        squares: [],
+      },
+      caughtSnapshot: [],
+      lockedAt: 1,
+      showDate: "2026-08-02",
+      venueName: "Theirs Arena",
+      city: null,
+      userId: OTHER_USER,
+    });
+
+    // Export under the signed-in identity (TEST_USER).
+    const result = await exportBackup();
+    expect(result).toEqual({ ok: true });
+    const json = await capturedBlob!.text();
+
+    // The serialized backup carries ONLY TEST_USER's rows — never OTHER_USER's.
+    const parsed = exportEnvelope.parse(JSON.parse(json));
+    expect(parsed.attendedShows.map((r) => r.show_id).sort()).toEqual([111]);
+    expect(parsed.bingoCards.map((c) => c.cardId).sort()).toEqual(["card-mine"]);
+    // And it is userId-STRIPPED — the strict export schema forbids the key, so a
+    // leaked userId would have failed exportEnvelope.parse above; assert it too.
+    expect(
+      parsed.attendedShows.every((r) => !("userId" in r)),
+    ).toBe(true);
+    expect(parsed.bingoCards.every((c) => !("userId" in c))).toBe(true);
+
+    // Simulate losing the phone for TEST_USER's rows only, then re-import under
+    // TEST_USER. attendedShows/bingoCards union-merge, so OTHER_USER's rows are
+    // untouched by the import.
+    await db.attendedShows.delete(111);
+    await db.bingoCards.delete("card-mine");
+
+    const file = new File([json], "guezzer-backup.json", { type: "application/json" });
+    const importResult = await pickAndImport(file);
+    expect(importResult.ok).toBe(true);
+
+    // TEST_USER's rows round-trip, re-stamped with TEST_USER.
+    expect((await db.attendedShows.get(111))?.userId).toBe(TEST_USER);
+    expect((await db.bingoCards.get("card-mine"))?.userId).toBe(TEST_USER);
+    // OTHER_USER's union-table rows are untouched.
+    expect((await db.attendedShows.get(222))?.userId).toBe(OTHER_USER);
+    expect((await db.bingoCards.get("card-theirs"))?.userId).toBe(OTHER_USER);
+  });
+
+  it("exportBackup aborts (never dumps an unscoped snapshot) when no identity is present", async () => {
+    // No identity → exportBackup must NOT export a foreign/unscoped snapshot.
+    localStorage.removeItem("gwf-identity");
+    await db.attendedShows.put({ show_id: 111, showDate: "2026-08-01", userId: TEST_USER });
+
+    const result = await exportBackup();
+    expect(result).toEqual({ ok: false });
+    expect(capturedBlob).toBeNull();
   });
 });
