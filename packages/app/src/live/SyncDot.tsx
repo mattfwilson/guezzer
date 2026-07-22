@@ -42,6 +42,14 @@ interface SyncDotProps {
   schemaDrift?: boolean;
   /** Novel API key NAMES only (never editor values) — shown in the tap detail. */
   novelKeys?: string[];
+  /**
+   * AUTH-08 (Plan 18-05, D-07): true while the Supabase session is stale/refreshing
+   * (fed by the gate's reconciler in Plan 06). Renders the SAME glyph in a calm
+   * amber — never a "logged out" message, never a second connection indicator. A
+   * pending token refresh is a reconnect, not a sign-out (threat T-18-05-A).
+   * `schemaDrift` keeps precedence (it is the more actionable signal + tappable).
+   */
+  reconnecting?: boolean;
 }
 
 const ONLINE_GREEN = "#22C55E"; // hit-green (CometTrail.tsx) — owner-approved B3 override
@@ -56,7 +64,12 @@ const MUTED = "#A1A1AA"; // text-muted — the offline ring color
  */
 const DRIFT_AMBER = "#F59E0B";
 
-export function SyncDot({ online, schemaDrift = false, novelKeys }: SyncDotProps) {
+export function SyncDot({
+  online,
+  schemaDrift = false,
+  novelKeys,
+  reconnecting = false,
+}: SyncDotProps) {
   const diameter = config.ui.SYNC_DOT_DIAMETER;
   const [detailOpen, setDetailOpen] = useState(false);
 
@@ -92,6 +105,21 @@ export function SyncDot({ online, schemaDrift = false, novelKeys }: SyncDotProps
           </span>
         )}
       </span>
+    );
+  }
+
+  // AUTH-08 calm reconnect (D-07): the SAME glyph turned amber — a state, not a
+  // control (NOT tappable, no popover) — distinct aria-label, never "logged out".
+  // Only reached when NOT schemaDrift (drift keeps precedence above).
+  if (reconnecting) {
+    return (
+      <span
+        role="status"
+        aria-label="Sync: reconnecting"
+        title={config.copy.auth.reconnecting}
+        className="inline-block shrink-0 rounded-full"
+        style={{ width: diameter, height: diameter, backgroundColor: DRIFT_AMBER }}
+      />
     );
   }
 
