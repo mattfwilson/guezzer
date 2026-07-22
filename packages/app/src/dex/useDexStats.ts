@@ -23,6 +23,7 @@ import {
   type RarityIndex,
 } from "@guezzer/core";
 import { db } from "../db/db.ts";
+import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
 import { loadArchive } from "./archive-loader.ts";
 import { loadDexAlbums } from "./dex-albums-loader.ts";
 
@@ -52,12 +53,46 @@ function getRarityIndex(archive: ArchiveArtifact): RarityIndex {
 }
 
 export function useDexStats(): DexStatsResult {
+  // Scope every namespaced-table read to the current identity (AUTH-05 / D-09):
+  // a borrowed phone shows only the signed-in identity's dex numbers. This is THE
+  // reference scoping the four Plan-07 view consumers mirror — the idiom is kept
+  // identical. When no identity is present (the transient null during teardown,
+  // or a pre-identity test path) fall back to the unscoped read so the
+  // loading-safe shape is unchanged — the AuthGate (Plan 06) guarantees an
+  // identity whenever the app (and thus this hook) renders, so the fallback only
+  // affects that momentary null window.
+  const currentUserId = useAuthIdentity()?.userId;
+
   // (a) The attendance tables + the online-fallback setlist cache — reactive.
   // A mark/unmark (incl. a fallback mark writing archiveShows) re-runs these.
-  const attendedShows = useLiveQuery(() => db.attendedShows.toArray());
-  const trackedShows = useLiveQuery(() => db.trackedShows.toArray());
-  const trackedEntries = useLiveQuery(() => db.trackedEntries.toArray());
-  const archiveShows = useLiveQuery(() => db.archiveShows.toArray());
+  const attendedShows = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.attendedShows.toArray()
+        : db.attendedShows.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
+  const trackedShows = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.trackedShows.toArray()
+        : db.trackedShows.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
+  const trackedEntries = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.trackedEntries.toArray()
+        : db.trackedEntries.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
+  const archiveShows = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.archiveShows.toArray()
+        : db.archiveShows.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
 
   // (b) The bundled artifacts, guarded + memoized (same reference every render).
   const archiveResult = loadArchive();
