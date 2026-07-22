@@ -1,7 +1,9 @@
 ---
 phase: 16-gizz-bingo-build-live-marking-celebrations
 verified: 2026-07-21T09:10:00Z
-status: human_needed
+status: passed
+human_uat_reconciled: 2026-07-21T00:00:00Z
+human_uat_source: 16-HUMAN-UAT.md
 score: 5/5 must-haves verified
 overrides_applied: 0
 re_verification:
@@ -29,8 +31,14 @@ human_verification:
 
 **Phase Goal:** Ship the playable, fun surface — the two anti-boredom pillars (build agency + near-miss tension) plus celebrations and a shareable result. Fun lives in the build, the "one away" tension, and the reveal — not the marking act itself.
 **Verified:** 2026-07-21T09:10:00Z
-**Status:** human_needed
+**Status:** passed (all 5 human UAT checks completed on-device 2026-07-21, reconciled here)
 **Re-verification:** No — initial verification
+
+> **Reconciliation note (2026-07-21):** All five "Human Verification Required" items below were
+> tested and passed on-device — see `16-HUMAN-UAT.md` (status `passed`, 5/5, final commit `8b9a99b`).
+> Owner confirmed build flow, live marking (after auto-lock + glow-consistency fixes), the
+> celebration hierarchy + ≤2-big-moments budget, reduced-motion fallbacks, and the share-card PNG on
+> device. Status updated `human_needed → passed`; the descriptive block below is preserved as-authored.
 
 ## Goal Achievement
 
