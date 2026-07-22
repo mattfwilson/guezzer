@@ -1,5 +1,5 @@
 ---
-status: partial
+status: passed
 phase: 16-gizz-bingo-build-live-marking-celebrations
 source: [16-VERIFICATION.md]
 started: 2026-07-21T09:15:00Z
@@ -26,18 +26,18 @@ result: passed (confirmed on device 2026-07-21)
 
 ### 4. Enable reduced-motion (OS setting) and re-trigger celebrations
 expected: Supernova degrades to a static full-bloom headline crossfade (no particles/scale); stamps/toasts are opacity-only; the one-away ring is a static accent outline.
-result: [pending]
+result: passed (confirmed on device 2026-07-21)
 
 ### 5. Share the bingo trophy from RecapView (at the win) and from a GizzGames replay row, on a real iOS/Android device
 expected: The share sheet opens with a rendered PNG showing the 4×4 board (marked green / unmarked dark, distinct free center), win badges (glyph + word), and show date · venue on the galaxy canvas + wordmark — no async stall before the native share dialog.
-result: [pending]
+result: passed (confirmed on device 2026-07-21)
 
 ## Summary
 
 total: 5
-passed: 3
+passed: 5
 issues: 0
-pending: 2
+pending: 0
 skipped: 0
 blocked: 0
 
