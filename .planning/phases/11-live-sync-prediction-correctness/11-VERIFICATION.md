@@ -1,7 +1,9 @@
 ---
 phase: 11-live-sync-prediction-correctness
 verified: 2026-07-19T00:00:00Z
-status: human_needed
+status: passed
+human_uat_reconciled: 2026-07-21T00:00:00Z
+human_uat_source: 11-HUMAN-UAT.md
 score: 5/5 must-haves verified
 overrides_applied: 0
 human_verification:
@@ -18,8 +20,15 @@ human_verification:
 **Phase Goal:** On night 2+ of a no-repeat residency, tonight's live suggestions and predictions are trustworthy — no previous-show or wrong-artist songs leak in, live sync survives kglw.net API drift, and cross-night rotation suppression actually fires.
 
 **Verified:** 2026-07-19T00:00:00Z
-**Status:** human_needed
+**Status:** passed (human UAT completed 2026-07-19, reconciled here 2026-07-21)
 **Re-verification:** No — initial verification
+
+> **Reconciliation note (2026-07-21):** The two "Human Verification Required" items below
+> were subsequently tested and passed on-device — see `11-HUMAN-UAT.md` (status `passed`, 2/2,
+> committed `31e19c1`). Item 1 verified over the cloudflared HTTPS tunnel with `?mockLatest=drift`
+> (amber SyncDot + key-name-only popover). Item 2's reset-control UX verified on-device; the subtle
+> cross-night down-weighting was owner-accepted on automated coverage. This report's status is
+> updated `human_needed → passed` to reflect that; the descriptive block below is preserved as-authored.
 
 ## Goal Achievement
 
