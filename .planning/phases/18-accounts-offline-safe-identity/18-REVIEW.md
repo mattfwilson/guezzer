@@ -30,10 +30,23 @@ files_reviewed_list:
   - packages/app/src/show/ShowView.tsx
 findings:
   critical: 0
-  warning: 4
+  warning: 0
   info: 3
-  total: 7
-status: issues_found
+  total: 3
+status: clean
+resolved:
+  fixed_at: 2026-07-22T23:05:00Z
+  warnings_resolved: 4
+  commits:
+    WR-01: 801ae2a
+    WR-02: 2645dca
+    WR-03: 92a1ea8
+    WR-04: 73b7f4a
+  note: >-
+    All 4 Warnings resolved (see per-finding RESOLVED notes below). The 3 Info
+    findings remain as documented informational/accepted-limitation items
+    requiring no change for v2.0; status is clean because no critical/warning
+    findings remain. Full suite green (847 passed) + app/core typechecks clean.
 ---
 
 # Phase 18: Code Review Report
@@ -41,7 +54,7 @@ status: issues_found
 **Reviewed:** 2026-07-22T22:17:11Z
 **Depth:** standard
 **Files Reviewed:** 24
-**Status:** issues_found
+**Status:** clean (all 4 Warnings resolved 2026-07-22; 3 Info items remain as accepted/informational)
 
 ## Summary
 
@@ -76,6 +89,14 @@ closed or explicitly re-accepted with the risk stated.
 ## Warnings
 
 ### WR-01: AuthGate treats every `SIGNED_OUT` as an explicit sign-out — supabase-js also emits it on a definitive token-refresh failure
+
+**RESOLVED** (commit `801ae2a`): Added a user-initiated sign-out intent flag
+(`markUserSignOut`/`consumeUserSignOut` in `identityRecord.ts`). `IdentityAvatar.handleSignOut`
+sets it immediately before `supabase.auth.signOut()`; the AuthGate reconciler now
+clears the identity on `SIGNED_OUT` ONLY when the flag is set. A library-emitted
+`SIGNED_OUT` from an online token-refresh failure leaves the stale-token friend
+signed in (calm amber SyncDot), never a mid-venue logout. authGate.test.tsx updated
+to assert both the user-initiated clear and the background no-clear.
 
 **File:** `packages/app/src/auth/AuthGate.tsx:67-78` (with `packages/app/src/db/supabase.ts:33`)
 **Issue:** The reconciler clears the identity on *any* `onAuthStateChange` `"SIGNED_OUT"`
@@ -115,6 +136,12 @@ invariant matches the behavior.
 
 ### WR-02: `importSnapshot` clears `trackedShows`/`trackedEntries` globally — destroys a co-resident identity's tracked data on a shared device
 
+**RESOLVED** (commit `2645dca`): Replaced the unscoped `trackedShows.clear()` /
+`trackedEntries.clear()` with `where("userId").equals(userId).delete()` scoped to
+the importing identity, preserving the Phase-5 clear-and-rewrite semantics for that
+identity while leaving a co-resident identity's rows intact. Added a regression test
+proving another identity's tracked shows/entries survive a scoped full-restore import.
+
 **File:** `packages/app/src/db/db.ts:887-890`
 **Issue:** The import commit runs `db.trackedShows.clear()` and `db.trackedEntries.clear()`
 (full-table wipes) before re-adding the merged rows. These clears are **not** scoped by
@@ -137,6 +164,13 @@ co-resident identity's rows intact.)
 
 ### WR-03: Show-Mode reads stay unscoped — identity A's active show + live trail is visible to identity B on a borrowed phone
 
+**RESOLVED** (commit `92a1ea8`): Scoped the active-show reads to the current identity.
+`useShowSession`'s active query filters by `useAuthIdentity()?.userId`; `getActiveShow`
+filters by `readIdentityRecord()?.userId` — both with a null-identity fallback matching
+the Plan-07 dex consumers. The entries and `bingoCardRow` reads key off the now-scoped
+active session's `sessionId`, so they are transitively scoped too. Identity B on a
+borrowed phone no longer sees identity A's in-progress setlist/trail/tally/bingo.
+
 **File:** `packages/app/src/show/ShowView.tsx:92,316-322` (via `useShowSession` and
 `db.trackedShows.where("status").equals("active")` / `getActiveShow` in `db.ts:508-509`)
 **Issue:** Every namespaced *dex* read was scoped, but the Show-Mode session reads
@@ -158,6 +192,13 @@ If deferring to a later phase, note the exposure explicitly in the human-UAT so 
 tests hand-off with an active show and accepts the risk knowingly.
 
 ### WR-04: A failed first-login legacy claim is swallowed — the owner's entire v1 dex can silently render empty with no retry
+
+**RESOLVED** (commit `73b7f4a`): Wrapped the SignInScreen `claimLegacyDexOnce` call in
+try/catch so a first-login failure never becomes an unhandled rejection and never blocks
+a successful sign-in. Added an idempotent post-boot self-heal effect in AuthGate that
+re-runs the meta-gated exactly-once claim on every app open — so a transient first-login
+failure self-heals on the next launch without requiring an explicit sign-out to reach
+SignInScreen again.
 
 **File:** `packages/app/src/auth/SignInScreen.tsx:106-109` (with `auth/claimDex.ts:30-66`)
 **Issue:** `handleSubmit` does `writeIdentityRecord(...)` then `await claimLegacyDexOnce(userId)`.
