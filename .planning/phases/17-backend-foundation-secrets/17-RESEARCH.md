@@ -481,19 +481,19 @@ Suggested root npm scripts (D-13, names are Claude's discretion):
 | A3 | `updated_at` client-set (not a trigger) is acceptable for the foundation | Alternatives / discretion | Low — D explicitly leaves this to discretion; a trigger can be added later without breaking the summary column. |
 | A4 | Node type-stripping runs `supabase/seed/seed-users.ts` directly (erasable syntax) exactly as it runs `packages/app/scripts/fetch-covers.ts` | Pattern 2 | Low — same Node ≥24.12 mechanism, proven by the existing `fetch:covers` script; keep the seed erasable (no enum/namespace/param-props). |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact GoTrue duplicate status code for THIS project's version**
    - What we know: current GoTrue returns 422 `email_exists`; older returned 400 with a message.
    - What's unclear: the precise version fronting the (yet-to-be-created) project.
-   - Recommendation: irrelevant to correctness — keep the dual check; the twice-run test (SETUP-02 success criterion) empirically confirms idempotency. No pre-work needed.
+   - RESOLVED: irrelevant to correctness — keep the dual check; the twice-run test (SETUP-02 success criterion) empirically confirms idempotency. No pre-work needed.
 
 2. **Where the `VITE_` env vars live (packages/app/.env vs root `.env` + `envDir`)**
    - What we know: Vite loads from its project root (`packages/app`) unless `envDir` is set.
    - What's unclear: owner preference for one root `.env` vs a client-only `packages/app/.env.local`.
-   - Recommendation: default to `packages/app/.env.local` for the `VITE_` pair and a root `.env` for ops secrets (loaded via `node --env-file`); the `.gitignore` pattern covers both. Planner picks; document in the runbook.
+   - RESOLVED: default to `packages/app/.env.local` for the `VITE_` pair and a root `.env` for ops secrets (loaded via `node --env-file`); the `.gitignore` pattern covers both. Planner picks; document in the runbook.
 
-3. **`updated_at`: client-set vs `moddatetime` trigger** — discretion (D). Recommend client-set for the foundation; revisit in Phase 19 if the upsert path wants a DB guarantee.
+3. **`updated_at`: client-set vs `moddatetime` trigger** — discretion (D). RESOLVED: recommend client-set for the foundation; revisit in Phase 19 if the upsert path wants a DB guarantee.
 
 ## Environment Availability
 

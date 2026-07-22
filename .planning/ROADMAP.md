@@ -67,56 +67,75 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 ## Phase Details
 
 ### Phase 17: Backend Foundation & Secrets
+
 **Goal**: A hosted Supabase backend exists with a secure, RLS-enforced durable-progress schema and idempotently-seeded friend accounts — and `core` stays pure by construction. This is the foundation every downstream phase keys off; it must exist (and its secret-hygiene gate must hold) before any client code depends on it.
 **Depends on**: Nothing (first phase of the milestone)
 **Requirements**: SETUP-01, SETUP-02, SETUP-03, SETUP-04
 **Success Criteria** (what must be TRUE):
+
   1. Running the account-seed script mints the friend accounts (`email_confirm:true`, distinct per-person passwords, `user_metadata.display_name`); re-running it skips already-registered accounts (idempotent) — there is no in-app sign-up (SETUP-02).
   2. The `public.progress` table (keyed by `user_id`) enforces read-all / write-own RLS, and is added to the `supabase_realtime` publication so `postgres_changes` actually fires (SETUP-01).
   3. No secret is committed to git — the `service_role` key and all account passwords live in env only (never `VITE_`-prefixed); the `anon` key + project URL may ship in client code (SETUP-03).
-  4. `packages/core` imports zero Supabase code — a boundary check confirms the transition-matrix / dex derivations stay pure and DOM/network-free (SETUP-04).
-**Plans**: 4 plans
+  4. `packages/core` imports zero Supabase code — a boundary check confirms the transition-matrix / dex derivations stay pure and DOM/network-free (SETUP-04).**Plans**: 4 plans
+
+**Wave 1**
+
 - [ ] 17-01-PLAN.md — Supabase client dep, CLI scaffold + app-layer client module (SETUP-04 / D-14)
 - [ ] 17-02-PLAN.md — Secret hygiene (.gitignore + .env.example) + core-purity guard test (SETUP-03, SETUP-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 17-03-PLAN.md — Progress migration (schema + RLS + realtime pub) + idempotent seed script & roster (SETUP-01, SETUP-02)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 17-04-PLAN.md — Provision project, link, [BLOCKING] db push, seed twice for idempotency (SETUP-01, SETUP-02, SETUP-03)
 
 ### Phase 18: Accounts & Offline-Safe Identity
+
 **Goal**: Each friend signs into their own pre-made identity and reaches the app — and the app still cold-boots fully offline at a dead-signal venue. This owns the milestone's highest-risk seam (offline-safe identity) and is the gate for all shared state; prove offline boot on-device before Phases 19–20 build on it.
 **Depends on**: Phase 17
 **Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07, AUTH-08
 **Success Criteria** (what must be TRUE):
+
   1. A friend signs in with a pre-made (owner-minted) email/password and reaches the app as their distinct identity — no self-service registration (AUTH-01).
   2. After signing in once on wifi, the app cold-boots fully offline to the complete dex — startup is NEVER gated on a live network auth check, and reconnecting reconciles quietly (AUTH-02, highest-risk; must not regress v1 offline boot).
   3. The signed-in user can see who they are (seeded `display_name`) in the app chrome and can sign out to hand a shared device to another friend (AUTH-03, AUTH-04).
   4. On first login the existing single-user Dexie data is namespaced to that user id exactly once, so a borrowed/shared phone never cross-contaminates two friends' dexes (AUTH-05).
   5. The app shows the "Gizz With Friends" rebrand (wordmark, title, manifest), each identity gets a deterministic auto color/avatar from its user id, and a stale token reconnects with a calm "reconnecting…" affordance rather than a jarring logout (AUTH-06, AUTH-07, AUTH-08).
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 19: Shared Dex Progress
+
 **Goal**: Each friend's real dex progress (completion %, catches, rarities) syncs to Supabase and is visible and comparable live in a friends view — the visible payoff of the milestone, replacing the manual JSON-file handoff. Depends on Phase 18's identity (every progress row is keyed by `user_id`) and the new pure-core `deriveSharedProgress` projector.
 **Depends on**: Phase 18
 **Requirements**: PROG-01, PROG-02, PROG-03, PROG-04, PROG-05, PROG-06, PROG-07, PROG-08
 **Success Criteria** (what must be TRUE):
+
   1. A friends screen lists each friend's headline progress (name + completion % + caught count + rarest badge), read live from Supabase, and the signed-in user's own summary upserts (debounced) to their own row when their dex changes (PROG-01, PROG-02, PROG-04).
   2. When a friend logs a catch, the friends screen updates live via `postgres_changes` — progress visibly moves during the residency (PROG-05).
   3. Write-own is enforced by RLS — every friend can read all rows, but nobody can inflate another friend's numbers (`auth.uid() = user_id`) (PROG-03).
   4. Tapping a friend shows a live head-to-head comparison — reconstructing a minimal `DexStats` from their synced summary and feeding the unchanged shipped `compareDexes` — with a per-album / per-tier breakdown (PROG-06, PROG-07).
   5. Each friend's rarest catches are showcased (top-N by rarity), reusing the shipped six-tier rarity language and colors (PROG-08).
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 20: Presence & Interactions
+
 **Goal**: Friends can see who is currently online and (coarsely) what they're doing, and send lightweight waves and reactions to each other — all ephemeral, never persisted. Depends on Phase 18's identity but is Postgres-independent (Realtime presence + broadcast only), so it can proceed in parallel with Phase 19 once identity is device-verified. Hard scope line: coarse tab-level status only — any shared mutable setlist is the deferred SOCL-V2-01 line.
 **Depends on**: Phase 18 (parallelizable with Phase 19)
 **Requirements**: PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06, PRES-07
 **Success Criteria** (what must be TRUE):
+
   1. Online presence dots show who is currently in the app, via Realtime presence on one channel keyed by user id — ephemeral, dropped on disconnect, and never written to Postgres (PRES-01, PRES-03).
   2. Each presence entry carries a coarse, read-only "what they're doing" status — which tab a friend is in (LiveGizz / GizzDex / GizzVerse / idle), tab-level only, never per-song (PRES-04).
   3. A user can send a wave — targeted at one friend (`to:userId`) or broadcast to everyone (`to:null`) — that peers see as a transient, reduced-motion-aware toast (PRES-02, PRES-05).
   4. A small fixed emoji reaction palette (wave / fire / 🦎 / "caught it!") broadcasts reactions rendered as toasts, reusing the Bingo celebration-layer discipline (PRES-06).
   5. The friends screen is presence-aware — each row shows a live online dot + the friend's current coarse activity, fusing PROG + PRES with no new backend (PRES-07).
+
 **Plans**: TBD
 **UI hint**: yes
 
