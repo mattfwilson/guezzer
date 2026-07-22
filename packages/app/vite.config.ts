@@ -72,9 +72,9 @@ export default defineConfig({
         clientsClaim: true,
       },
       manifest: {
-        name: "Guezzer",
-        short_name: "Guezzer",
-        description: "Predict the next King Gizzard song, live.",
+        name: "Gizz With Friends",
+        short_name: "Gizz With Friends",
+        description: "Gizz With Friends — predict the next King Gizzard song, live, together.",
         theme_color: "#0C0C10",
         background_color: "#0C0C10",
         display: "standalone",

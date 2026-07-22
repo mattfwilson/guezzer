@@ -361,7 +361,7 @@ export const config = {
     /** Share-card canvas height in px (4:5 portrait, SHAR-02/D-18). */
     CARD_HEIGHT: 1350,
     /**
-     * Fixed brand gold for the share-card wordmark ("Guezzer"), permanently
+     * Fixed brand gold for the share-card wordmark ("Gizz With Friends"), permanently
      * decoupled from the legendary tier hue. Legendary is now orange
      * (`config.dex.tierColors.legendary` = #FB923C); the wordmark keeps this
      * gold regardless so the brand mark never inherits a tier recolor.
@@ -799,15 +799,15 @@ export const config = {
       signOutSubline: "Hand this phone to another Gizz friend.",
     },
     installBanner: {
-      headline: "Install Guezzer",
+      headline: "Install Gizz With Friends",
       body: "Add it to your home screen so it works offline at the show.",
       dismiss: "Not now",
     },
-    installCta: "Install Guezzer",
+    installCta: "Install Gizz With Friends",
     installUnavailable:
-      "Guezzer can't auto-install here — add it from your browser menu instead.",
+      "Gizz With Friends can't auto-install here — add it from your browser menu instead.",
     iosInstall: {
-      heading: "Add Guezzer to your Home Screen",
+      heading: "Add Gizz With Friends to your Home Screen",
       steps: [
         "Tap the Share button",
         "Choose Add to Home Screen",
@@ -1371,7 +1371,7 @@ export const config = {
        * colors only). Tier WORDS reuse config.copy.dex.tierLabels — no duplication.
        */
       card: {
-        wordmark: "Guezzer",
+        wordmark: "Gizz With Friends",
         caught: (caught: number, total: number): string => `${caught}/${total} caught`,
         shows: (n: number): string => (n === 1 ? "1 show" : `${n} shows`),
         rarestLabel: "Rarest catch",
