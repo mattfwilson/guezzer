@@ -29,6 +29,13 @@ export interface MetaRow {
 export interface AttendedShow {
   show_id: number;
   showDate: string; // ISO date string, indexed for later date queries
+  /**
+   * Owning identity (AUTH-05 / D-11), stamped by `claimLegacyDexOnce` on first
+   * sign-in and by future write-side stamping. Optional so pre-version(7)
+   * (untagged) legacy rows and the additive upgrade both typecheck; undefined
+   * means "unclaimed" until the one-time claim runs.
+   */
+  userId?: string;
 }
 
 // ── Phase 4 Show Mode: tracked setlist + provisional attendance (version(2)) ──
@@ -86,6 +93,8 @@ export interface TrackedShow {
   venueName: string | null;
   /** kglw.net venue city, written by `bindShow` on reconciliation (D-07); null pre-bind. */
   city: string | null;
+  /** Owning identity (AUTH-05 / D-11); undefined until the version(7) claim stamps it. */
+  userId?: string;
 }
 
 /**
@@ -116,6 +125,8 @@ export interface TrackedEntry {
   /** Provenance (D-03): `"manual"` for Phase-4 writes (backfilled on v3), `"editor"` for adopted suggestions. */
   source: EntrySource;
   loggedAt: number;
+  /** Owning identity (AUTH-05 / D-11); undefined until the version(7) claim stamps it. */
+  userId?: string;
 }
 
 /**
@@ -137,6 +148,8 @@ export interface ArchiveShowRow {
   venueName: string;
   city: string;
   sets: Array<{ n: SetNumber; songs: Array<{ songId: number; songName: string }> }>;
+  /** Owning identity (AUTH-05 / D-11); undefined until the version(7) claim stamps it. */
+  userId?: string;
 }
 
 /**
@@ -177,6 +190,8 @@ export interface BingoCardRow {
   venueName: string | null;
   /** kglw.net venue city, null pre-bind (denormalized identity, D-11). */
   city: string | null;
+  /** Owning identity (AUTH-05 / D-11); undefined until the version(7) claim stamps it. */
+  userId?: string;
 }
 
 /** Binding written onto a provisional show by `bindShow` on kglw.net reconciliation (D-07). */
@@ -335,6 +350,32 @@ export class GuezzerDB extends Dexie {
     this.version(6).stores({
       friendBeacons: "&memberId",
       mapPins: "&pinId, synced",
+    });
+
+    // Version 7 (Phase 18 Accounts & Offline-Safe Identity, AUTH-05 / D-11):
+    // ADDITIVE only — v1-v6 above are untouched, so a populated v6 DB upgrades in
+    // place losslessly (SC-4). Adds a `userId` INDEX to the five domain tables so
+    // later reads/exports (Plans 06/07) can scope by identity via
+    // `.where("userId")`. Re-declaring each store's full index string keeps the
+    // pre-existing indexes and appends `userId`; adding an index re-indexes
+    // structurally with NO `.upgrade()` data transform. Deliberately NO stamping
+    // here: the userId is UNKNOWN at DB-open (before sign-in), so the one-time
+    // legacy-row claim lives in app code (`auth/claimDex.ts`), never this hook
+    // (RESEARCH Pitfall 2). Pre-claim rows read back with `userId === undefined`.
+    //
+    // Accepted limitation (RESEARCH Pitfall 4 / T-18-02-I2): `attendedShows` and
+    // `archiveShows` keep their `&show_id` UNIQUE primary keys, so a plain
+    // `userId` field does NOT isolate two identities marking the same show on one
+    // shared device — the second write upserts over the first. Accepted for v2.0
+    // per D-09 ("a borrowed-phone dex is empty"); full compound-key isolation is
+    // explicitly out of scope. `trackedShows`/`trackedEntries`/`bingoCards` keys
+    // are UUID-derived and do not collide across users.
+    this.version(7).stores({
+      attendedShows: "&show_id, showDate, userId",
+      archiveShows: "&show_id, userId",
+      trackedShows: "&sessionId, status, date, showId, userId",
+      trackedEntries: "++id, sessionId, [sessionId+position], source, userId",
+      bingoCards: "&cardId, sessionId, userId",
     });
   }
 }
