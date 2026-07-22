@@ -24,13 +24,20 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 
 **v1.2 — Phase 14 COMPLETE (2026-07-20)** — Gizz Bingo — Core Marking & Generation landed as a pure, DOM-free `packages/core/src/bingo/` module: the serializable `BingoCard` contract + zod schema, a deterministic string-seeded PRNG (xmur3+mulberry32, the only randomness source), `buildBingoContext`, `detectWins`, the load-bearing consume-once `deriveMarks` fold (order-independent — `live == replay == catch-up` proven byte-identical), and the seeded `deal` generator (same-seed ⇒ identical card). 6/6 plans across 5 waves; verifier 4/4 must-haves; full suite 682 green; code review 0 critical (2 advisory warnings). **GATE 2 (BINGO-03) cleared** via the D-20 calibration process: corpus-measured rosters were surfaced for owner sign-off *before* any constant was written, the owner approved the 9-vehicle roster + 9-album pool + freeIndex 5 + ~50%-caught dex model, and — after the calibration proved the original D-02/D-03 win-rate bands structurally unreachable under consume-once single-show marking — the owner authorized retargeting the bands to the engine's measured-achievable range (line chill 0.42 / balanced 0.35 / glory 0.20, blackout floors removed; ordering + D-05 dark-floor preserved). The `bingo-calibrate` CLI exits 0 against the real fold with locked, `[VERIFIED]`-stamped constants. Next: Phase 15 (Gizz Bingo — Persistence, Lock & Replay).
 
-## Current Milestone
+## Current Milestone: v2.0 Multi-User Foundation
 
-**None in progress.** v1.0 MVP, v1.1 Polish & Pre-Show Hardening, and v1.2 Pre-Show Hardening are all shipped, archived, and tagged. The app is show-ready for the first show (Aug 14, 2026). To scope the next milestone: `/gsd-new-milestone`.
+**Goal:** Give the ~5-friend group distinct identities and lightweight awareness of each other, backed by Supabase, without breaking offline-first.
 
-### Next Milestone Candidates (v2 backlog)
+**Target features:**
+- **Accounts & identity** — pre-made email/password login → distinct per-device identity, offline-safe session; ships the "Gizz With Friends" rebrand.
+- **Shared progress** — each friend's real dex progress (completion %, catches, rarities) synced and visible in a friends view.
+- **Presence & interactions** — who's online / what they're doing + lightweight reactions/waves.
 
-Carried forward — see **Deferred Backlog** below for full list. Recommended pre-show casual-feature order from the 2026-07-19 research session: Residency Mode → Bingo/League → Gizzle. Plus the model stretch signals (set-position awareness, album-genre experiment) and Explore era-slider, and the non-blocking v1.1/v1.2 UI todos (directional-flow edge particles, unified bottom-sheet animation, app-wide "Mon D, YYYY" date format).
+**Key context:** Deliberately revises the former "no backend / no accounts" constraints (validated by spikes 002–004; see `.claude/skills/spike-findings-guezzer/`). Supabase is a hosted dependency (no server we run); `core` stays pure with the client isolated in the app layer; offline-first preserved (session survives offline boot); read-all/write-own RLS for shared state, ephemeral activity on Realtime; secrets out of git; distinct per-person passwords. **Explicitly NOT** full real-time live setlist co-tracking (SOCL-V2-01 stays deferred). **Target:** usable across the residency run, not a show-#1 blocker — the core app is already show-ready for Aug 14, 2026.
+
+### Next Milestone Candidates (post-v2.0 backlog)
+
+See **Deferred Backlog** below. Casual-feature order from the 2026-07-19 research session: Residency Mode → Bingo/League → Gizzle. Plus model stretch signals (set-position awareness, album-genre experiment), the Explore era-slider, full real-time shared setlist state (SOCL-V2-01), and the non-blocking UI todos (directional-flow edge particles, unified bottom-sheet animation, app-wide "Mon D, YYYY" date format).
 
 ## Deferred Backlog (future milestone)
 - Set-position awareness (opener/closer/encore distributions) as a scoring signal — set-structure data already captured in v1 (MODL-V2-01)
@@ -149,10 +156,10 @@ _All v1.0 requirements shipped and validated above. The items below are delibera
 - **Time signature as a model signal** — no reliable data source, no causal mechanism (transition matrix already captures groove/energy from actual behavior)
 - **Genre tendencies** — album-as-genre-proxy is a v2 experiment only, and only if backtest shows it beats tuning-family backoff
 - **Black-box ML / neural nets / online training** — model must be inspectable, deterministic, backtestable
-- **User accounts, social features beyond dex export/import, push notifications** — personal tool
+- **User accounts, social features beyond dex export/import, push notifications** — ⟳ **REVISED in v2.0:** pre-made accounts + shared progress + presence/reactions are now in scope (multi-user foundation, spike-validated). Push notifications remain out of scope.
 - **Supporting other bands** — KGLW only
-- **Server-side anything** — dataset (~900 shows, ~250 songs) is small enough to run the model client-side; if planning believes a backend is genuinely required, it must state why before assuming one
-- **Real-time shared state between friends** — conscious v2 decision if the group demands it
+- **Server-side prediction / model** — the dataset (~900 shows, ~250 songs) runs client-side; the model, matrix, and all v1 derivations stay backendless. (⟳ v2.0 note: a Supabase backend is now adopted for *multi-user only* — auth, shared progress, presence — never for prediction.)
+- **Full real-time shared setlist co-tracking between friends (SOCL-V2-01)** — still deferred. v2.0 delivers presence + shared *progress* + reactions, but NOT collaborative live setlist logging; that reopens harder offline-reconciliation questions and waits for a later milestone.
 
 ## Context
 
@@ -175,7 +182,7 @@ _All v1.0 requirements shipped and validated above. The items below are delibera
 ## Constraints
 
 - **Timeline**: Usable before the first show, late August/September 2026 (~6–8 weeks) — bias every decision toward shipping a working core over completeness. Features 1–4 (full Show Mode loop incl. live sync) are the show-#1 bar; backtest report is a non-negotiable trust gate before relying on it live
-- **Tech stack**: TypeScript throughout; Next.js or Vite + React, static-export deployable to Vercel/Netlify/GitHub Pages; no backend
+- **Tech stack**: TypeScript throughout; Vite + React, static-export deployable to Vercel/Netlify/GitHub Pages. **v2.0 update:** the frontend stays a static PWA, but a hosted **Supabase** backend (auth + Postgres + Realtime) is now a dependency for the multi-user features — no server we operate. Pre-v2.0 the app was fully backendless; the prediction model + all v1 features remain client-side and offline-first.
 - **Architecture**: Strict core/UI separation — all domain logic (API ingestion, transition-matrix construction, prediction scoring, backtesting, Pokédex derivation) in a pure TypeScript `core/` module with zero React/DOM/browser dependencies; UI imports from core, never the reverse; entire core runnable/testable from Node CLI including the backtest report
 - **Data structure**: Transition matrix is a clean, serializable plain-JSON structure consumed by BOTH the predictor and the constellation renderer — no entanglement with scoring or rendering code
 - **Rendering**: Constellation via d3-force (or equivalent) in a single component; graph data derived from the same matrix JSON, never a second pipeline
@@ -205,6 +212,7 @@ _All v1.0 requirements shipped and validated above. The items below are delibera
 | Bugs before Bingo | The three show-critical bug clusters are the show-#1 trust gate for the Aug 14 residency; a casual feature is not | ✓ Validated v1.2 — Phases 11–13 (live-sync/prediction, data safety, UI polish) landed and device-verified before any Bingo work began |
 | Bingo marks derived, never stored (consume-once `deriveMarks`) | Mirrors the Pokédex "counts derived from attendance" rule; guarantees `live == replay == catch-up` by construction and keeps the card artifact the single source of truth | ✓ Validated v1.2 (Phases 14–16) — one pure fold lights each logged song's single most-specific unmarked square; live board, post-show replay, and catch-up proven byte-identical |
 | Retarget Bingo win-rate bands to the engine's measured range | A Monte-Carlo calibration over the real fold proved the original D-02/D-03 target bands structurally unreachable under consume-once single-show marking; the trust gate must reflect reality, not aspiration | ✓ Validated v1.2 (Phase 14, GATE 2) — owner-authorized retarget (line chill 0.42 / balanced 0.35 / glory 0.20); `bingo-calibrate` CLI exits 0 against the production fold with `[VERIFIED]`-stamped constants |
+| Adopt Supabase for a multi-user foundation (v2.0) | Real-time friend awareness is impossible fully client-side; spikes 002–004 proved Supabase auth + Postgres + Realtime fits the ~5-user scale AND coexists with offline-first (session survives offline boot). Revises the former "no backend / no accounts" constraints. | Spike-validated 2026-07-22 (see `.claude/skills/spike-findings-guezzer/`); frontend stays static, `core` stays pure, client isolated in the app layer, model stays client-side |
 
 ## Evolution
 
@@ -224,4 +232,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-22 — milestone v1.2 "Pre-Show Hardening" COMPLETE, archived, and tagged (`v1.2`): all 6 phases (11–16), 28 plans, 22 requirements, every human UAT item confirmed on-device. Three show-critical bug clusters (live-sync/prediction correctness, data safety, interface polish) landed before Gizz Bingo (Phases 14–16, behind the live-sync + calibration gates). v1.0 MVP and v1.1 previously shipped and archived; app is show-ready. First show Aug 14, 2026. No milestone in progress — next: `/gsd-new-milestone`.*
+*Last updated: 2026-07-22 — milestone **v2.0 "Multi-User Foundation" STARTED**. Introduces a Supabase backend (auth + Postgres + Realtime) for pre-made accounts, shared dex progress, and presence/reactions among the ~5-friend group — deliberately revising the former "no backend / no accounts" constraints (spike-validated 002–004). Frontend stays a static offline-first PWA; `core` stays pure; the prediction model stays client-side. Targeting the residency run (not a show-#1 gate; core app already show-ready for Aug 14, 2026). v1.0/v1.1/v1.2 shipped, archived, tagged. Defining requirements next.*
