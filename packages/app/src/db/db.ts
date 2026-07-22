@@ -10,6 +10,7 @@ import Dexie, { type Table } from "dexie";
 import type { BingoCard } from "@guezzer/core";
 import { config } from "../config.ts";
 import { classifyOutcome } from "../show/scoring.ts";
+import { readIdentityRecord } from "../auth/identityRecord.ts";
 import { randomUUID } from "../uuid.ts";
 
 /** Generic key/value settings row. Value type is validated at the call site. */
@@ -381,6 +382,63 @@ export class GuezzerDB extends Dexie {
 }
 
 export const db = new GuezzerDB();
+
+// ── Write-side identity stamping (AUTH-05 write half / D-08/D-09/D-11, 18-07) ──
+// Every create path across the five namespaced tables stamps the signed-in
+// identity's `userId` via Dexie `creating`/`updating` hooks — the lowest-touch
+// mechanism (NO write-helper signature change vs threading userId through six
+// helpers). Without this, `startShow`/`logSong`/`adoptSuggestion`/
+// `markShowAttended`/`saveDraftCard` would write rows with `userId === undefined`,
+// which the scoped reads + scoped export (this plan) then EXCLUDE — silently
+// losing the signed-in user's OWN post-claim activity (core-loop regression).
+//
+// `readIdentityRecord()` is a synchronous, zero-await localStorage read (Plan
+// 03) and a LEAF module (no `db` import), so reading it at write time inside the
+// hook introduces no import cycle.
+//
+// Guard strictly on `userId === undefined`:
+//   - `creating`: stamp only when the created object has no userId, and only
+//     when an identity is present (never invent one — a legacy pre-claim row
+//     stays undefined for the one-time `claimLegacyDexOnce` to stamp).
+//   - `updating`: the load-bearing self-erasure guard for the `.put`-replace
+//     paths (`markShowAttended` re-mark, `saveDraftCard` reshuffle). A `.put`
+//     whose literal omits userId over an existing row yields a diff that would
+//     DROP the field (`getObjectDiff` → `userId: undefined`); re-stamp it so the
+//     owner's own attendance/bingo is never self-erased on overwrite. Helpers
+//     that explicitly set userId (the claim's `.modify`) or merge-preserve it
+//     (`.update` — endShow/markSetBreak/bindShow/renameEntry/lockCard) already
+//     resolve to a defined userId, so the guard leaves them untouched. Import
+//     rows arrive already-stamped (importSnapshot), so they are never re-touched.
+function registerUserIdStampingHooks(table: Table<{ userId?: string }>): void {
+  table.hook("creating", (_primKey, obj) => {
+    if (obj.userId === undefined) {
+      const userId = readIdentityRecord()?.userId;
+      if (userId != null) obj.userId = userId;
+    }
+  });
+  table.hook("updating", (modifications, _primKey, row) => {
+    const mods = modifications as { userId?: string };
+    // The resulting userId after this update: the modification's value if the
+    // key is being written, else the existing row's value.
+    const resulting = "userId" in mods ? mods.userId : row.userId;
+    if (resulting === undefined) {
+      const userId = readIdentityRecord()?.userId;
+      if (userId != null) return { userId };
+    }
+    return undefined; // no additional modifications
+  });
+}
+
+// NOT registered on `meta`/`friendBeacons`/`mapPins` (not namespaced).
+for (const table of [
+  db.attendedShows,
+  db.archiveShows,
+  db.trackedShows,
+  db.trackedEntries,
+  db.bingoCards,
+] as unknown as Table<{ userId?: string }>[]) {
+  registerUserIdStampingHooks(table);
+}
 
 export async function setMeta(key: string, value: unknown): Promise<void> {
   await db.meta.put({ key, value });
