@@ -39,9 +39,10 @@ describe("markShowAttended / unmarkShowAttended (DEX-02)", () => {
   afterEach(resetDb);
 
   it("opens at the current Dexie version with the archiveShows table present", () => {
-    // Phase 15 added the additive version(5) bingoCards table; the DB now opens
-    // at verno 5. archiveShows (v4) is still present and unchanged.
-    expect(db.verno).toBe(5);
+    // Phase 15 added the additive version(5) bingoCards table; GizzMap added the
+    // version(6) friendBeacons/mapPins tables. The DB now opens at verno 6.
+    // archiveShows (v4) is still present and unchanged.
+    expect(db.verno).toBe(6);
     expect(db.archiveShows).toBeDefined();
   });
 

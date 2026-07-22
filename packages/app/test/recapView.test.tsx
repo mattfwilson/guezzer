@@ -201,7 +201,12 @@ describe("Bingo replay section (BINGO-07, D-05 present/absent contract)", () => 
 });
 
 describe("End Show → recap seam (D-13, RESEARCH Pattern 6)", () => {
-  it("auto-shows the recap after confirming End Show, then returns to pre-show on Done", async () => {
+  // 15s budget (vs the 5s default): this is the file's one full-ShowView
+  // integration test — three sequential findBys over the heaviest import graph
+  // in the suite. Under parallel-worker contention it sat exactly at the 5s
+  // ceiling (passes solo in ~2s; tipped over when the GizzMap tests grew the
+  // suite). A real regression still fails loudly at 15s.
+  it("auto-shows the recap after confirming End Show, then returns to pre-show on Done", { timeout: 15_000 }, async () => {
     const showCopy = config.copy.show;
 
     // An active tracked show — the recap must render even AFTER endShow flips it

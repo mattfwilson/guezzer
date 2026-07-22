@@ -1,9 +1,10 @@
-import { BookOpen, Compass, Gamepad2, Music } from "lucide-react";
+import { BookOpen, Compass, Gamepad2, Map, Music } from "lucide-react";
 import { navigate, useHashRoute, type Route } from "../routing/useHashRoute";
 
 const TABS: { route: Route; label: string; Icon: typeof Music }[] = [
   { route: "show", label: "LiveGizz", Icon: Music },
   { route: "explore", label: "GizzVerse", Icon: Compass },
+  { route: "map", label: "GizzMap", Icon: Map },
   { route: "dex", label: "GizzDex", Icon: BookOpen },
   // D-01: GizzGames is the forward-compatible home for future games (Gizzle /
   // Guezz League), so the generic Gamepad2 hub icon — not a bingo-specific glyph.

@@ -33,6 +33,9 @@ export default defineConfig({
             "@dexAlbums": fileURLToPath(
               new URL("./data/normalized/dex-albums.json", import.meta.url),
             ),
+            "@festivalMap": fileURLToPath(
+              new URL("./data/festival-maps/field-of-vision-2026.json", import.meta.url),
+            ),
           },
         },
         test: {
