@@ -12,10 +12,10 @@ Requirements for the Multi-User Foundation milestone. Each maps to exactly one r
 
 ### Foundation & Setup (SETUP)
 
-- [ ] **SETUP-01**: A Supabase project is provisioned with the durable-progress schema — a `public.progress` table keyed by `user_id`, read-all/write-own RLS policies, and `alter publication supabase_realtime add table public.progress` so `postgres_changes` actually fires (blueprint gotcha: without it, live updates silently never arrive).
-- [ ] **SETUP-02**: An idempotent account-seed script mints the N friend accounts via the GoTrue admin API (`email_confirm:true`, distinct per-person passwords, `user_metadata.display_name`); re-running skips already-registered accounts. No in-app sign-up.
-- [ ] **SETUP-03**: Secrets discipline — the `service_role` key and all account passwords live in env only, never committed; the `anon` key + project URL may ship in client code (anon is public by design).
-- [ ] **SETUP-04**: The Supabase client is isolated in the app layer; `packages/core` never imports it, so the transition-matrix / dex derivations stay pure and DOM/network-free (hard constraint preserved).
+- [x] **SETUP-01**: A Supabase project is provisioned with the durable-progress schema — a `public.progress` table keyed by `user_id`, read-all/write-own RLS policies, and `alter publication supabase_realtime add table public.progress` so `postgres_changes` actually fires (blueprint gotcha: without it, live updates silently never arrive).
+- [x] **SETUP-02**: An idempotent account-seed script mints the N friend accounts via the GoTrue admin API (`email_confirm:true`, distinct per-person passwords, `user_metadata.display_name`); re-running skips already-registered accounts. No in-app sign-up.
+- [x] **SETUP-03**: Secrets discipline — the `service_role` key and all account passwords live in env only, never committed; the `anon` key + project URL may ship in client code (anon is public by design).
+- [x] **SETUP-04**: The Supabase client is isolated in the app layer; `packages/core` never imports it, so the transition-matrix / dex derivations stay pure and DOM/network-free (hard constraint preserved).
 
 ### Accounts & Identity (AUTH)
 
@@ -94,10 +94,10 @@ Which phases cover which requirements. Filled during roadmap creation (Phases 17
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | Phase 17 | Pending |
-| SETUP-02 | Phase 17 | Pending |
-| SETUP-03 | Phase 17 | Pending |
-| SETUP-04 | Phase 17 | Pending |
+| SETUP-01 | Phase 17 | Complete |
+| SETUP-02 | Phase 17 | Complete |
+| SETUP-03 | Phase 17 | Complete |
+| SETUP-04 | Phase 17 | Complete |
 | AUTH-01 | Phase 18 | Pending |
 | AUTH-02 | Phase 18 | Pending |
 | AUTH-03 | Phase 18 | Pending |
@@ -123,6 +123,7 @@ Which phases cover which requirements. Filled during roadmap creation (Phases 17
 | PRES-07 | Phase 20 | Pending |
 
 **Coverage:**
+
 - v2.0 requirements: 27 total (SETUP ×4, AUTH ×8, PROG ×8, PRES ×7)
 - Mapped to phases: 27 / 27 ✓ (Phase 17 ×4, Phase 18 ×8, Phase 19 ×8, Phase 20 ×7)
 - Unmapped: 0 ✓ — no orphans, no double-mapping
