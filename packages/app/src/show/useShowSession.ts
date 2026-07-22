@@ -23,6 +23,7 @@ import {
 } from "@guezzer/core";
 import { config as coreConfig } from "@guezzer/core/config";
 import { db, getMeta, type TrackedEntry, type TrackedShow } from "../db/db.ts";
+import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
 import { deriveTally, type Tally } from "./scoring.ts";
 import { getMatrixIndex, loadMatrix } from "./matrix.ts";
 import { buildShowContext, predictFan } from "./showContext.ts";
@@ -63,9 +64,25 @@ export interface ShowSession {
 }
 
 export function useShowSession(): ShowSession {
-  // (a) The one active show — reactive restore/auto-resume (SHOW-11/D-03).
-  const active = useLiveQuery(() =>
-    db.trackedShows.where("status").equals("active").first(),
+  // Scope every Show-Mode read to the current identity (review WR-03 / D-09):
+  // on a borrowed phone, identity B must NEVER see identity A's in-progress show
+  // (its setlist/trail/tally/bingo). Mirrors the Plan-07 dex-consumer idiom — a
+  // null identity (the transient teardown window, or an identity-less test path)
+  // falls back to the unscoped read so behavior is unchanged there. The entries /
+  // bingo reads below key off THIS scoped active show's sessionId, so they are
+  // transitively scoped too.
+  const currentUserId = useAuthIdentity()?.userId;
+
+  // (a) The one active show — reactive restore/auto-resume (SHOW-11/D-03),
+  // scoped to the signed-in identity (WR-03).
+  const active = useLiveQuery(
+    () =>
+      db.trackedShows
+        .where("status")
+        .equals("active")
+        .and((s) => currentUserId == null || s.userId === currentUserId)
+        .first(),
+    [currentUserId],
   );
 
   // (b) Its entries ordered by position, re-subscribed when the session changes.

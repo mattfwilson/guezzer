@@ -504,9 +504,22 @@ export async function startShow(): Promise<TrackedShow> {
   });
 }
 
-/** The one active tracked show, or undefined pre-show (restore/auto-resume, SHOW-11/D-03). */
+/**
+ * The one active tracked show, or undefined pre-show (restore/auto-resume,
+ * SHOW-11/D-03). Scoped to the signed-in identity (review WR-03 / D-09): on a
+ * borrowed phone, identity B must not resume identity A's active show. The
+ * current identity is self-sourced via the synchronous `readIdentityRecord()`
+ * (zero-await), mirroring the write-side stamping hooks; a null identity (the
+ * transient teardown window / identity-less test path) falls back to the
+ * unscoped read so single-identity behavior is unchanged.
+ */
 export async function getActiveShow(): Promise<TrackedShow | undefined> {
-  return db.trackedShows.where("status").equals("active").first();
+  const userId = readIdentityRecord()?.userId;
+  return db.trackedShows
+    .where("status")
+    .equals("active")
+    .and((s) => userId == null || s.userId === userId)
+    .first();
 }
 
 /**
