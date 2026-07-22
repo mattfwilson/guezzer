@@ -335,4 +335,63 @@ export const config = {
      */
     BARS_TOP_N: 10,
   },
+
+  // --- GizzMap: friend map (georef + presence + relay protocol) ---
+  // Owner-approved scope (exploration 2026-07-21, GSD bypassed by owner):
+  // foreground presence beacons + one-tap statuses + shared meeting pins over
+  // a self-owned Cloudflare Worker relay, rendered on the georeferenced
+  // illustrated festival map. Every value below is [ASSUMED] — starting
+  // defaults to tune at the venue; the relay worker (packages/relay) mirrors
+  // the two TTLs and must be redeployed if they change.
+  map: {
+    /** The committed control-point artifact produced by the desktop calibration tool. */
+    festivalMapArtifactPath: "data/festival-maps/field-of-vision-2026.json",
+
+    /**
+     * [ASSUMED] Group-state poll cadence while the map is open. Matches the
+     * live-sync etiquette shape (SYNC-02) even though this hits OUR relay,
+     * not kglw.net — festival LTE is the scarce resource being respected.
+     */
+    POLL_INTERVAL_MS: 30_000,
+
+    /** [ASSUMED] Never publish own beacons closer together than this... */
+    BEACON_MIN_INTERVAL_MS: 30_000,
+
+    /** [ASSUMED] ...unless we've ALSO moved at least this far (both gates must pass). */
+    BEACON_MIN_MOVE_METERS: 25,
+
+    /**
+     * [ASSUMED] Staleness tiers for honest last-known rendering (the GizzMap
+     * signature requirement — a stale pin must never masquerade as live).
+     * fresh < FRESH_MAX ≤ recent < RECENT_MAX ≤ stale < GONE_AFTER ≤ gone.
+     */
+    STALE_FRESH_MAX_MS: 2 * 60_000,
+    STALE_RECENT_MAX_MS: 10 * 60_000,
+    STALE_GONE_AFTER_MS: 12 * 3_600_000,
+
+    /** [ASSUMED] Server-side beacon retention — relay purges past this (no history, ever). */
+    BEACON_TTL_MS: 12 * 3_600_000,
+
+    /** [ASSUMED] Server-side meeting-pin retention ("meet here after the encore" spans a night, not the tour). */
+    PIN_TTL_MS: 48 * 3_600_000,
+
+    /** ASVS V5 length clamps on the friend-crossing strings (mirrors OWNER_NAME_MAX_LENGTH). */
+    MEMBER_NAME_MAX_LENGTH: 40,
+    STATUS_MAX_LENGTH: 60,
+    PIN_LABEL_MAX_LENGTH: 60,
+    /** Avatar clamp — one emoji, incl. multi-unit ZWJ/variation sequences (8 UTF-16 units). */
+    AVATAR_MAX_LENGTH: 8,
+
+    /** [ASSUMED] Minimum group-secret length the join flow accepts. */
+    GROUP_SECRET_MIN_LENGTH: 8,
+
+    /**
+     * PBKDF2 parameters for deriveGroupKeys (group-crypto.ts). The salt is a
+     * fixed app-domain string — the secret is a capability shared by ≤5
+     * friends, not a low-entropy user password; the derivation only needs to
+     * bind key+token to this app's namespace, not resist offline cracking.
+     */
+    KEY_DERIVE_ITERATIONS: 100_000,
+    KEY_DERIVE_SALT: "guezzer-gizzmap-v1",
+  },
 } as const;
