@@ -11,7 +11,10 @@ import {
 // `db/supabase.ts` throws at import time when the public VITE_ vars are absent
 // (they are, under vitest). Mock the singleton so IdentityAvatar's sign-out path
 // is exercised without a real client — and so `signOut` is a spy we can assert.
-const signOut = vi.fn().mockResolvedValue({ error: null });
+// `vi.hoisted` builds the spy in the same hoisted scope as `vi.mock`.
+const { signOut } = vi.hoisted(() => ({
+  signOut: vi.fn().mockResolvedValue({ error: null }),
+}));
 vi.mock("../src/db/supabase.ts", () => ({
   supabase: { auth: { signOut } },
 }));
