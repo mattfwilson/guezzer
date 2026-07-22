@@ -199,7 +199,7 @@ describe("db version(3) write helpers", () => {
         },
       ],
       bingoCards: [],
-    });
+    }, "user-import");
 
     expect(await getMeta("persistStatus")).toBe("best-effort");
     expect(await db.attendedShows.get(111)).toBeTruthy();
@@ -224,7 +224,7 @@ describe("db version(3) write helpers", () => {
       trackedEntries: null,
     } as unknown as DbSnapshot;
 
-    await expect(importSnapshot(badSnapshot)).rejects.toBeTruthy();
+    await expect(importSnapshot(badSnapshot, "user-import")).rejects.toBeTruthy();
 
     // Nothing from the failed import survived — atomic rollback (T-05-09).
     expect(await getMeta("fromBadImport")).toBeUndefined();
@@ -255,7 +255,7 @@ describe("db version(3) write helpers", () => {
       bingoCards: [],
     } satisfies DbSnapshot;
 
-    await expect(importSnapshot(badSnapshot)).rejects.toBeTruthy();
+    await expect(importSnapshot(badSnapshot, "user-import")).rejects.toBeTruthy();
 
     expect(await getMeta("fromInvalidRow")).toBeUndefined();
     expect(await db.attendedShows.get(222)).toBeUndefined();

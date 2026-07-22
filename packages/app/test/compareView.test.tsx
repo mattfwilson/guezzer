@@ -92,12 +92,12 @@ describe("CompareView — read-only friend diff (D-17)", () => {
   });
 
   it("D-17: renders WITHOUT mutating any table (zero-writes proof)", async () => {
-    const before = await snapshot();
+    const before = await snapshot("user-cmp");
     render(<CompareView envelope={friendEnvelope()} onClose={() => {}} />);
     await waitFor(() => {
       expect(screen.getByText(copy.banner("Alice"))).toBeTruthy();
     });
-    const after = await snapshot();
+    const after = await snapshot("user-cmp");
     expect(after).toEqual(before);
   });
 

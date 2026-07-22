@@ -21,6 +21,7 @@ import {
 } from "@guezzer/core";
 import { config } from "../config.ts";
 import { importSnapshot, snapshot } from "../db/db.ts";
+import { readIdentityRecord } from "../auth/identityRecord.ts";
 
 /**
  * The D-17 compare-vs-merge fork outcome (RESEARCH Pattern 5). `classifyImport`
@@ -87,10 +88,17 @@ export function classifyImport(
  */
 export async function pickAndImport(file: File): Promise<ImportResult> {
   try {
+    // Scope the import to the signed-in identity (AUTH-05 / D-09, plan 18-07):
+    // the local snapshot is read for THIS identity, and the merged rows are
+    // stamped with it on commit. With no identity present there is no scoped
+    // merge to perform — reject rather than merge into a foreign/unscoped dex.
+    const userId = readIdentityRecord()?.userId;
+    if (userId == null) return { ok: false, error: "import-failed" };
+
     const text = await file.text();
     // The local snapshot core merges against — the same single assembly path
     // exportBackup uses (plan 06-07), so `owner`/`archiveShows` are included.
-    const local = await snapshot();
+    const local = await snapshot(userId);
     const result = parseAndMergeImport(
       text,
       local,
@@ -100,8 +108,9 @@ export async function pickAndImport(file: File): Promise<ImportResult> {
     // Rejected file: return the core error verbatim, touch NOTHING (Pitfall 5).
     if (!result.ok) return result;
 
-    // Valid file: commit the fully-merged snapshot in one rw transaction.
-    await importSnapshot(result.merged);
+    // Valid file: commit the fully-merged snapshot in one rw transaction, stamped
+    // with the importing identity.
+    await importSnapshot(result.merged, userId);
     return result;
   } catch {
     // Never throw: a read/commit failure is reported like any rejected import.

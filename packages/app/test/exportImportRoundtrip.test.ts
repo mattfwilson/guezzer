@@ -703,7 +703,11 @@ describe("userId-scoped export/import isolation (AUTH-05 export half, D-09 / Pit
         vibe: "balanced",
         corpusVersion: "c",
         freeIndex: 12,
-        squares: [],
+        squares: Array.from({ length: 16 }, (_, i) =>
+          i === 12
+            ? ({ kind: "free" } as const)
+            : ({ kind: "song", songId: i + 1, label: `Song ${i + 1}` } as const),
+        ),
       },
       caughtSnapshot: [],
       lockedAt: 1,
@@ -721,7 +725,11 @@ describe("userId-scoped export/import isolation (AUTH-05 export half, D-09 / Pit
         vibe: "balanced",
         corpusVersion: "c",
         freeIndex: 12,
-        squares: [],
+        squares: Array.from({ length: 16 }, (_, i) =>
+          i === 12
+            ? ({ kind: "free" } as const)
+            : ({ kind: "song", songId: i + 1, label: `Song ${i + 1}` } as const),
+        ),
       },
       caughtSnapshot: [],
       lockedAt: 1,

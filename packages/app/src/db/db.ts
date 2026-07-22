@@ -719,13 +719,28 @@ export async function unmarkShowAttended(show_id: number): Promise<void> {
   });
 }
 
+/** Drop the identity-local `userId` from a domain row (see `snapshot`). */
+function stripUserId<T extends { userId?: string }>(row: T): Omit<T, "userId"> {
+  const { userId: _userId, ...rest } = row;
+  return rest;
+}
+
 /**
- * Read the full DB snapshot for export/merge (plan 06-07). Reads every table
- * plus the `owner` identity (from the meta `ownerName` row, null when unset).
- * The single assembly path — `exportDownload` and the import's local-snapshot
- * read both route through here so the export shape is defined in ONE place.
+ * Read the full DB snapshot for export/merge, SCOPED to `userId` (AUTH-05 / D-09,
+ * plan 18-07). Reads only the signed-in identity's rows from the five domain
+ * tables (`meta` stays global) plus the `owner` identity (from the meta
+ * `ownerName` row, null when unset). The single assembly path — `exportDownload`
+ * and the import's local-snapshot read both route through here so the export
+ * shape is defined in ONE place.
+ *
+ * The identity-local `userId` is STRIPPED from every domain row before it leaves
+ * this function: the strict export-envelope schema (packages/core export-schema.ts
+ * — every row is a `z.strictObject`) FORBIDS unknown keys, so a leaked `userId`
+ * would make a backup fail its own re-import. The importing identity is
+ * re-stamped by `importSnapshot` instead. Pre-claim rows with `userId ===
+ * undefined` are excluded from a scoped export (they match no userId).
  */
-export async function snapshot(): Promise<DbSnapshot> {
+export async function snapshot(userId: string): Promise<DbSnapshot> {
   const [
     meta,
     attendedShows,
@@ -735,21 +750,21 @@ export async function snapshot(): Promise<DbSnapshot> {
     bingoCards,
   ] = await Promise.all([
     db.meta.toArray(),
-    db.attendedShows.toArray(),
-    db.archiveShows.toArray(),
-    db.trackedShows.toArray(),
-    db.trackedEntries.toArray(),
-    db.bingoCards.toArray(),
+    db.attendedShows.where("userId").equals(userId).toArray(),
+    db.archiveShows.where("userId").equals(userId).toArray(),
+    db.trackedShows.where("userId").equals(userId).toArray(),
+    db.trackedEntries.where("userId").equals(userId).toArray(),
+    db.bingoCards.where("userId").equals(userId).toArray(),
   ]);
   const owner = (await getMeta<string>("ownerName")) ?? null;
   return {
     owner,
     meta,
-    attendedShows,
-    archiveShows,
-    trackedShows,
-    trackedEntries,
-    bingoCards,
+    attendedShows: attendedShows.map(stripUserId),
+    archiveShows: archiveShows.map(stripUserId),
+    trackedShows: trackedShows.map(stripUserId),
+    trackedEntries: trackedEntries.map(stripUserId),
+    bingoCards: bingoCards.map(stripUserId),
   };
 }
 
@@ -773,7 +788,18 @@ export async function snapshot(): Promise<DbSnapshot> {
  * — that is the atomicity control: a mid-write throw rolls back every clear
  * too, so a failed import can never leave the dex half-wiped (no partial state).
  */
-export async function importSnapshot(snapshot: DbSnapshot): Promise<void> {
+export async function importSnapshot(
+  snapshot: DbSnapshot,
+  userId: string,
+): Promise<void> {
+  // Stamp the importing identity onto every domain row (AUTH-05 / D-09, plan
+  // 18-07): the merged snapshot's rows are userId-stripped (see `snapshot`), so
+  // an import re-owns them to the signed-in identity — a friend's backup restored
+  // under YOUR identity becomes yours, and the scoped reads/export then include
+  // them.
+  const stamp = <T extends { userId?: string }>(rows: T[]): T[] =>
+    rows.map((row) => ({ ...row, userId }));
+
   // Six tables now exceed Dexie's positional `transaction(mode, ...t5, cb)`
   // overload (max 5 stores), so pass the stores as an array — same single
   // atomic rw transaction, just the array-arity signature.
@@ -789,21 +815,21 @@ export async function importSnapshot(snapshot: DbSnapshot): Promise<void> {
     ],
     async () => {
       await db.meta.bulkPut(snapshot.meta);
-      await db.attendedShows.bulkPut(snapshot.attendedShows);
+      await db.attendedShows.bulkPut(stamp(snapshot.attendedShows));
       // archiveShows has a stable `&show_id` key and is union-only (never
       // reduced by the merge, D-10) — commit via bulkPut upsert, NOT
       // clear-and-rewrite (plan 06-07). `owner` is deliberately NOT written into
       // meta here: it is a device-local fork key, not portable state (D-17).
-      await db.archiveShows.bulkPut(snapshot.archiveShows);
+      await db.archiveShows.bulkPut(stamp(snapshot.archiveShows));
       // bingoCards has a stable `&cardId` key and is union-only (the merge never
       // reduces it, D-13) — commit via bulkPut upsert, NOT the clear-and-rewrite
       // path used for trackedShows/trackedEntries. A locally-present card absent
       // from the merged snapshot therefore survives (no destructive clear).
-      await db.bingoCards.bulkPut(snapshot.bingoCards);
+      await db.bingoCards.bulkPut(stamp(snapshot.bingoCards));
       await db.trackedShows.clear();
-      await db.trackedShows.bulkPut(snapshot.trackedShows);
+      await db.trackedShows.bulkPut(stamp(snapshot.trackedShows));
       await db.trackedEntries.clear();
-      await db.trackedEntries.bulkAdd(snapshot.trackedEntries);
+      await db.trackedEntries.bulkAdd(stamp(snapshot.trackedEntries));
     },
   );
 }
