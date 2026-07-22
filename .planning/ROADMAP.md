@@ -60,7 +60,7 @@ Give the ~5-friend group distinct identities and lightweight awareness of each o
 Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no identity → no `user_id` to key progress or presence), and AUTH-02 (offline-safe session restore) is the highest-risk item — it must not regress the shipped v1 offline boot, so it is device-verified before anything depends on it. PROG rides AUTH's identity + the pure-core `deriveSharedProgress` projector; PRES rides AUTH's identity but is Postgres-independent (Realtime only).
 
 - [x] **Phase 17: Backend Foundation & Secrets** - Provision the Supabase project — RLS'd `progress` schema, idempotent account seeding, secret hygiene, core-purity boundary (completed 2026-07-22)
-- [ ] **Phase 18: Accounts & Offline-Safe Identity** - Pre-made email/password sign-in with a distinct per-device identity that still boots fully offline; ships the "Gizz With Friends" rebrand
+- [x] **Phase 18: Accounts & Offline-Safe Identity** - Pre-made email/password sign-in with a distinct per-device identity that still boots fully offline; ships the "Gizz With Friends" rebrand (completed 2026-07-22)
 - [ ] **Phase 19: Shared Dex Progress** - Each friend's real dex progress synced and visible/comparable live in a friends view
 - [ ] **Phase 20: Presence & Interactions** - Who's online / what they're doing, plus lightweight targeted/broadcast waves and reactions
 
@@ -122,7 +122,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 
 **Wave 3** *(depends on Wave 2 — THE CRUX)*
 
-- [ ] 18-06-PLAN.md — Offline-safe boot gate + main/App integration + scoped `useDexStats` + device offline-boot UAT (AUTH-02, AUTH-04, AUTH-05)
+- [x] 18-06-PLAN.md — Offline-safe boot gate + main/App integration + scoped `useDexStats` + device offline-boot UAT (AUTH-02, AUTH-04, AUTH-05)
 
 **UI hint**: yes
 
@@ -179,7 +179,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 4/4 | Complete | 2026-07-21 |
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 6/6 | Complete | 2026-07-21 |
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
-| 18. Accounts & Offline-Safe Identity | v2.0 | 6/7 | In Progress|  |
+| 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete   | 2026-07-22 |
 | 19. Shared Dex Progress | v2.0 | 0/? | Not started | - |
 | 20. Presence & Interactions | v2.0 | 0/? | Not started | - |
 
