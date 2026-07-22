@@ -201,6 +201,14 @@ export function OrbitStage({
       )
     : 0;
 
+  // Reserve a bottom band while the weak-fan "Low confidence" hint is on screen so
+  // the lowest fan orbs never overlap it (the group offset above intentionally
+  // excludes the hint). Shifts the whole orbit group UP by a fixed amount in that
+  // state only; 0 otherwise, so a confident fan keeps the full centred layout.
+  const weakHintReserve =
+    weak && !inCollapse && fan.length > 0 ? config.show.WEAK_HINT_RESERVE_PX : 0;
+  const groupShift = (orbitOffset || 0) - weakHintReserve;
+
   return (
     <div
       ref={stageRef}
@@ -215,7 +223,7 @@ export function OrbitStage({
       <div
         className="absolute inset-0"
         style={{
-          transform: orbitOffset ? `translateY(${orbitOffset}px)` : undefined,
+          transform: groupShift ? `translateY(${groupShift}px)` : undefined,
         }}
       >
       {/* Centre node — absolutely centred over the stage. During a collapse the

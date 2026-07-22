@@ -61,6 +61,10 @@ export const config = {
     /** Minimum gap in px between adjacent prediction orbs and between an orb and the
      *  centre node — the ring solver guarantees this, so orbs never overlap (SHOW-02). */
     ORB_RING_GAP_PX: 10,
+    /** Bottom band reserved (px) for the two-line "Low confidence" weak-fan hint — the
+     *  orbit group shifts up by this much ONLY while that hint shows, so the lowest
+     *  fan orbs never overlap the text. 0 otherwise (the group centres on the stage). */
+    WEAK_HINT_RESERVE_PX: 56,
     /** Floor / fallback count of recent trail nodes (SHOW-08). The trail now fills
      *  the measured strip width — MORE nodes on a wide desktop, fewer on mobile —
      *  but never fewer than this, and this is the count used before the width is
