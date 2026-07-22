@@ -39,6 +39,15 @@ const stubArchive = {
       ],
     },
     {
+      id: 3003,
+      date: "2025-06-01",
+      venue: "Gamma Venue",
+      city: "Gammatown",
+      state: null,
+      country: "US",
+      sets: [{ n: "1" as const, songs: [102] }],
+    },
+    {
       id: 3002,
       date: "2024-05-01",
       venue: "Beta Venue",
@@ -174,12 +183,12 @@ describe("AUTH-05 read-half: view consumers scope reads to the current identity 
   });
 
   it("ArchiveBrowser scopes already-attended detection to the current identity", async () => {
-    // A marks the 2025 show; B marks the 2024 show.
+    // A marks show 3001; B marks show 3003 — both in the 2025 section, which is
+    // expanded by default, so both rows render without a year-header tap.
     await seedAttended(3001, "2025-05-01", USER_A);
-    await seedAttended(3002, "2024-05-01", USER_B);
+    await seedAttended(3003, "2025-06-01", USER_B);
 
-    // Identity A → 3001 marked (A's), 3002 NOT marked (B's, not leaked). The 2024
-    // section must be expanded to render 3002's row.
+    // Identity A → 3001 marked (A's), 3003 NOT marked (B's, not leaked).
     mockIdentity = { userId: USER_A, displayName: "A" };
     render(<ArchiveBrowser archive={archive} onClose={() => {}} />);
     await waitFor(() =>
@@ -187,17 +196,17 @@ describe("AUTH-05 read-half: view consumers scope reads to the current identity 
         screen.getByTestId("archive-row-3001").getAttribute("data-marked"),
       ).toBe("true"),
     );
-    expect(screen.getByTestId("archive-row-3002").getAttribute("data-marked")).toBe(
+    expect(screen.getByTestId("archive-row-3003").getAttribute("data-marked")).toBe(
       "false",
     );
     cleanup();
 
-    // Identity B → 3002 marked (B's), 3001 NOT marked (A's, not leaked).
+    // Identity B → 3003 marked (B's), 3001 NOT marked (A's, not leaked).
     mockIdentity = { userId: USER_B, displayName: "B" };
     render(<ArchiveBrowser archive={archive} onClose={() => {}} />);
     await waitFor(() =>
       expect(
-        screen.getByTestId("archive-row-3002").getAttribute("data-marked"),
+        screen.getByTestId("archive-row-3003").getAttribute("data-marked"),
       ).toBe("true"),
     );
     expect(screen.getByTestId("archive-row-3001").getAttribute("data-marked")).toBe(

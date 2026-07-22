@@ -25,6 +25,7 @@ import { Share2 } from "lucide-react";
 import { BingoBoard } from "../components/BingoBoard.tsx";
 import { config } from "../config.ts";
 import { db, saveDraftCard, type BingoCardRow } from "../db/db.ts";
+import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
 import { loadArchive } from "../dex/archive-loader.ts";
 import { loadDexAlbums } from "../dex/dex-albums-loader.ts";
 import { getRarityIndex } from "../dex/rarityIndex.ts";
@@ -49,12 +50,38 @@ export function GamesView() {
   const copy = config.copy.games;
   const bingoCopy = config.copy.games.bingo;
 
+  // Scope every namespaced-table read to the current identity (AUTH-05 / D-09):
+  // a borrowed phone must not surface the prior identity's cards/trail. Null
+  // identity falls back to the unscoped read (the AuthGate guarantees an identity
+  // when this view renders in the app). `useDexStats` self-scopes (Plan 06).
+  const currentUserId = useAuthIdentity()?.userId;
+
   // Dexie is the single source of truth — a newly-dealt/locked card appears live.
-  const cards = useLiveQuery(() => db.bingoCards.toArray());
-  const activeShow = useLiveQuery(() =>
-    db.trackedShows.where("status").equals("active").first(),
+  const cards = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.bingoCards.toArray()
+        : db.bingoCards.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
   );
-  const trackedEntries = useLiveQuery(() => db.trackedEntries.toArray());
+  const activeShow = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.trackedShows.where("status").equals("active").first()
+        : db.trackedShows
+            .where("status")
+            .equals("active")
+            .and((r) => r.userId === currentUserId)
+            .first(),
+    [currentUserId],
+  );
+  const trackedEntries = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.trackedEntries.toArray()
+        : db.trackedEntries.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
   const stats = useDexStats();
 
   const ctxResult = getBingoContext();

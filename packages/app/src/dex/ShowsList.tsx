@@ -24,6 +24,7 @@ import {
   type TrackedEntry,
   type TrackedShow,
 } from "../db/db.ts";
+import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
 
 /** A finalized live-tracked show row — carries the tally chip, opens the recap. */
 interface TrackedShowRow {
@@ -147,12 +148,46 @@ interface ShowsListProps {
 export function ShowsList({ archive, onOpenTracked, onOpenRetro }: ShowsListProps) {
   const copy = config.copy.dex;
 
-  const trackedShows = useLiveQuery(() =>
-    db.trackedShows.where("status").equals("finalized").toArray(),
+  // Scope every namespaced-table read to the current identity (AUTH-05 / D-09):
+  // a borrowed phone shows only the signed-in identity's shows. When no identity
+  // is present (momentary null during teardown, or the pre-identity test path)
+  // fall back to the unscoped read so the loading-safe shape is unchanged — the
+  // AuthGate (Plan 06) guarantees an identity whenever these views render in the
+  // app, so the fallback only affects the transient null window.
+  const currentUserId = useAuthIdentity()?.userId;
+
+  const trackedShows = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.trackedShows.where("status").equals("finalized").toArray()
+        : db.trackedShows
+            .where("status")
+            .equals("finalized")
+            .and((r) => r.userId === currentUserId)
+            .toArray(),
+    [currentUserId],
   );
-  const attendedShows = useLiveQuery(() => db.attendedShows.toArray());
-  const trackedEntries = useLiveQuery(() => db.trackedEntries.toArray());
-  const archiveShows = useLiveQuery(() => db.archiveShows.toArray());
+  const attendedShows = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.attendedShows.toArray()
+        : db.attendedShows.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
+  const trackedEntries = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.trackedEntries.toArray()
+        : db.trackedEntries.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
+  const archiveShows = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.archiveShows.toArray()
+        : db.archiveShows.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
 
   const rows = useMemo(() => {
     if (
