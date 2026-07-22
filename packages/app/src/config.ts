@@ -61,11 +61,6 @@ export const config = {
     /** Minimum gap in px between adjacent prediction orbs and between an orb and the
      *  centre node — the ring solver guarantees this, so orbs never overlap (SHOW-02). */
     ORB_RING_GAP_PX: 10,
-    /** Bottom band (px) the two-line "Low confidence" weak-fan hint occupies. While it
-     *  shows, the orbit group re-centres within the area ABOVE this band (a shift of
-     *  HALF this value) so it stays centred in the visible area yet clears the hint.
-     *  0 effect otherwise (the group centres on the full stage). */
-    WEAK_HINT_RESERVE_PX: 56,
     /** Floor / fallback count of recent trail nodes (SHOW-08). The trail now fills
      *  the measured strip width — MORE nodes on a wide desktop, fewer on mobile —
      *  but never fewer than this, and this is the count used before the width is
@@ -751,9 +746,8 @@ export const config = {
       undoCta: "Undo",
       /** Phase-6 D-20: accessible label for the collapsed Show-Mode FAB speed-dial. */
       fabLabel: "Show actions",
-      /** Weak-fan softening hint (D-10). */
+      /** Weak-fan softening hint (D-10) — a single centered line aligned with the FAB. */
       weakFanHeading: "Low confidence",
-      weakFanBody: "Wide-open moment — the model isn't sure.",
       /** Persistent tally zero-state (SHOW-09). */
       tallyZeroState: "0/0 · —",
       /** Edit an existing trail entry — re-pick the song via search (D-15). */

@@ -35,6 +35,7 @@
 import { CircleHelp, CircleStop, ListChecks, Minus, Plus, Search, Star, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { config } from "../config.ts";
+import { showBottomFabOffset } from "./fabLayout.ts";
 
 interface FabMenuProps {
   /** Open the fuzzy SearchSheet (SHOW-04 / opener-seed). */
@@ -102,9 +103,7 @@ export function FabMenu({
   // fixed height so the FAB clears those rows entirely (owner 2026-07-19) instead
   // of overlapping a row's +/X buttons. Empty (reserved-but-invisible) strip →
   // resting offset, since there is nothing to overlap.
-  const bottomOffset = stripHasContent
-    ? `calc(env(safe-area-inset-bottom) + 64px + ${config.ui.SUGGESTION_STRIP_HEIGHT}px + 16px)`
-    : "calc(env(safe-area-inset-bottom) + 64px + 16px)";
+  const bottomOffset = showBottomFabOffset(stripHasContent);
   const rightOffset = "calc(env(safe-area-inset-right) + 16px)";
 
   return (

@@ -23,6 +23,7 @@ import { motion, useReducedMotion } from "motion/react";
 import type { TuningFamily } from "@guezzer/core";
 import { config } from "../config.ts";
 import { isWeakFan } from "./confidence.ts";
+import { showBottomFabOffset } from "./fabLayout.ts";
 import { layoutOrbs, selectFan } from "./orbitLayout.ts";
 import { CenterNode } from "./CenterNode.tsx";
 import { PredictionOrb, type OrbitCandidate } from "./PredictionOrb.tsx";
@@ -45,6 +46,9 @@ interface OrbitStageProps {
   onWhy: (candidate: OrbitCandidate) => void;
   /** Pre-opener: tapping the center prompt opens Search to seed the opener (SHOW-04). */
   onOpenSearch: () => void;
+  /** Whether the SuggestionStrip is showing rows — lifts the weak-fan hint in step
+   *  with the FAB so the two stay vertically aligned (shared `showBottomFabOffset`). */
+  stripHasContent: boolean;
 }
 
 /** The tapped-orb collapse animation: a frozen snapshot of the OUTGOING fan +
@@ -113,6 +117,7 @@ export function OrbitStage({
   onTapOrb,
   onWhy,
   onOpenSearch,
+  stripHasContent,
 }: OrbitStageProps) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -201,16 +206,6 @@ export function OrbitStage({
       )
     : 0;
 
-  // While the weak-fan "Low confidence" hint occupies a bottom band, RE-CENTRE the
-  // orbit group within the area ABOVE that band instead of the full stage — so the
-  // group stays centred in the visible area (never shoved off the top) while its
-  // lowest orbs still clear the hint. Centring in `[0, height − band]` is a shift of
-  // HALF the band (not the whole band, which pushed the group out of view). 0 when
-  // the hint is absent, so a confident fan keeps the full-stage centred layout.
-  const hintBand =
-    weak && !inCollapse && fan.length > 0 ? config.show.WEAK_HINT_RESERVE_PX : 0;
-  const groupShift = (orbitOffset || 0) - hintBand / 2;
-
   return (
     <div
       ref={stageRef}
@@ -225,7 +220,7 @@ export function OrbitStage({
       <div
         className="absolute inset-0"
         style={{
-          transform: groupShift ? `translateY(${groupShift}px)` : undefined,
+          transform: orbitOffset ? `translateY(${orbitOffset}px)` : undefined,
         }}
       >
       {/* Centre node — absolutely centred over the stage. During a collapse the
@@ -334,12 +329,17 @@ export function OrbitStage({
       </div>
 
       {weak && !inCollapse && fan.length > 0 && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-2 flex flex-col items-center px-4 text-center">
+        // A single "Low confidence" line, FIXED to the viewport and horizontally
+        // centred, sitting at the SAME bottom offset as the FAB (shared
+        // `showBottomFabOffset`) — an `h-14` (56px, the FAB diameter) items-center
+        // box so the text's vertical centre lines up with the FAB to the right.
+        // Out of the orbit group's flow, so the orb group reclaims the full stage.
+        <div
+          className="pointer-events-none fixed inset-x-0 flex h-14 items-center justify-center px-4 text-center"
+          style={{ bottom: showBottomFabOffset(stripHasContent), zIndex: config.ui.z.peek }}
+        >
           <span className="text-[14px] font-semibold leading-tight text-text-muted">
             {config.copy.show.weakFanHeading}
-          </span>
-          <span className="text-[14px] leading-tight text-text-muted">
-            {config.copy.show.weakFanBody}
           </span>
         </div>
       )}

@@ -553,6 +553,7 @@ export function ShowView() {
         onTapOrb={handleTapOrb}
         onWhy={setWhyCandidate}
         onOpenSearch={() => setSearchOpen(true)}
+        stripHasContent={stripHasContent}
       />
 
       {/* SuggestionStrip (05-04, D-01): the advisory editor songs + fill-???
