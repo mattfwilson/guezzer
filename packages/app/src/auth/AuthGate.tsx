@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 import { App } from "../App.tsx";
 import { supabase } from "../db/supabase.ts";
 import { useOnlineStatus } from "../live/useOnlineStatus.ts";
+import { claimLegacyDexOnce } from "./claimDex.ts";
 import { clearIdentityRecord, consumeUserSignOut } from "./identityRecord.ts";
 import { ReconnectContext } from "./reconnectContext.ts";
 import { SignInScreen } from "./SignInScreen.tsx";
@@ -89,6 +90,21 @@ export function AuthGate() {
       data.subscription.unsubscribe();
     };
   }, []);
+
+  // Legacy-dex claim self-heal (review WR-04, AUTH-05 / D-08). The claim is
+  // meta-gated exactly-once and idempotent, so driving it from an idempotent
+  // post-boot effect (in ADDITION to SignInScreen's first-login attempt) makes a
+  // transient first-login failure self-heal on the next app open — the owner's
+  // untagged v1 dex is claimed without requiring a sign-out to reach SignInScreen
+  // again. Runs AFTER first paint (never on the boot gate path) and never throws
+  // or clears identity; once `dexClaimedBy` is set every subsequent run is a
+  // cheap no-op.
+  useEffect(() => {
+    if (!identity) return;
+    void claimLegacyDexOnce(identity.userId).catch(() => {
+      /* transient — retried on the next boot; never blocks or clears identity */
+    });
+  }, [identity?.userId]);
 
   // No identity → the full sign-in gate (D-02). The offline branch inside
   // SignInScreen shows the calm "connect once" state (D-03).

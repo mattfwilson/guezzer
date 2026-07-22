@@ -29,6 +29,11 @@ const onAuthStateChange = vi.fn((cb: (event: string, session: unknown) => void) 
 vi.mock("../src/db/supabase.ts", () => ({
   supabase: { auth: { getSession, onAuthStateChange } },
 }));
+// AuthGate's WR-04 self-heal effect calls claimLegacyDexOnce(identity.userId) —
+// mock it to a resolved no-op so these gate-decision tests never touch Dexie.
+vi.mock("../src/auth/claimDex.ts", () => ({
+  claimLegacyDexOnce: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock("../src/App.tsx", () => ({
   App: () => <div>APP CONTENT</div>,
 }));

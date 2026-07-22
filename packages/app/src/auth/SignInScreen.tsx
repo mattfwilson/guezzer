@@ -104,7 +104,19 @@ export function SignInScreen({ online }: { online: boolean }) {
 
     // The two side effects that make "authenticated" mean "owns this dex":
     writeIdentityRecord({ userId, displayName });
-    await claimLegacyDexOnce(userId);
+    // The legacy-dex claim must NEVER block or fail the sign-in (review WR-04):
+    // writeIdentityRecord already re-rendered the boot gate into <App/>, and a
+    // rejecting claim here would be an unhandled promise rejection that leaves the
+    // owner's untagged v1 dex excluded by every scoped read with no recovery.
+    // Swallow a transient failure — the claim is meta-gated exactly-once and
+    // idempotent, so AuthGate's post-boot self-heal effect retries it on the next
+    // app open (no sign-out required).
+    try {
+      await claimLegacyDexOnce(userId);
+    } catch {
+      // Non-blocking: sign-in still succeeds; AuthGate retries the claim on the
+      // next boot. Never surfaced as a hard error on the trust-critical gate.
+    }
     // No navigation here — clearing/writing the identity record re-renders the
     // boot gate (Plan 06), which swaps this screen for <App/> (D-17).
   }
