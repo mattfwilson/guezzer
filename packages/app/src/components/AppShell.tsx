@@ -41,7 +41,7 @@ export function AppShell({
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
       >
         <span className="text-[20px] font-semibold leading-tight">
-          Guezzer
+          Gizz With Friends
         </span>
         <button
           type="button"
