@@ -122,6 +122,11 @@ None - no external service configuration required. No npm packages added (RESEAR
 - `npm test` — 103 files, 789 tests passed
 - `npx tsc --noEmit -p packages/app/tsconfig.json` — clean (exit 0)
 
+## Self-Check: PASSED
+
+- Files verified present: `claimDex.ts`, `migrationV7.test.ts`, `db.ts`, `18-02-SUMMARY.md`
+- Commits verified in history: `30c3b0c`, `234833f`, `8108381`, `003c5a4`, `73e6a96`
+
 ---
 *Phase: 18-accounts-offline-safe-identity*
 *Completed: 2026-07-22*
