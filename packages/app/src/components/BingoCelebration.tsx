@@ -204,10 +204,12 @@ export function BingoCelebration() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="pointer-events-none fixed inset-x-0 bottom-16 flex items-center border-t border-hairline bg-elevated px-4 py-4"
-            style={{
-              zIndex: config.ui.z.toast,
-              paddingBottom: "env(safe-area-inset-bottom)",
-            }}
+            // No safe-area paddingBottom here: the toast sits at `bottom-16`, ABOVE
+            // the BottomTabBar (which already reserves the home-indicator inset), so
+            // overriding paddingBottom with env(safe-area-inset-bottom) only made the
+            // bottom padding smaller than `py-4`'s top — the text read as cut off.
+            // Plain `py-4` gives even top/bottom padding.
+            style={{ zIndex: config.ui.z.toast }}
           >
             <p className="text-base font-semibold leading-normal tabular-nums text-text-primary">
               {toast.text}
