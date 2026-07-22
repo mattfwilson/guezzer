@@ -105,22 +105,23 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
   4. On first login the existing single-user Dexie data is namespaced to that user id exactly once, so a borrowed/shared phone never cross-contaminates two friends' dexes (AUTH-05).
   5. The app shows the "Gizz With Friends" rebrand (wordmark, title, manifest), each identity gets a deterministic auto color/avatar from its user id, and a stale token reconnects with a calm "reconnecting…" affordance rather than a jarring logout (AUTH-06, AUTH-07, AUTH-08).
 
-**Plans**: 6 plans
+**Plans**: 7 plans
 
 **Wave 1** *(parallel — no file overlap)*
 
 - [ ] 18-01-PLAN.md — Identity color core helper + `config.auth` palette/copy + "Gizz With Friends" rebrand chrome (AUTH-07, AUTH-06)
-- [ ] 18-02-PLAN.md — Dexie `version(7)` namespacing + one-time claim + scoped export/import (AUTH-05)
+- [ ] 18-02-PLAN.md — Dexie `version(7)` namespacing + `userId` field + one-time claim (AUTH-05)
 - [ ] 18-03-PLAN.md — App-owned identity record substrate + `useAuthIdentity` hook (AUTH-02)
 
 **Wave 2** *(depends on Wave 1)*
 
 - [ ] 18-04-PLAN.md — Sign-in surface: name-picker + password + connect-once + inline error + roster (AUTH-01)
 - [ ] 18-05-PLAN.md — Identity chrome: header avatar + sign-out sheet + SyncDot reconnecting state (AUTH-03, AUTH-04, AUTH-07, AUTH-08)
+- [ ] 18-07-PLAN.md — Scope the four namespaced-table view consumers + export/import to the current identity (AUTH-05)
 
 **Wave 3** *(depends on Wave 2 — THE CRUX)*
 
-- [ ] 18-06-PLAN.md — Offline-safe boot gate + main/App integration + scoped dex reads + device offline-boot UAT (AUTH-02, AUTH-04, AUTH-05)
+- [ ] 18-06-PLAN.md — Offline-safe boot gate + main/App integration + scoped `useDexStats` + device offline-boot UAT (AUTH-02, AUTH-04, AUTH-05)
 
 **UI hint**: yes
 

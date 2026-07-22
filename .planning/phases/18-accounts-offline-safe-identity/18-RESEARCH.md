@@ -356,18 +356,21 @@ export const ROSTER = [
 | A3 | Only `attendedShows.&show_id` / `archiveShows.&show_id` are realistic cross-user PK-collision candidates (sessionId/cardId are UUID-derived) | Pitfall 4 | Medium — if the planner chooses field+scoping, a shared-device same-show mark could interfere |
 | A4 | The Phase-17 seed used synthetic handles (reference `seed-users.mjs` uses `@fov.gizz`), so D-04 may already be satisfied structurally | Runtime State Inventory / OQ2 | Medium — if real emails were seeded, roster + re-mint needed before the bundle ships PII-free |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`<title>` rebrand target.** AUTH-06 lists "document title" as a rebrand surface (→ "Gizz With Friends"), but D-15 writes `index.html` `<title>` "(still 'Guezzer')". Interpretation: the parenthetical describes the *current* value (a surface to update), and the requirement is authoritative → title becomes "Gizz With Friends".
    - Recommendation: rebrand the title to "Gizz With Friends" per AUTH-06; flag for a one-line owner confirm if the planner reads D-15 as "leave the tab title as Guezzer."
+   - **RESOLVED:** AUTH-06 is authoritative — the title-rebrand-to-"Gizz With Friends" decision is adopted in Plan 01 (rebrand copy/title surface). The D-15 parenthetical is read as the *current* value, not a directive to retain it.
 
 2. **Did Phase 17 seed real emails or synthetic handles?** D-04 requires the bundle-baked roster to carry no real PII. If accounts were minted against real personal emails, the seed convention + env handle vars must change and accounts re-minted before the roster ships.
    - What we know: the reference seed script uses synthetic `@fov.gizz` handles.
    - What's unclear: what the *actual* Phase-17 run used (the real roster is filled "right before minting" per Phase-17 D-07).
    - Recommendation: verify against the live project (Management API introspection per MEMORY `v2-supabase-live-project`) before finalizing the roster; treat re-mint as a possible task.
+   - **RESOLVED:** No real email/PII is baked. Plan 04 Task 1 verifies the seed-minted handles against the live Supabase project (Management API introspection) BEFORE baking the roster, and the roster ships only synthetic `@gizz.local`-style handles — if real personal emails are discovered the task STOPS and flags for owner re-mint (never bakes PII). The seed-email PII question is therefore resolved in-plan as synthetic handles only, with no decision deferred into execution.
 
 3. **Shared-device isolation depth (Pitfall 4).** Accept the rare same-show PK-collision edge (lighter: field + query scoping) or do full compound-key isolation (heavier)?
    - Recommendation: field + scoping + documented limitation for v2.0, given D-09's "borrowed-phone dex is empty" framing. Revisit only if the owner wants hardened shared-device isolation.
+   - **RESOLVED:** Field + query-scoping (a `userId` field on the 5 domain tables + `.where("userId")`-scoped reads) is adopted in Plan 02 (schema/claim) and Plan 07 (consumer read-scoping + export/import scoping); the rare same-show `&show_id` PK-collision edge is accepted and documented in `db.ts` per D-09's "borrowed-phone dex is empty" framing. Full compound-key isolation is explicitly out of scope for v2.0.
 
 ## Environment Availability
 
