@@ -1,9 +1,10 @@
-import { BookOpen, Compass, Music } from "lucide-react";
+import { BookOpen, Compass, Map, Music } from "lucide-react";
 import { navigate, useHashRoute, type Route } from "../routing/useHashRoute";
 
 const TABS: { route: Route; label: string; Icon: typeof Music }[] = [
   { route: "show", label: "LiveGizz", Icon: Music },
   { route: "explore", label: "GizzVerse", Icon: Compass },
+  { route: "map", label: "GizzMap", Icon: Map },
   { route: "dex", label: "GizzDex", Icon: BookOpen },
 ];
 

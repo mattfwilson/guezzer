@@ -44,6 +44,11 @@ export default defineConfig({
       "@dexAlbums": fileURLToPath(
         new URL("../../data/normalized/dex-albums.json", import.meta.url),
       ),
+      // GizzMap calibration artifact (control points → georef fit) — same
+      // @matrix idiom: rides the JS bundle, precached by the `**/*.js` glob.
+      "@festivalMap": fileURLToPath(
+        new URL("../../data/festival-maps/field-of-vision-2026.json", import.meta.url),
+      ),
     },
   },
   plugins: [

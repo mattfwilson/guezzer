@@ -612,6 +612,87 @@ export const config = {
     },
   },
 
+  /**
+   * GizzMap RENDER + lifecycle constants (owner-approved exploration
+   * 2026-07-21; GSD bypassed by owner). Pure-derivation constants (staleness
+   * tiers, publish throttle, TTLs, key-derivation params) live in
+   * `@guezzer/core` config.map — the map feature imports core config directly
+   * (`@guezzer/core/config`) for those, so there is deliberately NO mirror
+   * block here to drift. Only app-tier rendering/lifecycle values live below.
+   */
+  map: {
+    /**
+     * The deployed relay origin (packages/relay → `npm run deploy` prints it;
+     * deployed by the owner 2026-07-22). EMPTY STRING = relay not deployed:
+     * GizzMap runs local-only (own position + locally-created pins, no friend
+     * sync) and says so in a muted banner — the app must stay fully functional
+     * with no relay (owner constraint).
+     */
+    RELAY_BASE_URL: "https://guezzer-relay.maxretter.workers.dev",
+
+    /** Re-render cadence for age labels/staleness opacity while the map is open. */
+    AGE_TICK_MS: 30_000,
+
+    /** Pan/zoom clamps for the map stage (scale 1 = image fitted to viewport). */
+    ZOOM_MIN: 0.8,
+    ZOOM_MAX: 10,
+
+    /** Long-press-to-drop-pin gesture (mirrors show.ORB_LONG_PRESS_* semantics). */
+    LONG_PRESS_MS: 500,
+    LONG_PRESS_MOVE_PX: 10,
+
+    /** Friend marker dot diameter in px (screen-space — counter-scaled against zoom). */
+    MARKER_DIAMETER: 26,
+    /** Own-position dot diameter in px. */
+    SELF_MARKER_DIAMETER: 18,
+    /** Inset in px from the stage edge when clamping an off-map friend to the border. */
+    OFF_MAP_INSET_PX: 22,
+    /** Half-height in px of the off-map directional arrow (triangle points toward the person). */
+    OFF_MAP_ARROW_SIZE_PX: 7,
+
+    /**
+     * Per-member marker palette, assigned by stable memberId hash. Deliberately
+     * DISJOINT from the rarity tier colors (data semantics never chrome, B3) —
+     * people are not rarities. 6 hues covers the 5-friend group with one spare.
+     */
+    MEMBER_COLORS: ["#22D3EE", "#F472B6", "#A3E635", "#FB923C", "#C084FC", "#FACC15"],
+
+    /** Staleness opacity by tier (fresh/recent/stale) — `gone` never renders. */
+    STALENESS_OPACITY: { fresh: 1, recent: 0.7, stale: 0.4 },
+
+    /**
+     * The Gizz avatar set — emoji only (zero assets, offline-safe, renders in
+     * any friend's system font). Every entry is a real KGLW reference; labels
+     * show in the picker and as the button's accessible name. null (not in
+     * this list) = the name-initial fallback. A friend's beacon avatar is an
+     * UNTRUSTED string — it renders as React text in a fixed-size circle and
+     * is length-clamped by core's AVATAR_MAX_LENGTH, so an off-list value
+     * degrades to a weird glyph, never an injection.
+     */
+    AVATARS: [
+      { emoji: "🐊", label: "Gizzy Gator" },
+      { emoji: "🦎", label: "Lizard Wizard" },
+      { emoji: "🧙", label: "Wizard" },
+      { emoji: "🐍", label: "Rattlesnake" },
+      { emoji: "🐀", label: "Rats' Nest" },
+      { emoji: "🐉", label: "PetroDragonic" },
+      { emoji: "🦋", label: "Butterfly 3000" },
+      { emoji: "🍄", label: "Mushroom" },
+      { emoji: "🌋", label: "Lava" },
+      { emoji: "🤖", label: "Han-Tyumi" },
+      { emoji: "🐟", label: "Fishies" },
+      { emoji: "👁️", label: "Eyes Like the Sky" },
+    ],
+
+    /**
+     * Hide the own-position accuracy ring when its radius exceeds this fraction
+     * of the image width. Desktop/IP-based fixes report ±km accuracies whose
+     * ring would dwarf the whole site map — an honest ring that unreadable is
+     * just noise. (GPS at the venue is ±10–50m ≈ tens of px — always shown.)
+     */
+    ACCURACY_RING_MAX_FRACTION: 0.25,
+  },
+
   /** UI-SPEC §Copywriting Contract. */
   copy: {
     installBanner: {
@@ -995,6 +1076,70 @@ export const config = {
         /** Per-show card footer label above the show's own date · venue (plan 10-02). */
         showLabel: "This show",
       },
+    },
+
+    /**
+     * GizzMap copy — verbatim. Throughline: honest staleness ("4 min ago",
+     * never a live-looking stale pin) and zero-drama degradation (offline /
+     * no relay / no GPS all read as calm states, not errors). Friend names +
+     * statuses + pin labels are friend-crossing UNTRUSTED strings — always
+     * rendered as React text, never HTML (the compare-view discipline).
+     */
+    map: {
+      /** Join card (no group configured yet). */
+      joinHeading: "Join your crew",
+      joinBody:
+        "Everyone enters the same group phrase. Locations are encrypted — only your crew can read them, and they expire after 12 hours.",
+      secretPlaceholder: "Group phrase",
+      namePlaceholder: "Your name",
+      joinCta: "Join",
+      joinSecretTooShort: (min: number): string =>
+        `Group phrase needs at least ${min} characters.`,
+      joinNeedsName: "Add your name so friends know whose dot you are.",
+      /** crypto.subtle needs a secure context (https/localhost) — the LAN-http testing trap (uuid.ts precedent). */
+      joinInsecureContext:
+        "Joining needs a secure connection (https). Open Guezzer over https and try again.",
+      /** Muted banner when config.map.RELAY_BASE_URL is empty. */
+      relayNotConfigured: "Friend sync isn't set up yet — showing just you.",
+      /** Muted line when geolocation is denied/unavailable — check-ins still work. */
+      geoDenied: "No GPS — your dot is hidden, but check-ins and pins still work.",
+      /** Muted line while the first fix is pending (permission prompt up, or GPS still searching). */
+      geoLocating: "Locating you…",
+      /** Share-location toggle label ("ghost mode" off = sharing). */
+      shareToggle: "Share my location",
+      /** Status chips — one-tap check-ins; tap the active chip again to clear. */
+      statusPresets: [
+        "At the rail",
+        "Beer run",
+        "Back at camp",
+        "Heading to stage",
+        "At the pin",
+      ] as const,
+      /** Off-map friend chip: distance + compass toward them ("2.1 km NE"). */
+      offMap: (km: string, compass: string): string => `${km} km ${compass}`,
+      /** Own-dot label — always rendered so your dot is findable among 5 friends in the dark. */
+      selfLabel: "You",
+      /** Avatar picker sheet. */
+      avatarHeading: "Pick your avatar",
+      avatarCta: "Change avatar",
+      avatarUseInitial: "Use my initial",
+      /** Pin sheet (long-press to drop). */
+      pinHeading: "Drop a meeting pin",
+      pinLabelPlaceholder: "Meet here after the encore",
+      pinCta: "Drop pin",
+      pinCancel: "Cancel",
+      /** Existing-pin sheet. */
+      pinByLine: (name: string): string => `Dropped by ${name}`,
+      pinDelete: "Remove pin",
+      /** Leave-group control (Settings-adjacent, on the map). */
+      leaveCta: "Leave group",
+      leaveHeading: "Leave this group?",
+      leaveBody: "Clears the group phrase and everyone's pins from this phone. Your dex is untouched.",
+      leaveConfirm: "Leave",
+      leaveCancel: "Stay",
+      /** Map-artifact load failure (mirrors the model-load-failure pattern). */
+      loadFailureHeading: "Couldn't load the festival map.",
+      loadFailureBody: "Reopen Guezzer to try again.",
     },
 
     /**

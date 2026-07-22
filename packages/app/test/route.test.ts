@@ -32,7 +32,7 @@ describe("useHashRoute / currentRoute", () => {
   });
 
   it("exposes the full ROUTES allow-list", () => {
-    expect(ROUTES).toEqual(["show", "explore", "dex", "settings"]);
+    expect(ROUTES).toEqual(["show", "explore", "map", "dex", "settings"]);
   });
 
   it("resolves #/settings to the settings route (D-14 allow-list extension)", () => {

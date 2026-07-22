@@ -170,12 +170,53 @@ export interface DbSnapshot {
   trackedEntries: TrackedEntry[];
 }
 
+// ── GizzMap: friend presence + meeting pins (version(5)) ─────────────────────
+
+/**
+ * A friend's last-known decrypted beacon (GizzMap). One row per member,
+ * upserted by the sync loop — NEVER a history (mirrors the relay's no-history
+ * TTL ethos client-side). `receivedAt` is the RELAY's receipt stamp (the
+ * honesty clock — device clocks drift); `updatedAt` is the sender's GPS-fix
+ * stamp. Deliberately EXCLUDED from DbSnapshot/export: presence is ephemeral
+ * by design and TTLs out everywhere — a backup must never resurrect it.
+ */
+export interface FriendBeaconRow {
+  memberId: string;
+  name: string;
+  lat: number;
+  lng: number;
+  accuracyM: number | null;
+  status: string | null;
+  /** Gizz-set emoji; null = render the name initial. Not indexed — no schema bump needed. */
+  avatar: string | null;
+  updatedAt: number;
+  receivedAt: number;
+}
+
+/**
+ * A shared "meet here" pin (GizzMap), synced in lat/lng ALWAYS (each device
+ * renders through its own georef fit). `synced` is a 0/1 flag (indexed —
+ * Dexie can't index booleans): pins created offline stay 0 until the sync
+ * loop pushes them. Excluded from DbSnapshot/export like beacons.
+ */
+export interface MapPinRow {
+  pinId: string;
+  createdBy: string;
+  label: string;
+  lat: number;
+  lng: number;
+  createdAt: number;
+  synced: 0 | 1;
+}
+
 export class GuezzerDB extends Dexie {
   meta!: Table<MetaRow, string>;
   attendedShows!: Table<AttendedShow, number>;
   archiveShows!: Table<ArchiveShowRow, number>;
   trackedShows!: Table<TrackedShow, string>;
   trackedEntries!: Table<TrackedEntry, number>;
+  friendBeacons!: Table<FriendBeaconRow, string>;
+  mapPins!: Table<MapPinRow, string>;
 
   constructor() {
     super(config.DB_NAME);
@@ -232,6 +273,14 @@ export class GuezzerDB extends Dexie {
     // table has no pre-existing rows to backfill.
     this.version(4).stores({
       archiveShows: "&show_id",
+    });
+
+    // Version 5 (GizzMap): ADDITIVE only — two new tables for friend presence
+    // and shared meeting pins. `synced` indexed so the sync loop can query
+    // offline-created pins cheaply. No `.upgrade` needed (new tables only).
+    this.version(5).stores({
+      friendBeacons: "&memberId",
+      mapPins: "&pinId, synced",
     });
   }
 }

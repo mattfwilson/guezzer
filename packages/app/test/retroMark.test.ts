@@ -38,8 +38,8 @@ describe("markShowAttended / unmarkShowAttended (DEX-02)", () => {
   beforeEach(resetDb);
   afterEach(resetDb);
 
-  it("opens at Dexie version(4) with the archiveShows table present", () => {
-    expect(db.verno).toBe(4);
+  it("opens at Dexie version(5) with the archiveShows table present", () => {
+    expect(db.verno).toBe(5);
     expect(db.archiveShows).toBeDefined();
   });
 
