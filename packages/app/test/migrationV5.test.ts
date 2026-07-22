@@ -42,6 +42,10 @@ function makeCard(seed = "seed-1"): BingoCard {
   };
 }
 
+// The identity every seeded card is stamped with, so the userId-scoped
+// snapshot()/importSnapshot() (plan 18-07) include them.
+const V5_USER = "user-v5";
+
 function makeRow(cardId: string, seed: string): BingoCardRow {
   return {
     cardId,
@@ -52,6 +56,7 @@ function makeRow(cardId: string, seed: string): BingoCardRow {
     showDate: "2026-08-15",
     venueName: null,
     city: null,
+    userId: V5_USER,
   };
 }
 
@@ -138,7 +143,7 @@ describe("db version(5) bingoCards export/import threading (D-13)", () => {
 
   it("snapshot() includes bingoCards as an array", async () => {
     await db.bingoCards.put(makeRow("card-a", "seed-a"));
-    const snap = await snapshot();
+    const snap = await snapshot(V5_USER);
     expect(Array.isArray(snap.bingoCards)).toBe(true);
     expect(snap.bingoCards).toHaveLength(1);
     expect(snap.bingoCards[0].cardId).toBe("card-a");
@@ -161,7 +166,7 @@ describe("db version(5) bingoCards export/import threading (D-13)", () => {
       trackedEntries: [],
       bingoCards: [incomingShared],
     };
-    await importSnapshot(snap);
+    await importSnapshot(snap, V5_USER);
 
     // Union-only: card-local survives (bulkPut, not clear+rewrite).
     expect(await db.bingoCards.count()).toBe(2);

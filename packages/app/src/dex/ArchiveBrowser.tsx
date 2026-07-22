@@ -38,6 +38,7 @@ import {
   type ArchiveShowRow,
 } from "../db/db.ts";
 import { useOnlineStatus } from "../live/useOnlineStatus.ts";
+import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
 
 interface ArchiveBrowserProps {
   archive: ArchiveArtifact;
@@ -57,9 +58,27 @@ export function ArchiveBrowser({ archive, onClose }: ArchiveBrowserProps) {
   const copy = config.copy.archive;
   const online = useOnlineStatus();
 
+  // Scope both attendance sources to the current identity (AUTH-05 / D-09): a
+  // borrowed phone must not surface the prior identity's marks. Null identity
+  // falls back to the unscoped read (the AuthGate guarantees an identity when
+  // this view renders in the app).
+  const currentUserId = useAuthIdentity()?.userId;
+
   // Both attendance sources — reactive. A mark/unmark anywhere re-runs these.
-  const attendedShows = useLiveQuery(() => db.attendedShows.toArray());
-  const trackedShows = useLiveQuery(() => db.trackedShows.toArray());
+  const attendedShows = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.attendedShows.toArray()
+        : db.attendedShows.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
+  const trackedShows = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.trackedShows.toArray()
+        : db.trackedShows.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
 
   // Build the core searcher + year groups ONCE over the static archive.
   const search = useMemo(() => makeArchiveSearcher(archive.shows), [archive]);

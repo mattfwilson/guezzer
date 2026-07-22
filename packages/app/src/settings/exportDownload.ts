@@ -17,6 +17,7 @@
 import { serializeExport } from "@guezzer/core";
 import { config } from "../config.ts";
 import { snapshot } from "../db/db.ts";
+import { readIdentityRecord } from "../auth/identityRecord.ts";
 import { triggerDownload } from "./triggerDownload.ts";
 
 /** Dated `YYYY-MM-DD` stamp for the backup filename (local time). */
@@ -35,10 +36,17 @@ function backupDateStamp(): string {
  */
 export async function exportBackup(): Promise<{ ok: boolean }> {
   try {
+    // Scope the export to the signed-in identity (AUTH-05 / D-09, plan 18-07):
+    // a backup carries ONLY that identity's rows, never a co-resident friend's
+    // catches (Pitfall 6). With no identity present, ABORT rather than dump an
+    // unscoped/foreign snapshot — the never-throw contract holds ({ ok: false }).
+    const userId = readIdentityRecord()?.userId;
+    if (userId == null) return { ok: false };
+
     // Single assembly path (plan 06-07): db.snapshot() reads every table plus
     // the `owner` identity, so the v2 envelope (owner + archiveShows) is built
     // in ONE place shared with the import's local-snapshot read.
-    const dbSnapshot = await snapshot();
+    const dbSnapshot = await snapshot(userId);
 
     const envelope = serializeExport(
       dbSnapshot,

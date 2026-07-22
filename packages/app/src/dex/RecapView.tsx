@@ -27,6 +27,7 @@ import { useMemo, useState } from "react";
 import { BingoBoard } from "../components/BingoBoard.tsx";
 import { config } from "../config.ts";
 import { db } from "../db/db.ts";
+import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
 import { replayCard } from "../games/bingoReplay.ts";
 import { loadMatrix } from "../show/matrix.ts";
 import { loadArchive } from "./archive-loader.ts";
@@ -64,15 +65,51 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
   // open state + pre-built File rather than swapping the recap sheet's data.
   const [bingoShareOpen, setBingoShareOpen] = useState(false);
 
+  // Scope every namespaced-table read to the current identity (AUTH-05 / D-09):
+  // a borrowed phone must not surface the prior identity's recap. Null identity
+  // falls back to the unscoped read (the AuthGate guarantees an identity when
+  // this view renders in the app).
+  const currentUserId = useAuthIdentity()?.userId;
+
   // Live reads — Dexie is the single source of truth (a rename/edit re-derives).
-  const trackedShows = useLiveQuery(() => db.trackedShows.toArray());
-  const trackedEntries = useLiveQuery(() => db.trackedEntries.toArray());
-  const attendedShows = useLiveQuery(() => db.attendedShows.toArray());
-  const archiveShows = useLiveQuery(() => db.archiveShows.toArray());
+  const trackedShows = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.trackedShows.toArray()
+        : db.trackedShows.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
+  const trackedEntries = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.trackedEntries.toArray()
+        : db.trackedEntries.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
+  const attendedShows = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.attendedShows.toArray()
+        : db.attendedShows.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
+  const archiveShows = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.archiveShows.toArray()
+        : db.archiveShows.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
   // Phase-15 (BINGO-07, D-05): the persisted bingo cards. A row keyed to this
   // session drives the read-only replay board below; when none matches, NO Bingo
   // section renders (the `bingo` memo returns null → the block is absent).
-  const bingoCards = useLiveQuery(() => db.bingoCards.toArray());
+  const bingoCards = useLiveQuery(
+    () =>
+      currentUserId == null
+        ? db.bingoCards.toArray()
+        : db.bingoCards.where("userId").equals(currentUserId).toArray(),
+    [currentUserId],
+  );
 
   // Guarded, memoized static artifacts + the module-memoized rarity index.
   const archiveResult = loadArchive();

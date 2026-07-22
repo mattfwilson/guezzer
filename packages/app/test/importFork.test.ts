@@ -11,6 +11,16 @@ import {
 } from "../src/db/db.ts";
 import { classifyImport, pickAndImport } from "../src/settings/importPicker.ts";
 import { isTypedNameMine } from "../src/settings/ownerMatch.ts";
+import { writeIdentityRecord } from "../src/auth/identityRecord.ts";
+
+// The signed-in identity pickAndImport self-sources (plan 18-07): seeded local
+// rows are stamped with it so the userId-scoped local snapshot includes them.
+const FORK_USER = "user-fork";
+
+// pickAndImport reads readIdentityRecord() — set an identity before every test.
+beforeEach(() => {
+  writeIdentityRecord({ userId: FORK_USER, displayName: "Fork Tester" });
+});
 
 /**
  * Import fork (D-17, RESEARCH Pattern 5, plan 06-10). `classifyImport` runs the
@@ -97,7 +107,7 @@ describe("classifyImport — the D-17 compare-vs-merge fork (Pattern 5)", () => 
     // Seed representative local state across every table.
     await setMeta("ownerName", "Matt");
     await db.attendedShows.put({ show_id: 111, showDate: "2020-01-01" });
-    const before = await snapshot();
+    const before = await snapshot("user-fork");
 
     const friendJson = jsonOf(
       envelope({
@@ -109,7 +119,7 @@ describe("classifyImport — the D-17 compare-vs-merge fork (Pattern 5)", () => 
     expect(result.kind).toBe("friend");
 
     // The friend path NEVER calls importSnapshot — every table is byte-identical.
-    const after = await snapshot();
+    const after = await snapshot("user-fork");
     expect(after).toEqual(before);
   });
 
@@ -154,8 +164,10 @@ describe("classifyImport — the D-17 compare-vs-merge fork (Pattern 5)", () => 
 
   it("evicted DB + typed own name: union merge preserves local data — PWA-05", async () => {
     // Evicted-DB state: NO ownerName meta row (clearTables/resetDb leaves it unset).
-    // Seed local rows across two tables so the union is proven across the schema.
-    await db.attendedShows.put({ show_id: 111, showDate: "2020-01-01" });
+    // Seed local rows across two tables (stamped with the signed-in identity so
+    // the userId-scoped local snapshot includes them) so the union is proven
+    // across the schema.
+    await db.attendedShows.put({ show_id: 111, showDate: "2020-01-01", userId: FORK_USER });
     const localShow: TrackedShow = {
       sessionId: "s-local",
       date: "2020-01-01",
@@ -166,6 +178,7 @@ describe("classifyImport — the D-17 compare-vs-merge fork (Pattern 5)", () => 
       venueId: null,
       venueName: null,
       city: null,
+      userId: FORK_USER,
     };
     await db.trackedShows.put(localShow);
 
