@@ -107,11 +107,11 @@ describe("db version(5) additive migration (D-14 / SC-4)", () => {
     });
     oldDb.close();
 
-    // Reopen through the real schema → the additive version(5) bingoCards table
-    // and version(6) GizzMap tables are both applied; the DB opens at the max
-    // version (6).
+    // Reopen through the real schema → the additive version(5) bingoCards table,
+    // version(6) GizzMap tables, and version(7) userId-index block are all
+    // applied; the DB opens at the max version (7).
     await db.open();
-    expect(db.verno).toBe(6);
+    expect(db.verno).toBe(7);
 
     // The new table exists and is empty.
     expect(await db.bingoCards.count()).toBe(0);
