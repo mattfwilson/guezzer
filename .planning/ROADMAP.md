@@ -116,9 +116,9 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 
 **Wave 2** *(depends on Wave 1)*
 
-- [ ] 18-04-PLAN.md — Sign-in surface: name-picker + password + connect-once + inline error + roster (AUTH-01)
-- [ ] 18-05-PLAN.md — Identity chrome: header avatar + sign-out sheet + SyncDot reconnecting state (AUTH-03, AUTH-04, AUTH-07, AUTH-08)
-- [ ] 18-07-PLAN.md — Scope the four view consumers + export/import to the current identity AND stamp userId on every create path via Dexie hooks (AUTH-05)
+- [x] 18-04-PLAN.md — Sign-in surface: name-picker + password + connect-once + inline error + roster (AUTH-01)
+- [x] 18-05-PLAN.md — Identity chrome: header avatar + sign-out sheet + SyncDot reconnecting state (AUTH-03, AUTH-04, AUTH-07, AUTH-08)
+- [x] 18-07-PLAN.md — Scope the four view consumers + export/import to the current identity AND stamp userId on every create path via Dexie hooks (AUTH-05)
 
 **Wave 3** *(depends on Wave 2 — THE CRUX)*
 
@@ -179,7 +179,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 4/4 | Complete | 2026-07-21 |
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 6/6 | Complete | 2026-07-21 |
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
-| 18. Accounts & Offline-Safe Identity | v2.0 | 3/7 | In Progress|  |
+| 18. Accounts & Offline-Safe Identity | v2.0 | 6/7 | In Progress|  |
 | 19. Shared Dex Progress | v2.0 | 0/? | Not started | - |
 | 20. Presence & Interactions | v2.0 | 0/? | Not started | - |
 
