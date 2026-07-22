@@ -77,6 +77,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
   2. The `public.progress` table (keyed by `user_id`) enforces read-all / write-own RLS, and is added to the `supabase_realtime` publication so `postgres_changes` actually fires (SETUP-01).
   3. No secret is committed to git — the `service_role` key and all account passwords live in env only (never `VITE_`-prefixed); the `anon` key + project URL may ship in client code (SETUP-03).
   4. `packages/core` imports zero Supabase code — a boundary check confirms the transition-matrix / dex derivations stay pure and DOM/network-free (SETUP-04).
+
 **Plans**: 4 plans
 
 **Wave 1**
@@ -109,9 +110,9 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 
 **Wave 1** *(parallel — no file overlap)*
 
-- [ ] 18-01-PLAN.md — Identity color core helper + `config.auth` palette/copy + "Gizz With Friends" rebrand chrome (AUTH-07, AUTH-06)
-- [ ] 18-02-PLAN.md — Dexie `version(7)` namespacing + `userId` field + one-time claim (AUTH-05)
-- [ ] 18-03-PLAN.md — App-owned identity record substrate + `useAuthIdentity` hook (AUTH-02)
+- [x] 18-01-PLAN.md — Identity color core helper + `config.auth` palette/copy + "Gizz With Friends" rebrand chrome (AUTH-07, AUTH-06)
+- [x] 18-02-PLAN.md — Dexie `version(7)` namespacing + `userId` field + one-time claim (AUTH-05)
+- [x] 18-03-PLAN.md — App-owned identity record substrate + `useAuthIdentity` hook (AUTH-02)
 
 **Wave 2** *(depends on Wave 1)*
 
@@ -178,7 +179,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 4/4 | Complete | 2026-07-21 |
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 6/6 | Complete | 2026-07-21 |
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
-| 18. Accounts & Offline-Safe Identity | v2.0 | 0/6 | Planned | - |
+| 18. Accounts & Offline-Safe Identity | v2.0 | 3/7 | In Progress|  |
 | 19. Shared Dex Progress | v2.0 | 0/? | Not started | - |
 | 20. Presence & Interactions | v2.0 | 0/? | Not started | - |
 
