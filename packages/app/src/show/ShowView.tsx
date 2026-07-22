@@ -25,7 +25,14 @@
  * `flex-1` child that never overflows. The ActionBar + CometTrail slots land in
  * 04-05/04-06.
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useReducedMotion } from "motion/react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -73,6 +80,7 @@ import { PreShowLauncher } from "./PreShowLauncher.tsx";
 import { BingoPeekStrip } from "./BingoPeekStrip.tsx";
 import { StartShowNudge } from "./StartShowNudge.tsx";
 import { navigate } from "../routing/useHashRoute.ts";
+import { ReconnectContext } from "../auth/reconnectContext.ts";
 import { SearchSheet, type SearchSelection } from "./SearchSheet.tsx";
 import { getOpenerSuggestions } from "./openerSuggestions.ts";
 import { WakeLockNotice } from "./WakeLockNotice.tsx";
@@ -97,6 +105,13 @@ export function ShowView() {
   const wakeDismissedRef = useRef(false);
   const copy = config.copy.show;
   const reduce = useReducedMotion() ?? false;
+
+  // AUTH-08 (Plan 18-06, D-07): the boot gate's background reconciler publishes a
+  // calm `reconnecting` signal (identity present AND offline / session not yet
+  // refreshed). Threaded into the header SyncDot below as the amber "Reconnecting…"
+  // affordance — never a "logged out". Defaults false outside the gate provider
+  // (e.g. isolated ShowView tests), so the online/offline behavior is unchanged.
+  const reconnecting = useContext(ReconnectContext);
 
   // POLISH (260717-02n / 260717-ij8): ambient LiveGizz background. Seeded with one
   // random bundled album cover at mount (stable across the pre-show → active →
@@ -503,7 +518,12 @@ export function ShowView() {
           {/* Quiet online/offline indicator (D-08) — passive, next to the tally.
               End Show moved into the FAB speed-dial (last item) — the header now
               carries only passive status (SyncDot + tally). */}
-          <SyncDot online={online} schemaDrift={schemaDrift} novelKeys={novelKeys} />
+          <SyncDot
+            online={online}
+            schemaDrift={schemaDrift}
+            novelKeys={novelKeys}
+            reconnecting={reconnecting}
+          />
           <TallyReadout tally={session.tally} />
         </div>
       </div>
