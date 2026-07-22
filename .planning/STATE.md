@@ -2,33 +2,33 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Pre-Show Hardening
-status: executing
+status: Awaiting next milestone
 stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-07-21T11:50:15.262Z"
-last_activity: 2026-07-21 -- Phase 16 execution started
+last_updated: "2026-07-22T01:22:52.961Z"
+last_activity: 2026-07-22 — Milestone v1.2 completed and archived
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 28
-  completed_plans: 22
-  percent: 79
+  completed_plans: 28
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-19 after v1.1 milestone close)
+See: .planning/PROJECT.md (updated 2026-07-22 after v1.2 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 16 — gizz-bingo-build-live-marking-celebrations
+**Current focus:** No milestone in progress — v1.2 shipped. Plan the next milestone with `/gsd-new-milestone`.
 
 ## Current Position
 
-Phase: 16 (gizz-bingo-build-live-marking-celebrations) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 16
-Last activity: 2026-07-21 -- Phase 16 execution started
+Phase: Milestone v1.2 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-22 — Milestone v1.2 completed and archived
 
 ## Performance Metrics
 
@@ -241,6 +241,26 @@ Recent decisions affecting current work:
 
 ## Deferred Items
 
+Items acknowledged and deferred at **v1.2 milestone close on 2026-07-22** (owner-approved [A] Acknowledge-all). The pre-close audit flagged 20 open artifacts; all are benign — false positives (completed-but-unmarked, superseded, or a not-a-defect index) or genuine v2 backlog. None blocking. The three phase HUMAN-UAT files flagged (11/13/16) are all status `passed` with 0 pending scenarios; their VERIFICATION.md markers were reconciled `human_needed → passed` this session. The Phase-01 verification and `knowledge-base` flags are the same stale false alarms carried since the v1.0/v1.1 closes.
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | knowledge-base | not-a-defect (resolved-sessions index, false alarm — same as v1.0/v1.1 closes) |
+| verification | Phase 01: 01-VERIFICATION.md (human_needed) | superseded — the DATA-04 tuning spot-check was resolved by VALID-01 (Phase 10); stale v1.0 marker |
+| uat | Phase 11: 11-HUMAN-UAT.md (passed, 0 pending) | done — 2/2 passed on-device 2026-07-19; VERIFICATION.md reconciled to `passed` this session |
+| uat | Phase 13: 13-HUMAN-UAT.md (passed, 0 pending) | done — passed on-device; flagged only because "passed" ≠ literal "complete" |
+| uat | Phase 16: 16-HUMAN-UAT.md (passed, 0 pending) | done — 5/5 passed on-device 2026-07-21; VERIFICATION.md reconciled to `passed` this session |
+| quick_task ×10 | 260717-gvm / -ij8 / -k1v / -kxs / -n6a / -onl / -p4s / -sjg, 260718-12j / -1no | complete (SUMMARY on file; no parseable completion marker — same false-positive class as v1.1 close) |
+| todo/ui | bottom-sheets smooth up/down animation + always-on-top layering | pending — genuine v2 UI idea (carry to next milestone) |
+| todo/ui | GizzVerse animate directional-flow particles along constellation | pending — genuine v2 UI idea (conflicts with settle-and-freeze; carry to v2) |
+| todo/ui | app-wide "Mon D, YYYY" readable full-date format | pending — genuine v2 UI idea (carry to next milestone) |
+| todo/ui | final-show share card uses GizzDex totals | resolved 2026-07-18 in Phase 10-02 (per-show recap share card, `3c09839`) — stale flag |
+| todo/feature | badge system with visible unearned badges | pending — genuine v2 feature idea (carry to next milestone) |
+| todo/misc | remaining pending todos + feature-idea captures | pending — v2 backlog (residency mode, Guezz League, Gizzle, dossiers, etc.; carry to next milestone) |
+| debug | orb-label-overflow-small-orbs | open note in `.planning/debug/` — low-severity Explore label overflow; review opportunistically before show #1 |
+
+---
+
 Items acknowledged and deferred at **v1.1 milestone close on 2026-07-19** (owner-approved [A] Acknowledge-all). The pre-close audit flagged 16 open artifacts; all are benign — completed-but-unmarked, superseded, or intentionally deferred to v2. None blocking. The 3 genuine v2 UI todos carry into the next milestone.
 
 | Category | Item | Status |
@@ -284,6 +304,4 @@ Resume file: .planning/phases/16-gizz-bingo-build-live-marking-celebrations/16-U
 
 ## Operator Next Steps
 
-- v1.1 milestone complete, archived, and tagged (`v1.1`). Both v1.0 and v1.1 shipped; the app is show-ready for the first show (late Aug/Sep 2026).
-- No milestone in progress. To start the next one: `/clear` then `/gsd-new-milestone` (v2 backlog in PROJECT.md ## Next Milestone — set-position signal, album-genre experiment, Explore era-slider, shared setlists, + 3 carried UI todos).
-- Push the tag when ready: `git push origin v1.1` (asked at close; push separately if declined).
+- Start the next milestone with /gsd-new-milestone
