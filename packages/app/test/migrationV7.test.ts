@@ -1,6 +1,7 @@
 import Dexie from "dexie";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { config } from "../src/config.ts";
+import { claimLegacyDexOnce } from "../src/auth/claimDex.ts";
 import { db, getMeta } from "../src/db/db.ts";
 
 /**
@@ -127,5 +128,56 @@ describe("db version(7) additive namespacing (D-11 / SC-4)", () => {
     expect(show?.userId).toBeUndefined();
     const attended = await db.attendedShows.get(999);
     expect(attended?.userId).toBeUndefined();
+  });
+});
+
+describe("claimLegacyDexOnce — meta-gated exactly-once legacy-row stamp (AUTH-05 / D-08)", () => {
+  beforeEach(resetDb);
+  afterEach(resetDb);
+
+  it("stamps every untagged row across the 5 domain tables and sets the dexClaimedBy gate", async () => {
+    await seedV6Db();
+    await db.open();
+
+    await claimLegacyDexOnce("user-A");
+
+    expect((await db.attendedShows.get(999))?.userId).toBe("user-A");
+    expect((await db.archiveShows.get(1782000000))?.userId).toBe("user-A");
+    expect((await db.trackedShows.get("s1"))?.userId).toBe("user-A");
+    const entry = await db.trackedEntries.where("sessionId").equals("s1").first();
+    expect(entry?.userId).toBe("user-A");
+    expect((await db.bingoCards.get("s1"))?.userId).toBe("user-A");
+
+    expect(await getMeta("dexClaimedBy")).toBe("user-A");
+  });
+
+  it("a second claim with a different userId is a no-op — the first signer keeps the rows", async () => {
+    await seedV6Db();
+    await db.open();
+
+    await claimLegacyDexOnce("user-A");
+    await claimLegacyDexOnce("user-B");
+
+    // The dexClaimedBy gate short-circuits the second claim: rows keep user-A.
+    expect((await db.attendedShows.get(999))?.userId).toBe("user-A");
+    expect((await db.trackedShows.get("s1"))?.userId).toBe("user-A");
+    expect(await getMeta("dexClaimedBy")).toBe("user-A");
+  });
+
+  it("does not re-stamp a row that already carries a userId", async () => {
+    await seedV6Db();
+    await db.open();
+    // A pre-tagged row (e.g. written by a future signed-in user) must survive
+    // the claim untouched — the claim only fills undefined userIds.
+    await db.attendedShows.put({
+      show_id: 1000,
+      showDate: "2026-02-02",
+      userId: "user-Z",
+    });
+
+    await claimLegacyDexOnce("user-A");
+
+    expect((await db.attendedShows.get(1000))?.userId).toBe("user-Z");
+    expect((await db.attendedShows.get(999))?.userId).toBe("user-A");
   });
 });
