@@ -25,7 +25,7 @@ import { identityColorIndex } from "@guezzer/core";
 import { Sheet } from "../components/Sheet.tsx";
 import { config } from "../config.ts";
 import { supabase } from "../db/supabase.ts";
-import { clearIdentityRecord } from "./identityRecord.ts";
+import { clearIdentityRecord, markUserSignOut } from "./identityRecord.ts";
 import { useAuthIdentity } from "./useAuthIdentity.ts";
 
 /** Dark-on-light initials color — reuses ORB_TEXT_COLOR (D-12); ≥4.5:1 on every palette hue. */
@@ -53,6 +53,12 @@ export function IdentityAvatar() {
   async function handleSignOut() {
     // Neutral hand-off, not a destructive wipe (D-09): clear the session +
     // app-owned record only. Gate teardown/re-render is Plan 06.
+    //
+    // Flag the explicit user intent BEFORE signOut (WR-01): supabase-js's
+    // resulting SIGNED_OUT event reaches the AuthGate reconciler, which clears
+    // the identity ONLY when this flag is set — distinguishing this deliberate
+    // hand-off from a background token-refresh-failure SIGNED_OUT.
+    markUserSignOut();
     await supabase.auth.signOut();
     clearIdentityRecord();
     setSheetOpen(false);

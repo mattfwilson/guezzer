@@ -39,8 +39,12 @@ vi.mock("../src/auth/SignInScreen.tsx", () => ({
 }));
 
 const { AuthGate } = await import("../src/auth/AuthGate.tsx");
-const { writeIdentityRecord, clearIdentityRecord, readIdentityRecord } =
-  await import("../src/auth/identityRecord.ts");
+const {
+  writeIdentityRecord,
+  clearIdentityRecord,
+  readIdentityRecord,
+  markUserSignOut,
+} = await import("../src/auth/identityRecord.ts");
 
 const IDENTITY = { userId: "user-A", displayName: "Ada" };
 
@@ -107,12 +111,33 @@ describe("AuthGate — offline-safe boot interposition (AUTH-02, THE CRUX)", () 
     expect(readIdentityRecord()).toEqual(IDENTITY);
     expect(screen.getByText("APP CONTENT")).toBeInTheDocument();
 
-    // An explicit SIGNED_OUT DOES clear + tear down.
+    // A USER-INITIATED SIGNED_OUT (IdentityAvatar flags the intent first) DOES
+    // clear + tear down.
     act(() => {
+      markUserSignOut();
       authCallback?.("SIGNED_OUT", null);
     });
     expect(readIdentityRecord()).toBeNull();
     expect(screen.getByText(/SIGN IN SCREEN/)).toBeInTheDocument();
     expect(screen.queryByText("APP CONTENT")).not.toBeInTheDocument();
+  });
+
+  it("does NOT clear the identity on a library-emitted SIGNED_OUT (online token-refresh failure) — WR-01/AUTH-04/T-18-06-A", () => {
+    // supabase-js (autoRefreshToken) emits SIGNED_OUT on a definitive
+    // invalid-grant refresh while online — NOT a user tap. Without the
+    // user-initiated flag set, the reconciler must leave a stale-token friend
+    // signed in (they reconnect calmly, amber SyncDot) rather than eject them.
+    writeIdentityRecord(IDENTITY);
+    render(<AuthGate />);
+    expect(authCallback).not.toBeNull();
+
+    act(() => {
+      // No markUserSignOut() — this is a background/refresh-driven event.
+      authCallback?.("SIGNED_OUT", null);
+    });
+
+    expect(readIdentityRecord()).toEqual(IDENTITY);
+    expect(screen.getByText("APP CONTENT")).toBeInTheDocument();
+    expect(screen.queryByText(/SIGN IN SCREEN/)).not.toBeInTheDocument();
   });
 });

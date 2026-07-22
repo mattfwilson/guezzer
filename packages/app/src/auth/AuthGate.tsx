@@ -20,9 +20,12 @@
  * `getSession()`/`onAuthStateChange` are still honored — but only in the
  * BACKGROUND reconciler (a `useEffect` that runs AFTER first paint). Their
  * result never gates boot; it only reconciles connectivity and drives the calm
- * reconnecting affordance (amber `SyncDot`). ONLY an explicit `SIGNED_OUT`
- * event clears the identity — a pending/failed offline refresh is NOT a
- * sign-out (Pitfall 3 / AUTH-08, threat T-18-06-A). Sign-out itself (the
+ * reconnecting affordance (amber `SyncDot`). ONLY a USER-INITIATED `SIGNED_OUT`
+ * clears the identity (WR-01): supabase-js also emits `SIGNED_OUT` on a
+ * definitive token-refresh failure while online, so the reconciler gates on the
+ * IdentityAvatar's explicit-sign-out flag (`consumeUserSignOut`) — a
+ * pending/failed offline refresh, and now a stale-token-online refresh failure,
+ * are NOT sign-outs (Pitfall 3 / AUTH-08, threat T-18-06-A). Sign-out itself (the
  * IdentityAvatar control, Plan 05) clears the record directly, which re-renders
  * this gate to the sign-in screen instantly with no flash of the prior dex
  * (D-10 teardown).
@@ -31,7 +34,7 @@ import { useEffect, useState } from "react";
 import { App } from "../App.tsx";
 import { supabase } from "../db/supabase.ts";
 import { useOnlineStatus } from "../live/useOnlineStatus.ts";
-import { clearIdentityRecord } from "./identityRecord.ts";
+import { clearIdentityRecord, consumeUserSignOut } from "./identityRecord.ts";
 import { ReconnectContext } from "./reconnectContext.ts";
 import { SignInScreen } from "./SignInScreen.tsx";
 import { useAuthIdentity } from "./useAuthIdentity.ts";
@@ -66,9 +69,13 @@ export function AuthGate() {
 
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT") {
-        // The ONLY event that clears the identity (D-10). A pending/failed
-        // offline refresh is a different event (or none) — it never reaches here.
-        clearIdentityRecord();
+        // supabase-js emits SIGNED_OUT for BOTH an explicit user sign-out AND a
+        // definitive token-refresh failure while online (WR-01 / AUTH-04/AUTH-08,
+        // T-18-06-A). Clear the app-owned identity ONLY when the IdentityAvatar
+        // control flagged an explicit sign-out (consumeUserSignOut). A
+        // refresh-driven SIGNED_OUT leaves a stale-token friend signed in — they
+        // reconnect calmly via the amber SyncDot below, never a mid-venue logout.
+        if (consumeUserSignOut()) clearIdentityRecord();
         setTokenFresh(false);
         return;
       }

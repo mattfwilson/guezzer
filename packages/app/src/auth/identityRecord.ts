@@ -78,3 +78,34 @@ export function clearIdentityRecord(): void {
   localStorage.removeItem(IDENTITY_KEY);
   window.dispatchEvent(new Event(IDENTITY_CHANGE_EVENT));
 }
+
+/**
+ * User-initiated sign-out intent flag (WR-01 / AUTH-04 / AUTH-08, threat
+ * T-18-06-A). supabase-js (default `autoRefreshToken: true`) emits a `SIGNED_OUT`
+ * event NOT only on an explicit user tap but also on a definitive token-refresh
+ * failure while ONLINE (a genuinely-invalidated refresh token). The AuthGate
+ * reconciler must clear the app-owned identity ONLY for the explicit case — a
+ * refresh-driven `SIGNED_OUT` should leave a stale-token friend signed in (they
+ * reconnect calmly via the amber SyncDot) rather than eject them mid-use.
+ *
+ * `IdentityAvatar.handleSignOut` calls {@link markUserSignOut} right before
+ * `supabase.auth.signOut()`; the reconciler {@link consumeUserSignOut consumes}
+ * the flag (read-and-reset) to decide whether a `SIGNED_OUT` was user-initiated.
+ */
+let userInitiatedSignOut = false;
+
+/** Flag the NEXT `SIGNED_OUT` as an explicit user action (IdentityAvatar). */
+export function markUserSignOut(): void {
+  userInitiatedSignOut = true;
+}
+
+/**
+ * Read-and-reset the user-initiated sign-out intent. Returns `true` exactly once
+ * per {@link markUserSignOut} call, then resets — so a subsequent library-emitted
+ * (refresh-failure) `SIGNED_OUT` is correctly treated as NOT user-initiated.
+ */
+export function consumeUserSignOut(): boolean {
+  const value = userInitiatedSignOut;
+  userInitiatedSignOut = false;
+  return value;
+}
