@@ -117,7 +117,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 
 - [ ] 18-04-PLAN.md — Sign-in surface: name-picker + password + connect-once + inline error + roster (AUTH-01)
 - [ ] 18-05-PLAN.md — Identity chrome: header avatar + sign-out sheet + SyncDot reconnecting state (AUTH-03, AUTH-04, AUTH-07, AUTH-08)
-- [ ] 18-07-PLAN.md — Scope the four namespaced-table view consumers + export/import to the current identity (AUTH-05)
+- [ ] 18-07-PLAN.md — Scope the four view consumers + export/import to the current identity AND stamp userId on every create path via Dexie hooks (AUTH-05)
 
 **Wave 3** *(depends on Wave 2 — THE CRUX)*
 
