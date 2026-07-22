@@ -15,10 +15,11 @@
 // the shipped client). The committed roster (./roster.ts) carries no secrets;
 // emails and passwords come from env keyed by the uppercased slug (D-08).
 //
-// Idempotency (D-06): re-running is safe. A duplicate email answers HTTP 422
-// (`email_exists`) on current GoTrue, or 400 with an "already registered" message
-// on older builds — the dual check (status 422 OR body regex) treats either as
-// "exists → skip", not an error.
+// Idempotency (D-06): re-running is safe. A duplicate email answers with a
+// specific `email_exists`/`user_already_exists` code (current GoTrue) or an
+// "already registered" message (older builds) — ONLY those precise signals are
+// treated as "exists → skip". A bare HTTP 422 (e.g. `weak_password`) or an
+// unrelated "... does not exist" error is a genuine failure, not a skip.
 
 import { pathToFileURL } from "node:url";
 import { roster } from "./roster.ts";
@@ -71,19 +72,24 @@ async function seedUsers(): Promise<SeedResult> {
     });
 
     const body: unknown = await res.json().catch(() => ({}));
+    const bodyText = JSON.stringify(body);
+    // D-06 idempotency: treat ONLY a genuine "already registered" signal as a
+    // skip. Match GoTrue's specific duplicate-email codes / message — NOT a
+    // blanket 422 (which also covers `weak_password`) or a bare `exists`
+    // substring (which also appears in unrelated "... does not exist" errors).
+    // Otherwise a real creation failure is silently counted as a skip. WR-01/WR-02.
+    const isDuplicate =
+      /"(error_)?code"\s*:\s*"(email_exists|user_already_exists)"/i.test(bodyText) ||
+      /already\s+(been\s+)?registered/i.test(bodyText);
     if (res.ok) {
       result.created += 1;
       console.log(`✓ created  ${email}`);
-    } else if (
-      res.status === 422 ||
-      /registered|already|exists/i.test(JSON.stringify(body))
-    ) {
-      // D-06 idempotency dual-check: existing account is a skip, not an error.
+    } else if (isDuplicate) {
       result.skipped += 1;
       console.log(`• exists   ${email} (unchanged)`);
     } else {
       result.failed += 1;
-      console.error(`✗ FAILED   ${email} → ${res.status} ${JSON.stringify(body)}`);
+      console.error(`✗ FAILED   ${email} → ${res.status} ${bodyText}`);
     }
   }
 
