@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Multi-User Foundation
 status: planning
-last_updated: "2026-07-22T04:06:57.607Z"
+last_updated: "2026-07-22T05:00:00.000Z"
 last_activity: 2026-07-22
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-22 after v1.2 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** No milestone in progress — v1.2 shipped. Plan the next milestone with `/gsd-new-milestone`.
+**Current focus:** v2.0 Multi-User Foundation — roadmap created (Phases 17–20, 27 requirements, 100% coverage). Next: plan Phase 17 (Backend Foundation & Secrets) with `/gsd-plan-phase 17`.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 17 — Backend Foundation & Secrets (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-22 — Milestone v2.0 started
+Status: Roadmap complete — ready to plan Phase 17
+Last activity: 2026-07-22 — v2.0 roadmap created (4 phases, 17–20)
 
 ## Performance Metrics
 
@@ -100,6 +100,7 @@ Last activity: 2026-07-22 — Milestone v2.0 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- Roadmap (v2.0): 27 requirements mapped to 4 phases (17–20), 100% coverage, one requirement category per phase — **SETUP + AUTH gate everything** (no identity → no `user_id` to key progress/presence). Phase 17 Backend Foundation & Secrets (SETUP-01..04: Supabase schema + read-all/write-own RLS + realtime publication, idempotent seed script, service_role/passwords env-only, core-purity boundary). Phase 18 Accounts & Offline-Safe Identity (AUTH-01..08; AUTH-02 offline-safe `getSession()` boot is the highest-risk item — must not regress v1 offline boot — device-verify before 19/20 build on it; ships the 'Gizz With Friends' rebrand). Phase 19 Shared Dex Progress (PROG-01..08; depends on AUTH identity + pure-core `deriveSharedProgress` Option-B payload; PROG-06 live `compareDexes` reuse needs that payload). Phase 20 Presence & Interactions (PRES-01..07; depends on AUTH but Postgres-independent/Realtime-only — parallelizable with 19; ephemeral presence/waves never persisted, coarse tab-level status only to stay clear of the deferred SOCL-V2-01 line).
 - Roadmap (v1.2): 22 requirements mapped to 6 phases (11–16), 100% coverage. **Bugs before Bingo** — Phase 11 Live-Sync & Prediction Correctness (LIVE-01/02/03 + PRED-01/02/03, Tier-1 residency-failure cluster, FIRST) → Phase 12 Data Safety & Integrity (SAFE-01..04) → Phase 13 Interface & Explore Polish (UX-01..04, lowest severity). Gizz Bingo decomposed into 3 phases behind TWO hard gates (GATE 1 = Phase 11 live-sync correctness; GATE 2 = Monte-Carlo fill-rate calibration writing locked constants to config.ts): Phase 14 pure-core marking/generation (BINGO-03) → Phase 15 persistence/lock/replay (BINGO-06/07) → Phase 16 build/live-marking/celebrations (BINGO-01/02/04/05/08). Segue excluded from the auto-mark catalog (TrackedEntry is song-level, no transitionKind).
 - Roadmap (v1.1): 9 hardening requirements grouped into 3 phases by theme — Phase 8 (UI polish + a11y, frontend), Phase 9 (data integrity + restore UX, core/data), Phase 10 (human/device pre-show validation). VALID-01/VALID-02 are human/device checkpoints, isolated in the final verification phase which depends on 8 and 9.
 - Roadmap: 🎯 (show-#1) requirements confined to Phases 1–5; Phases 6–7 may ship after show #1 without data loss (attendance auto-mark in Phase 4, export in Phase 5)
@@ -303,4 +304,4 @@ Resume file: .planning/phases/16-gizz-bingo-build-live-marking-celebrations/16-U
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan the first v2.0 phase with /gsd-plan-phase 17 (Backend Foundation & Secrets)

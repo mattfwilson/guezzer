@@ -90,43 +90,43 @@ Explicitly excluded to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Filled during roadmap creation.
+Which phases cover which requirements. Filled during roadmap creation (Phases 17–20, continue-numbering from v1.2's Phase 16).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | TBD | Pending |
-| SETUP-02 | TBD | Pending |
-| SETUP-03 | TBD | Pending |
-| SETUP-04 | TBD | Pending |
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| AUTH-04 | TBD | Pending |
-| AUTH-05 | TBD | Pending |
-| AUTH-06 | TBD | Pending |
-| AUTH-07 | TBD | Pending |
-| AUTH-08 | TBD | Pending |
-| PROG-01 | TBD | Pending |
-| PROG-02 | TBD | Pending |
-| PROG-03 | TBD | Pending |
-| PROG-04 | TBD | Pending |
-| PROG-05 | TBD | Pending |
-| PROG-06 | TBD | Pending |
-| PROG-07 | TBD | Pending |
-| PROG-08 | TBD | Pending |
-| PRES-01 | TBD | Pending |
-| PRES-02 | TBD | Pending |
-| PRES-03 | TBD | Pending |
-| PRES-04 | TBD | Pending |
-| PRES-05 | TBD | Pending |
-| PRES-06 | TBD | Pending |
-| PRES-07 | TBD | Pending |
+| SETUP-01 | Phase 17 | Pending |
+| SETUP-02 | Phase 17 | Pending |
+| SETUP-03 | Phase 17 | Pending |
+| SETUP-04 | Phase 17 | Pending |
+| AUTH-01 | Phase 18 | Pending |
+| AUTH-02 | Phase 18 | Pending |
+| AUTH-03 | Phase 18 | Pending |
+| AUTH-04 | Phase 18 | Pending |
+| AUTH-05 | Phase 18 | Pending |
+| AUTH-06 | Phase 18 | Pending |
+| AUTH-07 | Phase 18 | Pending |
+| AUTH-08 | Phase 18 | Pending |
+| PROG-01 | Phase 19 | Pending |
+| PROG-02 | Phase 19 | Pending |
+| PROG-03 | Phase 19 | Pending |
+| PROG-04 | Phase 19 | Pending |
+| PROG-05 | Phase 19 | Pending |
+| PROG-06 | Phase 19 | Pending |
+| PROG-07 | Phase 19 | Pending |
+| PROG-08 | Phase 19 | Pending |
+| PRES-01 | Phase 20 | Pending |
+| PRES-02 | Phase 20 | Pending |
+| PRES-03 | Phase 20 | Pending |
+| PRES-04 | Phase 20 | Pending |
+| PRES-05 | Phase 20 | Pending |
+| PRES-06 | Phase 20 | Pending |
+| PRES-07 | Phase 20 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 27 total (SETUP ×4, AUTH ×8, PROG ×8, PRES ×7)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 27 ⚠️
+- Mapped to phases: 27 / 27 ✓ (Phase 17 ×4, Phase 18 ×8, Phase 19 ×8, Phase 20 ×7)
+- Unmapped: 0 ✓ — no orphans, no double-mapping
 
 ---
 *Requirements defined: 2026-07-22*
-*Last updated: 2026-07-22 at milestone v2.0 start*
+*Last updated: 2026-07-22 — traceability filled at roadmap creation (Phases 17–20, 100% coverage)*
