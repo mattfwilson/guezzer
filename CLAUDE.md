@@ -193,6 +193,10 @@ Use these entry points:
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
 <!-- GSD:workflow-end -->
 
+## Spike Findings
+
+- **Multi-user Supabase foundation** (auth, live progress sync, presence — patterns, RLS, offline-boot, gotchas) → `Skill("spike-findings-guezzer")`. Validated 2026-07-21; revises the "no backend / no accounts" constraints above.
+
 <!-- GSD:profile-start -->
 
 ## Developer Profile
