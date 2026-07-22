@@ -400,6 +400,7 @@ export {
   type GroupKeys,
   type GroupCryptoKey,
 } from "./map/group-crypto.ts";
+export { identityColorIndex } from "./identity/color.ts";
 export {
   publishBeacon,
   publishPin,
