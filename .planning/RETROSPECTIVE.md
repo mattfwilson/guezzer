@@ -84,6 +84,45 @@
 
 ---
 
+## Milestone: v1.2 — Pre-Show Hardening
+
+**Shipped:** 2026-07-22
+**Phases:** 6 (11–16) | **Plans:** 28 (5+3+4+6+4+6) | **Tasks:** ~53
+**Span:** milestone window 2026-07-19 → 2026-07-21 (~3 days) · ~720 tests green · two clusters — three show-critical bug-fix phases (11–13) then the first casual feature, Gizz Bingo (14–16)
+
+### What Was Built
+- **Live-sync & prediction correctness (Phase 11):** a past-midnight-safe `guardLatestRows` tonight/show filter (no previous-show leak on night 2+), a lenient-but-detecting `latest` schema surfacing drift on an amber SyncDot instead of silently emptying suggestions, a single `artist_id` ingress (KGLW-only), a reachable era-prior floor, and cross-night rotation suppression finally fed real run-grouping data + an owner "start a fresh run" reset. A code-review **blocker** (rotation window sliced oldest instead of newest, CR-01) was caught and regression-locked.
+- **Data safety (Phase 12):** finalize-before-snapshot ordering + an app-level `BackupToast` that fires only on real export success, a shared `triggerDownload` that defers `revokeObjectURL` (iOS Safari abort fix), and a single `attendanceKey` so same-date doubleheaders survive as two attendances.
+- **Interface polish (Phase 13):** de-doubled safe-area inset, wake-lock release race fix, off-by-N fill-hint rewrite, and a constellation camera that survives container resizes.
+- **Gizz Bingo (Phases 14–16):** a pure DOM-free `bingo/` core (deterministic consume-once `deriveMarks` fold — the third derivation sibling to `deriveTally`/`deriveDex` — + seeded generator + a Monte-Carlo calibration CLI gate), Dexie v5 persistence with lock-on-Start-Show + envelope-v3 export/import + GizzDex replay + catch-up, then the playable surface: one-tap vibe deal, swap/reshuffle with a live honest fill meter, in-flow "one away" tension, a three-tier reduced-motion-aware celebration layer (≤2 big moments/show), and a shareable trophy PNG.
+
+### What Worked
+- **Bugs before Bingo held as a hard gate.** All three show-critical bug clusters landed and were device-verified before any Bingo code — the casual feature never competed with the trust-gate fixes for the Aug 14 residency.
+- **The calibration gate was the Bingo equivalent of the backtest trust gate.** Rather than ship aspirational win-rate bands, a Monte-Carlo replay over the real `deriveMarks` fold proved the original D-02/D-03 targets structurally unreachable under consume-once marking, and the owner authorized retargeting to the measured range — the trust gate reflects reality, and `bingo-calibrate` exits 0 against the production fold.
+- **One pure fold, three consumers.** `deriveMarks` guarantees `live == replay == catch-up` by construction, so the live board, post-show replay, and catch-up needed no separate marking logic — the same core/UI-split discipline that carried v1.0/v1.1.
+- **Retro-as-backlog, third time.** v1.2's 13 bug fixes came straight from the 2026-07-19 bug-hunt/research session's captured findings; the milestone was "close the pre-show bug list, then ship the top casual feature."
+- **Module-emitter toast pattern reused.** Phase 12's `BackupToast` app-level emitter became the template for Phase 16's app-wide `BingoCelebration` host — a proven pattern applied, not reinvented.
+
+### What Was Inefficient
+- **Doc-sync lag persisted — third close running, now in a new form.** This time three VERIFICATION.md files (Phases 11, 15, 16) sat at `status: human_needed` even though their HUMAN-UAT was completed and `passed` on-device days earlier; the milestone-close audit surfaced them as gaps and they had to be reconciled `human_needed → passed` at close. Plus the same class of 20 false-positive open artifacts (10 unmarked-complete quick tasks, a not-a-defect index, a superseded v1.0 verification). The bookkeeping-trails-code lesson is now three-times-confirmed and clearly needs a mechanical fix, not another note.
+- **HUMAN-UAT and VERIFICATION statuses drifted apart.** The on-device UAT was recorded faithfully in `*-HUMAN-UAT.md`, but nothing flipped the sibling `*-VERIFICATION.md` frontmatter, so `audit-uat` (which reads VERIFICATION.md) kept flagging finished phases. The two artifacts need to move together.
+
+### Patterns Established
+- **Two-gate feature delivery.** A new feature that consumes a shared/live data path carries (1) an upstream-correctness gate (the live-sync fixes had to land before auto-marking) and (2) a calibration/trust gate that writes locked constants before the generator is built. Reuse for any future model-driven casual feature (League, Gizzle).
+- **Consume-once derivation as a first-class sibling.** `deriveMarks` joins `deriveTally`/`deriveDex` as a pure fold over the tracked-show trail — marks/counts are never stored, always re-derived; unmark/replay is free.
+- **App-level module-emitter for cross-view ephemeral UI.** `BackupToast`/`BingoCelebration` fire via a module emitter that survives view swaps (ShowView→RecapView), decoupling the trigger from the host.
+
+### Key Lessons
+1. **Move the VERIFICATION.md status when the HUMAN-UAT resolves — or better, derive one from the other.** Three phases shipped with passed on-device UAT but stale `human_needed` verification markers; the close audit can't tell "genuinely open" from "done but unflagged." A transition hook that flips VERIFICATION status when its HUMAN-UAT reaches `passed`/`resolved` would end the recurring false-positive audit.
+2. **A calibration/Monte-Carlo gate is the right trust gate for a probabilistic feature.** Just as the backtest gated the predictor, replaying the real fold gated Bingo — and it earned its keep by proving the original targets unreachable before any UI was built.
+3. **Sequence trust-critical work ahead of delight work, explicitly.** "Bugs before Bingo" as a stated gate kept the ~4-weeks-to-show risk budget spent on correctness first; the casual feature slotted in behind verified fixes.
+
+### Cost Observations
+- Model mix: still not instrumented (flagged optional since v1.0; low value for a <10-user personal tool).
+- Notable: 238 commits / 251 files in the window (+33.8k/−0.4k LOC), but a large share was Gizz Bingo net-new (core fold + persistence + three app surfaces) rather than owner-directed polish as in v1.1; the three bug phases were small (12 plans) and the three Bingo phases carried the bulk (16 plans).
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -92,6 +131,7 @@
 |-----------|--------|-------|------------|
 | v1.0 | 7 | 46 | Baseline: compile-enforced core/UI split, single-artifact pipeline, tracked device-gate deferrals |
 | v1.1 | 3 | 12 | Retro-driven requirements (every req closes a v1.0 finding); shared `<Sheet>` a11y primitive + `config.ui.z`; device dry-run as a first-class close gate |
+| v1.2 | 6 | 28 | Two-gate feature delivery (upstream-correctness + Monte-Carlo calibration); consume-once `deriveMarks` as a third derivation sibling; "bugs before Bingo" as an explicit trust-first sequence |
 
 ### Cumulative Quality
 
@@ -99,10 +139,13 @@
 |-----------|-------|------------------------------|-------------------------|
 | v1.0 | 481 | 4 (predict self-rank, import data-loss CR-01, logSong position, offline-cover SW clientsClaim) + WARNING-1 at audit | core = fuse.js + zod only |
 | v1.1 | 587 | 2 D-09 show-loop blockers (SuggestionStrip sizing, FAB over reserved strip) fixed on-device during VALID-02 | no new core deps (fuse.js + zod) |
+| v1.2 | ~720 | 1 rotation-window slice-direction blocker (CR-01, oldest-vs-newest nights) caught in code review + regression-locked; 13 pre-show bugs closed from the bug-hunt backlog | no new core deps (bingo module is pure TS: xmur3/mulberry32 PRNG + zod) |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. _(established v1.0, re-confirmed v1.1)_ Bookkeeping flags must move with the code, or they lie at audit time — v1.1's close audit produced 16 false-positive "open" artifacts entirely from unset completion markers.
 2. _(established v1.0, applied v1.1)_ Integration/recovery paths need their own tests — v1.1 closed exactly these gaps (DATA-06 survival test, PWA-05 evicted-DB merge, VALID-02 device loop).
-3. _(established v1.1)_ The retrospective is the next milestone's backlog — honest What-Was-Inefficient notes convert directly into the next requirements set.
+3. _(established v1.1, re-confirmed v1.2)_ The retrospective is the next milestone's backlog — v1.2's 13 bug fixes came straight from the captured bug-hunt session; honest notes convert directly into the next requirements set.
 4. _(established v1.1)_ Real-hardware device legs should run in one tunnel-backed session, not split across desktop fallback then a later device pass.
+5. _(established v1.2, third-time confirmation of the v1.0 bookkeeping lesson)_ VERIFICATION.md status must move with its HUMAN-UAT — three phases shipped `passed` on-device but left `human_needed` verification markers, and the close audit couldn't distinguish genuinely-open from done-but-unflagged. This now warrants a mechanical fix (derive/flip verification status on HUMAN-UAT resolution), not another note.
+6. _(established v1.2)_ Probabilistic/model-driven features need a calibration trust gate of their own (the Bingo equivalent of the backtest) — and it earns its keep: v1.2's calibration proved the original win-rate targets unreachable before any UI was built.
