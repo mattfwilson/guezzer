@@ -1,3 +1,5 @@
+import { createElement } from "react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearIdentityRecord,
@@ -6,6 +8,7 @@ import {
   readIdentityRecord,
   writeIdentityRecord,
 } from "../src/auth/identityRecord.ts";
+import { useAuthIdentity } from "../src/auth/useAuthIdentity.ts";
 
 /**
  * App-owned identity record store (Plan 18-03, AUTH-02 / D-05 / D-06). A tiny
@@ -83,5 +86,65 @@ describe("identityRecord store (AUTH-02)", () => {
     clearIdentityRecord();
     window.removeEventListener(IDENTITY_CHANGE_EVENT, spy);
     expect(spy).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * useAuthIdentity reactive hook (D-10 teardown substrate). A
+ * `useSyncExternalStore` over the identity change event: its first snapshot is
+ * the synchronous `readIdentityRecord()` read (zero await, so the gate paints
+ * with no suspense, D-05), and it re-renders subscribers on sign-in and
+ * sign-out.
+ */
+describe("useAuthIdentity hook (D-10)", () => {
+  function Probe(): ReturnType<typeof createElement> {
+    const identity = useAuthIdentity();
+    return createElement(
+      "div",
+      { "data-testid": "identity" },
+      identity ? identity.displayName : "SIGNED_OUT",
+    );
+  }
+
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    cleanup();
+    localStorage.clear();
+  });
+
+  it("returns the current record as its synchronous first snapshot", () => {
+    writeIdentityRecord({ userId: "u1", displayName: "Matt" });
+    render(createElement(Probe));
+    // Present on the very first render — no await, no loading flash.
+    expect(screen.getByTestId("identity").textContent).toBe("Matt");
+  });
+
+  it("first-snapshots null when no record is present", () => {
+    render(createElement(Probe));
+    expect(screen.getByTestId("identity").textContent).toBe("SIGNED_OUT");
+  });
+
+  it("re-renders to null after clearIdentityRecord() (sign-out teardown)", () => {
+    writeIdentityRecord({ userId: "u1", displayName: "Matt" });
+    render(createElement(Probe));
+    expect(screen.getByTestId("identity").textContent).toBe("Matt");
+
+    act(() => {
+      clearIdentityRecord();
+    });
+    expect(screen.getByTestId("identity").textContent).toBe("SIGNED_OUT");
+  });
+
+  it("re-renders to the new identity after writeIdentityRecord() (sign-in)", () => {
+    render(createElement(Probe));
+    expect(screen.getByTestId("identity").textContent).toBe("SIGNED_OUT");
+
+    act(() => {
+      writeIdentityRecord({ userId: "u2", displayName: "Max" });
+    });
+    expect(screen.getByTestId("identity").textContent).toBe("Max");
   });
 });
