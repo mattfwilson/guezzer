@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Menu } from "lucide-react";
 import { BottomTabBar } from "./BottomTabBar";
+import { IdentityAvatar } from "../auth/IdentityAvatar.tsx";
 import { useBottomOverlayInset } from "../pwa/bottomOverlayInset";
 
 export function AppShell({
@@ -43,14 +44,19 @@ export function AppShell({
         <span className="text-[20px] font-semibold leading-tight">
           Gizz With Friends
         </span>
-        <button
-          type="button"
-          aria-label="Menu"
-          onClick={onMenuClick}
-          className="flex min-h-11 min-w-11 items-center justify-center text-text-muted"
-        >
-          <Menu size={22} />
-        </button>
+        {/* Identity + menu chrome. IdentityAvatar self-sources the current
+            identity (renders nothing signed out) — no prop threading. */}
+        <div className="flex items-center gap-1">
+          <IdentityAvatar />
+          <button
+            type="button"
+            aria-label="Menu"
+            onClick={onMenuClick}
+            className="flex min-h-11 min-w-11 items-center justify-center text-text-muted"
+          >
+            <Menu size={22} />
+          </button>
+        </div>
       </header>
 
       <main
