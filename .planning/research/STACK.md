@@ -1,8 +1,10 @@
 # Stack Research
 
-**Domain:** Offline-first setlist-prediction PWA — client-side statistical model, no backend, static hosting
-**Researched:** 2026-07-08
-**Confidence:** HIGH (all versions verified against npm registry 2026-07-08; peer-dependency compatibility checked directly)
+**Domain:** Multi-user layer (auth + shared progress + presence) for an existing offline-first React/Vite PWA — v2.0 "Multi-User Foundation"
+**Researched:** 2026-07-22
+**Confidence:** HIGH
+
+> Scope note: The existing v1 stack (Vite 8 + React 19 + TS 6 + npm workspaces with pure `packages/core`, Dexie 4 + `dexie-react-hooks`, vite-plugin-pwa/Workbox `registerType:'prompt'`, zod, Tailwind v4, Node ≥24) is **already shipped and validated — do NOT re-research it.** This file covers ONLY the additions/changes the spike-validated Supabase layer needs (see `.claude/skills/spike-findings-guezzer/references/multi-user-supabase.md`). The technical approach is already spike-proven across two devices (spikes 002–004); this document translates it into exact package/version/integration decisions for THIS repo.
 
 ## Recommended Stack
 
@@ -10,199 +12,154 @@
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| Vite | 8.1.3 | Build tool + dev server | Zero server needs makes Next.js pure overhead (see Alternatives). Vite's static output deploys to Vercel/Netlify/GitHub Pages identically. First-class PWA plugin. Fast dev loop on a 6–8 week deadline. |
-| React | 19.2.7 | UI framework | Constraint-confirmed choice. React 19 stable; no experimental features needed for this app. |
-| TypeScript | 6.0.3 | Types + typecheck | **Not 7.0.2** (current `latest`). TS 7 (Go-native compiler) went GA weeks ago, but typescript-eslint 8.63 caps support at `<6.1.0` (verified via peerDependencies). TS 6.0.3 is the final stable JS-line release, fully ecosystem-compatible. Vite transpiles via esbuild anyway — `tsc` is typecheck-only, so upgrading to TS 7 later is a one-line change once the lint toolchain catches up. |
-| vite-plugin-pwa | 1.3.0 | PWA manifest + service worker | The de facto Vite PWA solution. Verified peer support for Vite ^8. Wraps Workbox 7.4.1 (actively maintained — published May 2026). Handles manifest generation, SW registration, precache manifest injection. |
-| Dexie | 4.4.4 | IndexedDB wrapper | Schema versioning, typed tables, and `liveQuery` reactivity — the setlist trail and Pokédex update automatically when a show is logged, with zero hand-rolled state sync. Actively maintained (June 2026 release). ~29 KB is a fair trade at this feature level. |
-| dexie-react-hooks | 4.4.0 | React bindings for Dexie | `useLiveQuery` makes IndexedDB reads reactive React state. Peer-compatible with Dexie 4.x and React ≥16. |
-| d3-force | 3.0.0 | Force simulation (via react-force-graph-2d) | Stable since 2021 — not stale, *done*. The transition-matrix JSON feeds it directly. |
-| react-force-graph-2d | 1.29.1 | Constellation rendering (Canvas) | Actively maintained (Feb 2026). Wraps d3-force with canvas rendering, built-in pan/zoom/hit-testing on mobile, `cooldownTicks`/`onEngineStop` for the settle-and-freeze requirement, `nodeCanvasObject` for custom orbs/badges, `onNodeClick` for focus+context. Building this by hand on direct d3 costs 1–2 weeks you don't have. **Import the `-2d` package specifically** — the umbrella `react-force-graph` pulls three.js/VR dependencies you don't want. |
-| Vitest | 4.1.10 | Test runner | Verified peer support for Vite ^8. `projects` config (the v4 replacement for the removed workspace file) runs core tests in `node` env and app tests in `jsdom` from one root command. |
-| fuse.js | 7.4.2 | Fuzzy search over ~250-song catalog | Actively maintained again (June 2026 release after a dormant period). Zero index-build step, tunable `threshold`/`distance` for typo tolerance, sub-millisecond on 250 strings. Wrap it behind a pure `searchCatalog(query)` function in core so it's swappable if drunk-thumb match quality disappoints (see Alternatives: uFuzzy). |
+| `@supabase/supabase-js` | **2.110.8** (v2 `latest`) | Auth (GoTrue), Postgres REST (PostgREST), and Realtime (presence/broadcast/`postgres_changes`) client — the whole multi-user backend in one client | The blueprint's validated client. One meta-package pulls `@supabase/auth-js`, `@supabase/postgrest-js`, `@supabase/realtime-js`, `@supabase/storage-js`, `@supabase/functions-js` (all pinned to 2.110.8), so auth + DB + Realtime need **exactly one dependency**. Framework-agnostic (no React peer dep), ships ESM — drops into Vite 8's esbuild pipeline with zero config. Blueprint floor was "v2.91+ current as of 2026-07"; `latest` is now 2.110.8 (published 2026-07-21). **Stay on the v2 line** — `3.0.0-next.29` exists only on the `next` pre-release tag and is not GA. Verify pin at install time with `npm view @supabase/supabase-js version`. |
+
+That is the **only new runtime dependency.** Everything else the multi-user features need is already in the tree (Dexie for the offline write queue, zod for payload validation, React state for UI). See "What NOT to Use."
 
 ### Supporting Libraries
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| zod | 4.4.3 | Runtime schema validation | Encode the empirically-documented kglw.net API schema as zod schemas in core's ingestion layer. The build-time fetch script validates every show against them — schema drift on the volunteer-run API fails loudly at build time, never silently corrupts the matrix. |
-| Tailwind CSS | 4.3.2 | Styling | Optional but recommended: dark theme, 44px tap targets, and one-thumb layouts are utility-class territory. v4 has first-party Vite plugin (`@tailwindcss/vite`), no PostCSS config. |
-| motion | 12.42.2 | Recenter/orbit transition animation | Optional. Only if CSS transitions on SVG transforms prove insufficient for the orbit recenter choreography. Start with CSS; add `motion` only when needed. |
-| workbox-window | 7.4.1 | SW update UX | Comes with vite-plugin-pwa; used for the "update available" prompt flow. |
-| tsx | 4.23.0 | TS execution fallback | Only needed if you can't require Node ≥24.12. Prefer Node-native TS execution (see Development Tools). |
+| Dexie | 4.4.4 (**already present**) | Offline write-queue / "outbox" table + per-user data namespacing | **Already installed.** Add an additive Dexie `version(N)` migration with an `outbox` table (or a `syncedProgress` mirror) — a hand-rolled queue that flushes to Supabase on reconnect. Do NOT add a new offline-sync library; the queue is ~40 lines against tables you already have. |
+| zod | 4.4.3 (**already present, in `core`**) | Runtime validation of Realtime broadcast/presence payloads and `progress` rows | **Already installed.** Reuse the existing zod dependency to schema-validate untrusted Realtime payloads (waves, presence status, `postgres_changes` rows) at the app-layer boundary before they touch UI state — same discipline as the existing kglw.net ingestion schemas. Schemas for **network payloads** are app concerns and may live in the app layer, not necessarily `core`. |
 
 ### Development Tools
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| pnpm workspaces | Monorepo: `packages/core` + `packages/app` | Two-package workspace gives **compile-time enforcement** of core purity: core's `tsconfig` sets `"lib": ["ES2023"]` (no DOM), its `package.json` has no React dependency — importing React or `window` from core is a build error, not a code-review catch. App consumes core as a workspace source dependency. npm workspaces works identically at this scale if you'd rather avoid pnpm. |
-| Node.js ≥ 24.12 | CLI execution of core (backtest report, corpus fetch) | Type stripping is **stable** in Node 24.12+ — `node packages/core/src/cli/backtest.ts` runs directly, no build step, no tsx. Requires erasable-syntax-only TS (no `enum`, no `namespace`) — enforce with `"erasableSyntaxOnly": true` in core's tsconfig; it's good practice regardless. |
-| Vitest `projects` | Per-package test environments | Root `vitest.config.ts` with `test.projects: ['packages/*']`; core project uses `environment: 'node'`, app uses `jsdom`. Note: `vitest.workspace.ts` files were removed in Vitest 4 — do not follow pre-2025 tutorials. |
-| ESLint 10 + typescript-eslint 8.63 | Lint | typescript-eslint 8.63 supports ESLint ^10 and TS `<6.1.0` (verified) — this is what pins the TS 6.0.3 recommendation. |
-| gh-pages / Netlify / Vercel static | Deploy | Pure static output (`packages/app/dist`); any of the three constraint-approved hosts works with zero config beyond base path (set Vite `base` if using GitHub Pages project pages). |
-
-## Key Decision Rationale
-
-### 1. Vite over Next.js static export — HIGH confidence
-
-Everything Next.js 16 charges config-and-mental-overhead for (RSC, server actions, ISR, image optimization server, middleware) is **disabled or dead weight** under `output: 'export'`. What remains — routing and bundling — Vite does with less ceremony. The decisive factor is PWA tooling: Next has no first-party PWA story; the community standard `next-pwa` is abandoned, and its successor Serwist (`@serwist/next` 9.5.11) is solid but third-party and Next-version-sensitive. vite-plugin-pwa is the ecosystem default with verified Vite 8 support. For a two-view SPA, use plain component-level view switching or a hash-based router — you likely don't need a routing library at all (hash routing also sidesteps static-host 404 rewrites entirely).
-
-### 2. Service worker strategy — HIGH confidence
-
-Use vite-plugin-pwa's **`generateSW`** strategy (declarative Workbox config; `injectManifest` only if you later need custom SW logic, which nothing in the requirements demands):
-
-- **`registerType: 'prompt'`** — NOT `autoUpdate`. A service worker silently swapping the app mid-show is exactly the failure mode this project exists to avoid. Prompt-to-update, and users refresh between shows.
-- **Precache** (automatic): app shell — JS, CSS, HTML, icons. The bundled model artifact rides along inside the JS bundle (see decision 8), so offline-complete-on-first-load is automatic.
-- **Runtime caching** for the single live endpoint:
-  ```ts
-  workbox: {
-    runtimeCaching: [{
-      urlPattern: /^https:\/\/kglw\.net\/api\/v2\/latest.*/,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'kglw-latest',
-        networkTimeoutSeconds: 8,
-        expiration: { maxEntries: 4, maxAgeSeconds: 3600 },
-      },
-    }],
-  }
-  ```
-  `NetworkFirst` with a timeout means: signal present → fresh data; signal drops → last-seen `latest` response returns instantly instead of hanging. The **60-second poll loop lives in app code** (`setInterval` + Page Visibility API to pause when backgrounded, and an "active show" toggle so you never poll outside show time) — the SW only provides the offline fallback. This keeps API etiquette logic inspectable and out of the service worker.
-- Call `navigator.storage.persist()` on install/first-run — it reduces (not eliminates) iOS Safari IndexedDB eviction risk; the prominent JSON export remains the real backstop.
-
-### 3. Dexie over idb over raw IndexedDB — HIGH confidence
-
-Raw IndexedDB's event-based API is a known productivity sink — never justified when wrappers exist. `idb` (8.0.3) is a fine thin promise shim (~1 KB) but gives you nothing else. Dexie earns its 29 KB here specifically because of **`liveQuery`**: attended shows, tracked setlists, and derived Pokédex state all render from `useLiveQuery` hooks and update automatically on write — that's an entire state-synchronization layer you don't write. Dexie also handles schema migrations declaratively, which matters once real dex data exists on friends' phones. Boundary discipline: Dexie lives in the app's persistence layer only; core's dex-derivation functions take plain JS objects and stay Node-runnable.
-
-### 4. fuse.js, wrapped for swappability — MEDIUM confidence
-
-For 250 strings, every option is instant; the open question is *match quality for one-thumb drunk typing in the dark*, which is empirical. fuse.js is the recommendation because it's the standard, needs no index step, and its `threshold`/`ignoreLocation` knobs handle "raddle" → "Rattlesnake" cases well. Put it behind `searchCatalog(query: string): SongMatch[]` in core with a fixture test of realistic typos. If quality disappoints, swap to **uFuzzy** (better out-of-order/typo scoring, ~7 KB) behind the same function — a one-file change. MiniSearch (7.2.0) is the third option if you want prefix-as-you-type semantics, but it's built for larger corpora and adds an index lifecycle you don't need.
-
-### 5. Constellation: react-force-graph-2d over direct d3 or visx — MEDIUM-HIGH confidence
-
-- **Direct d3-force + SVG in React**: maximum control, but you hand-build mobile pan/zoom, hit-testing, label rendering, and the React↔simulation lifecycle. That's real days of work for a feature explicitly allowed to slip past show #1.
-- **visx**: has no force-layout package that manages simulation lifecycle — you'd still run d3-force by hand and only get low-level SVG primitives in return. Wrong tool here.
-- **react-force-graph-2d**: canvas rendering (right call for a dense edge graph on mobile), d3-force embedded and tunable (`d3AlphaDecay`, `d3VelocityDecay`), `cooldownTicks` + `onEngineStop` implement settle-and-freeze directly, `nodeCanvasObject`/`linkColor` callbacks implement tuning-family colors, Pokédex dimming, and focus+context highlighting, `onNodeClick` drives the ranked-bars panel. Graph data is `{ nodes, links }` derived by a pure core function from the matrix JSON — the constraint's "single component, one pipeline" maps exactly onto this library's API.
-
-Confidence is MEDIUM-HIGH rather than HIGH only because canvas text-label rendering quality at ~250 nodes on small screens needs a spike; the mitigation (draw labels only above a zoom threshold in `nodeCanvasObject`) is standard practice.
-
-### 6. Orbit view: plain SVG + CSS, no canvas, no d3 — HIGH confidence
-
-Show Mode renders ≤ ~15 elements (center orb, 5–8 predictions, comet trail nodes). SVG wins on every axis that matters here: DOM tap targets (44px minimum enforced in markup, native hit-testing, no coordinate math), crisp text at any DPI, CSS transitions for recenter animation, trivially testable layout. The deterministic radial layout is a **pure function in core** — `layoutOrbit(predictions, config): OrbPosition[]` using polar coordinates (angle by rank, radius by probability, sizes clamped to the 44px floor) — unit-tested with fixture predictions. Canvas buys nothing at this element count and costs hit-testing and accessibility. No d3 dependency in Show Mode at all.
-
-### 7. Workspace + test layout — HIGH confidence
-
-```
-guezzer/
-├── package.json              # workspace root, scripts
-├── pnpm-workspace.yaml
-├── vitest.config.ts          # test.projects: ['packages/*']
-├── data/                     # committed raw corpus + hand-tagged tuning file
-│   ├── corpus/               # raw kglw.net responses (fetched once, committed)
-│   └── tunings.json          # owner's hand-tagged tuning families
-└── packages/
-    ├── core/                 # pure TS: zero React/DOM; lib ES2023; erasableSyntaxOnly
-    │   ├── src/
-    │   │   ├── config.ts     # ALL model constants — the single config file
-    │   │   ├── ingest/       # zod schemas + corpus → matrix
-    │   │   ├── model/        # scoring, backoff, prediction
-    │   │   ├── backtest/     # holdout evaluation, ablation
-    │   │   ├── layout/       # orbit polar layout, graph derivation
-    │   │   └── cli/          # fetch-corpus.ts, build-model.ts, backtest.ts (run via node)
-    │   └── package.json      # no dependencies except zod
-    └── app/                  # Vite + React PWA; depends on @guezzer/core
-```
-
-Two packages, not one-package-with-lint-rules, because the purity constraint is architectural, not stylistic — a DOM-free `tsconfig` and a React-free `package.json` make violations impossible rather than discouraged. Don't add turborepo/nx; two packages need no orchestration.
-
-### 8. Static JSON bundling — HIGH confidence
-
-Three-stage pipeline, all owner-triggered (never CI-automated against the volunteer API):
-
-1. **`node packages/core/src/cli/fetch-corpus.ts`** — fetches historical corpus from kglw.net once (politely, with delays), writes raw JSON to `data/corpus/`, **committed to the repo**. Builds are reproducible offline and never re-hit the API.
-2. **`node packages/core/src/cli/build-model.ts`** — runs core ingestion: validates with zod, merges `tunings.json`, emits compact `model.json` (transition matrix + song metadata) into `packages/app/src/generated/`. For 250 songs the sparse matrix is likely tens-to-low-hundreds of KB.
-3. **App imports it as a JSON module** (`import model from './generated/model.json'`). It's inlined into the hashed JS bundle — automatically precached, atomically versioned with the app code, zero runtime fetch, works offline from first load.
-
-Escape hatch: if `model.json` exceeds ~1 MB, switch to `import modelUrl from './generated/model.json?url'` + fetch. **Caveat if you do**: Workbox's default `globPatterns` is `**/*.{js,css,html}` — JSON assets are NOT precached by default; you must add `json` to `globPatterns`. The JSON-module approach avoids this footgun entirely, which is part of why it's the recommendation.
+| `seed-users.mjs` (repo script, **zero deps**) | Idempotent bulk-create of the ~5 pre-made email/password accounts via the GoTrue admin API | Blueprint-provided (`sources/002-supabase-multiuser/seed/seed-users.mjs`). Pure Node ≥18 `fetch` — **not a package dependency.** `POST {URL}/auth/v1/admin/users` with `Authorization: Bearer {service_role}`, `email_confirm:true`, distinct per-person passwords. Reads `SERVICE_ROLE_KEY` + passwords from env; re-run-safe (422/"already registered" → skip). Repo already runs Node ≥24, so `fetch` is native. |
+| `schema.sql` (paste into Supabase SQL editor) | Creates `progress` table, RLS policies, and `alter publication supabase_realtime add table public.progress` | Blueprint-provided (`sources/002-supabase-multiuser/seed/schema.sql`). No migration tooling required at this scale — pasting the SQL once is sufficient. |
+| Supabase CLI (`supabase`) | *Optional* — generate TypeScript types from the DB schema (`supabase gen types typescript`) + manage migrations | **Optional, not required.** For ~2 tables, hand-writing the row types (or zod-inferring them) is faster than wiring the CLI. Adopt only if the schema grows. If used, keep it a devDependency / one-off `npx`, never a runtime import. |
 
 ## Installation
 
 ```bash
-# Workspace root
-pnpm init  # then add pnpm-workspace.yaml with packages: ['packages/*']
+# Core — the ONE new runtime dependency, in the app workspace only (never core)
+npm install @supabase/supabase-js@2.110.8 --workspace packages/app
 
-# packages/core
-pnpm add zod --filter @guezzer/core
-pnpm add -D typescript@6.0.3 vitest --filter @guezzer/core
+# Supporting — nothing to install; Dexie 4.4.4 and zod 4.4.3 are already present.
 
-# packages/app
-pnpm add react react-dom dexie dexie-react-hooks fuse.js react-force-graph-2d @guezzer/core --filter @guezzer/app
-pnpm add -D vite @vitejs/plugin-react vite-plugin-pwa typescript@6.0.3 vitest jsdom tailwindcss @tailwindcss/vite --filter @guezzer/app
-
-# Root dev tooling
-pnpm add -D -w typescript@6.0.3 vitest eslint typescript-eslint
+# Dev dependencies — none required.
+# (Optional, only if you later want generated DB types:)
+#   npx supabase gen types typescript --project-id <ref> > packages/app/src/lib/supabase/db-types.ts
 ```
+
+**Critical placement rule:** the dependency goes in `packages/app/package.json`, **NOT** `packages/core/package.json`. `core` must stay DOM-free/network-free — importing the Supabase client from `core` is an architecture violation (blueprint "What to Avoid" + PROJECT.md constraint). The client lives behind a thin app-layer module (e.g. `packages/app/src/lib/supabase/client.ts`).
+
+## Integration Points (concrete — real files in THIS repo)
+
+### 1. New app-layer client module (never in `core`)
+Create `packages/app/src/lib/supabase/client.ts`:
+```ts
+import { createClient } from "@supabase/supabase-js";
+
+export const sb = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      persistSession: true,      // default — writes session to localStorage
+      autoRefreshToken: true,    // default — refresh needs network (see offline note)
+      storageKey: "gizz.auth",   // optional: explicit, app-namespaced key
+    },
+  },
+);
+```
+`persistSession` + default `localStorage` storage is exactly what makes **offline boot** work: `sb.auth.getSession()` reads the token synchronously from `localStorage` with no network. This is a hard requirement (session survives dead-signal venue) and is unaffected by the service worker (localStorage is not HTTP-cached — see SW note below).
+
+### 2. Vite env vars for URL + anon key
+Vite exposes only `VITE_`-prefixed vars to client code via `import.meta.env.VITE_*`, inlined as string literals at build time. **No `vite.config.ts` change is needed** — `import.meta.env` works out of the box.
+- Create `packages/app/.env.local` (developer machine) with:
+  ```
+  VITE_SUPABASE_URL=https://<ref>.supabase.co
+  VITE_SUPABASE_ANON_KEY=<anon public key>
+  ```
+- **Add `.env.local` / `.env*.local` to `.gitignore`** — the root `.gitignore` currently has no env entry (verified: only `node_modules/ dist/ .claude/ *.tsbuildinfo`). This is a required one-line addition.
+
+**Is shipping the anon key in a static bundle safe? YES.** The `anon` key is a public, publishable key by design — it only grants what Row-Level Security allows. Every table is `read-all / write-own` RLS (blueprint schema), so a leaked anon key lets an unauthenticated caller do *nothing* durable, and an authenticated friend can only write their own rows. The **`service_role` key is the secret** — it bypasses RLS and must live **only** in the seed script's env (`SERVICE_ROLE_KEY`), never in a `VITE_*` var, never inlined, never committed. (Naming a secret `VITE_SERVICE_ROLE_KEY` would leak it into the bundle — do not.)
+
+### 3. Static-deploy secret handling
+The frontend stays a pure static export. Because the anon key is public, injecting it is low-stakes, but keep it out of git:
+- **Vercel / Netlify:** set `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` as build-time environment variables in the dashboard; the build inlines them. This is the smoothest path.
+- **GitHub Pages:** there is no host-side build, so provide the vars via a GitHub Actions build job (repo/environment **Secrets** → `env:` on the `vite build` step). Since the anon key is public anyway, a committed `.env.production` is also *acceptable* here as a fallback — but the Actions-secret path keeps the key out of git and matches the other hosts.
+
+### 4. Service worker / Workbox interaction (integrate with existing `packages/app/vite.config.ts`)
+The existing `VitePWA` config uses `registerType:'prompt'`, `clientsClaim:true`, and `globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,webp}"]`. **No Workbox change is required, and that is the correct outcome** — here's why each Supabase channel is safe:
+- **Precache:** `globPatterns` only matches **same-origin build output**. Supabase calls go cross-origin to `https://<ref>.supabase.co` — they can never enter the precache manifest. The Supabase client *code* rides the JS bundle (matched by `**/*.js`), so the app boots offline; the *network calls* it makes do not.
+- **REST + auth (HTTPS fetch/XHR):** no `runtimeCaching` rule is configured for the Supabase origin, so these requests are **network-only pass-through** — exactly the required "network-first / never-precached" behavior. Auth token endpoints and `progress` upserts must always hit the live network; do NOT add a runtime-cache rule for `*.supabase.co`.
+- **`navigateFallback`:** Workbox's SPA fallback (`index.html`) only intercepts **navigation requests** (`mode: 'navigate'`). supabase-js issues `fetch`/XHR data requests, which are *not* navigations, so the fallback never shadows them. No `navigateFallbackDenylist` entry is needed.
+- **Realtime (`wss://`):** Service Workers **cannot intercept WebSocket connections** — the SW `fetch` event never fires for a WS handshake/frames. Workbox is therefore structurally incapable of caching or blocking Realtime. Presence/broadcast/`postgres_changes` are unaffected by the SW by construction. No config, no risk.
+- **localStorage session:** the persisted auth token lives in `localStorage`, which the service worker / Workbox does not touch (that's HTTP-response caching, a different layer). Offline `getSession()` restore is inherently SW-safe.
+
+**Net:** the only thing to double-check when the client lands is that no one accidentally adds a `runtimeCaching` entry for the Supabase origin. The default config already does the right thing.
+
+### 5. Offline write queue (hand-rolled on existing Dexie — NO new library)
+Durable writes (e.g. a friend's `songs_caught` count) must survive an offline show and flush on reconnect. Implement as an additive Dexie migration:
+- Add `version(N)` with an `outbox` table (pending upserts) — or a `syncedProgress` mirror table + a `dirty` flag.
+- App-layer sync module: on `online` / `onAuthStateChange('SIGNED_IN')` / Realtime reconnect, drain the outbox → `sb.from('progress').upsert(...)`.
+- Reconcile inbound `postgres_changes` into the same Dexie mirror; `useLiveQuery` re-renders the friends view automatically (same reactive pattern already used for the dex/setlist).
+
+This is ~40 lines against infrastructure you already own. A dedicated offline-sync engine (Replicache, PowerSync, WatermelonDB, RxDB) is heavyweight overkill for one small counters table and ~5 users — do not add one.
 
 ## Alternatives Considered
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| Vite 8 | Next.js 16 + `output: 'export'` + @serwist/next 9.5 | Only if the project might grow server features later. It won't ("no backend" is a hard constraint). |
-| Dexie 4.4 | idb 8.0.3 | If bundle size becomes critical and you're willing to hand-write reactive state sync. idb last published May 2025 — stable, not stale. |
-| fuse.js 7.4 | uFuzzy | If real-world typo-match quality disappoints in testing — swap behind the core `searchCatalog` function. |
-| fuse.js 7.4 | MiniSearch 7.2 | If you decide prefix-as-you-type indexing beats fuzzy scoring for the search UX. |
-| react-force-graph-2d | Direct d3-force + custom SVG/canvas | If the library's customization ceiling blocks a Pokédex-overlay or focus+context requirement. Budget 1–2 extra weeks. |
-| pnpm workspaces | npm workspaces | If you want zero non-Node tooling. Identical layout, slightly slower installs, looser hoisting. |
-| TypeScript 6.0.3 | TypeScript 7.0.2 (native) | Once typescript-eslint supports ≥7.0 — then it's a free 10x typecheck speedup. Watch the typescript-eslint release notes. |
-| CSS transitions (orbit) | motion 12 | If recenter choreography needs orchestrated sequences (trail shift + orb spawn + recenter as one timeline). |
+| `@supabase/supabase-js` 2.110.8 (v2) | `@supabase/supabase-js` 3.0.0-next (pre-release) | Never for this milestone — v3 is on the `next` tag, not GA. Revisit only after v3 ships `latest` and the spike patterns are re-verified against it. |
+| Single meta-package `supabase-js` | Individual sub-packages (`@supabase/auth-js` + `postgrest-js` + `realtime-js` only) | Only if bundle size becomes a measured problem and you want to drop unused `storage-js`/`functions-js`. Not worth the import-surface complexity for a precached offline app at this scale; the meta-package is the documented path. |
+| Hand-rolled Dexie outbox | RxDB / PowerSync / Replicache / WatermelonDB | Only if you later build **full collaborative live setlist co-tracking** (SOCL-V2-01, explicitly deferred). For one counters table + presence, they're multi-hundred-KB solutions to a non-problem. |
+| Pre-made email/password auth | Magic-link / OTP / OAuth | Never here — magic-link needs a mail round-trip at a bad-signal venue (blueprint "What to Avoid"). Pre-made passwords are the validated choice. |
+| React state + `useLiveQuery` for multi-user UI | zustand / Redux | Only if prop-drilling the auth/session/presence state becomes genuinely painful across many components. Start without it; add zustand *only* if measured. (Matches existing CLAUDE.md state-management stance.) |
+| Supabase Realtime for presence/waves | A separate WebSocket/PubNub/Ably/socket.io service | Never — `realtime-js` is already bundled inside `supabase-js`. A second realtime stack is pure redundancy. |
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `next-pwa` | Abandoned; broken with modern Next | N/A (using Vite); Serwist if ever on Next |
-| `react-force-graph` (umbrella package) | Pulls three.js, A-Frame/VR dependencies for an unused 3D mode | `react-force-graph-2d` directly |
-| Raw IndexedDB API | Event-based API, verbose transactions, well-known footguns; no benefit at this scale | Dexie |
-| TypeScript 7.0.2 today | typescript-eslint 8.63 peer range is `<6.1.0`; lint toolchain breaks | TypeScript 6.0.3, upgrade later |
-| `vitest.workspace.ts` file | Removed in Vitest 4 (pre-2025 tutorials still show it) | `test.projects` in root `vitest.config.ts` |
-| `registerType: 'autoUpdate'` | SW can swap the app mid-show — unacceptable for a live-venue tool | `registerType: 'prompt'` |
-| localStorage for dex/setlist data | 5 MB cap, synchronous, string-only, worse eviction story | IndexedDB via Dexie + JSON export |
-| CI-scheduled corpus refresh | Hammers a volunteer-run API; violates etiquette constraint | Committed corpus + manual one-command refresh |
-| A routing library (react-router, TanStack Router) | Two views + overlays; static hosts need rewrite rules for path routing | View-state switching or hash routing |
-| Redux/heavy state management | Dexie `liveQuery` + React state covers everything; model state is derived, not mutable | `useLiveQuery` + component state (add zustand only if prop-drilling actually hurts) |
+| Importing the Supabase client from `packages/core` | Violates the pure/DOM-free core constraint (blueprint + PROJECT.md); `core` has no network/browser deps and its tsconfig forbids DOM | App-layer module only: `packages/app/src/lib/supabase/client.ts` |
+| The vendored supabase-js UMD from the spike | That was a throwaway trick so a static demo page could boot offline; brittle and unversioned | The npm package `@supabase/supabase-js@2.110.8` via Vite's normal ESM import |
+| `service_role` key anywhere client-side (incl. any `VITE_*` var) | It bypasses RLS — inlining it into the static bundle hands anyone full DB write access | Keep it env-only in the seed script (`SERVICE_ROLE_KEY`); ship only the public `anon` key as `VITE_SUPABASE_ANON_KEY` |
+| A `runtimeCaching` rule for `*.supabase.co` | Auth/REST/Realtime must always be live; caching them serves stale sessions/data or breaks token refresh | Leave Supabase calls as network-only pass-through (the default — add nothing) |
+| A separate offline-sync engine (RxDB, PowerSync, Replicache, WatermelonDB) | Heavyweight for one small counters table + ~5 users; adds a second persistence model beside Dexie | Hand-rolled Dexie `outbox` table drained on reconnect |
+| A separate realtime lib (Ably, PubNub, socket.io) | `@supabase/realtime-js` is already bundled in supabase-js | Supabase `channel()` presence + broadcast + `postgres_changes` |
+| Redux / heavy global state for auth/presence | Overkill; session comes from `getSession()` + `onAuthStateChange`, shared state from `useLiveQuery` | React state + `dexie-react-hooks`; add zustand only if prop-drilling hurts |
+| Any server framework (Express/Next API routes/Fastify) | "No server we run" is preserved; Supabase is the only backend, hosted | Supabase hosted auth + Postgres + Realtime; static frontend unchanged |
+| Persisting waves/presence to Postgres | They're ephemeral by design; DB rows are for durable progress only | Realtime broadcast + presence channel (no DB write) |
+| Blocking app startup on a live auth check | Breaks the dead-signal venue boot | Synchronous `getSession()` first; reconcile via `onAuthStateChange` when online |
 
 ## Stack Patterns by Variant
 
-**If `model.json` exceeds ~1 MB:**
-- Switch from JSON-module import to `?url` asset + runtime fetch
-- Add `json` to `workbox.globPatterns` (NOT included in Workbox defaults)
+**If deploying to Vercel/Netlify:**
+- Set `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` as dashboard build-time env vars.
+- Because host-side build injects them, no env file ships in git.
 
-**If constellation label rendering is poor on mobile:**
-- Draw labels in `nodeCanvasObject` only above a zoom threshold (`globalScale` param)
-- Fall back to direct d3-force + SVG only if the customization ceiling is truly hit
+**If deploying to GitHub Pages:**
+- Add a GitHub Actions build job; pass the two vars via repo/environment Secrets into the `vite build` step's `env:`.
+- (Anon key is public, so a committed `.env.production` is an acceptable fallback — but Actions secrets keep git clean and match the other hosts.)
 
-**If iOS friends report data loss despite `navigator.storage.persist()`:**
-- This is expected iOS behavior for non-installed PWAs — double down on the install prompt and auto-reminder to export after each tracked show; consider auto-download of the export JSON at show end
+**If/when presence carries richer "what they're doing" status:**
+- Reuse the *same* `gizz-room` channel — `ch.track({ name, view:"show", song: 7 })`. No new infrastructure; this is the intended path (blueprint §5).
+
+**If the shared `progress` table ever grows beyond a handful of rows:**
+- Switch the `postgres_changes` handler from full-table re-pull to patching the changed row from the payload (blueprint §4).
 
 ## Version Compatibility
 
 | Package A | Compatible With | Notes |
 |-----------|-----------------|-------|
-| vite-plugin-pwa@1.3.0 | vite ^3.1–^8.0, workbox 7.4.1 | Verified via peerDependencies |
-| vitest@4.1.10 | vite ^6–^8 | Verified via peerDependencies |
-| typescript-eslint@8.63.0 | eslint ^8.57/^9/^10, typescript >=4.8.4 <6.1.0 | **This is why TS 6.0.3, not 7.0.2** |
-| dexie-react-hooks@4.4.0 | dexie >=4.2 <5, react >=16 | Verified via peerDependencies |
-| Node ≥24.12.0 | Native `.ts` execution (stable type stripping) | Requires erasable-only syntax: set `"erasableSyntaxOnly": true`, avoid `enum`/`namespace` |
-| react-force-graph-2d@1.29.1 | React 19 | Actively maintained (Feb 2026); canvas-based, no DOM-per-node |
+| `@supabase/supabase-js@2.110.8` | Vite 8.1.3 / React 19.2.7 / TS 6.0.3 | Framework-agnostic, **no React peer dependency**; ships ESM + CJS + own `.d.ts`. Bundles `auth-js`/`postgrest-js`/`realtime-js`/`storage-js`/`functions-js` all @2.110.8 (verified via `npm view ... dependencies`). No conflict with the existing tree. |
+| `@supabase/supabase-js@2.110.8` | vite-plugin-pwa 1.3.0 / Workbox 7.4.x | Independent layers — Supabase is cross-origin runtime traffic; Workbox precaches same-origin build output. WebSockets are un-interceptable by SWs. No integration edits required. |
+| seed-users.mjs | Node ≥18 (repo runs ≥24) | Pure native `fetch`, zero deps. |
+| `@supabase/supabase-js@2.110.8` | esbuild (Vite transpile) | Transpiled by esbuild like all app code; the erasable-syntax constraint applies to `core`, not the app, so no concern. |
 
 ## Sources
 
-- npm registry (2026-07-08) — all versions, peerDependencies, and publish dates verified directly via `npm view` — HIGH confidence
-- [Announcing TypeScript 7.0 RC](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0-rc/) — TS 7 native-compiler GA timeline — HIGH confidence
-- [Node.js TypeScript docs](https://nodejs.org/api/typescript.html) and [Run TypeScript Natively](https://nodejs.org/learn/typescript/run-natively) — type stripping stable in 24.12+ — HIGH confidence
-- vite-plugin-pwa / Workbox runtime-caching patterns — training knowledge cross-checked against verified current versions (Workbox 7.4.1 published 2026-05, plugin 1.3.0 published 2026-05) — MEDIUM-HIGH confidence
-- fuse.js / uFuzzy / MiniSearch quality comparison — training knowledge; match-quality claim flagged as empirical (mitigated by swappable core function) — MEDIUM confidence
+- `npm view @supabase/supabase-js version` / `dist-tags` / `time` / `dependencies` (run 2026-07-22) — `latest` = **2.110.8**, published 2026-07-21; sub-packages all pinned 2.110.8; `3.0.0-next.29` is pre-release on the `next` tag only — **HIGH confidence** (registry-authoritative)
+- `.claude/skills/spike-findings-guezzer/references/multi-user-supabase.md` — validated blueprint (spikes 002–004, two-device live validation): client-in-app-layer, anon-vs-service_role, offline `getSession()`, RLS, Realtime presence/broadcast, "what to avoid" — **HIGH confidence** (spike-proven)
+- Repo inspection: `packages/app/package.json`, `packages/core/package.json`, `packages/app/vite.config.ts`, root `.gitignore`, root `package.json` (2026-07-22) — existing deps, PWA/Workbox config, absent `.env` gitignore entry — **HIGH confidence** (direct read)
+- `.planning/PROJECT.md` — v2.0 milestone scope, revised constraints, core-purity + offline-first requirements — **HIGH confidence**
+- Vite env-var behavior (`import.meta.env.VITE_*` build-time inlining) and Workbox navigation/precache/runtime-caching model — training knowledge cross-checked against the repo's existing PWA config and the blueprint — **MEDIUM-HIGH confidence** (well-established standard behavior)
 
 ---
-*Stack research for: Guezzer — offline-first KGLW setlist-prediction PWA*
-*Researched: 2026-07-08*
+*Stack research for: multi-user layer on an offline-first React/Vite PWA (v2.0 Supabase foundation)*
+*Researched: 2026-07-22*

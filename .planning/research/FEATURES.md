@@ -1,187 +1,245 @@
 # Feature Research
 
-**Domain:** Setlist tracking / setlist prediction / fan-stats collection apps (jam-band ecosystem)
-**Researched:** 2026-07-08
-**Confidence:** MEDIUM-HIGH (kglw.net, callingit.live, FantasyPhish verified directly; phish.net/elgoose.net specifics verified via multiple search sources — both 403'd direct fetches; r/KGATLW bingo culture unverified)
+**Domain:** Multi-user foundation for a private friend-group PWA (accounts, shared progress, presence) — Guezzer v2.0 "Gizz With Friends"
+**Researched:** 2026-07-22
+**Confidence:** HIGH (grounded in spike-validated blueprint 002–004 + inspection of the shipped `deriveDex`/`compareDexes`/share-card code; ecosystem norms MEDIUM)
 
-## Ecosystem Map (Who Does What)
+## Framing
 
-Four distinct product categories exist in this space. Guezzer sits at the intersection of #3 and #4, which **no existing product occupies**:
+This is **not** a greenfield product. The three feature areas are chosen and spike-validated. The job here is to specify *how each should behave* for a ~5-person private group and to bucket each sub-feature as table-stakes / differentiator / anti-feature so requirements definition can be ruthless.
 
-1. **Setlist databases (Songfish family: phish.net, elgoose.net, kglw.net; setlist.fm)** — canonical archives, per-song history, gap/bustout/debut charts, show ratings, "My Stats" attendance tracking. Community wikis, not live tools.
-2. **Concert diary apps (Gigvault, Concert Archives, Gigs)** — personal "wrapped" stats, photos, most-seen artists/venues. Diary, not analysis.
-3. **Setlist prediction games (FantasyPhish, callingit.live, Phantasy Tour games)** — pre-show picks scored *after* the show posts. None predict live, mid-show.
-4. **Live in-venue companion** — nobody. Live *next-song* prediction with one-thumb tracking in a dark venue is unoccupied territory.
+Two facts shape everything:
 
-Critical scoping fact: **kglw.net already provides** the full archive, bustout chart, debut chart, tease chart, yearly summaries, and a "My Stats" attendance feature (most-seen songs/venues/openers, day-of-week breakdown). Guezzer should never rebuild what kglw.net does well — it should do what kglw.net *cannot*: live prediction, offline operation, and the Pokédex framing.
+1. **Async friend comparison already ships.** `deriveDex` → `DexStats`, `compareDexes(mine, theirs)` → live diff/columns, and `buildShareStats`/`buildRecapShareStats` → share cards all exist and are pure/DOM-free in `packages/core/src/dex/`. v2.0 does **not** invent friend comparison — it removes the manual file-export handoff by syncing a derived summary so the *same* `compareDexes` renders against live data.
+2. **The scope wall is SOCL-V2-01.** Anything that pushes toward collaborative *live setlist logging* (shared trail writes, merge/reconcile of in-progress shows, "we're both editing tonight's setlist") is out. v2.0 delivers presence + shared *progress* (durable, low-frequency) + ephemeral reactions — never a shared mutable setlist.
 
-## The Stats Vocabulary Jam-Band Fans Actually Use
+## The Sync Payload Decision (drives everything below)
 
-Verified as core to Phish/Goose/KGLW stats culture. These are the concepts users of this domain arrive already knowing and expecting:
+The single most important design question is **what projection of `DexStats` gets written to Postgres.** Three options:
 
-| Stat | Definition | Community Weight |
-|------|------------|------------------|
-| **Gap** | Shows since a song was last played (measured in show count, not time) | THE central stat; phish.net has a dedicated Gap Chart; fans discuss "your current notable gaps" (personal gaps) in forums |
-| **Bust-out** | A song played after a large gap ("Fuck Your Face": 1,413-show gap) | "A BIG EFFING DEAL" — communal, band-and-fans-agree moment; kglw.net has a Bustout chart |
-| **Debut** | First-ever live performance | kglw.net has a Debut chart; debuts are *excluded* from gap charts because they're infinite-gap outliers |
-| **Show rarity score** | Average gap of songs played that night (phish.net's "last three times played" average) | Fans use it to rank how special a show was |
-| **Tease** | Partial/quoted song inside another song | kglw.net tracks these; My Stats includes "most seen teases" |
-| **Openers/closers/encores** | Positional distributions | elgoose.net has a dedicated Openers chart; prediction games award bonus points specifically for opener and encore picks |
-| **No-repeat runs** | KGLW-specific: multi-night residencies with zero repeated songs (Red Rocks 2022: 3 nights, no repeats; 2023 residencies: no repeats within a city, 80+ distinct songs) | Documented, deliberate band behavior — this is the strongest possible validation of Guezzer's rotation-suppression signal |
+| Option | What's synced | Enables | Payload | Verdict |
+|--------|---------------|---------|---------|---------|
+| **A. Counters only** | `songs_caught`, completion %, showCount, rarest tier, per-tier counts, per-album `{caught,total}` | Friends list + mini-leaderboard + headline compare columns | ~1–2 KB/user | Table-stakes floor |
+| **B. Counters + caught songId set** | Option A **plus** `int[]` of caught songIds | Everything in A **+ live `compareDexes` diff lists** (onlyMine / onlyTheirs / shared) with zero new logic | ~1–3 KB/user (264 ids max) | **Recommended** |
+| **C. Raw attendance rows** | Full tracked shows + entries + retro marks | Re-derive anything server-side; collaborative features | 10s–100s KB/user, PII-ish | Anti-feature (see below) |
+
+**Recommendation: Option B.** Privacy is explicitly low-stakes among 5 friends, the caught-songId array is at most 264 small ints, and it makes the *already-shipped* `compareDexes` run live for free — the friend screen becomes "run `deriveDex` locally for me, receive each friend's synced summary, `compareDexes` pairwise." Option A can't produce the rarest-first onlyMine/onlyTheirs/shared lists that the existing CompareView already renders, so choosing A would mean *throwing away* working code. Option C reopens offline-reconciliation questions that belong to SOCL-V2-01.
+
+The synced summary should be produced by a **new pure-core projector** (e.g. `deriveSharedProgress(dexStats): SharedProgress`) so the app layer only reads Dexie, derives locally, and hands a plain-JSON summary to the Supabase client. Core never imports Supabase (hard constraint).
+
+---
 
 ## Feature Landscape
 
-### Table Stakes (Users Expect These)
+### Area 1 — Accounts & Identity
 
-For a live prediction/tracking/collection tool aimed at stats-literate jam-band fans:
+#### Table Stakes
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Running setlist tracker with correction | Every game/archive assumes an accurate setlist; a tracker you can't fix mid-show is dead on arrival | MEDIUM | In scope (miss path, ??? placeholder). Add: edit/delete a wrongly-logged song |
-| Set/encore structure in the tracker | Every archive (phish.net, kglw.net, setlist.fm) delimits sets and encores; positional stats depend on it; the Phish LSTM study found set markers materially informative | LOW-MEDIUM | **Gap in current scope** — Show Mode needs a "set break" / "encore" marker button, and the logged show should serialize set structure so it round-trips with kglw.net data |
-| Per-song play count and "last played" | Baseline song-detail info on every setlist site | LOW | Falls out of the ingested corpus; surface in song detail / Explore Mode |
-| Gap (shows since last played) per song | The domain's central stat; a KGLW stats tool without gaps feels illiterate to its audience | LOW | Same computation as rotation suppression, different presentation. Show on orb detail / song pages |
-| Prediction confidence as a number | callingit.live shows algorithm confidence percentages; FantasyPhish players expect odds framing | LOW | In scope (percentage on orb) |
-| Searchable full show archive for attendance marking | phish.net "My Shows" and kglw.net "My Stats" both let users retroactively mark attended shows from the archive | MEDIUM | In scope (retroactive marking by date/venue) |
-| Personal attendance-derived stats | kglw.net My Stats, Gigvault Wrapped, phish.net My Shows all auto-derive stats from attendance | MEDIUM | In scope (Pokédex derivation) — derived-not-tallied matches how every incumbent works |
-| Data export / no lock-in | Personal-tool users burned by app shutdowns; fan tools all offer some export | LOW | In scope (JSON export/import) |
-| Post-show summary | Prediction games score every pick after the show; users expect a "how did the night go" recap | LOW | Partially in scope (hit/miss tally); add a simple end-of-show recap view |
+| Feature | Why Expected | Complexity | Notes / Reuse |
+|---------|--------------|------------|---------------|
+| Pre-made email/password sign-in | It's the whole premise; hand out N credentials | LOW | `sb.auth.signInWithPassword`; seed via GoTrue admin API `email_confirm:true` (blueprint step 3). No sign-up UI — accounts are minted by the owner. |
+| Offline-safe session restore | Core value is offline-first; a login wall at a dead-signal venue is unacceptable | MEDIUM | `getSession()` synchronous from localStorage on boot; **never** gate startup on a network auth check. `onAuthStateChange` reconciles when online. This is the highest-risk item — validated by spike but must not regress the v1 offline boot. |
+| Display name shown on your own stuff | Users need to see "who am I logged in as" | LOW | `user_metadata.display_name`, seeded at account creation. Surface in a header/menu chip. |
+| Sign-out | Table stakes for any account; also the identity-switch mechanism | LOW | `sb.auth.signOut()`. On a shared device this is how you hand the phone over. |
+| Namespace existing single-user data under the user id on first login | v1 users have a local dex; it must become "their" dex, not leak across identities | MEDIUM | Blueprint calls this out explicitly. One-time migration: tag existing Dexie rows with the logged-in user id. Get this wrong and a shared/borrowed phone cross-contaminates dexes. |
+| "Gizz With Friends" rebrand | The milestone ships it; signals the app is now multi-user | LOW | Wordmark/title/manifest copy. Pure chrome; no logic. Keep tab route/storage keys unchanged (same discipline as the v1 tab rebrand — labels only). |
 
-### Differentiators (Competitive Advantage)
+#### Differentiators
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Live mid-show next-song prediction** | No product does this. FantasyPhish/callingit.live lock picks pre-show and score after; Guezzer predicts *during*, conditioned on what's been played | HIGH | The core bet. 21.8% top-1 was achieved by an LSTM on Phish (876-song catalog); KGLW's ~250-song catalog + tuning-family batching + no-repeat runs should make a Markov model meaningfully better than that. callingit.live's algo shows "26% backtest hit rate" publicly — validates Guezzer's honest-uncertainty ~25% threshold as the right order of magnitude |
-| **Prediction explanations ("why")** | callingit.live shows confidence but never *why*; explanations build trust and are the model debugger | MEDIUM | In scope; genuinely novel in this space |
-| **Live hit/miss tally ("you vs. the model")** | callingit.live's "vs algo" competition is its stickiest mechanic — Guezzer gets it in real time | LOW | In scope; this is the fun loop for a friend group |
-| **Pokédex collection framing** | phish.net forum has an independently-built "songs I still need to hear live" tracker with active demand; Guezzer's completion %, rarest catch, never-seen list is a richer version | MEDIUM | In scope. "Rarest catch" (lowest base-rate song seen) is exactly the rarity framing phish.net fans use |
-| **Personal gap** ("N of your shows since you saw this") | Phish fans actively discuss "your current notable gaps" in forums; no tool computes it automatically | LOW | **Missed opportunity — cheap add**: derivable from attendance list + corpus, delights stats-literate users |
-| **Offline-first one-thumb venue UX** | Every comparable product assumes connectivity and two-handed desktop/phone use; venues have no signal | MEDIUM | In scope; a functional requirement that doubles as a differentiator |
-| **Run-aware rotation suppression** | KGLW verifiably plays no-repeat multi-night runs; treating same-run prior nights as near-exclusions is a KGLW-specific edge no generic tool has | LOW-MEDIUM | In scope as Signal 4 — sharpen it: within a same-venue/city run, suppression should approach hard exclusion, distinct from soft tour-recency decay |
-| **Constellation transition visualization** | Nothing comparable exists; phish.net's data-viz blog posts show strong fan appetite for visual stats | HIGH | In scope (Explore Mode, post-show-#1) |
-| **Shareable dex/summary card** | callingit.live generates 1080×1350 ticket-stub wrap cards for social; validates the no-backend share-card approach | MEDIUM | In scope |
-| **Show rarity recap** (avg gap of tonight's songs) | phish.net's rarity stat, applied to *your* tracked show; "how special was tonight" in one number | LOW | **Missed opportunity — cheap add** once gaps are computed; belongs in the post-show recap |
-| **Possible-debut awareness** | New-album songs have zero transition history; fans obsess over debuts (kglw.net Debut chart) | LOW | Sparse-data backoff already prevents hard zeros; add UI framing: songs from a just-released album flagged "no live history — debut candidate" rather than shown with fake-precise low % |
+| Distinct per-device identity with graceful stale-token reconnect | Mixed iOS/Android; each phone is "them" without re-login friction | MEDIUM | Blueprint open-item: an unexpired access token boots offline fine; a *very stale* one needs a network refresh before writes land. Handle as a reconnect-banner UX detail ("reconnecting…"), not an architecture change. A polished version is a differentiator; a crude "you're logged out" is a regression. |
+| Identity color/avatar (auto from name) | Cheap way to make presence dots and leaderboard rows instantly legible in the dark | LOW | Deterministic color from user id (same idiom as tuning/rarity colors). No uploads, no storage. Feeds Area 3 presence dots and Area 2 rows. |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+#### Anti-Features
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Pre-show pick-13 game with scoring/leaderboards (FantasyPhish clone) | It's the established fun format; friends will suggest it | Requires accounts, shared state, score persistence, dispute handling — the entire out-of-scope backend | The live hit/miss tally gives the same competitive dopamine with zero infrastructure; friends compare tallies verbally or via share card |
-| Community features (ratings, reviews, comments, forums) | Every Songfish site has them | kglw.net already does this well; duplicating it for <10 users is pure waste | Deep-link out to kglw.net show pages |
-| Full setlist archive browser with charts (bustout/debut/tease/openers) | "The data's right there, why not show it all" | Rebuilding kglw.net inside Guezzer; unbounded scope | Show only stats that serve prediction or the Pokédex; link to kglw.net for everything else |
-| Spotify/Apple playlist export from setlists | setlist.fm's most-loved feature | Off-mission (post-show desktop activity, not show-night); Spotify API friction; setlist.fm already does it | Users paste the setlist from kglw.net into setlist.fm/Spotify tools |
-| Photo/video/diary attachments per show | Gigvault's core loop; "concert memories" | Storage-heavy, IndexedDB-eviction-hostile on iOS, irrelevant to prediction/collection | Camera roll already timestamps by show date |
-| Predicting the full setlist pre-show | "Tell me tonight's whole show" | Compounding-error garbage beyond 1-2 songs; false precision destroys the trust the backtest gate exists to build | Conditional next-song only; the honest-uncertainty stance is a feature |
-| Real-time shared state between friends during shows | "We should all see the same tracked setlist" | Backend, sync conflicts, connectivity assumptions in a no-signal venue | Already consciously deferred to v2 in PROJECT.md; the 60s kglw.net `latest` poll is the de-facto shared source of truth |
-| Push notifications ("show starting", "bustout alert") | Concert apps train users to expect them | iOS PWA push is fragile; personal tool has no server to send them | Users are physically at the show — the stage is the notification |
-| Jamchart/longest-version curation | Phish culture treats jam length as first-class | Requires editorial judgment and duration data Guezzer doesn't ingest; kglw.net's jamcharts already exist | Consume kglw.net jamcharts as a segue signal (already Signal 3); never author them |
+| Self-service sign-up / open registration | "Feels like a real app" | 5 known friends; open reg invites abuse, email-confirm flows, reset infra — overhead for a private tool | Owner mints accounts via the seed script; hand out credentials |
+| Magic-link / OTP / social login | "Passwordless is modern" | Needs a mail round-trip at a venue with bad signal — the exact failure mode to avoid | Pre-made passwords (blueprint: explicitly the right call) |
+| Password reset / change-password UI | "Users forget passwords" | For 5 people the owner re-mints via the admin API in seconds | Re-run the idempotent seed script; no in-app flow |
+| Profile editing (bio, avatar upload, settings) | "Accounts have profiles" | Storage, moderation, upload plumbing for zero value at this scale | Display name is seeded and fixed; auto color/avatar |
+| Multi-account switching on one device | "Share the phone" | Adds session-juggling complexity; sign-out already covers the rare hand-off | Sign-out → sign-in as the other person |
+
+---
+
+### Area 2 — Shared Dex Progress
+
+#### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes / Reuse |
+|---------|--------------|------------|---------------|
+| Sync **a derived summary** of my dex, not raw attendance | The point is friends seeing progress; raw rows are wrong (see anti-features) | MEDIUM | New pure-core `deriveSharedProgress(DexStats)` → `{ display_name, songs_caught, completion_pct, show_count, rarest {songId,tier}, tierCounts, perAlbum, caughtSongIds }`. App upserts on dex change (debounced); core stays Supabase-free. |
+| Friends screen listing each friend's headline progress | Core deliverable: "each friend's real dex progress visible" | MEDIUM | Read-all RLS `select`; full-table re-pull on `postgres_changes` (fine for ~5 rows). Rows = name + completion % + caught count + rarest badge. |
+| Live update when a friend logs a catch | "Real dex progress synced" implies it moves during the residency | MEDIUM | `postgres_changes` on `public.progress`; **must** run `alter publication supabase_realtime add table progress` or it silently never fires (blueprint gotcha). |
+| Write-own / read-all enforcement | Nobody should be able to inflate my numbers | LOW | RLS: `select` open to `authenticated`; `insert`/`update` gated to `auth.uid() = user_id`. Upsert **identity columns only** on presence so counts aren't reset (blueprint pattern). |
+
+#### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes / Reuse |
+|---------|-------------------|------------|---------------|
+| **Live head-to-head compare via existing `compareDexes`** | The killer reuse: the async file-compare view becomes a live tap-a-friend view with zero new diff logic | LOW–MEDIUM | Requires Option-B payload (caught songIds). Reconstruct a minimal `DexStats`-shaped object from a friend's synced summary → feed the *unchanged* `compareDexes(myDex, theirDex)` → render the existing onlyMine/onlyTheirs/shared + columns. Highest-leverage feature in the milestone. |
+| Mini-leaderboard (rank by completion % / caught / rarest) | A 5-person group *will* compete on the residency; makes progress a game | LOW | Pure sort over the synced summaries. Multiple sort keys (completion %, catch count, rarest tier). No new data. |
+| Per-album / per-tier friend breakdown | Deepens compare beyond one number; leans on shipped `perAlbum` + rarity tiers | LOW | `DexStats.perAlbum` and tier counts already exist; project them into the summary. Reuses `CompareColumn.tierCounts` semantics. |
+| "Rarest catches" showcase per friend | Bragging rights; rarity tiers already computed | LOW | Rarest catch already in `DexStats.rarestCatch`; expose top-N rarest per friend. Reuses the six-tier rarity language from share cards. |
+| Live-syncing share card | The shipped `buildShareStats` card, but auto-current instead of a manual export | LOW | `buildShareStats(dex, archive)` unchanged; the friends screen can render each friend's card from their synced summary. |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Sync **raw attendance rows** to the server | "Then we can re-derive anything / do collaborative stuff" | Bloats payload, edges toward server-side derivation (breaks "model/derivations stay client-side"), pushes toward SOCL-V2-01 reconciliation; most PII-ish option | Sync the derived summary (Option B); derivation stays in local core |
+| Server-side `deriveDex` | "One source of truth on the server" | Violates the pure-client-derivation constraint; core must never depend on Postgres | Each client derives its own dex locally, syncs only the summary |
+| Editing/merging a friend's dex from your device | Mirrors the old import-merge affordance | `compareDexes` is deliberately the *inverse* of merge — read-only by construction (T-06-24). Live sync must preserve that: read-all, write-own | Compare only; never write another user's row (RLS enforces it anyway) |
+| Historical progress timeline / graph over the residency | "Show my climb night-by-night" | Needs time-series rows, retention, charting — scope creep for v2.0 | Defer; the live current-state summary is enough for the first multi-user milestone |
+| Push notifications on friend catches | "Tell me when Dave catches a rarity" | Explicitly out of scope (PROJECT.md); push infra + permissions overhead | In-app presence/reactions (Area 3) cover live awareness while the app is open |
+
+---
+
+### Area 3 — Presence & Interactions
+
+#### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes / Reuse |
+|---------|--------------|------------|---------------|
+| Online dots — who's currently in the app | The baseline of "awareness of each other" | MEDIUM | Supabase Realtime **presence** on one channel (`gizz-room`), keyed by user id. `presence sync` → `onlineIds`. Ephemeral — never persisted to Postgres (blueprint hard rule). |
+| Lightweight reactions / waves | The milestone's stated "reactions/waves" | MEDIUM | Realtime **broadcast** on the same channel; `payload:{from,to}`, `to:null` = broadcast to everyone. Render as a transient toast. Ephemeral by design. |
+| Ephemeral-only (nothing durable) | Presence/waves are moments, not records | LOW | Blueprint: rides Realtime, never Postgres. A wave leaves no trace — that's correct, not a gap. |
+
+#### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| "What they're doing" status | Turns a dumb online dot into ambient co-presence: "Dave's in LiveGizz," "Sam's browsing GizzDex" | MEDIUM | Track a coarse status enum in the presence payload (`{name, view: "live"\|"dex"\|"verse"\|"idle"}`). Blueprint explicitly says the same channel later carries richer status **with no new infrastructure** — this is the intended path. Keep it coarse (which tab), not fine-grained. |
+| Targeted vs broadcast waves | A wave *at* a specific friend feels personal; a broadcast "🙌" hypes the group | LOW | `to` field already in the blueprint payload; targeted = `to:userId`, broadcast = `to:null`. |
+| Small emoji/reaction palette (wave, fire, 🦎, "caught it!") | Cheap personality; fits the band fandom | LOW | Fixed small set of broadcast events; render as toasts. Reduced-motion-aware (reuse the Bingo celebration-layer discipline). |
+| Presence-aware friends screen | Fuse Area 2 + Area 3: the leaderboard rows show a live dot + current activity | LOW | Merge presence state into the friends list render. No new backend. |
+
+#### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| **Shared live setlist co-tracking** (see everyone's in-progress trail merge live) | "We're at the same show, let's track together" | This **is SOCL-V2-01** — deferred. Reopens offline-reconciliation, conflict resolution, and shared-mutable-state problems v2.0 exists to *avoid* | Presence "in LiveGizz" as a *status string* is fine (read-only awareness); a shared editable trail is not. Hard line. |
+| Persisting waves/presence to Postgres (activity feed / history) | "See who waved earlier" | Blueprint hard rule: ephemeral rides Realtime, never DB. A durable feed adds tables, retention, RLS, cleanup | Keep it ephemeral; the moment is the feature |
+| Chat / DMs / threaded messages | "We want to talk during the show" | Full messaging is a product unto itself; moderation, history, notifications | Waves + a tiny reaction palette; the group already has a group chat elsewhere |
+| Typing indicators / read receipts / fine-grained "on song 7 of set 2" | "More real-time = better" | Fine-grained status needs the live-trail data that's SOCL-V2-01; also chatty on Realtime | Coarse tab-level status only ("in LiveGizz") — no per-song stream |
+| Always-on background presence (report online when app closed) | "Show me as available all night" | PWAs can't reliably run background presence; drains battery; needs push | Presence only while foregrounded/open; drop on disconnect |
+
+---
 
 ## Feature Dependencies
 
 ```
-kglw.net corpus ingestion (schema-verified)
-    └──required by──> Transition matrix
-                          ├──required by──> Prediction scoring (Signals 1-7)
-                          │                     ├──required by──> Orbit view / Show Mode
-                          │                     └──required by──> Backtest report (trust gate)
-                          ├──required by──> Constellation (Explore Mode)
-                          └──required by──> Gap / last-played / play-count stats
-                                                ├──required by──> Show rarity recap
-                                                └──required by──> Possible-debut flagging
+Accounts & Identity (Area 1)
+    └──requires──> Supabase project + seed script + RLS schema (blueprint steps 3–4)
+    └──gates──────> EVERYTHING (no identity → no per-user rows, no presence key)
 
-Live setlist tracker
-    ├──requires──> Fuzzy search over catalog (miss path)
-    ├──requires──> Set-break/encore marker  ◄── gap in current scope
-    ├──enhances──> Rotation suppression (within-show conditioning)
-    └──feeds──> Attendance record (auto-marked)
+Shared Dex Progress (Area 2)
+    └──requires──> Area 1 (user_id keys every progress row; RLS = auth.uid())
+    └──requires──> deriveSharedProgress(DexStats)   [new pure-core projector]
+    └──reuses─────> deriveDex, compareDexes, buildShareStats   [SHIPPED, unchanged]
+    └──requires──> Option-B sync payload (caught songIds) to unlock live compareDexes
 
-Attendance marking (live + retroactive)
-    └──required by──> Pokédex derivation
-                          ├──required by──> Completion %, rarest catch, never-seen list
-                          ├──required by──> Personal gap stat
-                          ├──required by──> Constellation dex overlay
-                          └──required by──> Dex share card / export
+Presence & Interactions (Area 3)
+    └──requires──> Area 1 (presence keyed by user id; wave from/to = user ids)
+    └──independent of──> Area 2 (Realtime channel, no Postgres dependency)
 
-Set-position awareness (Signal 7) ──requires──> Set-break/encore marker + set structure in corpus schema
-Post-show recap ──requires──> Hit/miss tally + gap stats
+Live head-to-head compare ──enhances──> Friends screen (Area 2)
+"What they're doing" status ──enhances──> Friends screen (Area 2)
+
+SOCL-V2-01 (shared live setlist) ──CONFLICTS/OUT-OF-SCOPE──> Area 3 presence status
+    (coarse status string OK; shared mutable trail is the deferred line)
 ```
 
 ### Dependency Notes
 
-- **Set-break/encore marker is load-bearing beyond UX:** Signal 7 (set-position) and honest post-show serialization both depend on the tracker recording set structure, not just a flat song list. It must be in Show Mode v1 even if Signal 7 ships later.
-- **Gap computation is one function, four features:** rotation suppression, orb detail, show rarity recap, and personal gap all read the same shows-since-last-played derivation. Build once in `core/`.
-- **Pokédex is downstream of everything and blocks nothing:** it can ship after show #1 without risk, but attendance auto-marking from live tracking must exist from day one or show #1's dex data is lost.
+- **Area 1 gates the milestone.** No identity → no `user_id` to key progress rows or presence. Build accounts + offline-safe session first; it's also the highest-risk item (offline boot must not regress).
+- **Area 2 depends on a new pure-core projector**, not new derivation logic. `deriveDex` already produces everything; `deriveSharedProgress` is a thin serializable projection. The Supabase upsert lives entirely in the app layer.
+- **Live compare requires the Option-B payload.** If requirements pick counters-only (Option A), the shipped `compareDexes` diff lists can't be rendered live — you'd be discarding working code. Flag this decision explicitly in requirements.
+- **Area 3 is Postgres-independent.** Presence + waves ride one Realtime channel; it can ship in parallel with Area 2 once Area 1 exists. Most self-contained area.
+- **The status-string conflict with SOCL-V2-01 is subtle.** "Dave is in LiveGizz" as a read-only presence broadcast is in scope; "Dave and I share tonight's editable setlist" is the deferred feature. Requirements must draw this line so presence status doesn't creep into collaborative logging.
+
+---
 
 ## MVP Definition
 
-### Launch With (v1 — before show #1)
+### Launch With (v2.0 core)
 
-- [ ] Show Mode loop (orbit, miss path, ??? placeholder, comet trail, tally) — the hard deadline bar per PROJECT.md
-- [ ] **Set-break / encore marker in the tracker** — cheap now, unfixable retroactively; setlist data without set structure is lossy forever
-- [ ] Live `latest` sync + offline-first — venue reality
-- [ ] Backtest report — non-negotiable trust gate; callingit.live publishing "26% backtest hit rate" shows transparency is the domain norm
-- [ ] Attendance auto-marking from live-tracked shows — show #1's dex credit depends on it
-- [ ] JSON export — iOS eviction risk exists from day one
+- [ ] **Pre-made email/password sign-in + offline-safe session restore** — the gate for everything; the offline-boot behavior is make-or-break.
+- [ ] **First-login data namespacing** — existing single-user dex becomes the logged-in user's, cleanly, once.
+- [ ] **"Gizz With Friends" rebrand** — ships with the milestone; trivial but part of the deliverable.
+- [ ] **`deriveSharedProgress` + progress upsert (Option B payload)** — sync the derived summary incl. caught songIds.
+- [ ] **Friends screen with live headline progress + `postgres_changes` updates** — the visible payoff of shared progress.
+- [ ] **Live head-to-head compare reusing `compareDexes`** — highest-leverage reuse; makes the async compare view live.
+- [ ] **Online presence dots + broadcast/targeted waves** — the "awareness of each other" baseline.
 
-### Add After Validation (v1.x — between shows / after show #1)
+### Add After Validation (v2.x)
 
-- [ ] Pokédex UI (completion %, rarest catch, never-seen) — trigger: attendance data exists from show #1
-- [ ] Retroactive attendance marking from archive — trigger: friends want back-catalog credit
-- [ ] Post-show recap with show rarity score — trigger: first tracked show complete
-- [ ] Personal gap stat — trigger: Pokédex + gap function both exist (near-zero marginal cost)
-- [ ] Explore Mode constellation — explicitly post-show-#1 per PROJECT.md
-- [ ] Dex share card — trigger: friend group actually asks to compare
-- [ ] Possible-debut UI flagging — trigger: a new album drops before a tour leg
+- [ ] **"What they're doing" coarse status** — add once presence dots are solid; same channel, no new infra (blueprint-blessed path).
+- [ ] **Mini-leaderboard sorts + per-album/per-tier friend breakdowns** — deepen the friends screen once the summary sync is trusted.
+- [ ] **Emoji reaction palette + reaction-on-friends-screen** — personality layer after core waves work.
+- [ ] **Polished stale-token reconnect UX** — upgrade from a crude banner once the happy path is proven.
 
-### Future Consideration (v2+)
+### Future Consideration (post-v2.0 / explicitly deferred)
 
-- [ ] Era slider on constellation — already flagged v1.5 stretch
-- [ ] Real-time shared state — already consciously deferred; revisit only if the group demands it
-- [ ] Tease/jam-notation awareness beyond segue pairs — needs schema evidence first
+- [ ] **Shared live setlist co-tracking (SOCL-V2-01)** — the hard line; reopens offline reconciliation. Not this milestone.
+- [ ] **Historical progress timelines / night-by-night climb graphs** — needs time-series storage.
+- [ ] **Push notifications** — out of scope per PROJECT.md.
+- [ ] **Overlaps with the deferred casual backlog** (Guezz League pregame picks, Couch Mode follow-from-home, badge system) — these *layer on* the multi-user foundation but are separate milestones. Note the overlap; do not pull them in.
 
 ## Feature Prioritization Matrix
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Show Mode prediction loop | HIGH | HIGH | P1 |
-| Set-break/encore marker | HIGH (data integrity) | LOW | P1 |
-| Backtest report | HIGH (trust) | MEDIUM | P1 |
-| Live sync + offline | HIGH | MEDIUM | P1 |
-| Attendance auto-mark + export | HIGH (data safety) | LOW | P1 |
-| Gap stats (per-song) | HIGH (domain literacy) | LOW | P2 |
-| Pokédex UI | HIGH (the fun) | MEDIUM | P2 |
-| Post-show recap + rarity score | MEDIUM | LOW | P2 |
-| Personal gap | MEDIUM | LOW | P2 |
-| Constellation | MEDIUM | HIGH | P2 |
-| Dex share card | MEDIUM | MEDIUM | P3 |
-| Debut flagging | LOW-MEDIUM | LOW | P3 |
+| Pre-made login + offline-safe session | HIGH | MEDIUM (spike-validated, but offline-boot is the risk) | P1 |
+| First-login data namespacing | HIGH (correctness) | MEDIUM | P1 |
+| `deriveSharedProgress` projector (Option B) | HIGH | LOW–MEDIUM | P1 |
+| Friends screen + live `postgres_changes` | HIGH | MEDIUM | P1 |
+| Live compare via `compareDexes` (reuse) | HIGH | LOW–MEDIUM | P1 |
+| Presence dots + waves | HIGH | MEDIUM | P1 |
+| "Gizz With Friends" rebrand | LOW (but in-scope) | LOW | P1 |
+| Auto identity color/avatar | MEDIUM | LOW | P2 |
+| "What they're doing" status | MEDIUM–HIGH | MEDIUM | P2 |
+| Mini-leaderboard sorts | MEDIUM | LOW | P2 |
+| Per-album/per-tier friend breakdown | MEDIUM | LOW | P2 |
+| Emoji reaction palette | MEDIUM | LOW | P2 |
+| Polished reconnect UX | MEDIUM | MEDIUM | P2 |
+| Shared live setlist (SOCL-V2-01) | HIGH (but deferred) | HIGH | P3 / out |
+| Push notifications | LOW | HIGH | Out |
 
-## Competitor Feature Analysis
+## Reuse Map (existing code the roadmap must lean on)
 
-| Feature | kglw.net / Songfish sites | callingit.live / FantasyPhish | Gigvault / diary apps | Guezzer's Approach |
-|---------|---------------------------|-------------------------------|----------------------|---------------------|
-| Setlist archive | Canonical, full charts | Consume phish.net | None (generic setlist.fm data) | Consume kglw.net API; never rebuild |
-| Prediction | None | Pre-show picks, scored post-show; algo confidence shown; 26% backtest disclosed | None | Live mid-show, conditional, explained — the unoccupied niche |
-| Gap/bustout stats | Dedicated charts | Bustout picks as a game category | None | Gap as model signal + personal gap + rarity recap |
-| Personal attendance stats | My Stats (most-seen songs/venues/teases, day-of-week) | None | Wrapped (totals, most-seen) | Pokédex framing: completion %, rarest catch, never-seen |
-| Live in-venue use | Editors update `latest` live | Score-watching after show | None | Primary use case: offline, one-thumb, dark venue |
-| Sharing | Public profiles/forums | Ticket-stub wrap cards (1080×1350) | Social feed, friend tagging | No-backend share card + JSON dex exchange |
-| Encore/opener awareness | Openers chart (elgoose), positional stats | Opener/encore picks earn bonus points (3 vs 1) | None | Signal 7 + set-break marker; positional stats matter to this audience |
+| Existing artifact | Location | v2.0 reuse |
+|-------------------|----------|------------|
+| `deriveDex(snapshot, archive, albums, rarity) → DexStats` | `packages/core/src/dex/derive-dex.ts` | Runs locally per user; its output feeds the new `deriveSharedProgress` projector. **Unchanged.** |
+| `DexStats` shape (completion, perSong sightings, neverSeen, rarestCatch, showCount, perAlbum) | same | The superset the synced summary projects from. |
+| `compareDexes(mine, theirs) → CompareResult` | `packages/core/src/dex/compare.ts` | Reconstruct a minimal `DexStats` from a friend's synced summary → feed unchanged → render live head-to-head. **The key reuse.** Requires Option-B (caught songIds) payload. |
+| `buildShareStats(dex, archive)` / `buildRecapShareStats` | `packages/core/src/dex/share-stats.ts` | Live-current share cards on the friends screen; no export step. **Unchanged.** |
+| Six-tier rarity language + tier colors | `config.dex.tierColors`, `rarity.ts` | Consistent tier badges in leaderboard/compare rows. |
+| Auto/identity color idiom (tuning/rarity colors) | app | Deterministic per-user color for presence dots + rows. |
+| **New:** `deriveSharedProgress(DexStats) → SharedProgress` | to build, `packages/core/src/dex/` | Pure serializable projection; the ONLY new core piece. App-layer Supabase upsert consumes it — core never imports the client. |
+
+## Scope Boundary vs SOCL-V2-01 (explicit)
+
+**In scope (v2.0):**
+- Presence *status strings* — "in LiveGizz," "browsing GizzDex" — read-only, ephemeral, broadcast.
+- Shared *durable progress* — derived dex summaries, low-frequency upserts, read-all/write-own.
+- Ephemeral reactions/waves.
+
+**Out of scope (SOCL-V2-01, deferred):**
+- Any *shared mutable setlist* — co-editing tonight's trail, merging friends' in-progress logs, conflict resolution, offline reconciliation of live show state.
+- Fine-grained "on song 7 of set 2" streaming (needs the live-trail data path that is SOCL-V2-01).
+
+**The tripwire for requirements review:** if a proposed sub-feature requires writing another user's setlist/trail, or reconciling two people's in-progress show logs, it has crossed into SOCL-V2-01 and must be cut. Presence-as-awareness (read-only) is the ceiling for live show interaction in v2.0.
 
 ## Sources
 
-- kglw.net site structure and features (direct fetch, HIGH confidence): [kglw.net](https://kglw.net/) — confirmed Bustout chart, Debut chart, Tease chart, My Stats, yearly summaries, API, Heardle
-- callingit.live game mechanics (direct fetch, HIGH confidence): [callingit.live](https://callingit.live/) — opener/set-2-opener/encore picks, algo confidence, "vs algo" scoring, 26% backtest hit rate, wrap cards
-- FantasyPhish mechanics (direct fetch, HIGH confidence): [fantasyphish.com](https://www.fantasyphish.com) — 13 picks, 3pts opener/encore vs 1pt regular, leaderboards
-- Phish LSTM next-song prediction study (direct fetch, HIGH confidence): [Medium/TDS — Predicting What Song Phish Will Play Next](https://medium.com/data-science/predicting-what-song-phish-will-play-next-with-deep-learning-947ccce3824d) — 21.8% top-1 on 876-song catalog; set markers informative
-- phish.net Gap Chart, My Shows, rarity stat, personal-gap forum culture (search-verified, MEDIUM confidence — direct fetch 403'd): [Gap Chart](https://phish.net/setlists/gap-chart/), [My Shows](https://phish.net/my-shows), [rarity stat thread](https://forum.phish.net/forum/show/1380116880), [songs-still-needed tracker thread](https://forum.phish.net/forum/show/1380221621), [notable personal gaps thread](https://forum.phish.net/forum/show/1380085265)
-- Bust-out culture and definitions (multiple sources, MEDIUM confidence): [JamBase bust-out factor](https://www.jambase.com/article/bust-factor-10-phish-shows-largest-average-song-gaps), [phish.net define-bust-out thread](https://forum.phish.net/forum/show/1342190725)
-- KGLW no-repeat residencies (multiple press sources, HIGH confidence): [Red Rocks 2022 no-repeats](https://www.wewriteaboutmusic.com/concerts/king-gizzard-red-rocks-night-3), [BrooklynVegan 2023 marathon/residency coverage](https://www.brooklynvegan.com/king-gizzard-brought-another-3-hour-marathon-set-to-chicago-pics-video-setlist/)
-- elgoose.net structure (search-verified, MEDIUM confidence — direct fetch 403'd): [elgoose.net stats](https://elgoose.net/stats/), [Openers chart](https://elgoose.net/charts/openers)
-- Concert diary app landscape (search-verified, MEDIUM confidence): [Gigvault](https://gigvault.app/blog/best-apps-to-track-concerts), [setlist.fm statistics](https://www.setlist.fm/statistics)
-- r/KGATLW setlist-bingo culture: could not verify via search (LOW confidence, no findings) — prediction-game culture confirmed for Phish community instead
+- `.claude/skills/spike-findings-guezzer/references/multi-user-supabase.md` — spike-validated blueprint (auth/identity 002, synced-progress 003, presence-and-ping 004), all VALIDATED — **HIGH confidence**
+- `.planning/PROJECT.md` — v2.0 milestone scope, revised constraints, SOCL-V2-01 deferral, out-of-scope list — **HIGH confidence**
+- `.planning/STATE.md` — deferred backlog (Guezz League, Couch Mode, badges) for overlap awareness — **HIGH confidence**
+- `packages/core/src/dex/derive-dex.ts`, `compare.ts`, `share-stats.ts` — inspected shipped derivations for exact reuse surface — **HIGH confidence**
+- Ecosystem norms for tiny-group presence/reactions (ephemeral-first, coarse status, no chat) — training knowledge cross-checked against the blueprint's Realtime patterns — **MEDIUM confidence**
 
 ---
-*Feature research for: setlist prediction / tracking / fan-collection (Guezzer)*
-*Researched: 2026-07-08*
+*Feature research for: multi-user foundation of a private friend-group live-music PWA*
+*Researched: 2026-07-22*

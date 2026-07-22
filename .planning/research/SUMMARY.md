@@ -1,184 +1,166 @@
 # Project Research Summary
 
-**Project:** Guezzer — offline-first KGLW setlist-prediction PWA
-**Domain:** Live-venue companion app: client-side statistical prediction, setlist tracking, fan-stats collection (no backend)
-**Researched:** 2026-07-08
-**Confidence:** HIGH (stack versions and kglw.net API schema verified empirically; feature landscape and pitfalls corroborated across multiple sources)
+**Project:** Guezzer — v2.0 "Multi-User Foundation" ("Gizz With Friends")
+**Domain:** Multi-user layer (auth + shared progress + presence) bolted onto a shipped, offline-first, pure-core React/Vite PWA
+**Researched:** 2026-07-22
+**Confidence:** HIGH
 
 ## Executive Summary
 
-Guezzer occupies genuinely unoccupied territory: live, mid-show, conditional next-song prediction with one-thumb tracking in a dark venue. The adjacent ecosystem is well mapped — setlist databases (kglw.net already provides the archive, gap/bustout/debut charts, and "My Stats"), pre-show prediction games (callingit.live publicly discloses a 26% backtest hit rate, validating Guezzer's honest-uncertainty stance), and concert diary apps — but nobody predicts *during* the show. The build recipe is a build-time ETL pipeline: a Node script politely fetches the kglw.net corpus once (committed to the repo, never fetched in CI), pure-TypeScript core code normalizes it into a versioned `TransitionMatrix` JSON artifact, and a Vite/React PWA ships that artifact statically. The matrix artifact is the contract: predictor, backtester, and constellation all consume it and nothing else.
+v2.0 adds distinct identities, shared dex progress, and lightweight presence/reactions for a ~5-friend group, backed by a hosted Supabase (auth + Postgres + Realtime) — **the first backend this otherwise-static PWA has ever had.** This is not a greenfield build: the approach is already spike-validated live across two remote devices (spikes 002–004), and the async friend-comparison machinery (`deriveDex`, `compareDexes`, `buildShareStats`) already ships in pure `core`. The job of v2.0 is to remove the manual JSON-file handoff by syncing a *derived summary* of each user's dex so the same shipped compare code renders live, plus add ephemeral online-presence and waves. All four researchers converged hard on the same shape, so confidence is HIGH across the board.
 
-The recommended stack is Vite 8 + React 19 + TypeScript 6.0.3 (not 7 — typescript-eslint caps at <6.1.0), vite-plugin-pwa with `registerType: 'prompt'`, Dexie for IndexedDB (its `liveQuery` reactivity eliminates a hand-rolled state-sync layer), fuse.js behind a swappable `searchCatalog()` core function, and react-force-graph-2d for the post-show-#1 constellation. A two-package workspace (`core` + `app`) makes core purity a compile error rather than a convention: core's tsconfig has no DOM lib and its package.json has no React.
+The recommended approach is deliberately minimal: **exactly one new runtime dependency** (`@supabase/supabase-js` v2, latest 2.110.8) added to `packages/app` only; **exactly one new pure `core` function** (`deriveDexSummary(DexStats) -> DexSummary`); and **zero new supporting libraries** — the offline write-queue is a hand-rolled Dexie `outbox` (~40 lines), payload validation reuses the existing zod, and reactive UI reuses `useLiveQuery`. Every Supabase import is fenced into a single app-layer folder (`packages/app/src/sync/`) so core purity is preserved *by construction* and lint-auditable in one place. The sync model is the load-bearing simplification: because each user writes only their own row under read-all/write-own RLS, it is a **low-conflict one-way projection, not bidirectional sync** — last-write-wins is correct by construction, there is no server merge, and Dexie stays the single local source of truth.
 
-The two highest-severity risk clusters are (1) **iOS PWA lifecycle**: standalone PWAs are discarded from memory on every app switch, Safari's 7-day ITP eviction wipes browser-tab users' data, and wake lock was broken in home-screen apps until iOS 18.4 — mitigated by write-through IndexedDB persistence on every tap, restore-on-launch, install onboarding, and first-class JSON export; and (2) **model trust**: backtest leakage (as-of-date discipline must be a parameter of matrix construction, not a retrofit) and a transition matrix silently poisoned by set boundaries, teases, and side-project shows (the API is multi-artist — `latest.json` verifiably returns Stu Mackenzie solo sets; every layer must filter `artist_id === 1`). Both clusters are fully avoidable if addressed at design time in the right phase; both are expensive rewrites if retrofitted.
+The risk profile is dominated by the collision between offline-first and a network backend. Four "collision zones" (flagged 🔴) recur across the pitfalls research: (1) never block boot on a network auth check — restore synchronously from `getSession()`; (2) never Workbox-cache the Supabase origin — auth/REST must be network-only and Realtime `wss://` is un-cacheable by construction; (3) offline JWT refresh — raise the JWT expiry toward ~1 week and refresh-then-flush the outbox on reconnect; (4) iOS Safari localStorage session eviction — reuse the app's existing `persist()` + install-prompt defenses (strictly worse than dex eviction because there is no offline recovery). The single highest-severity individual mistake is leaking the `service_role` key: Vite inlines any `VITE_`-prefixed env into the public bundle, so the admin key must stay env-only in the seed script and **never** carry a `VITE_` prefix. Mitigation for every one of these is known and documented; the phase order below front-loads the riskiest seam (offline-safe identity) so nothing depends on it before it is device-verified.
 
 ## Key Findings
 
 ### Recommended Stack
 
-Vite (not Next.js — everything Next charges overhead for is dead weight under static export, and its PWA story is third-party) with a pnpm two-package workspace enforcing the core/app boundary mechanically. All versions verified against the npm registry 2026-07-08 with peer-dependency compatibility checked directly.
+The v1 stack (Vite 8 + React 19 + TS 6 + npm workspaces, Dexie 4, vite-plugin-pwa/Workbox `registerType:'prompt'`, zod, Tailwind) is already shipped and validated — **not re-researched.** v2.0 changes the dependency tree by exactly one package. See `STACK.md`.
 
 **Core technologies:**
-- Vite 8.1.3 + vite-plugin-pwa 1.3.0: build + PWA — first-class Workbox integration; `registerType: 'prompt'` (never `autoUpdate` — a SW swapping the app mid-show is the exact failure mode this project exists to avoid)
-- React 19.2.7 + TypeScript 6.0.3: constraint-confirmed; TS 6 not 7 because typescript-eslint 8.63 peer range is `<6.1.0`
-- Dexie 4.4.4 + dexie-react-hooks: IndexedDB — `useLiveQuery` makes attendance/trail/dex reactive for free; the only mutable state in the system
-- fuse.js 7.4.2 behind `searchCatalog()` in core: fuzzy search over ~250 songs; swappable to uFuzzy if drunk-thumb match quality disappoints
-- react-force-graph-2d 1.29.1: constellation (canvas, settle-and-freeze via `cooldownTicks`/`onEngineStop`); import the `-2d` package specifically, not the three.js-laden umbrella
-- zod 4.4.3: runtime validation of the volunteer-run API at the ingestion boundary — schema drift fails loudly at build time
-- Node ≥24.12: native TS execution for core CLI scripts (`erasableSyntaxOnly: true`); no build step for fetch/build-model/backtest
-- Orbit view: plain SVG + CSS, no d3 — ≤15 elements, native 44px hit targets, layout is a pure core function
-
-**One conflict to resolve:** STACK.md recommends inlining `model.json` into the JS bundle (auto-precached, atomically versioned, avoids the Workbox globPatterns-doesn't-include-JSON footgun); PITFALLS.md prefers a separately versioned runtime-cached artifact so data refreshes don't force app updates. **Recommendation: start with the JSON-module bundle** — the normalized artifact is small (est. tens–hundreds of KB), atomic versioning is a safety feature for a live-venue tool, and the escape hatch (`?url` import + `json` in globPatterns) is documented and cheap if the artifact grows past ~1 MB or data-refresh cadence becomes painful.
+- **`@supabase/supabase-js` 2.110.8 (v2)** — the *only* new runtime dependency; one meta-package pulls auth + Postgres/PostgREST + Realtime, framework-agnostic ESM, no React peer dep. Added to `packages/app` only, never `core`. Stay on the v2 line (v3 is pre-release on the `next` tag only).
+- **Dexie 4.4.4 (already present)** — reused for the hand-rolled `outbox`/`syncQueue` offline write-queue via an additive `version(6)` migration. No new offline-sync library (RxDB/PowerSync/Replicache are heavyweight overkill for one counters row + ~5 users).
+- **zod 4.4.3 (already present)** — reused at the app-layer boundary to validate untrusted Realtime/`postgres_changes` payloads, same discipline as the existing kglw.net ingestion schemas. Network-payload schemas are app concerns, not core.
+- **Zero-dep repo scripts** — `seed-users.mjs` (GoTrue admin API via native Node `fetch`) and `schema.sql` (pasted into the Supabase SQL editor). Not package dependencies; live in a root `supabase/` folder outside the bundle.
 
 ### Expected Features
 
-Guezzer must never rebuild what kglw.net does well (archive, charts, community); it does what kglw.net cannot: live prediction, offline operation, Pokédex framing. The audience is stats-literate — gap, bustout, debut, and rarity are vocabulary they arrive with.
+Three feature areas, all spike-chosen. The single most consequential design decision is the **sync payload projection** (see `FEATURES.md`): recommend **Option B — counters + caught `songId` int[]** (<=264 small ints, ~1–3 KB/user). Option B is what lets the *already-shipped* `compareDexes` run live for free; Option A (counters only) would mean throwing away working diff code; Option C (raw attendance rows) is an anti-feature that reopens SOCL-V2-01 reconciliation.
 
-**Must have (table stakes / before show #1):**
-- Show Mode loop: orbit predictions, one-tap logging, miss path via fuzzy search, `???` placeholder, comet trail, hit/miss tally
-- **Set-break/encore marker in the tracker** — identified gap in current scope; cheap now, unfixable retroactively (Signal 7 and honest serialization depend on it)
-- Live `latest.json` sync (suggest-only) + offline-first operation
-- Backtest report as trust gate — transparency is the domain norm (callingit.live publishes its hit rate)
-- Attendance auto-marking from live-tracked shows — show #1's dex credit is lost forever without it
-- JSON export — the real insurance against iOS eviction, from day one
+**Must have (table stakes):**
+- Pre-made email/password sign-in + **offline-safe session restore** — the gate for everything; make-or-break offline boot.
+- First-login data namespacing — the existing single-user dex cleanly becomes the logged-in user's (a `meta.userId` claim, not data movement).
+- `deriveSharedProgress`/`deriveDexSummary` (pure core) + debounced progress upsert (Option-B payload).
+- Friends screen with live headline progress via `postgres_changes` (requires `alter publication supabase_realtime add table progress`).
+- Read-all / write-own RLS enforcement.
+- "Gizz With Friends" rebrand (chrome only; labels, no route/storage-key changes).
 
-**Should have (differentiators, v1.x between shows):**
-- Prediction explanations ("why") — novel in this space; doubles as the model debugger
-- Pokédex UI: completion %, rarest catch, never-seen list
-- Personal gap stat and show-rarity recap — near-zero marginal cost once gap computation exists (one core function feeds four features)
-- Run-aware rotation suppression sharpened to near-exclusion within same-city runs (KGLW verifiably plays no-repeat residencies)
-- Explore Mode constellation and dex share card
+**Should have (competitive):**
+- **Live head-to-head compare reusing `compareDexes`** — the highest-leverage reuse in the milestone; the async file-compare view becomes a live tap-a-friend view with zero new diff logic (requires Option B).
+- Online presence dots + broadcast/targeted waves (ephemeral, never persisted).
+- "What they're doing" coarse status (which tab) — same channel, no new infra.
+- Mini-leaderboard sorts, per-album/per-tier friend breakdown, emoji reaction palette, auto identity color, polished stale-token reconnect UX.
 
-**Defer (v2+):**
-- Pre-show pick-game with leaderboards (requires the out-of-scope backend; live tally gives the same dopamine)
-- Real-time shared state between friends; era slider; tease-level notation awareness
-- Anything kglw.net already does: archive browser, charts, community features — deep-link out instead
+**Defer (v2.x / out):**
+- **Shared live setlist co-tracking (SOCL-V2-01)** — the hard scope line; reopens offline reconciliation. Explicitly out.
+- Historical progress timelines / night-by-night graphs (needs time-series storage).
+- Push notifications (out of scope per PROJECT.md).
+- Self-service sign-up, magic-link/OTP, password-reset UI, profile editing, multi-account-on-one-device switching.
 
 ### Architecture Approach
 
-Build-time ETL → static artifact ("bake, don't fetch"). Owner-run Node scripts fetch the corpus (per-year, courtesy-delayed, committed raw to `data/`), core ingestion normalizes through an anti-corruption layer (the only module that knows raw API field names), and the matrix builder emits a versioned JSON artifact consumed by three independent consumers. The app is a pure projection: UI never computes counts, core never imports from app. The kglw.net API schema was verified empirically (11 live fetches) — ARCHITECTURE.md Part 1 is the authoritative reference for extraction code, including: multi-artist database (filter `artist_id === 1` everywhere), global `position` across sets, `setnumber === "e"` for encores (not `settype`), `transition_id` semantics (2/3 = hard segue, 5/6 = terminal; never string-parse), silent filter-ignore gotcha (a typo'd filter path returns the whole table), and sandwiches (same song twice per show, `isreprise` unreliable).
+One load-bearing constraint governs everything: **`packages/core` stays pure; all Supabase lives in `packages/app/src/sync/`, the only folder that imports `@supabase/supabase-js`.** Core gains exactly one *pure* addition — `deriveDexSummary(DexStats) -> DexSummary` — mirroring the existing `deriveDex`/`compareDexes` pure-derivation, app-layer-transport split. The `progress` row is a **regenerable projection** of Dexie-derived `DexStats`, never a source of truth (extends the "Pokédex counts derived, never stored" rule one hop to the server). See `ARCHITECTURE.md`.
 
 **Major components:**
-1. `core/ingest` — raw rows → domain types; owns all schema knowledge; zod-validated
-2. `core/matrix` — normalized shows → versioned `TransitionMatrix` artifact with **as-of-date as a construction parameter** (backtest correctness depends on this)
-3. `core/predict` + `core/backtest` — signals as composable, ablatable pure functions; walk-forward holdout eval split hard-segue vs free-choice
-4. `core/dex` + `core/graph` — Pokédex and constellation both derived on read from artifact + attendance (never stored counts)
-5. `app/services` — live-poll (60s, jittered, suggest-only, silent offline backoff), idb-store (Dexie), export/import
-6. `app` UI — Show Mode (SVG orbit), Explore Mode (canvas graph), Dex screens
+1. **`packages/app/src/sync/` (NEW)** — `supabase.ts` (client singleton), `useSession.ts` (offline-safe boot), `useProgressSync.ts` (push my summary, debounced + outbox), `useFriends.ts` (read-all + `postgres_changes` re-pull), `usePresence.ts` (presence + waves, no DB), `syncQueue.ts` (single-slot offline write-queue), `namespaceLocalData.ts` (first-login userId claim). The hard Supabase boundary.
+2. **`packages/core/src/dex/dex-summary.ts` (NEW, pure)** — `deriveDexSummary`; unit-testable from Node with fixtures; zero I/O.
+3. **Supabase (hosted)** — one durable `progress` table (one row/user, RLS read-all/write-own, in the realtime publication) + one ephemeral Realtime channel (`gizz-room`) for presence + broadcast waves. Never persist presence/waves.
+4. **Modified existing seams** — `db.ts` additive `version(6)` (`syncQueue` + `meta.userId`), `App.tsx` (session gate + presence mounts + wave-toast emitter), `AppShell.tsx` (header identity affordance), `config.ts` (a `sync` block — no scattered magic strings), root `supabase/` (schema.sql + seed-users.mjs, outside the bundle).
 
 ### Critical Pitfalls
 
-1. **iOS discards PWA memory on every app switch** — IndexedDB is the source of truth, write-through on every tap, restore-on-launch to exact state in <2s; never trust `visibilitychange` on iOS. Verified by force-quit testing on a real iPhone.
-2. **Backtest leakage makes the trust gate lie** — as-of-date must be a matrix-builder parameter from day one; tune on an earlier tour, confirm once on the latest; report split metrics; realistic free-choice top-5 ceiling is ~25–40%, don't chase more.
-3. **Set boundaries, side projects, and notation poison the matrix** — empirical schema doc gates the extractor; group by `setnumber` before emitting edges; `crossesSetBreak` as a distinct edge type; fixture tests spanning 2012/2017/2022/2025 eras.
-4. **SW update deadlock / stale app at show time** — Workbox via vite-plugin-pwa, prompt-to-update toast, visible version stamp, update flow proven on a friend's device before wide distribution.
-5. **Touch UX punishes the intended operator** — one-tap undo instead of confirmations (non-negotiable), 44px floor plus inter-orb spacing, gesture suppression (`overscroll-behavior: none`), and a full-livestream one-thumb drill as the Show Mode exit criterion.
-6. **7-day ITP eviction + no `beforeinstallprompt` on iOS** — install onboarding with illustrated instructions, `navigator.storage.persist()`, and post-show export prompts as the real backstop.
+Full detail and the "looks done but isn't" checklist in `PITFALLS.md`. The four 🔴 zones are where offline-first and Supabase actively fight:
+
+1. **🔴 Blocking startup on a network auth check** — boot from synchronous `getSession()` (reads localStorage, no network); reconcile via `onAuthStateChange` after paint. Never `await getUser()`/`refreshSession()` on the boot path. Verify with a device airplane-mode cold-boot test.
+2. **🔴 Workbox caching the Supabase origin** — exclude `*.supabase.co` from all runtime caching (network-only); the bundled SDK is precached (correct), but auth/REST responses must never be. Realtime `wss://` is un-interceptable by SWs by construction. Keep `registerType:'prompt'`. Verify: zero Supabase entries in Cache Storage.
+3. **🔴 Offline JWT refresh (blueprint's known open item)** — don't treat expired-token-offline as logout; raise JWT expiry toward ~1 week so a pre-show wifi login survives the show; refresh-then-flush the outbox on reconnect (gate writes on "session valid," not "user exists").
+4. **🔴 iOS localStorage session eviction** — reuse existing `persist()` + install-prompt defenses; make install-to-home-screen and "log in on wifi before the show" onboarding gates. Strictly worse than dex eviction (no offline recovery), so mitigation-not-cure.
+5. **Highest single-severity: leaking `service_role`** — it bypasses RLS entirely. Env-only in the seed script, never `VITE_`-prefixed, never committed, secret-scan CI. (Corollary: don't waste effort hiding the *anon* key — it's public by design; disable public sign-ups instead.)
+
+Also load-bearing but lower-risk: RLS/publication misconfig (silent — needs a two-user RLS test and the `alter publication` line), sync races/double-writes (single-slot outbox, idempotent upsert keyed `user_id`, pull->subscribe->re-pull, ignore own echo), CSP/`connect-src` must list `https://*.supabase.co` **and** `wss://*.supabase.co` and be tested over the cloudflared tunnel, and never coupling the client into `core`.
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure:
+Research converged unanimously on a three-phase structure that **de-risks identity first**. Phase A is the load-bearing, highest-risk work (it owns 3 of the 4 🔴 offline collisions); B and C both sit on A's `session`/`userId` and are mutually independent (C can parallelize with B once A lands and is device-verified). A backend-foundation setup task precedes A.
 
-### Phase 1: Corpus Ingestion & Schema Foundation
-**Rationale:** Everything downstream depends on correct extraction; PITFALLS P6/P11 are only preventable here; the full corpus pull is where schema surprises surface (multi-set shows, `transition_id: 4`, covers).
-**Delivers:** Workspace scaffolding (core + app packages), raw API types from verified schema, normalizer with artist filter and transition semantics, zod validation, fetch-corpus script, committed raw corpus, era-spanning fixture tests.
-**Addresses:** kglw.net corpus ingestion (root of the feature dependency tree).
-**Avoids:** P6 (matrix poisoning — schema doc gates extractor), P11 (volunteer-API abuse — manual refresh script, committed artifacts, no CI fetches).
+### Phase 0 (setup task inside Phase A): Backend Foundation
+**Rationale:** Schema, RLS, secrets, and seeding must exist before any client code, and the secret-hygiene gate must be established from the first commit.
+**Delivers:** `supabase/schema.sql` (progress table + read-all/write-own RLS + `alter publication supabase_realtime add table progress`), `supabase/seed-users.mjs` (service_role env-only), disabled public sign-ups, raised JWT expiry, `.env*.local` gitignored, secret-scan CI.
+**Avoids:** service_role leak (P6), RLS/publication misconfig (P5), anon-key-panic (P7).
 
-### Phase 2: Transition Matrix, Prediction Model & Backtest
-**Rationale:** The matrix artifact is the contract that unblocks predictor, backtest, AND constellation simultaneously; as-of-date discipline is an architectural decision that cannot be retrofitted; the backtest is the trust gate for everything after.
-**Delivers:** Versioned `TransitionMatrix` artifact + build-model script, signals 1–7 as ablatable units, `config.ts` with all constants, walk-forward backtest CLI with split metrics, baselines, ablation, and sensitivity sweeps.
-**Uses:** Pure core package, Node-native TS execution, zod.
-**Implements:** `core/matrix`, `core/predict`, `core/backtest`.
-**Avoids:** P5 (leakage — as-of-date parameter), P12 (decay mis-tuning — ablation sweep is a deliverable), P8 (unknown-song backoff as first-class model input).
+### Phase A: Auth & Offline-Safe Session (+ rebrand/onboarding)
+**Rationale:** The single riskiest seam (offline-safe identity at a dead-signal venue) and the gate for everything downstream — no identity means no per-user rows and no presence key. Prove offline boot on-device *before* anything depends on it.
+**Delivers:** `sync/supabase.ts` (env-driven singleton + lint boundary rule), `sync/useSession.ts` (`getSession()` restore + `onAuthStateChange`), `LoginGate`/`AccountSheet`, `AppShell` identity affordance, `db.ts` `version(6)` (`meta.userId` claim + `namespaceLocalData.ts`), "Gizz With Friends" rebrand, install-first + "log in on wifi" onboarding copy.
+**Addresses:** pre-made email/password sign-in, offline-safe session restore, first-login namespacing, rebrand (FEATURES table stakes).
+**Avoids:** 🔴 blocking startup (P1), 🔴 offline token refresh config (P3), 🔴 iOS session eviction (P4), client-in-core (P10).
+**Exit gate:** sign in on two devices with distinct accounts; kill signal; app still boots to the full dex offline; distinct identities confirmed.
 
-### Phase 3: App Shell & PWA Foundation
-**Rationale:** SW update flow must be proven before any distribution to friends; install onboarding and persistence infrastructure are prerequisites for Show Mode's write-through design; can start once Phase 2 freezes the artifact schema (parallelizable with late Phase 2).
-**Delivers:** Vite/React shell consuming the bundled artifact, vite-plugin-pwa with prompt-update flow and version stamp, Dexie store, install onboarding (iOS manual instructions), `storage.persist()`, offline-complete first load.
-**Uses:** Vite 8, vite-plugin-pwa (`generateSW`, `registerType: 'prompt'`), Dexie, Tailwind.
-**Implements:** `app/services/idb-store`, PWA shell.
-**Avoids:** P4 (update deadlock — friend-device update-toast test), P2 (eviction — install nag + persist).
+### Phase B: Shared Progress
+**Rationale:** Depends on A's identity. Delivers the visible payoff — friends' real dex progress synced live — and the highest-leverage reuse (live `compareDexes`).
+**Delivers:** `core/dex/dex-summary.ts` (`deriveDexSummary`, pure + fixture unit tests), `sync/useProgressSync.ts` (debounced diff push + single-slot outbox), `sync/syncQueue.ts` (flush-on-reconnect via existing `useOnlineStatus`), `sync/useFriends.ts` (read-all + `postgres_changes` re-pull), `friends/FriendsView.tsx`, live head-to-head compare reusing shipped `compareDexes`.
+**Uses:** Supabase Postgres upsert/select under RLS; Option-B payload (caught songIds).
+**Implements:** the projection/one-way-sync architecture; Dexie-as-local-truth.
+**Avoids:** sync races/double-writes (P8), refresh-then-flush ordering (P3), Realtime-SELECT coupling (P5).
+**Exit gate:** mark a show offline on device 1 -> reconnect -> device 2's FriendsView reflects the new completion %.
 
-### Phase 4: Show Mode
-**Rationale:** The hard deadline bar per PROJECT.md; the highest concentration of critical pitfalls (P1, P3, P10) lives here; the trail data structure must be designed for two-source reconciliation now so Phase 5 sync doesn't force a refactor.
-**Delivers:** SVG orbit view (pure core layout function), one-tap logging with persistent undo, fuzzy-search miss path, `???`/provisional songs, set-break/encore marker, comet trail, hit/miss tally, write-through persistence with restore-on-launch, wake lock with reacquisition, gesture suppression, attendance auto-marking.
-**Addresses:** Show Mode loop, set-structure capture, attendance auto-mark (all P1 features).
-**Avoids:** P1 (state discard — force-quit restore test), P3 (wake lock), P10 (touch UX — full-livestream one-thumb drill is the exit criterion).
+### Phase C: Presence & Reactions
+**Rationale:** Depends on A's identity but is Postgres-independent — the most self-contained area; can parallelize with B.
+**Delivers:** `sync/usePresence.ts` (presence + wave broadcast, no DB), `friends/PresenceRow.tsx`, wave-toast emitter in `App.tsx` (reuse the `BackupToast`/`useBingoCelebrations` module-emitter pattern), coarse "what they're doing" status payload (stubbed forward-compatible), emoji reaction palette.
+**Implements:** ephemeral Realtime presence/broadcast; reduced-motion-aware celebration discipline.
+**Avoids:** persisting presence to Postgres (anti-pattern), CSP/tunnel Realtime failures (P9), the SOCL-V2-01 scope creep tripwire.
+**Exit gate:** device 1 sees device 2 come online; a wave from 1 toasts on 2, verified on-device over the cloudflared tunnel.
 
-### Phase 5: Live Sync & Data Safety
-**Rationale:** Explicitly after manual tracking is solid; suggest-only reconciliation depends on Phase 4's trail structure; export must exist before show #1 because eviction risk exists from day one.
-**Delivers:** 60s `latest.json` poll (artist + show_id filtered, jittered, no retries, silent offline backoff), suggest-only auto-fill chips, post-show reconcile view, versioned JSON export/import with round-trip test, post-show export prompt.
-**Avoids:** P7 (sync clobbering — manual trail never mutated automatically), P11 (polling discipline).
-
-### Phase 6: Pokédex & Post-Show Stats
-**Rationale:** Downstream of everything, blocks nothing; safe after show #1 since attendance auto-marking already preserves the data; gap computation built once here feeds four features.
-**Delivers:** Dex UI (completion %, rarest catch, never-seen), retroactive attendance marking, gap/last-played/play-count stats, post-show recap with rarity score, personal gap, debut flagging.
-**Addresses:** The entire P2 feature tier from FEATURES.md.
-
-### Phase 7: Explore Mode Constellation
-**Rationale:** Explicitly post-show-#1 per PROJECT.md; pure consumer of the existing artifact (`core/graph` is a projection — no second pipeline); highest UI risk (mobile canvas performance) isolated last.
-**Delivers:** Constellation via react-force-graph-2d, edge-thresholded active-rotation default view, settle-and-freeze, tuning-family colors, dex overlay, focus+context, ranked-bars panel; dex share card.
-**Avoids:** P9 (hairball/jank — canvas, deterministic seeding, explicit stop-and-pin, default under ~80 nodes).
+Cross-cutting **(P) PWA/SW/deploy hardening** threads through all phases: verify no `runtimeCaching` rule matches `*.supabase.co`, CSP `connect-src` includes both `https:` and `wss:` Supabase, deploy env vars set in the static host.
 
 ### Phase Ordering Rationale
 
-- **Data before model before UI:** the feature dependency tree in FEATURES.md is rooted at corpus ingestion; the matrix artifact (Phase 2) is the contract that lets app work (Phases 3–4) proceed in parallel once frozen.
-- **Unretrofittable decisions front-loaded:** as-of-date matrix construction (Phase 2), set-structure capture (Phase 4), and two-source trail design (Phase 4) are each cheap at design time and rewrites later — research is unanimous on all three.
-- **Trust gate before venue use:** the backtest (Phase 2) determines confidence framing for the entire UI; building Show Mode before knowing realistic accuracy invites false-precision UX.
-- **Everything after Phase 5 can slip past show #1 safely** — attendance auto-marking and export in Phases 4–5 guarantee no data is lost while Pokédex and constellation ship between shows.
+- **A before B/C by dependency:** identity keys every progress row and every presence entry; nothing works without it.
+- **A first by risk:** it owns 3 of 4 🔴 offline collisions (startup blocking, token refresh, iOS eviction) — the seams that regress the app's core offline-first value. Prove them on-device before building on them.
+- **B and C parallelizable:** C rides Realtime only (no Postgres dependency on B), so once A is device-verified the two can proceed independently.
+- **Scope tripwire baked into C:** presence *status strings* ("in LiveGizz") are in scope; any *shared mutable setlist* is the deferred SOCL-V2-01 line and must be cut on sight during requirements review.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 1:** ARCHITECTURE.md's open items must be resolved during full corpus ingest — multi-set `setnumber` representation, `transition_id: 4` meaning, `showyear` filter reliability (silent-ignore gotcha), soundcheck/settype variants, tease notation location. Plan the ingest to instrument and log these.
-- **Phase 4:** iOS PWA lifecycle behavior is device- and version-specific; plan a real-iPhone spike early (force-quit restore, wake-lock on the oldest iOS in the friend group) rather than trusting documentation.
-- **Phase 7:** canvas label rendering quality at ~250 nodes on small screens needs a spike (STACK.md flags this as the one MEDIUM-confidence stack choice); mitigation patterns are known.
+**Standard patterns — skip `--research-phase` (spike-validated, blueprint-proven):**
+- **Phase A:** the offline-boot/`getSession()` flow, RLS shape, and seed script are all validated live in spikes 002–004; the work is careful integration, not investigation.
+- **Phase B:** projection sync + `postgres_changes` re-pull are blueprint-proven; the reuse surface (`deriveDex`/`compareDexes`) is shipped and inspected.
+- **Phase C:** presence + broadcast on one channel is the validated `gizz-room` design from spike 004.
 
-Phases with standard patterns (skip research-phase):
-- **Phase 2:** pure TypeScript statistical code against a verified schema; the discipline requirements are fully documented in PITFALLS.md P5/P12.
-- **Phase 3:** vite-plugin-pwa and Dexie are well-documented ecosystem defaults; the exact Workbox config is already specified in STACK.md.
-- **Phase 5–6:** straightforward consumers of existing structures; patterns fully specified in ARCHITECTURE.md data flows.
+**Watch items during planning (not full research, but requirements-time decisions):**
+- Phase A: exact JWT expiry value; shared-device second-login policy (refuse-and-export recommended); friends-surface placement (new tab vs folded into GizzDex/Settings).
+- Phase B: progress column set — `per_album` jsonb in v2.0 or defer (keep full `perSong` OFF the live row); progress-write debounce cadence during a show.
+
+These are design choices with recommended defaults, not feasibility unknowns — resolve at requirements time, don't spawn research phases.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All versions and peer-dependency compatibility verified against npm registry 2026-07-08; only fuzzy-match quality (MEDIUM, empirical) and canvas labels (MEDIUM-HIGH, spike planned) are soft |
-| Features | MEDIUM-HIGH | kglw.net, callingit.live, FantasyPhish verified by direct fetch; phish.net/elgoose.net search-verified (direct fetches 403'd); r/KGATLW bingo culture unverified but non-load-bearing |
-| Architecture | HIGH | API schema verified empirically with 11 live fetches — the load-bearing section; architecture patterns MEDIUM-HIGH (standard practice, low risk) |
-| Pitfalls | HIGH | iOS/PWA/SW pitfalls verified against WebKit bug tracker, webkit.org, MDN; modeling pitfalls MEDIUM-HIGH (established practice + Phish-ecosystem prior art) |
+| Stack | HIGH | One dependency, verified registry-authoritative (`npm view`, 2026-07-22); everything else already in the shipped tree. |
+| Features | HIGH | Grounded in the spike-validated blueprint + direct inspection of the shipped `deriveDex`/`compareDexes`/share-card code; ecosystem norms (ephemeral presence) MEDIUM. |
+| Architecture | HIGH | Integration seams read directly from real shipped files; the approach is validated live across two devices. Column-set choices flagged MEDIUM (confirm with owner). |
+| Pitfalls | HIGH | Spike-validated + Supabase docs/issue-verified; the offline-refresh and iOS-eviction mitigations are MEDIUM-HIGH (device-test to confirm the exact behavior). |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Multi-set show representation (`setnumber` "2"/"3") and `transition_id: 4`:** unverified in sample window — instrument Phase 1's full corpus ingest to confirm; 2022 Red Rocks marathons are the test case.
-- **Tease notation:** believed to live in `footnote`/`footnotes` (MEDIUM confidence) — confirm during full ingest; recommendation is to exclude teases from the matrix in v1 regardless.
-- **Fuzzy-match quality for impaired one-thumb typing:** empirical — fixture test with realistic typos in Phase 4; uFuzzy swap is a one-file change behind `searchCatalog()`.
-- **Model artifact size:** estimated tens–hundreds of KB but unverified until Phase 2 builds it; the ~1 MB escape hatch (with the globPatterns caveat) is documented.
-- **TypeScript 7 upgrade:** blocked on typescript-eslint supporting ≥7.0; watch release notes — a free 10x typecheck speedup when it lands.
-- **Realistic accuracy ceiling:** ~25–40% free-choice top-5 per prior art; the roadmap should treat honest-uncertainty UI framing as a requirement, not chase numbers the domain can't support.
+- **Sync payload = Option B (recommended):** if requirements instead pick counters-only (Option A), live `compareDexes` can't render and shipped diff code is discarded. Flag this decision explicitly at requirements time. *(Recommend B.)*
+- **`per_album` column:** ship flat scalar columns first; add `per_album` jsonb only if a per-album friend diff lands. Keep the full `perSong` map (~264 entries) OFF the live row — that stays on the file-export/`compareDexes` path. *(Owner decision at requirements.)*
+- **Shared-device second-login:** recommend refuse-and-export over silent merge; per-user Dexie namespacing only if shared-device use actually emerges. *(Owner decision.)*
+- **Exact JWT expiry + progress-write debounce cadence:** propose values at requirements time (JWT toward ~1 week; debounce to coalesce a burst of live logs into one write).
+- **iOS session-eviction real-world behavior + Realtime-over-tunnel:** both need a device test (7+ day installed-vs-tab PWA; Realtime `CHANNEL_ERROR` over cloudflared) — bake into Phase A and Phase C UAT respectively.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- npm registry (2026-07-08) — all versions, peerDependencies, publish dates verified via `npm view`
-- kglw.net API: docs + 11 live sample fetches (2026-07-08) — envelope, schemas, multi-artist gotcha, transition vocabulary, set delimiting, silent filter-ignore
-- kglw.net, callingit.live, fantasyphish.com — direct fetches: feature landscape, 26% backtest disclosure, game mechanics
-- WebKit bug 254545, webkit.org storage-policy blog, MDN StorageManager — wake lock regression, persist() semantics, eviction criteria
-- Node.js TypeScript docs — type stripping stable in 24.12+
-- KGLW no-repeat residency press coverage — validates rotation-suppression signal
+- `.claude/skills/spike-findings-guezzer/references/multi-user-supabase.md` — spike-validated blueprint (002 auth/identity, 003 synced-progress, 004 presence/ping), live across two remote devices incl. offline boot — auth/RLS/presence design and the token-refresh open item.
+- `npm view @supabase/supabase-js` (2026-07-22) — `latest` = 2.110.8; sub-packages pinned; v3 pre-release only on `next`.
+- Shipped codebase (read directly): `packages/core/src/dex/derive-dex.ts`, `compare.ts`, `share-stats.ts`; `packages/app/src/dex/useDexStats.ts`, `db/db.ts`, `App.tsx`, `components/AppShell.tsx`, `config.ts`, `vite.config.ts`, `settings/ownerMatch.ts` — integration seams and reuse surface.
+- `.planning/PROJECT.md` — v2.0 milestone scope, revised constraints, SOCL-V2-01 deferral, core-purity + offline-first requirements.
+- supabase/auth-js #677 — token refreshes on expiry, needs network (verifies offline-stale-token pitfall).
+- Supabase Postgres Changes docs + supabase #35195 — publication + RLS-SELECT coupling (verifies Realtime-silent pitfall).
 
-### Secondary (MEDIUM confidence)
-- phish.net Gap Chart / My Shows / forum culture, elgoose.net charts — search-verified (direct fetches 403'd)
-- Phish LSTM prediction study (21.8% top-1 on 876-song catalog) — accuracy-ceiling prior art
-- iOS 7-day eviction behavior — Apple docs sparse; corroborated across Apple forums, Firtman, community sources
-- Workbox runtime-caching patterns, d3-force mobile performance thresholds — training knowledge cross-checked against current versions
+### Secondary (MEDIUM-HIGH confidence)
+- supabase discussion #35147 — subscribe-before-replication-ready race.
+- Supabase session-in-localStorage + iOS Safari 7-day script-storage eviction — cross-checked against the app's existing IndexedDB-eviction mitigations (device-test to confirm).
+- Vite `VITE_`-env inlining + Workbox navigation/precache/runtime-caching model + SWs not intercepting `wss://` — established platform behavior, cross-checked against the repo's existing PWA config.
 
 ### Tertiary (LOW confidence)
-- r/KGATLW setlist-bingo culture — could not verify; non-load-bearing (Phish prediction-game culture confirmed instead)
+- Exact `@supabase/supabase-js` patch beyond "v2 latest" — pin re-verified at install time via `npm view` (HIGH on "v2 line," LOW on the specific patch surviving to implementation).
 
 ---
-*Research completed: 2026-07-08*
+*Research completed: 2026-07-22*
 *Ready for roadmap: yes*
