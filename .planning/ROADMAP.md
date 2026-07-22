@@ -76,7 +76,8 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
   1. Running the account-seed script mints the friend accounts (`email_confirm:true`, distinct per-person passwords, `user_metadata.display_name`); re-running it skips already-registered accounts (idempotent) — there is no in-app sign-up (SETUP-02).
   2. The `public.progress` table (keyed by `user_id`) enforces read-all / write-own RLS, and is added to the `supabase_realtime` publication so `postgres_changes` actually fires (SETUP-01).
   3. No secret is committed to git — the `service_role` key and all account passwords live in env only (never `VITE_`-prefixed); the `anon` key + project URL may ship in client code (SETUP-03).
-  4. `packages/core` imports zero Supabase code — a boundary check confirms the transition-matrix / dex derivations stay pure and DOM/network-free (SETUP-04).**Plans**: 4 plans
+  4. `packages/core` imports zero Supabase code — a boundary check confirms the transition-matrix / dex derivations stay pure and DOM/network-free (SETUP-04).
+**Plans**: 4 plans
 
 **Wave 1**
 
@@ -104,7 +105,23 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
   4. On first login the existing single-user Dexie data is namespaced to that user id exactly once, so a borrowed/shared phone never cross-contaminates two friends' dexes (AUTH-05).
   5. The app shows the "Gizz With Friends" rebrand (wordmark, title, manifest), each identity gets a deterministic auto color/avatar from its user id, and a stale token reconnects with a calm "reconnecting…" affordance rather than a jarring logout (AUTH-06, AUTH-07, AUTH-08).
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+**Wave 1** *(parallel — no file overlap)*
+
+- [ ] 18-01-PLAN.md — Identity color core helper + `config.auth` palette/copy + "Gizz With Friends" rebrand chrome (AUTH-07, AUTH-06)
+- [ ] 18-02-PLAN.md — Dexie `version(7)` namespacing + one-time claim + scoped export/import (AUTH-05)
+- [ ] 18-03-PLAN.md — App-owned identity record substrate + `useAuthIdentity` hook (AUTH-02)
+
+**Wave 2** *(depends on Wave 1)*
+
+- [ ] 18-04-PLAN.md — Sign-in surface: name-picker + password + connect-once + inline error + roster (AUTH-01)
+- [ ] 18-05-PLAN.md — Identity chrome: header avatar + sign-out sheet + SyncDot reconnecting state (AUTH-03, AUTH-04, AUTH-07, AUTH-08)
+
+**Wave 3** *(depends on Wave 2 — THE CRUX)*
+
+- [ ] 18-06-PLAN.md — Offline-safe boot gate + main/App integration + scoped dex reads + device offline-boot UAT (AUTH-02, AUTH-04, AUTH-05)
+
 **UI hint**: yes
 
 ### Phase 19: Shared Dex Progress
@@ -160,7 +177,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 15. Gizz Bingo — Persistence, Lock & Replay | v1.2 | 4/4 | Complete | 2026-07-21 |
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 6/6 | Complete | 2026-07-21 |
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
-| 18. Accounts & Offline-Safe Identity | v2.0 | 0/? | Not started | - |
+| 18. Accounts & Offline-Safe Identity | v2.0 | 0/6 | Planned | - |
 | 19. Shared Dex Progress | v2.0 | 0/? | Not started | - |
 | 20. Presence & Interactions | v2.0 | 0/? | Not started | - |
 

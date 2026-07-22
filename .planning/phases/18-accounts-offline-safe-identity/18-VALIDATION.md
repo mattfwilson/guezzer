@@ -2,8 +2,8 @@
 phase: 18
 slug: accounts-offline-safe-identity
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true  # test-first folded into each tdd task
 created: 2026-07-22
 ---
 
@@ -43,14 +43,18 @@ created: 2026-07-22
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | — | — | AUTH-05 | — | `version(7)` additive; v1–v6 tables preserved on upgrade | unit | `npx vitest run packages/app/test/migrationV7.test.ts` | ❌ W0 | ⬜ pending |
-| TBD | — | — | AUTH-05 | Cross-identity leak | Claim stamps legacy rows exactly once; re-login is a no-op | unit | `npx vitest run packages/app/test/migrationV7.test.ts` | ❌ W0 | ⬜ pending |
-| TBD | — | — | AUTH-05 | Cross-identity leak | Dex reads scoped to userId; other identity's rows hidden | unit | `npx vitest run packages/app/test/authNamespacing.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD | — | — | AUTH-07 | — | `identityColor` deterministic + stable per userId | unit (core, node) | `npx vitest run packages/core/test/identity/color.test.ts` | ❌ W0 | ⬜ pending |
-| TBD | — | — | AUTH-02 | Self-lockout (DoS) | Gate opens app when app-owned identity present, no network | unit (mock supabase) | `npx vitest run packages/app/test/authGate.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD | — | — | AUTH-04 | — | Sign-out clears identity → SignInScreen; no dex flash | component | `npx vitest run packages/app/test/authGate.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD | — | — | AUTH-01 | User enumeration | Wrong password → generic inline error (no enumeration) | component | `npx vitest run packages/app/test/signIn.test.tsx` | ❌ W0 | ⬜ pending |
-| TBD | — | — | AUTH-06 | — | Manifest/title/copy strings say "Gizz With Friends" | unit (string assert) | `npx vitest run packages/app/test/rebrand.test.ts` | ❌ W0 | ⬜ pending |
+| P02-T1 | 18-02 | 1 | AUTH-05 | T-18-02-I | `version(7)` additive; v1–v6 tables preserved + scoped export/import | unit | `npx vitest run packages/app/test/migrationV7.test.ts` | ❌ create in P02-T1 | ⬜ pending |
+| P02-T2 | 18-02 | 1 | AUTH-05 | T-18-02-T | Claim stamps legacy rows exactly once; re-login is a no-op | unit | `npx vitest run packages/app/test/migrationV7.test.ts` | ❌ create in P02-T2 | ⬜ pending |
+| P06-T2 | 18-06 | 3 | AUTH-05 | T-18-06-I | Dex reads scoped to userId; other identity's rows hidden | unit | `npx vitest run packages/app/test/authNamespacing.test.tsx` | ❌ create in P06-T2 | ⬜ pending |
+| P01-T1 | 18-01 | 1 | AUTH-07 | T-18-01-T | `identityColorIndex` deterministic + range-safe per userId | unit (core, node) | `npx vitest run packages/core/test/identity/color.test.ts` | ❌ create in P01-T1 | ⬜ pending |
+| P03-T1/T2 | 18-03 | 1 | AUTH-02 | T-18-03-D | App-owned identity record read synchronously, malformed → null | unit | `npx vitest run packages/app/test/identityRecord.test.ts` | ❌ create in P03-T1 | ⬜ pending |
+| P06-T1 | 18-06 | 3 | AUTH-02 | T-18-06-D | Gate opens app when app-owned identity present, no network; no getSession before paint | unit (mock supabase) | `npx vitest run packages/app/test/authGate.test.tsx` | ❌ create in P06-T1 | ⬜ pending |
+| P06-T1 | 18-06 | 3 | AUTH-04 | T-18-06-I | Sign-out clears identity → SignInScreen; no dex flash | component | `npx vitest run packages/app/test/authGate.test.tsx` | ❌ create in P06-T1 | ⬜ pending |
+| P04-T2 | 18-04 | 2 | AUTH-01 | T-18-04-I2 | Wrong password → generic inline error (no enumeration) | component | `npx vitest run packages/app/test/signIn.test.tsx` | ❌ create in P04-T2 | ⬜ pending |
+| P05-T3 | 18-05 | 2 | AUTH-08 | T-18-05-A | Stale token → calm reconnecting SyncDot; never "logged out" | component | `npx vitest run packages/app/test/syncDot.test.tsx` | ❌ create in P05-T3 | ⬜ pending |
+| P05-T1 | 18-05 | 2 | AUTH-03/07 | T-18-05-V5 | Avatar deterministic color+initials; sheet shows display_name; sign-out | component | `npx vitest run packages/app/test/identityAvatar.test.tsx` | ❌ create in P05-T1 | ⬜ pending |
+| P01-T3 | 18-01 | 1 | AUTH-06 | T-18-01-I | Manifest/title/copy say "Gizz With Friends"; DB_NAME unchanged | unit (string assert) | `npx vitest run packages/app/test/rebrand.test.ts` | ❌ create in P01-T3 | ⬜ pending |
+| P06-T3 | 18-06 | 3 | AUTH-02 | T-18-06-D | **On-device** offline cold boot (expired token + airplane) → full dex opens | manual (device UAT) | HTTPS tunnel; the crux — not automatable | n/a | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
