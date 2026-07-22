@@ -1,0 +1,20 @@
+# GizzMap relay — deploy with `npm run deploy` from packages/relay (wrangler
+# is invoked via npx, not a devDependency — a ~50 MB toolchain for a
+# deploy-twice-a-year worker isn't worth the lockfile weight).
+#
+# After the first deploy, put the printed workers.dev URL into
+# packages/app/src/config.ts → config.map.RELAY_BASE_URL and rebuild the app.
+name = "guezzer-relay"
+main = "src/worker.ts"
+compatibility_date = "2026-07-01"
+
+# One Durable Object per friend group (id = idFromName(token)). SQLite-backed
+# classes run on the Workers FREE plan — do not change to new_classes (the
+# legacy KV-backed kind requires paid).
+[[durable_objects.bindings]]
+name = "GROUPS"
+class_name = "GroupDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["GroupDO"]
