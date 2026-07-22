@@ -201,13 +201,15 @@ export function OrbitStage({
       )
     : 0;
 
-  // Reserve a bottom band while the weak-fan "Low confidence" hint is on screen so
-  // the lowest fan orbs never overlap it (the group offset above intentionally
-  // excludes the hint). Shifts the whole orbit group UP by a fixed amount in that
-  // state only; 0 otherwise, so a confident fan keeps the full centred layout.
-  const weakHintReserve =
+  // While the weak-fan "Low confidence" hint occupies a bottom band, RE-CENTRE the
+  // orbit group within the area ABOVE that band instead of the full stage — so the
+  // group stays centred in the visible area (never shoved off the top) while its
+  // lowest orbs still clear the hint. Centring in `[0, height − band]` is a shift of
+  // HALF the band (not the whole band, which pushed the group out of view). 0 when
+  // the hint is absent, so a confident fan keeps the full-stage centred layout.
+  const hintBand =
     weak && !inCollapse && fan.length > 0 ? config.show.WEAK_HINT_RESERVE_PX : 0;
-  const groupShift = (orbitOffset || 0) - weakHintReserve;
+  const groupShift = (orbitOffset || 0) - hintBand / 2;
 
   return (
     <div
