@@ -1,7 +1,9 @@
 ---
 phase: 15-gizz-bingo-persistence-lock-replay
 verified: 2026-07-20T22:00:00Z
-status: human_needed
+status: passed
+human_uat_reconciled: 2026-07-21T00:00:00Z
+human_uat_source: 15-HUMAN-UAT.md
 score: 4/4 must-haves verified
 overrides_applied: 0
 human_verification:
@@ -14,8 +16,14 @@ human_verification:
 
 **Phase Goal:** Freeze the card artifact and its backup round-trip, wire the GizzGames tab, and make past cards replayable — before the delight layer is built on top. Marks stay derived, never stored; only the card definition + resolved square defs + seed + lock timestamp persist.
 **Verified:** 2026-07-20
-**Status:** human_needed
+**Status:** passed (human UAT completed 2026-07-20, reconciled here 2026-07-21)
 **Re-verification:** No — initial verification
+
+> **Reconciliation note (2026-07-21):** The human-verification item(s) below were tested and
+> passed on-device — see `15-HUMAN-UAT.md` (status `resolved`, 2/2 PASS, committed `baa9ce8`).
+> Owner confirmed on iPhone (2026-07-20): the GizzGames empty/teaser state reads as intentional
+> (D-02), and the "Catch me up" untick survived a live poll cycle (BINGO-06, CR-01 fix `757c2be`).
+> Status updated `human_needed → passed`; the descriptive block below is preserved as-authored.
 
 ## Goal Achievement
 
