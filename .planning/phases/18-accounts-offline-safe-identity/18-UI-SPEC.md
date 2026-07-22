@@ -1,10 +1,11 @@
 ---
 phase: 18
 slug: accounts-offline-safe-identity
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-22
+reviewed_at: 2026-07-22
 ---
 
 # Phase 18 — UI Design Contract
