@@ -229,6 +229,26 @@ export {
 } from "./dex/compare.ts";
 
 /**
+ * Phase 19 shared dex progress (plan 19-01, PROG-01/06/07/08, D-12/D-13/D-19). The
+ * pure-core bridge for multi-user progress sync: `deriveSharedProgress` projects a
+ * `DexStats` into the lean, serializable Option-B `SharedProgress` payload;
+ * `reconstructDexStats` rebuilds a MINIMAL `DexStats` from that payload so the live
+ * head-to-head reaches the UNCHANGED `compareDexes` (tiers resolved from the local
+ * rarity index — D-13); `selectRarestCaught` yields a friend's top-N rarest catches
+ * (PROG-08); `parseSharedProgress`/`sharedProgressSchema` zod-validate an untrusted
+ * synced summary at the read boundary (malformed → null, never throws — D-19). Zero
+ * I/O, no Supabase/DOM.
+ */
+export {
+  deriveSharedProgress,
+  reconstructDexStats,
+  selectRarestCaught,
+  parseSharedProgress,
+  sharedProgressSchema,
+  type SharedProgress,
+} from "./dex/shared-progress.ts";
+
+/**
  * Phase 6 share-card stats (plan 06-11, SHAR-02/D-18/D-19). The pure projection
  * of the dex/recap derivations into the flat, canvas-ready `ShareCardData` the
  * PNG brag card draws — all stat math stays in core so the app draw layer only
