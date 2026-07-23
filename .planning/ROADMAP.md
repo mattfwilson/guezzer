@@ -147,7 +147,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 
 **Wave 2** *(app sync fence — depends on 19-01)*
 
-- [ ] 19-02-PLAN.md — App-layer `packages/app/src/sync/` module: debounced identity-safe own-row upsert, app-wide `postgres_changes` subscription + validated re-pull, reconnect flush, Dexie offline cache, `config.friends` (PROG-02, PROG-03, PROG-05)
+- [x] 19-02-PLAN.md — App-layer `packages/app/src/sync/` module: debounced identity-safe own-row upsert, app-wide `postgres_changes` subscription + validated re-pull, reconnect flush, Dexie offline cache, `config.friends` (PROG-02, PROG-03, PROG-05)
 
 **Wave 3** *(Friends UI — depends on 19-01 + 19-02)*
 
@@ -197,7 +197,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 6/6 | Complete | 2026-07-21 |
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete   | 2026-07-22 |
-| 19. Shared Dex Progress | v2.0 | 1/4 | In Progress|  |
+| 19. Shared Dex Progress | v2.0 | 2/4 | In Progress|  |
 | 20. Presence & Interactions | v2.0 | 0/? | Not started | - |
 
 ---
