@@ -1,10 +1,11 @@
 ---
 phase: 19
 slug: shared-dex-progress
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-23
+reviewed_at: 2026-07-22
 ---
 
 # Phase 19 — UI Design Contract
@@ -63,7 +64,7 @@ App-wide roles (unchanged — this phase adds none):
 Weights: exactly two — **400 (regular)** and **600 (semibold)**. No other weight anywhere.
 
 Notes:
-- A **13px** small-caption variant exists app-wide (avatar initials, sign-out subline). Permitted for the offline-marker timestamp / secondary sublines only — do not introduce it as a new primary role.
+- A **13px** small-caption variant is a **pre-existing app-wide token** (avatar initials, sign-out subline) — ratified here as a reused caption token, NOT new scale drift introduced by this phase. Permitted for the offline-marker timestamp / secondary sublines only — do not introduce it as a new primary role.
 - **`tabular-nums`** is mandatory on every completion %, caught count, and per-tier/per-album count so live-updating numbers don't reflow (matches `DexHeader`/`CompareView`).
 - Friend-supplied names render **escaped React text, `truncate`/`min-w-0` clamped** (T-06-26 / D-19) — never `dangerouslySetInnerHTML`, never width-unbounded.
 
