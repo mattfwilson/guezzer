@@ -139,7 +139,24 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
   4. Tapping a friend shows a live head-to-head comparison — reconstructing a minimal `DexStats` from their synced summary and feeding the unchanged shipped `compareDexes` — with a per-album / per-tier breakdown (PROG-06, PROG-07).
   5. Each friend's rarest catches are showcased (top-N by rarity), reusing the shipped six-tier rarity language and colors (PROG-08).
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+**Wave 1** *(pure core — no dependencies)*
+
+- [ ] 19-01-PLAN.md — Pure-core `deriveSharedProgress` projector + `reconstructDexStats` + `selectRarestCaught` + `sharedProgressSchema`/`parseSharedProgress` + round-trip fidelity test (PROG-01, PROG-06, PROG-07, PROG-08)
+
+**Wave 2** *(app sync fence — depends on 19-01)*
+
+- [ ] 19-02-PLAN.md — App-layer `packages/app/src/sync/` module: debounced identity-safe own-row upsert, app-wide `postgres_changes` subscription + validated re-pull, reconnect flush, Dexie offline cache, `config.friends` (PROG-02, PROG-03, PROG-05)
+
+**Wave 3** *(Friends UI — depends on 19-01 + 19-02)*
+
+- [ ] 19-03-PLAN.md — Friends surface in GizzDex: `Friends` segment, `FriendsList`/`FriendRow`/`SelfRow`, `FriendDetail` (reconstruct → unchanged `compareDexes`), `RarestShowcase` (PROG-04, PROG-06, PROG-07, PROG-08)
+
+**Wave 4** *(device UAT checkpoint — depends on 19-03)*
+
+- [ ] 19-04-PLAN.md — [BLOCKING] Two-device live-propagation + reconnect flush + never-blank offline + RLS write-own verification (PROG-03, PROG-05)
+
 **UI hint**: yes
 
 ### Phase 20: Presence & Interactions
@@ -180,7 +197,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 6/6 | Complete | 2026-07-21 |
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete   | 2026-07-22 |
-| 19. Shared Dex Progress | v2.0 | 0/? | Not started | - |
+| 19. Shared Dex Progress | v2.0 | 0/4 | Not started | - |
 | 20. Presence & Interactions | v2.0 | 0/? | Not started | - |
 
 ---
