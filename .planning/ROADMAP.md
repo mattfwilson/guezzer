@@ -151,7 +151,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 
 **Wave 3** *(Friends UI — depends on 19-01 + 19-02)*
 
-- [ ] 19-03-PLAN.md — Friends surface in GizzDex: `Friends` segment, `FriendsList`/`FriendRow`/`SelfRow`, `FriendDetail` (reconstruct → unchanged `compareDexes`), `RarestShowcase` (PROG-04, PROG-06, PROG-07, PROG-08)
+- [x] 19-03-PLAN.md — Friends surface in GizzDex: `Friends` segment, `FriendsList`/`FriendRow`/`SelfRow`, `FriendDetail` (reconstruct → unchanged `compareDexes`), `RarestShowcase` (PROG-04, PROG-06, PROG-07, PROG-08)
 
 **Wave 4** *(device UAT checkpoint — depends on 19-03)*
 
@@ -197,7 +197,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 6/6 | Complete | 2026-07-21 |
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete   | 2026-07-22 |
-| 19. Shared Dex Progress | v2.0 | 2/4 | In Progress|  |
+| 19. Shared Dex Progress | v2.0 | 3/4 | In Progress|  |
 | 20. Presence & Interactions | v2.0 | 0/? | Not started | - |
 
 ---
