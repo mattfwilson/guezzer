@@ -103,9 +103,10 @@ describe("db version(7) additive namespacing (D-11 / SC-4)", () => {
     await seedV6Db();
 
     // Reopen through the real schema → the additive version(7) userId-index
-    // block is applied; the DB opens at the max version (7).
+    // block is applied; the DB opens at the max version (8, Phase 19 added the
+    // additive friendProgressCache table).
     await db.open();
-    expect(db.verno).toBe(7);
+    expect(db.verno).toBe(8);
 
     // Every v1-v6 domain row survives the re-index (no destructive rewrite).
     expect(await getMeta("persistStatus")).toBe("persisted");

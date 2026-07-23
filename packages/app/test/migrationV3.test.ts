@@ -71,12 +71,13 @@ describe("db version(3) additive migration", () => {
     oldDb.close();
 
     // Reopen through the real schema → the version(3) upgrade callback runs.
-    // The DB now opens at version(7) (Phase 6 added archiveShows; Phase 15 added
+    // The DB now opens at version(8) (Phase 6 added archiveShows; Phase 15 added
     // the additive bingoCards table; GizzMap added friendBeacons/mapPins as
-    // version(6); Phase 18 added the userId index as version(7)); the v3 upgrade
-    // still runs on the way up from the seeded v2 data.
+    // version(6); Phase 18 added the userId index as version(7); Phase 19 added
+    // friendProgressCache as version(8)); the v3 upgrade still runs on the way up
+    // from the seeded v2 data.
     await db.open();
-    expect(db.verno).toBe(7);
+    expect(db.verno).toBe(8);
 
     // Backfill: the pre-existing source-less entry now reads "manual".
     const entry = await db.trackedEntries.where("sessionId").equals("s1").first();
