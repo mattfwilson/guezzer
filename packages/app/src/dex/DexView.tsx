@@ -11,20 +11,25 @@
  * the retro-mark CTA in 06-08 — no dead buttons this plan.
  */
 import type { AlbumTrack, DexAlbumsArtifact } from "@guezzer/core";
-import { Plus } from "lucide-react";
+import { ChevronLeft, Plus } from "lucide-react";
 import { useState } from "react";
 import { config } from "../config.ts";
+import { Sheet } from "../components/Sheet.tsx";
 import { AlbumDetail } from "./AlbumDetail.tsx";
 import { AlbumGrid } from "./AlbumGrid.tsx";
 import { ArchiveBrowser } from "./ArchiveBrowser.tsx";
 import { DexHeader } from "./DexHeader.tsx";
+import { FriendDetail } from "./FriendDetail.tsx";
+import { FriendsList } from "./FriendsList.tsx";
+import { RarestShowcase } from "./RarestShowcase.tsx";
 import { RecapView } from "./RecapView.tsx";
 import { SetlistView } from "./SetlistView.tsx";
 import { ShareCardSheet } from "./ShareCardSheet.tsx";
 import { ShowsList } from "./ShowsList.tsx";
 import { useDexStats } from "./useDexStats.ts";
+import type { FriendRowData } from "../sync/friendCache.ts";
 
-type Segment = "albums" | "shows";
+type Segment = "albums" | "shows" | "friends";
 
 /** The Shows-segment drill-in target (D-16): a tracked recap or a retro setlist. */
 type OpenShow =
@@ -69,6 +74,9 @@ export function DexView() {
   const [browserOpen, setBrowserOpen] = useState(false);
   const [openShow, setOpenShow] = useState<OpenShow>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  // Friends overlays (D-01/D-06/D-07) — component state within #/dex, never a route.
+  const [openFriend, setOpenFriend] = useState<FriendRowData | null>(null);
+  const [selfCaseOpen, setSelfCaseOpen] = useState(false);
 
   // Loader-guard failure (T-06-12): a calm handled state, never a thrown crash.
   if (stats.error != null) {
@@ -94,9 +102,14 @@ export function DexView() {
       {/* Segment control — component state, not a route (no new hash routes). The
           active half is a solid accent fill (reserved accent use #4, §Color A). */}
       <div className="mx-4 mb-4 flex gap-1 rounded-md border border-hairline bg-elevated p-1">
-        {(["albums", "shows"] as const).map((seg) => {
+        {(["albums", "shows", "friends"] as const).map((seg) => {
           const active = segment === seg;
-          const label = seg === "albums" ? copy.segmentAlbums : copy.segmentShows;
+          const label =
+            seg === "albums"
+              ? copy.segmentAlbums
+              : seg === "shows"
+                ? copy.segmentShows
+                : config.copy.friends.segment;
           return (
             <button
               key={seg}
@@ -113,13 +126,15 @@ export function DexView() {
         })}
       </div>
 
-      {segment === "albums" ? (
+      {segment === "albums" && (
         // Always render the full shelf — AlbumGrid dims zero-catch covers (§B4),
         // so an empty dex reads as a "collection to fill", not a barren empty
         // state. The Mark-attended CTA is Shows-only (it lived in the old empty
         // branch); no CTA on Albums.
         <AlbumGrid dex={dex} albums={albums} onOpen={setOpenAlbumKey} />
-      ) : (
+      )}
+
+      {segment === "shows" && (
         <div className="flex flex-col">
           {/* Shows segment header — the Mark attended shows CTA (neutral, Plus). */}
           <div className="mx-4 mb-2">
@@ -133,6 +148,17 @@ export function DexView() {
             onOpenRetro={(showId) => setOpenShow({ kind: "retro", showId })}
           />
         </div>
+      )}
+
+      {segment === "friends" && (
+        // The Friends surface (PROG-04, D-01) — view-state within #/dex, never a new
+        // hash route, never a 6th bottom tab. FriendsList READS the pure
+        // useFriendsProgress hook (the sync engine is app-wide from 19-02); DexView
+        // owns the friend + trophy-case overlays below.
+        <FriendsList
+          onOpenFriend={setOpenFriend}
+          onOpenSelf={() => setSelfCaseOpen(true)}
+        />
       )}
 
       {/* Full-screen retro-mark browser — component state, no new hash route. */}
@@ -167,6 +193,51 @@ export function DexView() {
 
       {/* Share-card preview sheet (SHAR-02) — self-sources the live dex. */}
       <ShareCardSheet open={shareOpen} onClose={() => setShareOpen(false)} />
+
+      {/* Friend head-to-head overlay (PROG-06/07) — component state, no new route.
+          Reconstructs theirs + feeds the UNCHANGED compareDexes inside FriendDetail. */}
+      {openFriend != null && (
+        <FriendDetail friend={openFriend} onClose={() => setOpenFriend(null)} />
+      )}
+
+      {/* Own trophy case (D-06) — rarest showcase only, NO head-to-head columns. A
+          full-screen Sheet over the live own dex; view-state within #/dex. */}
+      {selfCaseOpen && rarity != null && (
+        <Sheet
+          open
+          onClose={() => setSelfCaseOpen(false)}
+          modal
+          variant="fullscreen"
+          ariaLabel={config.copy.friends.rarestOwn}
+        >
+          <div
+            className="flex items-center gap-3 border-b border-hairline bg-elevated px-4 py-3"
+            style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
+          >
+            <button
+              type="button"
+              aria-label={config.copy.friends.back}
+              onClick={() => setSelfCaseOpen(false)}
+              className="flex min-h-11 min-w-11 shrink-0 items-center justify-center text-text-muted touch-manipulation"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <p className="min-w-0 flex-1 truncate text-[20px] font-semibold leading-tight text-text-primary">
+              {config.copy.friends.selfRow}
+            </p>
+          </div>
+          <div className="mt-4 pb-16">
+            <RarestShowcase
+              heading={config.copy.friends.rarestOwn}
+              caughtSongIds={[...dex.perSong.values()]
+                .filter((s) => s.sightings > 0)
+                .map((s) => s.songId)}
+              rarity={rarity}
+              archive={archive}
+            />
+          </div>
+        </Sheet>
+      )}
     </div>
   );
 }
