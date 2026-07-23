@@ -16,6 +16,7 @@ import { requestPersistenceOnce } from "./pwa/persist.ts";
 import { useHashRoute } from "./routing/useHashRoute";
 import { SettingsView } from "./settings/SettingsView.tsx";
 import { ShowView } from "./show/ShowView.tsx";
+import { useProgressSync } from "./sync/useProgressSync.ts";
 
 export function App() {
   const route = useHashRoute();
@@ -26,6 +27,16 @@ export function App() {
   // below renders — mounted once here so a celebration survives the
   // ShowView→RecapView unmount and fires over any tab (BackupToast precedent).
   useBingoCelebrations();
+
+  // Phase-19 (D-16, PROG-02/05): the app-wide shared-progress ENGINE. Mounted
+  // ONCE here at the shell (the same app-wide-mount precedent as
+  // useBingoCelebrations above) so the postgres_changes subscription AND the
+  // debounced own-row upsert stay active while signed in ACROSS every tab —
+  // including Show Mode / LiveGizz — NOT only on the Friends segment. The
+  // signed-in gate lives inside the hook, so this call is unconditional (never
+  // gated on route === "dex"). Renders nothing; publishes to the shared sync
+  // store that useFriendsProgress reads.
+  useProgressSync();
 
   // Plan 04 (D-09): request eviction-resistant storage early on first run —
   // on mount AND (idempotently) again on the first user interaction, since
