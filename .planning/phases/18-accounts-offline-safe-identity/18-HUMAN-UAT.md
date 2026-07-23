@@ -60,6 +60,35 @@ cloudflared with `--http-host-header localhost`).
   instantly; a second friend sees an empty dex across Dex stats, Shows,
   Mark-attended, recaps, and GizzGames.
 
+## Desktop-proxy verification (automated — NON-BLOCKING, does NOT satisfy this gate)
+
+Run 2026-07-22 via Claude-in-Chrome against the fixed production build served at
+`http://localhost:4173` (same `dist/` the tunnel serves). Identity state was
+injected directly (`gwf-identity` localStorage record) to exercise the AuthGate
+logic without a real `signInWithPassword` round-trip. This is a **proxy** that
+validates app logic; it does NOT reproduce iOS-Safari PWA offline cold-boot
+behaviour, so the blocking device gate below remains open.
+
+- [x] No identity present → gate renders the sign-in screen ("Who's here?" +
+  roster Matt/Max/Tim/Shawn/Brian); app fully blocked behind auth (D-02).
+- [x] **Crux (SC-2):** identity record present + **zero `sb-*` Supabase session
+  keys** → app boots straight to the dex (avatar "M"), never the sign-in screen.
+  Directly exercises the offline `getSession()`-null case — boot gates on
+  identity PRESENCE, not the token.
+- [x] Data isolation (D-09): an `attendedShows` row stamped `userId=A` is visible
+  to A (`where("userId").equals` → 1) and invisible to B (→ 0), before and after
+  an identity switch. Same predicate the scoped reads use.
+- [x] Identity switch A→B re-boots as the new identity with a distinct
+  deterministic avatar glyph (M → T).
+- [x] Teardown: clearing the identity record → reload → back to the sign-in
+  screen.
+- [x] "Gizz With Friends" rebrand present on the wordmark/title (AUTH-06).
+
+**Not covered by the proxy (still requires the device):** real iOS PWA
+service-worker offline cold boot, real Airplane-Mode behaviour, iOS IndexedDB
+eviction, and the reconnect/`SIGNED_OUT` handling against live Supabase. These
+are exactly why the gate below stays owner-run.
+
 ## Result
 
 **Outcome:** PENDING
