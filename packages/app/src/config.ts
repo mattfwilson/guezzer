@@ -775,6 +775,21 @@ export const config = {
     IDENTITY_COLORS: ["#7DD3FC", "#FDA4AF", "#86EFAC", "#FCD34D", "#C4B5FD", "#5EEAD4"] as const,
   },
 
+  /**
+   * Shared-dex Friends tunables (Phase 19, D-10/D-15). Single-config-file ethos
+   * (CLAUDE.md) — no scattered magic numbers. The own-row content upsert is
+   * debounced by `DEBOUNCE_MS` after the last local dex change so progress
+   * visibly moves during the residency (PROG-05) without hammering Supabase
+   * during a rapid live-logging burst (D-15). `showcaseCount` is the top-N rarest
+   * catches shown in a friend's / the own trophy-case showcase (D-10, PROG-08).
+   */
+  friends: {
+    /** Own-row upsert debounce in ms after the last dex change (D-15, tunable). */
+    DEBOUNCE_MS: 5000,
+    /** Top-N rarest catches shown in the rarest-catches showcase (D-10, PROG-08). */
+    showcaseCount: 5,
+  },
+
   /** UI-SPEC §Copywriting Contract. */
   copy: {
     /**
@@ -1343,6 +1358,52 @@ export const config = {
       namePromptConfirm: "Open compare",
       /** Name-prompt "it's my own backup" escape → routes to the merge path. */
       namePromptMine: "It's mine — merge it",
+    },
+
+    /**
+     * Phase-19 shared-dex Friends copy (19-UI-SPEC §Copywriting Contract) —
+     * verbatim. The throughline reuses the SyncDot connection vocabulary for the
+     * offline/degraded states (never a spinner, never blank) and the shipped
+     * `config.copy.compare` strings for the head-to-head columns (`columnYou`,
+     * `statCompletion`, `statCaught`, `statShows`) so the live path and the
+     * file-import path never disagree — those are DELIBERATELY not redefined here.
+     * Every friend-supplied string (`display_name`, song names, `{name}`) renders
+     * as escaped React text, length-clamped by the schema (T-06-26 / D-19).
+     */
+    friends: {
+      /** Segment tab label (D-01). */
+      segment: "Friends",
+      /** Pinned self-row label (D-02). */
+      selfRow: "You",
+      /** Row completion headline (`tabular-nums`). */
+      pct: (pct: number): string => `${pct}%`,
+      /** Row caught-count caption. */
+      caught: (n: number): string => `${n} caught`,
+      /** Zero-catch friend row — no badge, sorted last (D-05). */
+      zeroCatch: "0% · 0 caught",
+      /** Empty-state heading — no friend has ever upserted a row (D-14). */
+      emptyHeading: "No friends yet",
+      /** Empty-state body. */
+      emptyBody:
+        "When your Gizz friends sign in and start catching songs, they'll show up here.",
+      /** Offline / stale marker chip (D-18) — reuses SyncDot connection language. */
+      offlineMarker: (time: string): string => `Offline · as of ${time}`,
+      /** Degraded read (online, whole-pull failed) — a malformed single row is silently skipped (D-19). */
+      degradedRead: "Can't reach friends right now — showing the last sync.",
+      /** FriendDetail overlay back/close control (aria-label; ≥44px). */
+      back: "Back",
+      /** Head-to-head heading (leads the FriendDetail overlay). */
+      versus: (name: string): string => `You vs ${name}`,
+      /** Per-album breakdown section heading. */
+      byAlbum: "By album",
+      /** Per-rarity breakdown section heading. */
+      byRarity: "By rarity",
+      /** Rarest-catches showcase heading (a friend's, PROG-08). */
+      rarestFriend: (name: string): string => `${name}'s rarest catches`,
+      /** Rarest-catches showcase heading (the own "You" trophy case, D-06). */
+      rarestOwn: "Your rarest catches",
+      /** Showcase empty (a 0-catch friend's detail). */
+      rarestEmpty: "No catches yet",
     },
 
     /**

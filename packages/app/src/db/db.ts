@@ -7,7 +7,7 @@
  * rewriting version(1).
  */
 import Dexie, { type Table } from "dexie";
-import type { BingoCard } from "@guezzer/core";
+import type { BingoCard, SharedProgress } from "@guezzer/core";
 import { config } from "../config.ts";
 import { classifyOutcome } from "../show/scoring.ts";
 import { readIdentityRecord } from "../auth/identityRecord.ts";
@@ -268,6 +268,37 @@ export interface MapPinRow {
   synced: 0 | 1;
 }
 
+/**
+ * A friend's last-known synced progress (Phase 19, D-18). One row per friend,
+ * upserted by the app-wide `useProgressSync` engine on every validated re-pull —
+ * NEVER a history (mirrors the `friendBeacons` last-known-cache twin above). This
+ * is the offline backstop: at a dead-signal venue the Friends list hydrates from
+ * these rows so it is never blank, with the `Offline · as of {time}` marker
+ * derived from the max `fetchedAt`.
+ *
+ * `summary` is the core `SharedProgress` payload as it passed `parseSharedProgress`
+ * at the read boundary (already validated before it is ever cached). `updatedAt`
+ * is the friend's client-set row stamp (may be null); `fetchedAt` is OUR local
+ * `Date.now()` at the pull that cached it (the honesty clock for "as of {time}").
+ *
+ * Deliberately EXCLUDED from DbSnapshot/export and from the userId-stamping hook
+ * loop (mirroring `friendBeacons`/`mapPins`): this is FRIEND data keyed by the
+ * friend's own `userId`, not the local identity's namespaced rows — a backup must
+ * never resurrect it, and it must never be re-stamped with the local identity.
+ */
+export interface FriendProgressCacheRow {
+  /** The friend's Supabase user id — the stable per-friend cache key. */
+  userId: string;
+  /** The friend's first-class row `display_name` column (authoritative on read). */
+  displayName: string;
+  /** The validated core payload (already passed `parseSharedProgress` before caching). */
+  summary: SharedProgress;
+  /** The friend's client-set `updated_at` row stamp; null when the row lacked one. */
+  updatedAt: string | null;
+  /** OUR local `Date.now()` at the pull that cached this row (the "as of {time}" clock). */
+  fetchedAt: number;
+}
+
 export class GuezzerDB extends Dexie {
   meta!: Table<MetaRow, string>;
   attendedShows!: Table<AttendedShow, number>;
@@ -277,6 +308,7 @@ export class GuezzerDB extends Dexie {
   bingoCards!: Table<BingoCardRow, string>;
   friendBeacons!: Table<FriendBeaconRow, string>;
   mapPins!: Table<MapPinRow, string>;
+  friendProgressCache!: Table<FriendProgressCacheRow, string>;
 
   constructor() {
     super(config.DB_NAME);
@@ -378,6 +410,18 @@ export class GuezzerDB extends Dexie {
       trackedEntries: "++id, sessionId, [sessionId+position], source, userId",
       bingoCards: "&cardId, sessionId, userId",
     });
+
+    // Version 8 (Phase 19 Shared Dex Progress, D-18): ADDITIVE only — v1-v7 above
+    // are untouched, so a populated v7 DB upgrades in place losslessly. Adds a
+    // SINGLE new table, `friendProgressCache`, the offline last-known friend-sync
+    // backstop keyed by the stable per-friend `&userId`. No `.upgrade` is needed:
+    // a new table has no pre-existing rows to backfill (the v4/v5/v6 precedent).
+    // NOT namespaced to the local identity (it is friend data) — so, like
+    // `friendBeacons`/`mapPins`, it is EXCLUDED from DbSnapshot/export and from the
+    // userId-stamping hook loop below.
+    this.version(8).stores({
+      friendProgressCache: "&userId",
+    });
   }
 }
 
@@ -429,7 +473,8 @@ function registerUserIdStampingHooks(table: Table<{ userId?: string }>): void {
   });
 }
 
-// NOT registered on `meta`/`friendBeacons`/`mapPins` (not namespaced).
+// NOT registered on `meta`/`friendBeacons`/`mapPins`/`friendProgressCache` (not
+// namespaced — `friendProgressCache` is friend data keyed by the friend's userId).
 for (const table of [
   db.attendedShows,
   db.archiveShows,
