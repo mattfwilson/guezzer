@@ -35,19 +35,27 @@ export interface FriendRowData {
 /**
  * Persist the survivors of a validated re-pull as the offline backstop (D-18),
  * stamping every row with the pull's local `fetchedAt` (OUR `Date.now()`, the
- * honesty clock for the "as of {time}" marker). A plain `bulkPut` upsert by the
- * stable `&userId` key — the last successful pull replaces the prior cache. When
- * `rows` is empty the cache is left as-is (a failed/empty pull must never wipe
- * the last-known friends the venue is relying on).
+ * honesty clock for the "as of {time}" marker). The cache is RECONCILED to the
+ * pull result inside a transaction (WR-03): rows for friends absent from this
+ * non-empty pull are deleted before the `bulkPut`, so a friend who deleted/reset
+ * their `progress` row (or was otherwise removed) is EVICTED rather than
+ * persisting forever as a dimmed "last-known" ghost with stale numbers on the
+ * offline path. When `rows` is empty the cache is left as-is (a failed/empty pull
+ * must never wipe the last-known friends the venue is relying on).
  */
 export async function writeFriendCache(
   rows: FriendRowData[],
   fetchedAt: number,
 ): Promise<void> {
   if (rows.length === 0) return;
-  await db.friendProgressCache.bulkPut(
-    rows.map((row) => ({ ...row, fetchedAt })),
-  );
+  await db.transaction("rw", db.friendProgressCache, async () => {
+    const keep = new Set(rows.map((row) => row.userId));
+    const stale = (await db.friendProgressCache.toArray())
+      .map((row) => row.userId)
+      .filter((userId) => !keep.has(userId));
+    if (stale.length > 0) await db.friendProgressCache.bulkDelete(stale);
+    await db.friendProgressCache.bulkPut(rows.map((row) => ({ ...row, fetchedAt })));
+  });
 }
 
 /**

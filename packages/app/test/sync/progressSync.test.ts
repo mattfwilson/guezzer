@@ -179,6 +179,46 @@ describe("refreshAllFriends — validated own-excluded re-pull (PROG-05, D-19)",
     const rows = await refreshAllFriends(MY_ID);
     expect(rows).toBeNull();
   });
+
+  it("prunes friends absent from a later non-empty pull — no dimmed ghosts (WR-03, D-18)", async () => {
+    mock.capture.selectResult = {
+      data: [
+        { user_id: "friend-1", display_name: "Bob", summary: validSummary(5), updated_at: null },
+        { user_id: "friend-2", display_name: "Eve", summary: validSummary(3), updated_at: null },
+      ],
+      error: null,
+    };
+    await refreshAllFriends(MY_ID);
+    expect((await readFriendCache()).rows.map((r) => r.userId).sort()).toEqual([
+      "friend-1",
+      "friend-2",
+    ]);
+
+    // A later pull no longer includes friend-2 (row deleted/reset) → it must be
+    // EVICTED from the offline cache, not linger as a stale last-known ghost.
+    mock.capture.selectResult = {
+      data: [
+        { user_id: "friend-1", display_name: "Bob", summary: validSummary(5), updated_at: null },
+      ],
+      error: null,
+    };
+    await refreshAllFriends(MY_ID);
+    expect((await readFriendCache()).rows.map((r) => r.userId)).toEqual(["friend-1"]);
+  });
+
+  it("leaves the last-known cache intact on an empty pull (offline backstop, WR-03)", async () => {
+    mock.capture.selectResult = {
+      data: [
+        { user_id: "friend-1", display_name: "Bob", summary: validSummary(5), updated_at: null },
+      ],
+      error: null,
+    };
+    await refreshAllFriends(MY_ID);
+    // An empty pull must NOT wipe the last-known friends the venue relies on.
+    mock.capture.selectResult = { data: [], error: null };
+    await refreshAllFriends(MY_ID);
+    expect((await readFriendCache()).rows.map((r) => r.userId)).toEqual(["friend-1"]);
+  });
 });
 
 describe("subscribeProgress — app-wide postgres_changes subscription (PROG-05, D-16)", () => {
