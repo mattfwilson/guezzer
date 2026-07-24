@@ -443,22 +443,27 @@ useEffect(() => {
 | A4 | Settings/dev routes mapping to "idle"/nearest-tab is acceptable | Pattern 2 | NONE — explicitly Claude's discretion in CONTEXT. |
 | A5 | Reducing multi-entry presence arrays by "atShow wins, else last" is a sensible activity rule | Pitfall 2 | LOW — a display nicety; any deterministic reduction satisfies the requirement. |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All three are discretionary implementation-shape questions; each was decided by the planner and adopted in the plans.
 
 1. **Exposing the channel handle to the send path.**
    - What we know: `usePresence()` owns the channel; the palette + `FriendDetail` button must call `sendWave` on that same channel.
    - What's unclear: whether to stash the live `RealtimeChannel` in the external store, a module-level ref, or expose a `sendWave(emoji, to)` function from the store that closes over the channel.
-   - Recommendation: expose a module-level `sendWave(emoji, to)` from `presenceSync.ts` that the engine wires to the current channel (null-safe no-op when signed-out/offline) — keeps UI components pure callers, mirrors how the store is the single seam. Planner to decide the exact shape.
+   - Recommendation: expose a module-level `sendWave(emoji, to)` from `presenceSync.ts` that the engine wires to the current channel (null-safe no-op when signed-out/offline) — keeps UI components pure callers, mirrors how the store is the single seam.
+   - **RESOLVED:** Adopted — 20-01-T2 exposes module-level `sendWave` + `setWaveSender`; the 20-03 engine wires them to the live `gizz-room` channel. UI components stay pure callers.
 
 2. **Queue cap + durations concrete values (D-10).**
    - What we know: cap ~3–5, brief per-toast duration, fast drain.
    - What's unclear: exact ms. `BingoCelebration` uses 1800–2000ms toasts.
    - Recommendation: `config.presence = { QUEUE_CAP: 4, TOAST_MS: 1600, DRAIN_GAP_MS: 150 }` as a starting point (tune on-device). Keep all in `config.presence` per the single-config rule.
+   - **RESOLVED:** Adopted verbatim — 20-01 defines `config.presence = { QUEUE_CAP: 4, TOAST_MS: 1600, DRAIN_GAP_MS: 150 }`; the 20-02 WaveToast host reads them. On-device tuning stays a config-only change.
 
 3. **Self-presence source for the "You" row (D-15).**
    - What we know: SelfRow is sourced from LOCAL dex/identity (never the Supabase read path) for offline-safety (`SelfRow.tsx:1-13`).
    - What's unclear: whether the "You" dot/activity reads the local derived payload directly (what we `track()`) or reflects our own entry in `presenceState()`.
    - Recommendation: drive the "You" dot from `useOnlineStatus()` + the locally-derived `{tab, atShow}` (what we're broadcasting) — not a round-trip through `presenceState()`. Honest, instant, offline-safe (D-15/17).
+   - **RESOLVED:** Adopted — 20-03-T1 `useSelfPresence()` drives the You row from `useOnlineStatus()` + local sources (route/visibility/active-show), never a `presenceState()` round-trip.
 
 ## Environment Availability
 
