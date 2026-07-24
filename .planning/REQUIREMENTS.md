@@ -41,13 +41,13 @@ Requirements for the Multi-User Foundation milestone. Each maps to exactly one r
 
 ### Presence & Interactions (PRES)
 
-- [ ] **PRES-01**: Online presence dots show who is currently in the app, via Supabase Realtime **presence** on one channel keyed by user id — ephemeral, dropped on disconnect, never persisted.
-- [ ] **PRES-02**: A user can send a lightweight wave that peers see as a transient toast, via Realtime **broadcast** on the same channel — ephemeral, leaving no durable trace.
-- [ ] **PRES-03**: Presence and waves are ephemeral by construction — nothing about who's online or who waved is ever written to Postgres.
-- [ ] **PRES-04**: Presence carries a coarse, read-only "what they're doing" status — which tab a friend is in (LiveGizz / GizzDex / GizzVerse / idle) — on the same channel, no new infra. Tab-level only; never per-song (that would cross into the deferred SOCL-V2-01 line).
-- [ ] **PRES-05**: Waves can be targeted at one friend (`to:userId`, feels personal) or broadcast to everyone (`to:null`, hypes the group).
-- [ ] **PRES-06**: A small fixed emoji reaction palette (e.g. wave / fire / 🦎 / "caught it!") is available as broadcast reactions rendered as reduced-motion-aware toasts (reuses the Bingo celebration-layer discipline).
-- [ ] **PRES-07**: The friends screen is presence-aware — each row shows a live online dot + the friend's current coarse activity, fusing PROG + PRES with no new backend.
+- [x] **PRES-01**: Online presence dots show who is currently in the app, via Supabase Realtime **presence** on one channel keyed by user id — ephemeral, dropped on disconnect, never persisted.
+- [x] **PRES-02**: A user can send a lightweight wave that peers see as a transient toast, via Realtime **broadcast** on the same channel — ephemeral, leaving no durable trace.
+- [x] **PRES-03**: Presence and waves are ephemeral by construction — nothing about who's online or who waved is ever written to Postgres.
+- [x] **PRES-04**: Presence carries a coarse, read-only "what they're doing" status — which tab a friend is in (LiveGizz / GizzDex / GizzVerse / idle) — on the same channel, no new infra. Tab-level only; never per-song (that would cross into the deferred SOCL-V2-01 line).
+- [x] **PRES-05**: Waves can be targeted at one friend (`to:userId`, feels personal) or broadcast to everyone (`to:null`, hypes the group).
+- [x] **PRES-06**: A small fixed emoji reaction palette (e.g. wave / fire / 🦎 / "caught it!") is available as broadcast reactions rendered as reduced-motion-aware toasts (reuses the Bingo celebration-layer discipline).
+- [x] **PRES-07**: The friends screen is presence-aware — each row shows a live online dot + the friend's current coarse activity, fusing PROG + PRES with no new backend.
 
 ## Future Requirements
 
@@ -114,13 +114,13 @@ Which phases cover which requirements. Filled during roadmap creation (Phases 17
 | PROG-06 | Phase 19 | Complete |
 | PROG-07 | Phase 19 | Complete |
 | PROG-08 | Phase 19 | Complete |
-| PRES-01 | Phase 20 | Pending |
-| PRES-02 | Phase 20 | Pending |
-| PRES-03 | Phase 20 | Pending |
-| PRES-04 | Phase 20 | Pending |
-| PRES-05 | Phase 20 | Pending |
-| PRES-06 | Phase 20 | Pending |
-| PRES-07 | Phase 20 | Pending |
+| PRES-01 | Phase 20 | Complete |
+| PRES-02 | Phase 20 | Complete |
+| PRES-03 | Phase 20 | Complete |
+| PRES-04 | Phase 20 | Complete |
+| PRES-05 | Phase 20 | Complete |
+| PRES-06 | Phase 20 | Complete |
+| PRES-07 | Phase 20 | Complete |
 
 **Coverage:**
 

@@ -62,7 +62,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 - [x] **Phase 17: Backend Foundation & Secrets** - Provision the Supabase project — RLS'd `progress` schema, idempotent account seeding, secret hygiene, core-purity boundary (completed 2026-07-22)
 - [x] **Phase 18: Accounts & Offline-Safe Identity** - Pre-made email/password sign-in with a distinct per-device identity that still boots fully offline; ships the "Gizz With Friends" rebrand (completed 2026-07-22)
 - [x] **Phase 19: Shared Dex Progress** - Each friend's real dex progress synced and visible/comparable live in a friends view (completed 2026-07-24)
-- [ ] **Phase 20: Presence & Interactions** - Who's online / what they're doing, plus lightweight targeted/broadcast waves and reactions
+- [x] **Phase 20: Presence & Interactions** - Who's online / what they're doing, plus lightweight targeted/broadcast waves and reactions (completed 2026-07-24)
 
 ## Phase Details
 
@@ -192,7 +192,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 
 **Wave 5** *(device gate — depends on Wave 4)*
 
-- [ ] 20-05-PLAN.md — [BLOCKING] Two-device live presence + wave/reaction UAT (PRES-01/02/05/07)
+- [x] 20-05-PLAN.md — [BLOCKING] Two-device live presence + wave/reaction UAT (PRES-01/02/05/07)
 
 **UI hint**: yes
 
@@ -219,7 +219,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete   | 2026-07-22 |
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete    | 2026-07-24 |
-| 20. Presence & Interactions | v2.0 | 4/5 | In Progress|  |
+| 20. Presence & Interactions | v2.0 | 5/5 | Complete    | 2026-07-24 |
 
 ---
 *Roadmap created: 2026-07-08*
