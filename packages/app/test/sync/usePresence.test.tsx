@@ -15,8 +15,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mock = vi.hoisted(() => {
   const capture = {
-    onSync: null as null | ((state: unknown) => void),
-    onWave: null as null | ((raw: unknown) => void),
+    // The presence `sync` listener is a ZERO-arg wrapper that reads
+    // `channel.presenceState()`; the broadcast `wave` listener destructures
+    // `{ payload }`. We capture both exactly as `openPresenceChannel` wires them.
+    onSync: null as null | (() => void),
+    onWave: null as null | ((arg: { payload: unknown }) => void),
+    presenceStateValue: {} as Record<string, ReadonlyArray<unknown>>,
   };
   const state = {
     identity: { userId: "me", displayName: "Me" } as
@@ -27,21 +31,27 @@ const mock = vi.hoisted(() => {
     hidden: false,
     active: undefined as unknown,
   };
-  const trackSpy = vi.fn(() => Promise.resolve("ok"));
-  const sendSpy = vi.fn(() => Promise.resolve("ok"));
-  const channelObj = { track: trackSpy, send: sendSpy };
+  const trackSpy = vi.fn((..._args: unknown[]) => Promise.resolve("ok"));
+  const sendSpy = vi.fn((..._args: unknown[]) => Promise.resolve("ok"));
+  const presenceStateSpy = vi.fn(() => capture.presenceStateValue);
+  const channelObj = {
+    track: trackSpy,
+    send: sendSpy,
+    presenceState: presenceStateSpy,
+  };
   const subscribeSpy = vi.fn(() => channelObj);
   const builder: { on: unknown; subscribe: unknown } = {
     on: null,
     subscribe: subscribeSpy,
   };
   const onSpy = vi.fn((type: string, _filter: unknown, cb: (arg: never) => void) => {
-    if (type === "presence") capture.onSync = cb as (state: unknown) => void;
-    if (type === "broadcast") capture.onWave = cb as (raw: unknown) => void;
+    if (type === "presence") capture.onSync = cb as unknown as () => void;
+    if (type === "broadcast")
+      capture.onWave = cb as unknown as (arg: { payload: unknown }) => void;
     return builder;
   });
   builder.on = onSpy;
-  const channelSpy = vi.fn(() => builder);
+  const channelSpy = vi.fn((..._args: unknown[]) => builder);
   const removeChannelSpy = vi.fn(() => Promise.resolve());
   const showWaveToastSpy = vi.fn();
   return {
@@ -104,6 +114,7 @@ beforeEach(() => {
   mock.showWaveToastSpy.mockClear();
   mock.capture.onSync = null;
   mock.capture.onWave = null;
+  mock.capture.presenceStateValue = {};
   mock.state.identity = { userId: "me", displayName: "Me" };
   mock.state.online = true;
   mock.state.route = "dex";
@@ -143,10 +154,11 @@ describe("usePresence — the singleton gizz-room engine (PRES-01/02/03/04)", ()
   it("(c) a presence:sync event publishes onlineIds + reduced activity to the store", () => {
     render(<EngineOnly />);
     act(() => {
-      mock.capture.onSync?.({
+      mock.capture.presenceStateValue = {
         "f-1": [{ tab: "LiveGizz", atShow: true }],
         "f-2": [{ tab: "GizzDex" }],
-      });
+      };
+      mock.capture.onSync?.();
     });
     const s = getPresenceState();
     expect([...s.onlineIds].sort()).toEqual(["f-1", "f-2"]);
@@ -156,7 +168,7 @@ describe("usePresence — the singleton gizz-room engine (PRES-01/02/03/04)", ()
   it("(d) a valid inbound wave routes to showWaveToast; self/other-targeted dropped", () => {
     render(<EngineOnly />);
     // Valid broadcast wave from a friend.
-    act(() => mock.capture.onWave?.({ from: "f-1", to: null, emoji: "👋" }));
+    act(() => mock.capture.onWave?.({ payload: { from: "f-1", to: null, emoji: "👋" } }));
     expect(mock.showWaveToastSpy).toHaveBeenCalledWith({
       from: "f-1",
       emoji: "👋",
@@ -164,7 +176,7 @@ describe("usePresence — the singleton gizz-room engine (PRES-01/02/03/04)", ()
     });
     // Targeted at me → targeted:true.
     mock.showWaveToastSpy.mockClear();
-    act(() => mock.capture.onWave?.({ from: "f-1", to: "me", emoji: "🎯" }));
+    act(() => mock.capture.onWave?.({ payload: { from: "f-1", to: "me", emoji: "🎯" } }));
     expect(mock.showWaveToastSpy).toHaveBeenCalledWith({
       from: "f-1",
       emoji: "🎯",
@@ -173,10 +185,10 @@ describe("usePresence — the singleton gizz-room engine (PRES-01/02/03/04)", ()
     // Reflected self-wave + targeted-elsewhere + unknown emoji → all dropped.
     mock.showWaveToastSpy.mockClear();
     act(() => {
-      mock.capture.onWave?.({ from: "me", to: null, emoji: "👋" });
-      mock.capture.onWave?.({ from: "f-1", to: "other", emoji: "👋" });
-      mock.capture.onWave?.({ from: "f-1", to: null, emoji: "💣" });
-      mock.capture.onWave?.("not-an-object");
+      mock.capture.onWave?.({ payload: { from: "me", to: null, emoji: "👋" } });
+      mock.capture.onWave?.({ payload: { from: "f-1", to: "other", emoji: "👋" } });
+      mock.capture.onWave?.({ payload: { from: "f-1", to: null, emoji: "💣" } });
+      mock.capture.onWave?.({ payload: "not-an-object" });
     });
     expect(mock.showWaveToastSpy).not.toHaveBeenCalled();
   });
@@ -196,17 +208,18 @@ describe("usePresence — the singleton gizz-room engine (PRES-01/02/03/04)", ()
   });
 
   it("(f) offline → tears the channel down, clears the sender, resets the store", () => {
-    render(<EngineOnly />);
-    // Seed some presence, then go offline.
+    const { rerender } = render(<EngineOnly />);
+    // Seed some presence, then go offline (the real still-mounted transition).
     act(() => {
-      mock.capture.onSync?.({ "f-1": [{ tab: "GizzDex" }] });
+      mock.capture.presenceStateValue = { "f-1": [{ tab: "GizzDex" }] };
+      mock.capture.onSync?.();
     });
     expect(getPresenceState().onlineIds.size).toBe(1);
     mock.sendSpy.mockClear();
 
     act(() => {
       mock.state.online = false;
-      cleanup(); // unmount drives the lifecycle-effect cleanup
+      rerender(<EngineOnly />); // online flips → effect re-runs the teardown branch
     });
     expect(mock.removeChannelSpy).toHaveBeenCalledTimes(1);
     expect(getPresenceState().onlineIds.size).toBe(0); // pristine (D-16/17/20)

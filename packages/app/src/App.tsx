@@ -6,6 +6,7 @@ import { BingoCelebration } from "./components/BingoCelebration.tsx";
 import { InstallBanner } from "./components/InstallBanner";
 import { PlaceholderView } from "./components/PlaceholderView";
 import { UpdateToast } from "./components/UpdateToast";
+import { WaveToast } from "./components/WaveToast.tsx";
 import { OrbFitHarness } from "./dev/OrbFitHarness.tsx";
 import { DexView } from "./dex/DexView.tsx";
 import { ExploreView } from "./explore/ExploreView.tsx";
@@ -16,6 +17,7 @@ import { requestPersistenceOnce } from "./pwa/persist.ts";
 import { useHashRoute } from "./routing/useHashRoute";
 import { SettingsView } from "./settings/SettingsView.tsx";
 import { ShowView } from "./show/ShowView.tsx";
+import { usePresence } from "./sync/usePresence.ts";
 import { useProgressSync } from "./sync/useProgressSync.ts";
 
 export function App() {
@@ -37,6 +39,15 @@ export function App() {
   // gated on route === "dex"). Renders nothing; publishes to the shared sync
   // store that useFriendsProgress reads.
   useProgressSync();
+
+  // Phase-20 (PRES-01/02/03/04, D-11/D-19): the app-wide presence + reactions
+  // ENGINE — the SOLE owner of the `gizz-room` channel. Mounted ONCE here at the
+  // shell (same app-wide precedent as the two engines above) so coarse activity
+  // broadcasts, friends' presence publishes to the shared store, and inbound waves
+  // route to <WaveToast/> across EVERY tab while signed in + online. The signed-in
+  // / online gate lives inside the hook, so this call is unconditional. Renders
+  // nothing; the pure usePresenceReaders hooks read the store it publishes.
+  usePresence();
 
   // Plan 04 (D-09): request eviction-resistant storage early on first run —
   // on mount AND (idempotently) again on the first user interaction, since
@@ -109,6 +120,7 @@ export function App() {
       <UpdateToast />
       <BackupToast />
       <BingoCelebration />
+      <WaveToast />
       <AppMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </div>
   );
