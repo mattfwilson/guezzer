@@ -268,7 +268,7 @@ describe("PRES-03 — the presence path NEVER writes to Postgres/Dexie", () => {
     const ch = openPresenceChannel(MY_ID, () => {}, () => {});
     mock.capture.presenceStateResult = { u1: [{ tab: "GizzDex" }] };
     mock.capture.onPresenceSync?.(undefined);
-    setPresenceState(readPresence(mock.capture.presenceStateResult));
+    setPresenceState(readPresence({ u1: [{ tab: "GizzDex" }] }));
     setWaveSender((emoji, to) => {
       void ch; // a real sender would call ch.send — proven via the send spy below
       mock.handle.send;
