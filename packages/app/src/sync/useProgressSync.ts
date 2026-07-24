@@ -53,13 +53,24 @@ export function useProgressSync(): void {
   useEffect(() => {
     if (!userId) return; // signed out → engine no-op (signed-in scope)
 
+    // Per-run cancellation guard (WR-01): a fast online↔offline flip re-runs this
+    // effect before an in-flight promise resolves. Without this guard a network
+    // pull started while online can resolve AFTER the offline hydrate and flip
+    // `offline` back to false — rendering stale online data un-dimmed with no
+    // `Offline · as of {time}` marker. Every async `setSyncState` below no-ops
+    // once its run has been superseded.
+    let cancelled = false;
+
     if (!online) {
       // Dead-signal venue: hydrate friends from the Dexie backstop so the list is
       // never blank; the `You` row stays live off the local dex elsewhere (D-18).
       void readFriendCache().then(({ rows, fetchedAt }) => {
+        if (cancelled) return;
         setSyncState({ friends: rows, offline: true, asOf: fetchedAt });
       });
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     // Online: clear the offline flag, (re)establish the app-wide subscription, and
@@ -67,6 +78,7 @@ export function useProgressSync(): void {
     setSyncState({ offline: false });
     const pull = () => {
       void refreshAllFriends(userId).then((rows) => {
+        if (cancelled) return; // a stale pull must not clobber current connectivity
         if (rows == null) {
           // Whole-pull failure: keep last-known friends, surface calm degraded copy.
           setSyncState({ error: config.copy.friends.degradedRead });
@@ -79,6 +91,7 @@ export function useProgressSync(): void {
     pull();
 
     return () => {
+      cancelled = true;
       void removeChannel(channel);
     };
   }, [userId, online]);
