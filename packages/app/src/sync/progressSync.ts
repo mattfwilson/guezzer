@@ -93,25 +93,39 @@ export async function refreshAllFriends(
   const { data, error } = await supabase.from(PROGRESS_TABLE).select(SELECT_COLUMNS);
   if (error) return null; // keep last-known cache; caller surfaces degraded-read copy
   const rows: FriendRowData[] = (data ?? [])
-    .map((r): FriendRowData | null => {
-      const row = r as {
-        user_id: string;
-        display_name: string;
-        summary: unknown;
-        updated_at: string | null;
-      };
-      const summary = parseSharedProgress(row.summary); // D-19: malformed → null → skipped
-      if (summary == null || row.user_id === myUserId) return null;
-      return {
-        userId: row.user_id,
-        displayName: row.display_name,
-        summary,
-        updatedAt: row.updated_at,
-      };
-    })
+    .map((r): FriendRowData | null => validateFriendRow(r, myUserId))
     .filter((r): r is FriendRowData => r != null);
   await writeFriendCache(rows, Date.now()); // D-18 offline backstop
   return rows;
+}
+
+/**
+ * Validate an untrusted progress row at the read boundary (D-19, CR-01). The
+ * WHOLE row is checked, not just `summary`: RLS is write-own, so a friend fully
+ * controls their OWN row's first-class columns and could set `display_name` to
+ * null / a non-string via a direct REST write. Since `display_name` flows
+ * unguarded into `.trim()` / `initialsOf(...)` on a surface with no error
+ * boundary, a single hostile row would otherwise crash the entire Friends tab.
+ * `user_id` and `display_name` must therefore be NON-EMPTY strings, `summary`
+ * must pass core `parseSharedProgress`, and the caller's OWN row is dropped. Any
+ * failure returns `null` → the row is SILENTLY SKIPPED (never thrown), honoring
+ * the locked D-19 "malformed row skipped" contract for the columns too.
+ */
+function validateFriendRow(raw: unknown, myUserId: string): FriendRowData | null {
+  if (raw == null || typeof raw !== "object") return null;
+  const row = raw as Record<string, unknown>;
+  const { user_id: userId, display_name: displayName, summary, updated_at: updatedAt } = row;
+  if (typeof userId !== "string" || userId.length === 0) return null; // uuid-ish, non-empty
+  if (typeof displayName !== "string" || displayName.length === 0) return null;
+  if (userId === myUserId) return null; // drop own row
+  const parsed = parseSharedProgress(summary); // D-19: malformed → null → skipped
+  if (parsed == null) return null;
+  return {
+    userId,
+    displayName,
+    summary: parsed,
+    updatedAt: typeof updatedAt === "string" ? updatedAt : null,
+  };
 }
 
 // ── App-wide subscription primitive ─────────────────────────────────────────

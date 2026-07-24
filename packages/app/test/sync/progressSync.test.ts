@@ -142,6 +142,27 @@ describe("refreshAllFriends — validated own-excluded re-pull (PROG-05, D-19)",
     expect(cached.fetchedAt).toBeTypeOf("number");
   });
 
+  it("skips a row whose display_name / user_id is null, non-string, or empty (CR-01, D-19)", async () => {
+    // RLS is write-own → a friend controls their OWN row's columns; a null
+    // display_name would crash the (error-boundary-less) Friends tab via .trim().
+    mock.capture.selectResult = {
+      data: [
+        { user_id: "friend-ok", display_name: "Bob", summary: validSummary(5), updated_at: null },
+        { user_id: "friend-null-name", display_name: null, summary: validSummary(3), updated_at: null },
+        { user_id: null, display_name: "Ghost", summary: validSummary(2), updated_at: null },
+        { user_id: "friend-empty-name", display_name: "", summary: validSummary(1), updated_at: null },
+        { user_id: "friend-num-name", display_name: 42, summary: validSummary(1), updated_at: null },
+      ],
+      error: null,
+    };
+    const rows = await refreshAllFriends(MY_ID);
+    expect(rows).not.toBeNull();
+    // Only the fully-valid row survives; every hostile column shape is skipped.
+    expect(rows!.map((r) => r.userId)).toEqual(["friend-ok"]);
+    // And the crash-vector rows never reach the offline cache either.
+    expect((await readFriendCache()).rows.map((r) => r.userId)).toEqual(["friend-ok"]);
+  });
+
   it("returns null on a whole-select error (keeps last-known cache)", async () => {
     mock.capture.selectResult = { data: null, error: { message: "network" } };
     const rows = await refreshAllFriends(MY_ID);
