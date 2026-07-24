@@ -2,6 +2,7 @@
 created: 2026-07-17T04:53:38.732Z
 title: Readable full-date format "Mon D, YYYY" app-wide
 area: ui
+resolves_phase: 21
 files:
   - packages/app/src/dex/formatMonYear.ts
   - packages/app/src/show/ShowView.tsx

@@ -2,6 +2,7 @@
 created: 2026-07-20T01:09:29.536Z
 title: Fix bottom viewport gap in installed standalone PWA
 area: ui
+resolves_phase: 21
 files:
   - packages/app/src/components/AppShell.tsx:28-60
   - packages/app/src/styles.css:16-19

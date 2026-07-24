@@ -2,6 +2,10 @@
 created: 2026-07-17T16:02:17.924Z
 title: Bottom sheets — smooth up/down animation + always-on-top layering
 area: ui
+resolves_phase: 22
+# Spans two v2.1 phases: the always-on-top layering half is FOUND-03 (Phase 21,
+# "write the invariant test, renumber nothing"); the animation half is SHEET-01/02
+# (Phase 22). Fully resolved only after Phase 22.
 files:
   - packages/app/src/components/AppMenu.tsx:45
   - packages/app/src/show/SearchSheet.tsx:86
