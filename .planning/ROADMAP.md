@@ -184,7 +184,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 
 **Wave 3** *(depends on Waves 1–2)*
 
-- [ ] 20-03-PLAN.md — Singleton usePresence() engine (sole gizz-room owner) + pure presence readers + App.tsx mount (PRES-01/02/03/04)
+- [x] 20-03-PLAN.md — Singleton usePresence() engine (sole gizz-room owner) + pure presence readers + App.tsx mount (PRES-01/02/03/04)
 
 **Wave 4** *(depends on Waves 1–3)*
 
@@ -219,7 +219,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete   | 2026-07-22 |
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete    | 2026-07-24 |
-| 20. Presence & Interactions | v2.0 | 2/5 | In Progress|  |
+| 20. Presence & Interactions | v2.0 | 3/5 | In Progress|  |
 
 ---
 *Roadmap created: 2026-07-08*
