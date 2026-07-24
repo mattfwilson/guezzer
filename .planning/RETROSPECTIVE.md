@@ -123,6 +123,46 @@
 
 ---
 
+## Milestone: v2.0 — Multi-User Foundation
+
+**Shipped:** 2026-07-24
+**Phases:** 4 (17–20) | **Plans:** 20 (4+7+4+5) | **Tasks:** 27 (requirements)
+**Span:** milestone window 2026-07-22 → 2026-07-24 (~3 days) · 189 commits / 108 files (+11.6k/−0.1k LOC) · full app suite 513 tests green · audit PASSED (27/27 reqs, 4/4 phases) · first backend-dependent milestone
+
+### What Was Built
+- **Backend foundation (Phase 17):** a hosted Supabase with a user-keyed `public.progress` table (read-all/write-own RLS + `supabase_realtime` publication), an idempotent GoTrue account-seed with a committed non-secret roster, secrets kept env-only, and — the load-bearing constraint — a `packages/core` purity guard test proven to fail on an injected `@supabase` import.
+- **Offline-safe identity (Phase 18):** pre-made email/password sign-in → distinct per-device identity that **still cold-boots fully offline**, because the boot gate keys on an app-owned `gwf-identity` localStorage record rather than a network `getSession()` (the milestone's highest-risk seam, device-verified before anything depended on it). Plus one-time Dexie `version(7)` namespacing so a borrowed phone never cross-contaminates dexes, and the "Gizz With Friends" rebrand.
+- **Shared dex progress (Phase 19):** a pure-core `deriveSharedProgress` projector feeding the **byte-for-byte unchanged** shipped `compareDexes`, a singleton `useProgressSync` engine (debounced own-row upsert + app-wide `postgres_changes` re-pull + Dexie offline cache), write-own RLS empirically verified (403/42501), and a live Friends view replacing the manual JSON handoff.
+- **Presence & interactions (Phase 20):** ephemeral Realtime presence (online dots + coarse tab-level activity, never persisted) + targeted/broadcast waves + a fixed emoji reaction palette as reduced-motion-aware toasts, on one `gizz-room` channel via a singleton `usePresence` engine — a carbon copy of the Phase-19 engine precedent.
+
+### What Worked
+- **Spike-first de-risked a constraint reversal.** Adopting a backend directly contradicted the founding "no backend / no accounts" constraint; spikes 002–004 validated Supabase auth + Postgres + Realtime AND offline-boot coexistence *before* the roadmap committed — so the milestone executed against proven patterns, not hope.
+- **The highest-risk seam was sequenced first and device-gated.** AUTH-02 (offline-safe boot) was device-verified at the end of Phase 18 before Phases 19–20 built on the identity — the exact "prove the risky thing on hardware before depending on it" discipline.
+- **Core purity held by construction, not review.** A single guard test (`packages/core/test/purity.test.ts`) made "no Supabase in core" mechanical — the app-layer fence (`sync/` + `db/`) never leaked, and the prediction model stayed backendless.
+- **One engine pattern, reused twice.** The singleton-engine-at-the-shell + pure `useSyncExternalStore` reader split from Phase 19's `useProgressSync` was copied verbatim into Phase 20's `usePresence` — and again into the close-time mobile fix.
+- **The close-time mobile fix propagated cleanly.** The `visibleEpoch` hidden→visible rejoin, once proven on `usePresence` (hqu), was a verbatim mirror onto `useProgressSync` (lgo) — same root cause, same fix, and one two-device UAT covered both.
+
+### What Was Inefficient
+- **Doc-sync lag, a FOURTH close running — but this time the audit caught it clean.** Phase-19 SUMMARY frontmatter never listed its `requirements-completed` (PROG-01..08), the AUTH-01..08 REQUIREMENTS checkboxes sat stale `[ ]` despite Phase 18 shipping + device-UAT-passing, `19-VALIDATION.md` stayed a pre-execution draft (`nyquist_compliant: false`) though its tests demonstrably pass, and the lgo quick-task SUMMARY lacked a `status:` marker. All were false positives the milestone audit + pre-close audit surfaced, and all were reconciled at close — but it's the same bookkeeping-trails-code tax, now four-times-confirmed.
+- **A real bug slipped past the phase gate to the milestone close.** The Phase-20 two-device UAT *passed* (owner cleared the gate) yet still surfaced a mobile-only activity-staleness bug that wasn't a listed criterion; it — and its Phase-19 sibling on the progress feed — were only fully fixed + device-verified at milestone close. Unit tests proved the re-open trigger but could not prove live socket recovery; only the on-device recheck closed it.
+
+### Patterns Established
+- **Singleton Realtime engine + pure external-store reader.** Mount one channel-owning engine at the App shell (gated on identity, driven from live sources); expose state through pure `useSyncExternalStore` readers. Reuse for any future Realtime surface.
+- **`visibleEpoch` mobile foreground-rejoin for every `[userId, online]`-keyed channel.** Mobile backgrounding suspends the WebSocket while `navigator.onLine` never flips; bump a `visibleEpoch` only on the hidden→visible edge and add it to the subscription-effect deps so a real foreground re-subscribes (zero in-app-nav churn). Now the standing rule for any new Supabase Realtime hook.
+- **App-layer fence + a core-purity guard test.** When a hard constraint ("core stays pure") must survive a new dependency, encode it as a failing-on-violation test, not a convention.
+
+### Key Lessons
+1. **A shared root cause lives in every channel that shares the keying.** The mobile-suspension staleness wasn't one bug — it was one gap in two channels (`usePresence` + `useProgressSync`), both keyed `[userId, online]`. When a fix addresses a *keying/lifecycle* class, grep for every sibling with the same shape and fix them together.
+2. **Realtime/offline behavior cannot be signed off from unit tests.** The tests proved the re-open *trigger*; only a two-device on-device recheck over a genuinely suspended socket proved *recovery*. Realtime features need a device gate the way the predictor needs a backtest.
+3. **The doc-sync tax is now four-times-confirmed and overdue for automation.** Every close (v1.0→v2.0) has produced false-positive "open" artifacts purely from unset completion markers / un-flipped verification status. This is no longer a note to repeat — it warrants a mechanical fix (a transition hook that stamps `requirements-completed`, flips VERIFICATION on HUMAN-UAT resolution, and marks quick-task SUMMARY status).
+4. **Sequence the highest-risk seam first and prove it on hardware before dependents build on it.** AUTH-02's offline boot was device-verified at Phase 18's close, so Phases 19–20 built on a proven identity spine — the single most important ordering decision of the milestone.
+
+### Cost Observations
+- Model mix: still not instrumented (flagged optional since v1.0; low value for a <10-user personal tool).
+- Notable: 189 commits / 108 files (+11.6k/−0.1k LOC) — a smaller footprint than v1.2's Bingo-heavy window, concentrated in a net-new `sync/` + `db/` app fence and a lean pure-core `shared-progress` projector; the backend itself (schema + RLS + seed) is version-controlled SQL/TS, not app LOC.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -132,6 +172,7 @@
 | v1.0 | 7 | 46 | Baseline: compile-enforced core/UI split, single-artifact pipeline, tracked device-gate deferrals |
 | v1.1 | 3 | 12 | Retro-driven requirements (every req closes a v1.0 finding); shared `<Sheet>` a11y primitive + `config.ui.z`; device dry-run as a first-class close gate |
 | v1.2 | 6 | 28 | Two-gate feature delivery (upstream-correctness + Monte-Carlo calibration); consume-once `deriveMarks` as a third derivation sibling; "bugs before Bingo" as an explicit trust-first sequence |
+| v2.0 | 4 | 20 | First backend-dependent milestone (spike-validated constraint reversal); app-layer fence + core-purity guard test; highest-risk seam (offline-safe boot) device-gated before dependents; singleton Realtime engine + pure external-store reader; `visibleEpoch` mobile-rejoin pattern |
 
 ### Cumulative Quality
 
@@ -140,6 +181,7 @@
 | v1.0 | 481 | 4 (predict self-rank, import data-loss CR-01, logSong position, offline-cover SW clientsClaim) + WARNING-1 at audit | core = fuse.js + zod only |
 | v1.1 | 587 | 2 D-09 show-loop blockers (SuggestionStrip sizing, FAB over reserved strip) fixed on-device during VALID-02 | no new core deps (fuse.js + zod) |
 | v1.2 | ~720 | 1 rotation-window slice-direction blocker (CR-01, oldest-vs-newest nights) caught in code review + regression-locked; 13 pre-show bugs closed from the bug-hunt backlog | no new core deps (bingo module is pure TS: xmur3/mulberry32 PRNG + zod) |
+| v2.0 | 513 (app) | 1 Phase-19 read-boundary blocker (whole-row validation, CR-01) fixed; the mobile Realtime foreground-staleness bug (both channels) fixed + two-device device-verified at close | core = still fuse.js + zod (Supabase confined to app layer, enforced by a purity guard test) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -149,3 +191,6 @@
 4. _(established v1.1)_ Real-hardware device legs should run in one tunnel-backed session, not split across desktop fallback then a later device pass.
 5. _(established v1.2, third-time confirmation of the v1.0 bookkeeping lesson)_ VERIFICATION.md status must move with its HUMAN-UAT — three phases shipped `passed` on-device but left `human_needed` verification markers, and the close audit couldn't distinguish genuinely-open from done-but-unflagged. This now warrants a mechanical fix (derive/flip verification status on HUMAN-UAT resolution), not another note.
 6. _(established v1.2)_ Probabilistic/model-driven features need a calibration trust gate of their own (the Bingo equivalent of the backtest) — and it earns its keep: v1.2's calibration proved the original win-rate targets unreachable before any UI was built.
+7. _(established v2.0, FOURTH-time confirmation of the v1.0 bookkeeping lesson)_ The doc-sync tax appeared again at the v2.0 close (unlisted `requirements-completed`, stale AUTH checkboxes, a draft VALIDATION.md, an unmarked quick-task SUMMARY) — every close from v1.0 forward. It is now unambiguously a tooling gap, not a discipline gap: stamp completion markers / flip verification status mechanically at phase transition.
+8. _(established v2.0)_ Realtime/offline behavior cannot be signed off from unit tests — a device gate is mandatory. The mobile foreground-rejoin's unit tests proved the re-open trigger; only a two-device on-device recheck proved live socket recovery. Treat any Realtime channel like the predictor's backtest: it needs a hardware trust gate.
+9. _(established v2.0)_ A lifecycle/keying bug is rarely singular — fix every sibling with the same shape at once. The `[userId, online]`-keyed mobile-suspension gap lived in both Realtime channels; grepping the keying found both.

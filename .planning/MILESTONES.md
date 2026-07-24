@@ -1,5 +1,28 @@
 # Milestones
 
+## v2.0 Multi-User Foundation (Shipped: 2026-07-24)
+
+**Phases completed:** 4 phases, 20 plans, 27 tasks
+
+**Key accomplishments:**
+
+- Stood up the app-side Supabase foundation: pinned `@supabase/supabase-js@2.110.8` in the app package, the `supabase@2.109.1` CLI as a root devDependency with a scaffolded `supabase/` project, and the single `createClient` module at `packages/app/src/db/supabase.ts` that every v2.0 phase imports — with `packages/core` left @supabase-free.
+- Closed the .env-commit gap in .gitignore, committed a valueless .env.example behind the VITE_ boundary, and added a Vitest static-scan guard that fails if packages/core ever imports Supabase or a browser DOM/transport global — proven to catch an injected @supabase import without false-positiving existing core code.
+- Authored the version-controlled source of truth for the multi-user backend: a one-shot `public.progress` migration (user-keyed table + read-all/write-own RLS + the required `supabase_realtime` publication line) and a dependency-free, idempotent Node-native-TS GoTrue admin seed with a committed non-secret roster — pure authoring, no live project touched (that is 17-04).
+- Turned the authored source (17-03) into live, verified backend state: provisioned/linked the hosted Supabase project, cleanly reconciled a stale spike schema, applied the progress_foundation migration for real, and empirically verified all four phase success criteria against the running project — with every real secret kept in gitignored `.env` files.
+- Dexie version(7) adds an additive `userId` index to the 5 domain tables, and `claimLegacyDexOnce` stamps the pre-existing single-user dex to the first signer exactly once via a `dexClaimedBy` meta gate — the local-data-isolation substrate every scoped read/export in Plans 06/07 depends on.
+- Synchronous, offline-safe `{ userId, displayName }` localStorage store (gwf-identity) plus a useSyncExternalStore hook — the substrate that makes the boot gate immune to the getSession()-returns-null-offline bug.
+- A name-picker over a baked no-PII roster + a single password field that calls `signInWithPassword`, surfaces GoTrue's generic error verbatim on a wrong password (no enumeration), shows a calm "connect once" screen offline, and on success writes the app-owned identity record and claims the legacy dex — the only way into the app (AUTH-01, the full auth gate).
+- A deterministic color+initials `IdentityAvatar` in the header (self-sourcing the current identity), a bottom sheet showing the full `display_name` with a neutral sign-out for device hand-off, and a calm amber "reconnecting" state on the existing `SyncDot` — never a jarring logout.
+- The boot gate now interposes a synchronous, offline-safe identity check between the DOM mount and `<App/>`: it keys on the presence of the app-owned `gwf-identity` record (never a network `getSession()`), so an expired-but-present session cold-boots the full dex fully offline; the auth reconciler runs background-only and clears identity solely on an explicit `SIGNED_OUT`; and `useDexStats` is scoped to the current userId so a borrowed phone shows only that identity's numbers.
+- Closes BOTH halves of AUTH-05 local-data isolation: the four namespaced-table view consumers and export/import now scope every read to the current userId, and Dexie creating/updating hooks stamp the signed-in userId on all five create paths — so a borrowed phone (and a shared backup) exposes only the signed-in identity's dex, while the signed-in user's OWN new activity is never lost to an undefined userId.
+- The pure, testable presence layer inside the app-layer Supabase fence — config.presence + config.copy.presence, a pure activity-derivation utility, the zero-timer visibility hook, and presenceSync.ts (external store + gizz-room channel primitives + untrusted-wave validation + a null-safe module-level sendWave).
+- The two user-facing surfaces of the ephemeral interaction layer: an app-wide `WaveToast` host (module-emitter + App-level host cloning BingoCelebration, departing only at a bounded FIFO brief-drain queue that reads a flurry as distinct pops) and the `ReactionPalette` (a fixed 4-emoji wave-led send surface + Everyone/per-friend target picker) — both net-new, echoing shipped primitives without importing/altering them.
+- The ephemeral layer goes live: a single shell-mounted `usePresence()` engine (the SOLE `gizz-room` owner — a carbon copy of the Phase-19 `useProgressSync` singleton) that broadcasts coarse activity, publishes friends' presence to the shared store, and routes validated inbound waves to `<WaveToast/>`, plus the pure `usePresenceFor`/`useSelfPresence` readers the Friends surface consumes and the once-only `App.tsx` mount.
+- The visible payoff lands: the already-reserved `FriendRow`/`SelfRow` presence slots fill from the pure Phase-20 readers — an 8px `#22C55E` online dot + the coarse activity label (with the residency-defining `At a show 🎸` emphasis), the You row's own live dot/activity that honestly reads `offline` when disconnected, all friend dots going dark when the viewer is offline while dimmed cached PROG rows persist — plus the two send entry points (a `React` header affordance and a pre-targeted `Wave at {name}` button) both routing through the one shared `ReactionPalette` → `sendWave` path.
+
+---
+
 ## v1.2 Pre-Show Hardening (Shipped: 2026-07-22)
 
 **Phases completed:** 6 phases, 28 plans, 53 tasks

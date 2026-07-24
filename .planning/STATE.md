@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Multi-User Foundation
-status: executing
-stopped_at: Phase 20 UI-SPEC approved
-last_updated: "2026-07-24T16:26:56.296Z"
-last_activity: 2026-07-24
+status: Awaiting next milestone
+stopped_at: Phase 20 complete + pushed; v2.1 UX/UI polish backlog captured from Obsidian
+last_updated: "2026-07-24T19:45:53.631Z"
+last_activity: 2026-07-24 — Milestone v2.0 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-22 after v1.2 milestone close)
+See: .planning/PROJECT.md (updated 2026-07-24 after v2.0 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 20 — presence-interactions
+**Current focus:** Planning next milestone — v2.1 "UX/UI Polish" (`/gsd-new-milestone`; scope in `.planning/v2.1-ux-polish-backlog.md`)
 
 ## Current Position
 
-Phase: 20
-Plan: Not started
-Status: Phase 20 complete
-Last activity: 2026-07-24 - Completed quick task 260724-lgo: apply visibleEpoch foreground-rejoin to useProgressSync (Phase-19 half of the mobile friend-activity bug; awaits two-device on-device recheck)
+Phase: Milestone v2.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-24 — Milestone v2.0 completed and archived
 
 ## Performance Metrics
 
@@ -247,6 +247,19 @@ Recent decisions affecting current work:
 
 ## Deferred Items
 
+Items acknowledged and deferred at **v2.0 milestone close on 2026-07-24** (owner-approved [A] Acknowledge-all). The pre-close audit flagged 14 open artifacts; the ONE real code gap — the mobile friend-activity staleness bug — was **resolved and device-verified this session** (both Realtime channels fixed: quick 260724-hqu presence + quick 260724-lgo progress-feed; two-device UAT PASSED over a cloudflared tunnel) and its todo moved to `completed/`. The remaining 13 are all genuine v2.1+ deferred backlog (never v2.0 requirement gaps): 3 UI polish ideas, 9 casual-feature captures, and 1 low-severity installed-PWA viewport-gap bug. None blocking; all carry into the next milestone (see `.planning/v2.1-ux-polish-backlog.md`).
+
+| Category | Item | Status |
+|----------|------|--------|
+| bug (RESOLVED) | mobile friend-activity inconsistent updates | ✅ fixed + device-verified 2026-07-24 (hqu presence + lgo progress-feed `visibleEpoch` foreground-rejoin); moved to todos/completed/ |
+| todo/ui | bottom-sheets smooth up/down animation + always-on-top layering | pending — genuine v2.1 UI idea |
+| todo/ui | GizzVerse animate directional-flow particles along constellation | pending — genuine v2.1 UI idea (conflicts with settle-and-freeze EXPL-06) |
+| todo/ui | app-wide "Mon D, YYYY" readable full-date format | pending — genuine v2.1 UI idea |
+| todo/feature ×9 | residency-mode, guezz-league, gizzle, couch-mode, my-stats-want-list, shiny-catches, badge-system, song-dossiers, know-before-you-go | pending — casual-feature backlog (post-v2.0 order: Residency → Bingo/League → Gizzle); separate future milestones |
+| todo/bug | 2026-07-20-fix-bottom-viewport-gap-in-installed-standalone-pwa | pending — low-severity installed-PWA layout polish (not a v2.0 gap; carry to v2.1) |
+
+---
+
 Items acknowledged and deferred at **v1.2 milestone close on 2026-07-22** (owner-approved [A] Acknowledge-all). The pre-close audit flagged 20 open artifacts; all are benign — false positives (completed-but-unmarked, superseded, or a not-a-defect index) or genuine v2 backlog. None blocking. The three phase HUMAN-UAT files flagged (11/13/16) are all status `passed` with 0 pending scenarios; their VERIFICATION.md markers were reconciled `human_needed → passed` this session. The Phase-01 verification and `knowledge-base` flags are the same stale false alarms carried since the v1.0/v1.1 closes.
 
 | Category | Item | Status |
@@ -310,7 +323,4 @@ Resume file: .planning/v2.1-ux-polish-backlog.md
 
 ## Operator Next Steps
 
-- v2.0 (Multi-User Foundation) is complete — all phases done, verified, pushed. Formally archive with /gsd-complete-milestone.
-- Open v2.1 "UX/UI Polish" with /gsd-new-milestone — scope + proposed phasing in `.planning/v2.1-ux-polish-backlog.md` (9 items from the Obsidian "Gizz With Friends - v2.1 Backlog" note). Two open decisions to confirm first: #6 reactions fly-up supersedes the shipped WaveToast (motion vs reduced-motion), and #5 tab-rename partly reverses rebrand 260716-wwj.
-- Outstanding bug: two-device on-device recheck of the mobile presence-resync fix (quick 260724-hqu) — see .planning/todos/pending/2026-07-24-bug-mobile-friend-activity-inconsistent-updates.md
-- Prior stale next-step (v2.0 phase planning) is done — superseded.
+- Start the next milestone with /gsd-new-milestone
