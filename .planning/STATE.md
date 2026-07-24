@@ -303,10 +303,13 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-24T04:41:55.743Z
-Stopped at: Phase 20 UI-SPEC approved
-Resume file: .planning/phases/20-presence-interactions/20-UI-SPEC.md
+Last session: 2026-07-24
+Stopped at: Phase 20 complete + pushed; v2.1 UX/UI polish backlog captured from Obsidian
+Resume file: .planning/v2.1-ux-polish-backlog.md
 
 ## Operator Next Steps
 
-- Plan the first v2.0 phase with /gsd-plan-phase 17 (Backend Foundation & Secrets)
+- v2.0 (Multi-User Foundation) is complete — all phases done, verified, pushed. Formally archive with /gsd-complete-milestone.
+- Open v2.1 "UX/UI Polish" with /gsd-new-milestone — scope + proposed phasing in `.planning/v2.1-ux-polish-backlog.md` (9 items from the Obsidian "Gizz With Friends - v2.1 Backlog" note). Two open decisions to confirm first: #6 reactions fly-up supersedes the shipped WaveToast (motion vs reduced-motion), and #5 tab-rename partly reverses rebrand 260716-wwj.
+- Outstanding bug: two-device on-device recheck of the mobile presence-resync fix (quick 260724-hqu) — see .planning/todos/pending/2026-07-24-bug-mobile-friend-activity-inconsistent-updates.md
+- Prior stale next-step (v2.0 phase planning) is done — superseded.
