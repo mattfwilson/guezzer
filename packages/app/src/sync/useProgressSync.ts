@@ -22,12 +22,13 @@
  *    venue is never blank; reconnect flushes the own row + re-pulls once and
  *    re-establishes the subscription (D-17).
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { config } from "../config.ts";
 import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
 import { useDexStats } from "../dex/useDexStats.ts";
 import { useOnlineStatus } from "../live/useOnlineStatus.ts";
 import { readFriendCache } from "./friendCache.ts";
+import { useVisibilityHidden } from "./useVisibilityHidden.ts";
 import {
   refreshAllFriends,
   removeChannel,
@@ -45,6 +46,24 @@ export function useProgressSync(): void {
 
   const ready = stats.ready;
   const dex = stats.dex;
+  const hidden = useVisibilityHidden();
+
+  // IN-04 (mobile friend-progress staleness): on mobile, backgrounding suspends
+  // the WebSocket while `navigator.onLine` never flips, so the client silently
+  // misses friends' `postgres_changes` diffs and friend progress goes stale.
+  // `visibilitychange` does NOT fire on in-app route changes, so a `visibleEpoch`
+  // bumped ONLY on a genuine hidden→visible edge — added to the subscription
+  // lifecycle effect deps below — tears the channel down and re-opens it (fresh
+  // subscribe → re-pull reconciles stale friend rows) on foreground, while in-app
+  // nav and the background (visible→hidden) edge never churn it.
+  const [visibleEpoch, setVisibleEpoch] = useState(0);
+  const prevHiddenRef = useRef(hidden);
+  useEffect(() => {
+    if (prevHiddenRef.current === true && hidden === false) {
+      setVisibleEpoch((n) => n + 1);
+    }
+    prevHiddenRef.current = hidden;
+  }, [hidden]);
 
   // ── Subscription + pull lifecycle (first-sync pull + reconnect re-pull +
   // resubscribe + offline hydrate). Re-runs when the identity or connectivity
@@ -94,7 +113,7 @@ export function useProgressSync(): void {
       cancelled = true;
       void removeChannel(channel);
     };
-  }, [userId, online]);
+  }, [userId, online, visibleEpoch]);
 
   // ── Debounced own-row content upsert (PROG-02, D-15). Watches the live dex;
   // coalesces a rapid live-logging burst into ONE write after DEBOUNCE_MS. Gated
