@@ -4,12 +4,12 @@ milestone: v2.0
 milestone_name: Multi-User Foundation
 status: executing
 stopped_at: Phase 20 UI-SPEC approved
-last_updated: "2026-07-24T05:09:57.597Z"
-last_activity: 2026-07-24 -- Phase 20 planning complete
+last_updated: "2026-07-24T14:50:28.666Z"
+last_activity: 2026-07-24 -- Phase 20 execution started
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 15
+  total_plans: 20
   completed_plans: 15
   percent: 75
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-22 after v1.2 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 19 — shared-dex-progress
+**Current focus:** Phase 20 — presence-interactions
 
 ## Current Position
 
-Phase: 20
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-24 -- Phase 20 planning complete
+Phase: 20 (presence-interactions) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 20
+Last activity: 2026-07-24 -- Phase 20 execution started
 
 ## Performance Metrics
 

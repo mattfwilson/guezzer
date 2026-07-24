@@ -176,7 +176,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 
 **Wave 1**
 
-- [ ] 20-01-PLAN.md — Foundation: config.presence/copy + pure activity derivation + visibility hook + presence store/channel primitives/validateWave/sendWave (PRES-01/03/04/05)
+- [x] 20-01-PLAN.md — Foundation: config.presence/copy + pure activity derivation + visibility hook + presence store/channel primitives/validateWave/sendWave (PRES-01/03/04/05)
 
 **Wave 2** *(depends on Wave 1)*
 
@@ -219,7 +219,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete   | 2026-07-22 |
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete    | 2026-07-24 |
-| 20. Presence & Interactions | v2.0 | 0/5 | Not started | - |
+| 20. Presence & Interactions | v2.0 | 1/5 | In Progress|  |
 
 ---
 *Roadmap created: 2026-07-08*
