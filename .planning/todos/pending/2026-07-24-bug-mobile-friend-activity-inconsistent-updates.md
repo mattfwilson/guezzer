@@ -4,9 +4,9 @@ title: "Bug: mobile Friends-list activity labels update inconsistently"
 area: bug
 source: 20-05 two-device UAT (owner, 2026-07-24)
 severity: medium
-status: fix-implemented-awaits-device-recheck
+status: both-halves-fix-implemented-awaits-device-recheck
 fix_commit: df6515c
-fix_ref: quick 260724-hqu
+fix_ref: quick 260724-hqu (presence half) + quick 260724-lgo (progress-feed half)
 files:
   - packages/app/src/sync/usePresence.ts
   - packages/app/src/sync/presenceSync.ts
@@ -92,8 +92,27 @@ returns → the friend's activity label updates promptly). If it still lags on-d
 next lever is H3/H4 (Realtime events-per-second throttle on the sender, or a stale
 multi-device entry winning in `reduceActivity`).
 
+## Sibling channel fixed too (2026-07-24, quick 260724-lgo, commit 7420b96) — AWAITS DEVICE RECHECK
+
+The same mobile-suspension gap lived in a SECOND Realtime channel: `useProgressSync.ts`
+(Phase-19 progress feed), keyed identically `[userId, online]` with only an
+offline→online reconnect flush and no hidden→visible rejoin (memory
+`realtime-mobile-suspension-rejoin`). The verbatim `visibleEpoch` pattern from `usePresence.ts`
+was propagated to it — `useVisibilityHidden()` + `prevHiddenRef` bumps `visibleEpoch` only on
+the hidden→visible edge, added to the subscription lifecycle deps so a real mobile foreground
+tears down + re-subscribes + re-pulls friend progress rows. Debounced-upsert + reconnect-flush
+deps untouched (no spurious foreground write). Tests prove foreground re-subscribe/re-pull,
+zero in-app-nav churn, and no spurious upsert. `tsc` clean; sync suite 72/72, full app 513/513.
+
+BOTH the presence label (hqu) and the friend-progress rows (lgo) now rejoin on mobile
+foreground. Same caveat as hqu: unit tests prove the re-open TRIGGER, not live realtime
+recovery over a genuinely suspended mobile socket.
+
 ## Next
 
-Two-device on-device recheck next session. If confirmed fixed, move this file to
-`.planning/todos/completed/`. If not, `/gsd-debug` with the on-device instrumentation
-noted above.
+Two-device on-device recheck next session, covering BOTH halves: a mobile observer switches
+tabs / backgrounds / returns → the friend's **activity label** (presence) AND their
+**progress row** (completion %, catches) update promptly. If both confirmed fixed, move this
+file to `.planning/todos/completed/`. If either still lags, `/gsd-debug` with the on-device
+instrumentation noted above (next levers: H3 Realtime events-per-second throttle, H4 stale
+multi-device entry in `reduceActivity`).
