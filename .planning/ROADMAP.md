@@ -172,7 +172,28 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
   4. A small fixed emoji reaction palette (wave / fire / 🦎 / "caught it!") broadcasts reactions rendered as toasts, reusing the Bingo celebration-layer discipline (PRES-06).
   5. The friends screen is presence-aware — each row shows a live online dot + the friend's current coarse activity, fusing PROG + PRES with no new backend (PRES-07).
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+**Wave 1**
+
+- [ ] 20-01-PLAN.md — Foundation: config.presence/copy + pure activity derivation + visibility hook + presence store/channel primitives/validateWave/sendWave (PRES-01/03/04/05)
+
+**Wave 2** *(depends on Wave 1)*
+
+- [ ] 20-02-PLAN.md — WaveToast host (bounded FIFO brief-drain queue) + ReactionPalette (fixed 4-emoji + target picker) (PRES-02/05/06)
+
+**Wave 3** *(depends on Waves 1–2)*
+
+- [ ] 20-03-PLAN.md — Singleton usePresence() engine (sole gizz-room owner) + pure presence readers + App.tsx mount (PRES-01/02/03/04)
+
+**Wave 4** *(depends on Waves 1–3)*
+
+- [ ] 20-04-PLAN.md — Friends-screen fusion: fill reserved FriendRow/SelfRow presence slots + palette/FriendDetail send entry points (PRES-07/01/04/05)
+
+**Wave 5** *(device gate — depends on Wave 4)*
+
+- [ ] 20-05-PLAN.md — [BLOCKING] Two-device live presence + wave/reaction UAT (PRES-01/02/05/07)
+
 **UI hint**: yes
 
 ## Progress
@@ -198,7 +219,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete   | 2026-07-22 |
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete    | 2026-07-24 |
-| 20. Presence & Interactions | v2.0 | 0/? | Not started | - |
+| 20. Presence & Interactions | v2.0 | 0/5 | Not started | - |
 
 ---
 *Roadmap created: 2026-07-08*
