@@ -790,6 +790,28 @@ export const config = {
     showcaseCount: 5,
   },
 
+  /**
+   * Phase-20 presence & reactions tunables (single-config-file ethos, CLAUDE.md —
+   * no scattered magic numbers). Waves are ephemeral (PRES-03): nothing here is
+   * persisted. Missed waves are gone with no queue, badge, or replay (D-21) —
+   * `QUEUE_CAP` bounds only the in-flight toast display buffer, `TOAST_MS` is each
+   * reaction toast's on-screen time, and `DRAIN_GAP_MS` staggers a burst so two
+   * simultaneous waves read as two toasts, not one. `EMOJIS` is the SINGLE fixed
+   * 4-emoji palette — the sole source both `validateWave`'s allow-list and the
+   * (downstream) ReactionPalette consume, so a peer can never inject an emoji the
+   * palette can't send.
+   */
+  presence: {
+    /** Max reactions buffered for display at once (bounded toast buffer, D-21 — no unbounded queue). */
+    QUEUE_CAP: 4,
+    /** Each reaction toast's total on-screen time in ms. */
+    TOAST_MS: 1600,
+    /** Stagger in ms between draining consecutive buffered toasts (a burst reads as N toasts). */
+    DRAIN_GAP_MS: 150,
+    /** The fixed 4-emoji reaction palette — the single allow-list for validateWave AND the palette. */
+    EMOJIS: ["👋", "🔥", "🦎", "🎯"] as const,
+  },
+
   /** UI-SPEC §Copywriting Contract. */
   copy: {
     /**
@@ -1404,6 +1426,41 @@ export const config = {
       rarestOwn: "Your rarest catches",
       /** Showcase empty (a 0-catch friend's detail). */
       rarestEmpty: "No catches yet",
+    },
+
+    /**
+     * Phase-20 presence & reactions copy (20-UI-SPEC §Copywriting Contract) —
+     * verbatim. Every peer-supplied string ({name}) renders as escaped React
+     * text. `atShow`/`offline` are the only presence-state labels not already
+     * carried by a Tab brand token (the Tab tokens ARE their own labels). Reuses
+     * the shipped SyncDot/identity vocabulary downstream — no new z-tier or color
+     * is minted here (`config.ui.z.toast` + `config.auth.IDENTITY_COLORS` are
+     * reused by the toast host and presence dots).
+     */
+    presence: {
+      /** ReactionPalette sheet heading (D-11). */
+      reactionTitle: "Send a reaction",
+      /** The palette-entry control label (opens the reaction sheet). */
+      waveEntry: "React",
+      /** Broadcast-target option — a wave to everyone online (D-11). */
+      targetEveryone: "Everyone",
+      /** Targeted-wave control label in a friend's detail (D-11). */
+      waveAtFriend: (name: string): string => `Wave at ${name}`,
+      /** Broadcast reaction toast (untargeted): "{name} {emoji}". */
+      broadcast: (name: string, emoji: string): string => `${name} ${emoji}`,
+      /** Targeted-at-me reaction toast: "{name} waved at you {emoji}" (PRES-05). */
+      targeted: (name: string, emoji: string): string =>
+        `${name} waved at you ${emoji}`,
+      /** Targeted-wave suffix chip. */
+      toYou: "to you",
+      /** Presence-state label: a friend is at a live show (coarse boolean, D-03). */
+      atShow: "At a show 🎸",
+      /** Presence-state label: a friend is not currently online (binary present-now, D-14). */
+      offline: "offline",
+      /** Per-emoji chip labels for the reaction palette (the fixed 4-emoji set). */
+      chipLabels: { wave: "Wave", fire: "Fire", lizard: "Lizard", caught: "Caught it" },
+      /** Short caption used where a "caught it" reaction is surfaced inline. */
+      caughtLabel: "caught it!",
     },
 
     /**
