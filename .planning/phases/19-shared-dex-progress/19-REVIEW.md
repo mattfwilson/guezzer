@@ -24,7 +24,17 @@ findings:
   warning: 3
   info: 3
   total: 7
-status: issues_found
+resolved:
+  critical: 1
+  warning: 3
+  info: 0
+status: resolved
+resolution_note: >
+  CR-01 (downgraded to defense-in-depth: display_name is `text not null` in the
+  progress_foundation migration) plus WR-01/WR-02/WR-03 fixed in commits
+  888a4e0, 590929f, a8ba000, 45398d9. +4 tests; suite 875 passing. The 3 INFO
+  findings are accepted as tracked debt (resetSyncState-on-signout wiring,
+  dup-key guard, self-echo re-pull perf — out of v1 scope).
 ---
 
 # Phase 19: Code Review Report
