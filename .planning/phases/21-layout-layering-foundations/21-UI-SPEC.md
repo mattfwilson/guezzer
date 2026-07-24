@@ -1,10 +1,11 @@
 ---
 phase: 21
 slug: layout-layering-foundations
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-24
+reviewed_at: 2026-07-24
 ---
 
 # Phase 21 — UI Design Contract
