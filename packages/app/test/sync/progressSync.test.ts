@@ -15,7 +15,7 @@ const mock = vi.hoisted(() => {
     onChange: null as null | (() => void),
     selectResult: { data: [] as unknown[] | null, error: null as unknown },
   };
-  const upsertSpy = vi.fn((..._args: unknown[]) => Promise.resolve({ error: null }));
+  const upsertSpy = vi.fn((..._args: unknown[]) => Promise.resolve({ error: null as unknown }));
   const selectSpy = vi.fn(() => Promise.resolve(capture.selectResult));
   const fromSpy = vi.fn(() => ({ upsert: upsertSpy, select: selectSpy }));
   const subscribeSpy = vi.fn(() => ({ __channel: "progress-feed" }));
@@ -119,6 +119,17 @@ describe("upsertOwnProgress / upsertIdentity — identity-safe writes (PROG-02, 
     const payload = mock.upsertSpy.mock.calls[0][0] as Record<string, unknown>;
     expect(payload).toEqual({ user_id: MY_ID, display_name: "Ada" });
     expect(payload).not.toHaveProperty("summary");
+  });
+
+  it("surfaces (throws) a supabase write error instead of swallowing it (WR-02)", async () => {
+    // supabase-js RESOLVES on RLS/DB errors — the returned `{ error }` must be
+    // read + thrown so a persistent failure is not indistinguishable from success.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    mock.upsertSpy.mockResolvedValueOnce({ error: { message: "row violates RLS policy" } });
+    await expect(upsertOwnProgress(MY_ID, "Ada", fakeDex())).rejects.toMatchObject({
+      message: "row violates RLS policy",
+    });
+    expect(warn).toHaveBeenCalled();
   });
 });
 

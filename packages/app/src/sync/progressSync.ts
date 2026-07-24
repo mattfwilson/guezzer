@@ -49,7 +49,12 @@ export async function upsertOwnProgress(
   displayName: string,
   dex: DexStats,
 ): Promise<void> {
-  await supabase.from(PROGRESS_TABLE).upsert(
+  // supabase-js RESOLVES (never rejects) on RLS violations, constraint failures,
+  // and 4xx responses — so the returned `{ error }` MUST be read, or a persistent
+  // structural failure is completely silent and the caller's `.catch()` is
+  // unreachable (WR-02). Log + throw so a real failure is diagnosable on show
+  // night AND the caller's transient-retry `.catch` path can see it.
+  const { error } = await supabase.from(PROGRESS_TABLE).upsert(
     {
       user_id: userId,
       display_name: displayName,
@@ -58,6 +63,10 @@ export async function upsertOwnProgress(
     },
     { onConflict: "user_id" },
   );
+  if (error) {
+    console.warn("[progress] own-row upsert failed:", error.message);
+    throw error;
+  }
 }
 
 /**
@@ -70,9 +79,16 @@ export async function upsertIdentity(
   userId: string,
   displayName: string,
 ): Promise<void> {
-  await supabase
+  // Same swallowed-error hazard as the content write (WR-02): read the returned
+  // `{ error }` so an RLS/DB failure on the identity-only write surfaces instead
+  // of resolving silently as if it succeeded.
+  const { error } = await supabase
     .from(PROGRESS_TABLE)
     .upsert({ user_id: userId, display_name: displayName }, { onConflict: "user_id" });
+  if (error) {
+    console.warn("[progress] identity upsert failed:", error.message);
+    throw error;
+  }
 }
 
 // ── Stateless read primitive ────────────────────────────────────────────────
