@@ -26,7 +26,7 @@
  * store — zero Postgres/Dexie/localStorage writes on the presence path (the
  * primitive-layer sync tests enforce the no-persist invariant).
  */
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
 import { db } from "../db/db.ts";
@@ -56,6 +56,23 @@ export function usePresence(): void {
   // stable reference across renders — the re-track effect only fires on a real change.
   const route = useHashRoute();
   const hidden = useVisibilityHidden();
+
+  // IN-04 (mobile presence staleness): on mobile, backgrounding suspends the
+  // WebSocket while `navigator.onLine` never flips, so the client silently misses
+  // peers' presence diffs and friend activity goes stale. `visibilitychange` does
+  // NOT fire on in-app route changes, so a `visibleEpoch` bumped ONLY on a genuine
+  // hidden→visible edge — added to the lifecycle effect deps below — re-opens
+  // `gizz-room` (fresh subscribe → fresh sync reconciles stale peers) on foreground,
+  // while in-app nav and the background (visible→hidden) edge never churn it.
+  const [visibleEpoch, setVisibleEpoch] = useState(0);
+  const prevHiddenRef = useRef(hidden);
+  useEffect(() => {
+    if (prevHiddenRef.current === true && hidden === false) {
+      setVisibleEpoch((n) => n + 1);
+    }
+    prevHiddenRef.current = hidden;
+  }, [hidden]);
+
   const active = useLiveQuery(() =>
     db.trackedShows.where("status").equals("active").first(),
   );
@@ -129,7 +146,7 @@ export function usePresence(): void {
       setWaveSender(null);
       void removeChannel(channel);
     };
-  }, [userId, online]);
+  }, [userId, online, visibleEpoch]);
 
   // ── Re-track effect, keyed on the derived activity only. Re-`.track()`s the new
   // payload on a tab / visibility / active-show change WITHOUT re-opening the channel
