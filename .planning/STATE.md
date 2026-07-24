@@ -318,7 +318,7 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 ## Session Continuity
 
 Last session: 2026-07-24
-Stopped at: Phase 20 complete + pushed; v2.1 UX/UI polish backlog captured from Obsidian
+Stopped at: v2.0 "Multi-User Foundation" COMPLETE — archived + tagged (v2.0) + pushed. Close-time mobile Realtime foreground-rejoin bug fixed (both channels) and two-device device-verified. Next: v2.1 "UX/UI Polish".
 Resume file: .planning/v2.1-ux-polish-backlog.md
 
 ## Operator Next Steps
