@@ -116,4 +116,6 @@ All `mitigate`-disposition threats assigned to this plan's files are implemented
 - The receive path (`showWaveToast` + the `<WaveToast/>` host) and the send path (`<ReactionPalette/>` → `sendWave`) are ready to wire: the host mounts once in `App.tsx` (D-11) and the palette opens from the Friends-header "React" entry + a pre-targeted FriendDetail button — those mount/entry-point wirings are the remaining phase-20 plans (20-03/20-04).
 - Both components are pure consumers of the 20-01 contracts (`config.presence`, `config.copy.presence`, `sendWave`, the presence store) — no reverse coupling introduced.
 
-## Self-Check: PENDING
+## Self-Check: PASSED
+
+All 3 created files + the SUMMARY exist on disk; all 4 commits (`1a3fa07`, `44d20d8`, `8fda422`, `3ca7e6c`) are in git history. `dangerouslySetInnerHTML` appears in both new files ONLY inside documentation comments asserting it is never used — no actual JSX prop usage (verified). Worktree clean.
