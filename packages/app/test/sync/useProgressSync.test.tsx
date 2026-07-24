@@ -29,6 +29,7 @@ const mock = vi.hoisted(() => {
     // signature-checked against the real hook).
     dex: null as unknown,
     online: true,
+    hidden: false,
   };
   const upsertSpy = vi.fn((..._args: unknown[]) => Promise.resolve({ error: null }));
   const selectSpy = vi.fn(() => Promise.resolve(capture.selectResult));
@@ -68,6 +69,9 @@ vi.mock("../../src/dex/useDexStats.ts", () => ({
 }));
 vi.mock("../../src/live/useOnlineStatus.ts", () => ({
   useOnlineStatus: () => mock.state.online,
+}));
+vi.mock("../../src/sync/useVisibilityHidden.ts", () => ({
+  useVisibilityHidden: () => mock.state.hidden,
 }));
 
 const { useProgressSync } = await import("../../src/sync/useProgressSync.ts");
@@ -119,6 +123,7 @@ beforeEach(async () => {
   mock.state.identity = { userId: "me", displayName: "Me" };
   mock.state.dex = readyDex(3);
   mock.state.online = true;
+  mock.state.hidden = false;
   resetSyncState();
 });
 afterEach(() => {
@@ -207,5 +212,69 @@ describe("useProgressSync — app-wide engine (D-16, THE CRUX)", () => {
     expect(mock.upsertSpy).not.toHaveBeenCalled();
     expect(mock.selectSpy).not.toHaveBeenCalled();
     expect(mock.channelSpy).not.toHaveBeenCalled();
+  });
+
+  it("(g) re-subscribes + re-pulls on a background→foreground transition (IN-04)", () => {
+    const { rerender } = render(<EngineOnly />);
+    expect(mock.subscribeSpy).toHaveBeenCalledTimes(1);
+    expect(mock.channelSpy).toHaveBeenCalledTimes(1);
+
+    // Backgrounding (visible→hidden) must NOT re-open the subscription.
+    act(() => {
+      mock.state.hidden = true;
+      rerender(<EngineOnly />);
+    });
+    expect(mock.subscribeSpy).toHaveBeenCalledTimes(1);
+    expect(mock.channelSpy).toHaveBeenCalledTimes(1);
+
+    // Foregrounding (hidden→visible) bumps visibleEpoch → tear the prior channel
+    // down and re-subscribe + re-pull (reconciles stale friend rows).
+    mock.selectSpy.mockClear();
+    act(() => {
+      mock.state.hidden = false;
+      rerender(<EngineOnly />);
+    });
+    expect(mock.subscribeSpy).toHaveBeenCalledTimes(2); // re-subscribe
+    expect(mock.channelSpy).toHaveBeenCalledTimes(2);
+    expect(mock.removeChannelSpy).toHaveBeenCalledTimes(1); // prior channel torn down
+    expect(mock.selectSpy).toHaveBeenCalled(); // re-pull fired again
+  });
+
+  it("(h) an in-app re-render with no visibility edge does NOT re-subscribe (no churn)", () => {
+    const { rerender } = render(<EngineOnly />);
+    expect(mock.subscribeSpy).toHaveBeenCalledTimes(1);
+    expect(mock.channelSpy).toHaveBeenCalledTimes(1);
+    act(() => {
+      rerender(<EngineOnly />); // no visibility edge crossed (hidden stays false)
+    });
+    // Zero subscription churn — the lifecycle effect did not re-run.
+    expect(mock.subscribeSpy).toHaveBeenCalledTimes(1);
+    expect(mock.channelSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("(i) a foreground edge alone does NOT re-trigger the debounced own-row upsert", () => {
+    const { rerender } = render(<EngineOnly />);
+    // Let the initial debounce elapse so the first-sync upsert fires once.
+    act(() => {
+      vi.advanceTimersByTime(config.friends.DEBOUNCE_MS);
+    });
+    const upsertsAfterInitial = mock.upsertSpy.mock.calls.length;
+    expect(upsertsAfterInitial).toBe(1);
+
+    // A genuine hidden→visible edge (background then foreground rerenders).
+    act(() => {
+      mock.state.hidden = true;
+      rerender(<EngineOnly />);
+    });
+    act(() => {
+      mock.state.hidden = false;
+      rerender(<EngineOnly />);
+    });
+    act(() => {
+      vi.advanceTimersByTime(config.friends.DEBOUNCE_MS);
+    });
+    // The upsert effect deps exclude visibleEpoch (and the dex reference is
+    // unchanged), so the foreground edge schedules NO new debounced write.
+    expect(mock.upsertSpy.mock.calls.length).toBe(upsertsAfterInitial);
   });
 });
