@@ -20,7 +20,7 @@
  * `displayName` is untrusted (Supabase-synced) — rendered as escaped React text,
  * `truncate min-w-0` clamped, never `dangerouslySetInnerHTML` (T-20-06).
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { config } from "../config.ts";
 import { Sheet } from "../components/Sheet.tsx";
 import type { FriendRowData } from "../sync/friendCache.ts";
@@ -56,6 +56,18 @@ export function ReactionPalette({
   const [emoji, setEmoji] = useState<string | null>(null);
   const [target, setTarget] = useState<string | null>(initialTarget ?? null);
   const [targetChosen, setTargetChosen] = useState<boolean>(initialTarget != null);
+
+  // WR-01 (20-REVIEW.md): FriendsList keeps this palette PERMANENTLY MOUNTED and only
+  // toggles `open`, so the mount-time useState initialisers above never re-run after a
+  // send/close — leaving a stale emoji/target/targetChosen that would fire an unintended
+  // wave on the first tap of a reopened sheet. Re-seed the two-step selection on every
+  // open (and whenever the pre-selected target changes) so each open starts clean.
+  useEffect(() => {
+    if (!open) return;
+    setEmoji(null);
+    setTarget(initialTarget ?? null);
+    setTargetChosen(initialTarget != null);
+  }, [open, initialTarget]);
 
   function send(e: string, to: string | null): void {
     sendWave(e, to);
