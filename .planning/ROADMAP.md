@@ -180,7 +180,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 
 **Wave 2** *(depends on Wave 1)*
 
-- [ ] 20-02-PLAN.md — WaveToast host (bounded FIFO brief-drain queue) + ReactionPalette (fixed 4-emoji + target picker) (PRES-02/05/06)
+- [x] 20-02-PLAN.md — WaveToast host (bounded FIFO brief-drain queue) + ReactionPalette (fixed 4-emoji + target picker) (PRES-02/05/06)
 
 **Wave 3** *(depends on Waves 1–2)*
 
@@ -219,7 +219,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete   | 2026-07-22 |
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete    | 2026-07-24 |
-| 20. Presence & Interactions | v2.0 | 1/5 | In Progress|  |
+| 20. Presence & Interactions | v2.0 | 2/5 | In Progress|  |
 
 ---
 *Roadmap created: 2026-07-08*
