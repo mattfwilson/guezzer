@@ -30,6 +30,24 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 
 **v2.0 — Phase 19 COMPLETE (2026-07-24)** — Shared Dex Progress: each friend's real dex progress (completion %, catches, rarities) now syncs to Supabase and is visible/comparable live in a Friends view, replacing the manual JSON handoff (PROG-01..08 all satisfied; verifier 5/5 must-haves). Shipped as 4 plans across 4 waves. 19-01 — a pure `packages/core/src/dex/shared-progress.ts` projector (`deriveSharedProgress` → lean serializable `SharedProgress`, `reconstructDexStats` back into the byte-for-byte UNCHANGED `compareDexes`, `selectRarestCaught`, and a zod read-boundary parser); the load-bearing round-trip fidelity test deep-equals the original compare. 19-02 — the app-layer Supabase sync fence (`packages/app/src/sync/`): identity-safe own-row upsert (PROG-02), a validated app-wide `postgres_changes` re-pull (PROG-05), reconnect flush/first-sync (D-17), and a Dexie v8 offline last-known cache (D-18). Per locked D-16 the engine is a single `useProgressSync()` mounted ONCE in `App.tsx` (mirroring `useBingoCelebrations`), gated on signed-in identity not the Friends toggle, with `useFriendsProgress()` a pure `useSyncExternalStore` reader — so the user's own dex upserts as they log a setlist and friends' rows move live while in Show Mode. 19-03 — the Friends UI inside GizzDex: a third `Friends` segment in `DexView` (view-state, never a route), a `FriendsList` (pinned live "You" SelfRow + sorted rows + offline marker + empty state), a `FriendDetail` overlay feeding the unchanged `compareDexes` for the live head-to-head (PROG-06/07), and a shared `RarestShowcase` (PROG-08) — `CompareView.tsx` left byte-for-byte untouched. 19-04 — device UAT PASSED 5/5 across two authenticated devices (over an HTTPS cloudflared tunnel + localhost): live two-device propagation, reconnect flush, never-blank offline view, and — verified against the live project — server-side RLS write-own rejection (HTTP 403 / code 42501). Code review found 1 blocker + 3 warnings; all fixed (CR-01 whole-row read-boundary validation honoring D-19, WR-01 stale-write cancel guard, WR-02 surfaced swallowed supabase write errors, WR-03 transactional offline-cache pruning); the "blocker" was in fact schema-guarded defense-in-depth (`display_name text not null`). Core stayed pure; `@supabase` confined to `sync/`; full suite 875 green. Next: Phase 20 (Presence & Interactions).
 
+## Current Milestone: v2.1 UX/UI Polish
+
+**Goal:** Make the app feel immersive and alive in the venue — keep the user inside the tracking experience, hide chrome when it's in the way, and give reactions a presence-aware physical feel — without adding new domain capability.
+
+**Target features:**
+- **Immersive in-show experience** — bingo dealing and the bingo board become full-screen overlays *on top of* tracking (never a tab jump), the bingo toast deep-links into that overlay, and the bottom tabs disappear while a show is being tracked.
+- **Reactions redesign** — replace the `WaveToast` presentation with emoji + sender name flying up from whatever section the sender is currently on; the send surface (`ReactionPalette`), `validateWave`, and the `gizz-room` transport all stay unchanged.
+- **Navigation & chrome** — tab rename (LiveGizz→**Live**, GizzVerse **stays**, GizzMap→**Map**, GizzDex→**Me**, GizzGames→**Games**), a *modular* fullscreen/chrome-hidden toggle debuting in GizzVerse and reused by the in-show tab hiding, and the install affordance moved out of the top-right menu to the bottom of Settings.
+- **Surface polish** — app-wide bottom-sheet up/down animation + a z-layer fix so nothing ever paints over an open sheet; the installed-PWA bottom viewport gap; app-wide "Mon D, YYYY" dates via one UTC-safe helper; bingo deal-type icons (Chill / Balanced / Glory-hunter).
+
+**Key context:**
+- **Mobile-first, but must render correctly on desktop too** — the August 2026 live shows are the end use case. Scope source: `.planning/v2.1-ux-polish-backlog.md` (owner's Obsidian capture, 2026-07-24).
+- **No show-blocking bugs in scope** — every item is an enhancement; the app is already show-ready.
+- **The reactions redesign deliberately reverses a shipped Phase-20 presentation decision** and is motion-forward against the app's settle-and-freeze discipline — owner-approved 2026-07-24, with a `prefers-reduced-motion` fallback as a hard requirement.
+- **The tab rename partially reverses rebrand `260716-wwj`** — intended, and GizzVerse deliberately keeps its name. Display labels only: routes (`show`/`explore`/`map`/`dex`/`games`), file paths, and Dexie/storage keys stay untouched.
+- **Hide-tabs-in-show and the GizzVerse fullscreen toggle are one mechanism** — a shared "chrome hidden" hook/context, built modular so future sections reuse it.
+- **Explicitly NOT in v2.1:** the ~10 larger feature captures (Residency Mode, Guezz League, Gizzle, Couch Mode, Badges, Shiny Catches, Song Dossiers, My Stats, Know-Before-You-Go) stay parked so v2.1 remains a tight, ship-before-the-shows polish pass. GizzVerse directional-flow edge particles were **dropped outright** (owner decision 2026-07-24 — conflicts with the EXPL-06 settle-and-freeze battery design; todo deleted).
+
 ## Shipped Milestone: v2.0 Multi-User Foundation ✅ (2026-07-24)
 
 **Status:** SHIPPED — all 27 requirements delivered, audit PASSED, tagged `v2.0`. Full record in `.planning/MILESTONES.md` + `.planning/milestones/v2.0-*`. Next milestone: **v2.1 "UX/UI Polish"** (`/gsd-new-milestone`; scope in `.planning/v2.1-ux-polish-backlog.md`).
@@ -45,7 +63,7 @@ At a live show, with one thumb, in the dark, the user can see credible next-song
 
 ### Next Milestone Candidates (post-v2.0 backlog)
 
-See **Deferred Backlog** below. Casual-feature order from the 2026-07-19 research session: Residency Mode → Bingo/League → Gizzle. Plus model stretch signals (set-position awareness, album-genre experiment), the Explore era-slider, full real-time shared setlist state (SOCL-V2-01), and the non-blocking UI todos (directional-flow edge particles, unified bottom-sheet animation, app-wide "Mon D, YYYY" date format).
+See **Deferred Backlog** below. Casual-feature order from the 2026-07-19 research session: Residency Mode → Bingo/League → Gizzle. Plus model stretch signals (set-position awareness, album-genre experiment), the Explore era-slider, and full real-time shared setlist state (SOCL-V2-01). The non-blocking UI todos (unified bottom-sheet animation, app-wide "Mon D, YYYY" date format) were pulled **into v2.1**; directional-flow edge particles were dropped.
 
 ## Deferred Backlog (future milestone)
 - Set-position awareness (opener/closer/encore distributions) as a scoring signal — set-structure data already captured in v1 (MODL-V2-01)
@@ -53,7 +71,7 @@ See **Deferred Backlog** below. Casual-feature order from the 2026-07-19 researc
 - Tease/jam-notation awareness beyond segue pairs — needs schema evidence first (MODL-V2-03)
 - Explore era slider (2010 → present) scrubbing the constellation through time (EXPL-V2-01)
 - Real-time shared setlist state between friends during shows — reopens the "no backend" constraint (SOCL-V2-01)
-- Non-blocking UI ideas carried from v1.1: directional-flow edge particles, unified bottom-sheet animation, app-wide "Mon D, YYYY" date format
+- ~~Non-blocking UI ideas carried from v1.1~~ — unified bottom-sheet animation + app-wide "Mon D, YYYY" date format pulled into **v2.1**; directional-flow edge particles **dropped** (2026-07-24, conflicts with EXPL-06 settle-and-freeze)
 - iOS <18.4 Wake Lock fallback path — exercise on-device if a pre-18.4 device becomes available (unit-covered today)
 
 ## Requirements
@@ -116,7 +134,7 @@ See **Deferred Backlog** below. Casual-feature order from the 2026-07-19 researc
 
 ### Active
 
-_All v1.0 requirements shipped and validated above. The items below are deliberately-deferred stretch work for a future milestone — scope via `/gsd-new-milestone`._
+**v2.1 "UX/UI Polish" is the active milestone** — see `.planning/REQUIREMENTS.md` for the scoped, REQ-ID'd list (immersive in-show overlays, reactions fly-up, navigation & chrome, surface polish). The items below are deliberately-deferred stretch work for a *later* milestone.
 
 **Prediction model:**
 - [ ] Signal 7 — set-position awareness (opener/closer/encore distributions). Set-structure data is captured in v1 (SHOW-06, DATA-01) so it's purely additive (v2: MODL-V2-01)
@@ -234,6 +252,10 @@ _All v1.0 requirements shipped and validated above. The items below are delibera
 | Supabase confined to the app layer; `core` proven pure by a guard test (v2.0) | The pure-client-derivation constraint must hold by construction, not code review — the model + all v1 derivations stay backendless | ✓ Validated v2.0 (Phase 17, SETUP-04) — every `@supabase` import fenced into `packages/app/src/sync/`+`db/`; `packages/core/test/purity.test.ts` fails on an injected import |
 | Sync + presence are singleton engines mounted once at the App shell (v2.0) | One `postgres_changes` subscription and one `gizz-room` channel, driven from live sources — mirrors the `useBingoCelebrations` precedent; readers stay pure | ✓ Validated v2.0 (Phases 19–20, D-16) — `useProgressSync`/`usePresence` are the sole owners; `useFriendsProgress`/`usePresenceFor` are pure `useSyncExternalStore` readers; friends' rows/dots move live app-wide, not only on the Friends tab |
 | Sync the derived summary; reconstruct + reuse `compareDexes` unchanged (v2.0) | Syncing raw attendance would push derivation server-side (breaks pure-client-core) and bloat the payload; the Option-B summary reconstructs a minimal `DexStats` | ✓ Validated v2.0 (Phase 19, PROG-06) — pure-core `deriveSharedProgress` → `reconstructDexStats` → the byte-for-byte UNCHANGED shipped `compareDexes`; the async file-compare became live with zero new diff logic |
+| Reactions get a section-anchored fly-up, replacing the WaveToast presentation (v2.1) | The toast reads as a system notification; a reaction flying up from the sender's actual section conveys *where* they are and makes the friend group feel co-present. Deliberately reverses a shipped Phase-20 presentation decision and leans into motion against the app's settle-and-freeze discipline | — Pending (owner-approved 2026-07-24; `prefers-reduced-motion` fallback is a hard requirement; send surface + `validateWave` + `gizz-room` transport stay unchanged) |
+| One shared "chrome hidden" mechanism serves both in-show tab hiding and the GizzVerse fullscreen toggle (v2.1) | Both are "hide app chrome"; two ad-hoc implementations would drift, and the owner explicitly asked for #9 to be modular for reuse in future sections | — Pending |
+| Tab labels shortened, GizzVerse exempt (v2.1) | The GizzX prefix reads redundant once every tab carries it; GizzVerse is the one name that is a real place, not a prefixed noun. Partially reverses rebrand `260716-wwj` — intended | — Pending (display labels only — routes, file paths, and Dexie/storage keys stay untouched, same rule as `260716-wwj`) |
+| Drop GizzVerse directional-flow edge particles outright (v2.1) | Animating particles along edges fights the EXPL-06 settle-and-freeze battery design that the constellation is built around; it had been parked twice | ✓ Decided 2026-07-24 — todo deleted, not deferred |
 | `visibleEpoch` hidden→visible rejoin for every mobile Realtime channel (v2.0) | Mobile backgrounding suspends the WebSocket while `navigator.onLine` never flips, so a channel keyed `[userId, online]` misses diffs and goes stale until an unrelated event | ✓ Validated v2.0 (close-time, quick 260724-hqu + 260724-lgo) — both channels bump `visibleEpoch` only on the hidden→visible edge (zero in-app-nav churn); two-device on-device UAT confirmed prompt reconciliation |
 
 ## Evolution
@@ -254,4 +276,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-24 after v2.0 milestone — **v2.0 "Multi-User Foundation" SHIPPED & archived** (Phases 17–20, 20 plans, 27/27 requirements, audit PASSED, tagged `v2.0`). Supabase-backed accounts + shared dex progress + presence/reactions among the ~5-friend group, offline-first preserved and `core` purity intact by construction; the prediction model + all v1 derivations stay client-side. The close-time mobile Realtime foreground-rejoin fix was two-device device-verified. v1.0/v1.1/v1.2/v2.0 all shipped, archived, tagged. Next: v2.1 "UX/UI Polish" via `/gsd-new-milestone` (scope in `.planning/v2.1-ux-polish-backlog.md`).*
+*Last updated: 2026-07-24 — **v2.1 "UX/UI Polish" milestone opened** (scope from `.planning/v2.1-ux-polish-backlog.md`: immersive in-show overlays, reactions fly-up, navigation & chrome, surface polish; owner decisions taken on the reactions-motion tradeoff, the tab-rename asymmetry incl. GizzDex→**Me**, and dropping directional-flow particles). Previously: **v2.0 "Multi-User Foundation" SHIPPED & archived** (Phases 17–20, 20 plans, 27/27 requirements, audit PASSED, tagged `v2.0`). Supabase-backed accounts + shared dex progress + presence/reactions among the ~5-friend group, offline-first preserved and `core` purity intact by construction; the prediction model + all v1 derivations stay client-side. The close-time mobile Realtime foreground-rejoin fix was two-device device-verified. v1.0/v1.1/v1.2/v2.0 all shipped, archived, tagged. Next: v2.1 "UX/UI Polish" via `/gsd-new-milestone` (scope in `.planning/v2.1-ux-polish-backlog.md`).*
