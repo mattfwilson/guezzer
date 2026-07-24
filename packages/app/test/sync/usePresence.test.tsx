@@ -226,4 +226,36 @@ describe("usePresence — the singleton gizz-room engine (PRES-01/02/03/04)", ()
     act(() => sendWave("🔥", null)); // sender cleared → no-op
     expect(mock.sendSpy).not.toHaveBeenCalled();
   });
+
+  it("(g) re-opens gizz-room on a background→foreground transition (IN-04)", () => {
+    const { rerender } = render(<EngineOnly />);
+    expect(mock.channelSpy).toHaveBeenCalledTimes(1);
+
+    // Backgrounding (visible→hidden) must NOT re-open the channel.
+    act(() => {
+      mock.state.hidden = true;
+      rerender(<EngineOnly />);
+    });
+    expect(mock.channelSpy).toHaveBeenCalledTimes(1);
+
+    // Foregrounding (hidden→visible) bumps visibleEpoch → tear the prior channel down
+    // and open a fresh one (fresh subscribe → fresh presence sync reconciles peers).
+    act(() => {
+      mock.state.hidden = false;
+      rerender(<EngineOnly />);
+    });
+    expect(mock.channelSpy).toHaveBeenCalledTimes(2);
+    expect(mock.removeChannelSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("(h) an in-app route change does NOT re-open the channel (no churn)", () => {
+    const { rerender } = render(<EngineOnly />);
+    expect(mock.channelSpy).toHaveBeenCalledTimes(1);
+    act(() => {
+      mock.state.route = "show"; // in-app nav only; hidden stays false
+      rerender(<EngineOnly />);
+    });
+    // Re-tracks the new activity but never re-opens (no visibleEpoch bump on nav).
+    expect(mock.channelSpy).toHaveBeenCalledTimes(1);
+  });
 });
