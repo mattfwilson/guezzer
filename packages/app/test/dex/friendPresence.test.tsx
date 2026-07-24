@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RarityTier, SharedProgress } from "@guezzer/core";
 
@@ -67,6 +67,7 @@ vi.mock("../../src/sync/useFriendsProgress.ts", async (importOriginal) => {
 const { FriendRow } = await import("../../src/dex/FriendRow.tsx");
 const { SelfRow } = await import("../../src/dex/SelfRow.tsx");
 const { FriendsList } = await import("../../src/dex/FriendsList.tsx");
+const { FriendDetail } = await import("../../src/dex/FriendDetail.tsx");
 const { setPresenceState, resetPresenceState } = await import(
   "../../src/sync/presenceSync.ts"
 );
@@ -257,5 +258,37 @@ describe("FriendsList — per-row presence, offline hides all dots but keeps dim
 
     expect(screen.getAllByTestId("friend-row")).toHaveLength(1);
     expect(screen.getByText("Ada")).toBeInTheDocument();
+  });
+});
+
+describe("Wave send entry points — shared ReactionPalette (PRES-02/05, D-04/D-07)", () => {
+  it("FriendsList header `React` control opens the palette (Everyone default)", () => {
+    mock.friendsState = {
+      friends: [makeFriend("f1", "Ada", 40)],
+      offline: false,
+      asOf: null,
+      error: null,
+    };
+    render(<FriendsList onOpenFriend={() => {}} onOpenSelf={() => {}} />);
+
+    // Palette closed initially (Sheet renders nothing until open).
+    expect(screen.queryByText(presence.reactionTitle)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText(presence.waveEntry));
+    expect(screen.getByText(presence.reactionTitle)).toBeInTheDocument();
+    // Everyone is the default broadcast target row.
+    expect(screen.getByText(presence.targetEveryone)).toBeInTheDocument();
+  });
+
+  it("FriendDetail shows a pre-targeted `Wave at {name}` button that opens the palette", () => {
+    const friend = makeFriend("friend-ada", "Ada", 40);
+    render(<FriendDetail friend={friend} onClose={() => {}} />);
+
+    const waveBtn = screen.getByText(presence.waveAtFriend("Ada"));
+    expect(waveBtn).toBeInTheDocument();
+
+    expect(screen.queryByText(presence.reactionTitle)).not.toBeInTheDocument();
+    fireEvent.click(waveBtn);
+    expect(screen.getByText(presence.reactionTitle)).toBeInTheDocument();
   });
 });

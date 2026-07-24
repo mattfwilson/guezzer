@@ -27,11 +27,12 @@ import {
   type DexStats,
   type RarityTier,
 } from "@guezzer/core";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Hand } from "lucide-react";
 import { useMemo, useState } from "react";
 import { config } from "../config.ts";
 import { Sheet } from "../components/Sheet.tsx";
 import { RarestShowcase } from "./RarestShowcase.tsx";
+import { ReactionPalette } from "./ReactionPalette.tsx";
 import { TierBadge } from "./TierBadge.tsx";
 import { useDexStats } from "./useDexStats.ts";
 import type { FriendRowData } from "../sync/friendCache.ts";
@@ -50,9 +51,11 @@ function albumTitle(key: string, albums: DexAlbumsArtifact, copy: typeof config.
 
 export function FriendDetail({ friend, onClose }: FriendDetailProps) {
   const copy = config.copy.friends;
+  const presence = config.copy.presence;
   const compareCopy = config.copy.compare;
   const dexCopy = config.copy.dex;
   const stats = useDexStats();
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   // Untrusted friend name — escaped React text only, length-clamped by the schema.
   const friendName = friend.displayName.trim() || compareCopy.namePrompt;
@@ -81,7 +84,30 @@ export function FriendDetail({ friend, onClose }: FriendDetailProps) {
       <p className="min-w-0 flex-1 truncate text-[20px] font-semibold leading-tight text-text-primary">
         {copy.versus(friendName)}
       </p>
+      {/* Pre-targeted wave (D-07) — opens the shared ReactionPalette fixed to THIS
+          friend (initialTarget=friend.userId). Shares the one sendWave path; the
+          receiver still enforces to===me (validateWave). ≥44px, escaped name. */}
+      <button
+        type="button"
+        onClick={() => setPaletteOpen(true)}
+        className="flex min-h-11 min-w-11 shrink-0 items-center gap-1 rounded-md border border-hairline px-3 text-[14px] font-semibold leading-tight text-text-primary touch-manipulation"
+      >
+        <Hand size={16} aria-hidden="true" />
+        {presence.waveAtFriend(friendName)}
+      </button>
     </div>
+  );
+
+  // The shared send surface, pre-targeted at this friend (D-07). A Sheet over the
+  // existing overlay — no new hash route, no new z-tier. `friends` carries the one
+  // targeted friend so the picker can still show/confirm the target.
+  const palette = (
+    <ReactionPalette
+      open={paletteOpen}
+      onClose={() => setPaletteOpen(false)}
+      initialTarget={friend.userId}
+      friends={[friend]}
+    />
   );
 
   // Loader failure or still-resolving reads — hold the frame behind the header.
@@ -102,6 +128,7 @@ export function FriendDetail({ friend, onClose }: FriendDetailProps) {
             </p>
           )}
         </div>
+        {palette}
       </Sheet>
     );
   }
@@ -171,6 +198,8 @@ export function FriendDetail({ friend, onClose }: FriendDetailProps) {
           archive={archive}
         />
       </div>
+
+      {palette}
     </Sheet>
   );
 }

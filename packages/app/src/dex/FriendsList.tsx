@@ -16,10 +16,13 @@
  * With no friend rows, the `No friends yet` empty state renders BELOW the SelfRow.
  * DexView owns the overlays via `onOpenFriend` / `onOpenSelf`.
  */
+import { useState } from "react";
+import { Hand } from "lucide-react";
 import { config } from "../config.ts";
 import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
 import { SyncDot } from "../live/SyncDot.tsx";
 import { FriendRow } from "./FriendRow.tsx";
+import { ReactionPalette } from "./ReactionPalette.tsx";
 import { SelfRow } from "./SelfRow.tsx";
 import { buildFriendRows, useFriendsProgress } from "../sync/useFriendsProgress.ts";
 import { usePresenceFor } from "../sync/usePresenceReaders.ts";
@@ -40,13 +43,30 @@ function formatAsOf(asOf: number | null): string {
 
 export function FriendsList({ onOpenFriend, onOpenSelf }: FriendsListProps) {
   const copy = config.copy.friends;
+  const presence = config.copy.presence;
   const myUserId = useAuthIdentity()?.userId ?? "";
   const { friends, offline, asOf, error } = useFriendsProgress();
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const rows = buildFriendRows(friends, myUserId);
 
   return (
     <div className="flex flex-col">
+      {/* Friends header row — a compact in-flow `React`/wave affordance (≥44px) that
+          opens the shared ReactionPalette with the current rows and the default
+          Everyone target (D-04). NOT a full-width accent CTA (UI-SPEC). */}
+      <div className="flex items-center justify-end px-4 py-2">
+        <button
+          type="button"
+          aria-label={presence.waveEntry}
+          onClick={() => setPaletteOpen(true)}
+          className="flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md border border-hairline px-3 text-[14px] font-semibold leading-tight text-text-primary touch-manipulation"
+        >
+          <Hand size={16} aria-hidden="true" />
+          {presence.waveEntry}
+        </button>
+      </div>
+
       {/* Pinned live "You" row — sourced from local dex, never dimmed (D-02). */}
       <SelfRow onClick={onOpenSelf} />
 
@@ -83,6 +103,16 @@ export function FriendsList({ onOpenFriend, onOpenSelf }: FriendsListProps) {
           />
         ))
       )}
+
+      {/* The shared send surface (D-04/D-07) — Everyone default (initialTarget=null),
+          the current friend rows as the target picker. One sendWave path. Rides the
+          shipped Sheet: no new hash route, no new z-tier. */}
+      <ReactionPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        initialTarget={null}
+        friends={rows}
+      />
     </div>
   );
 }
