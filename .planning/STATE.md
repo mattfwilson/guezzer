@@ -2,9 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: UX/UI Polish
-status: roadmap_complete
-last_updated: "2026-07-24T21:30:00.000Z"
-last_activity: 2026-07-24
+status: planning
+stopped_at: Phase 21 context gathered
+last_updated: "2026-07-24T22:51:39.230Z"
+last_activity: 2026-07-24 — v2.1 roadmap created (4 phases, 100% requirement coverage)
 progress:
   total_phases: 4
   completed_phases: 0
@@ -328,9 +329,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-24
-Stopped at: v2.1 "UX/UI Polish" roadmap CREATED — 30 requirements mapped to Phases 21–24 (100% coverage, no orphans). Foundation-first ordering; CHROME-03/04/05 deliberately pulled forward into Phase 22 with the mechanism's first consumer. Nothing built yet.
-Resume file: .planning/ROADMAP.md (§ v2.1 Phase Details)
+Last session: 2026-07-24T22:51:39.225Z
+Stopped at: Phase 21 context gathered
+Resume file: .planning/phases/21-layout-layering-foundations/21-CONTEXT.md
 
 ## Operator Next Steps
 
