@@ -1,6 +1,7 @@
 ---
 phase: quick-260724-lgo
 plan: 01
+status: complete
 subsystem: sync
 tags: [realtime, mobile, visibility, postgres_changes, IN-04]
 requires:
