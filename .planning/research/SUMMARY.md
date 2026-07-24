@@ -1,166 +1,188 @@
 # Project Research Summary
 
-**Project:** Guezzer — v2.0 "Multi-User Foundation" ("Gizz With Friends")
-**Domain:** Multi-user layer (auth + shared progress + presence) bolted onto a shipped, offline-first, pure-core React/Vite PWA
-**Researched:** 2026-07-22
-**Confidence:** HIGH
+**Project:** Guezzer / "Gizz With Friends"
+**Milestone:** v2.1 "UX/UI Polish"
+**Domain:** UI/motion/chrome polish inside a shipped, device-verified, offline-first mobile PWA (React 19 + Vite 8 + Tailwind 4), used one-thumb, in the dark, at live shows
+**Researched:** 2026-07-24
+**Confidence:** HIGH (four independent researchers converged; every structural claim is grounded in a file read this session)
 
 ## Executive Summary
 
-v2.0 adds distinct identities, shared dex progress, and lightweight presence/reactions for a ~5-friend group, backed by a hosted Supabase (auth + Postgres + Realtime) — **the first backend this otherwise-static PWA has ever had.** This is not a greenfield build: the approach is already spike-validated live across two remote devices (spikes 002–004), and the async friend-comparison machinery (`deriveDex`, `compareDexes`, `buildShareStats`) already ships in pure `core`. The job of v2.0 is to remove the manual JSON-file handoff by syncing a *derived summary* of each user's dex so the same shipped compare code renders live, plus add ephemeral online-presence and waves. All four researchers converged hard on the same shape, so confidence is HIGH across the board.
+v2.1 adds **zero new domain capability**. Every one of the 12 backlog items is a modification to a shared surface that seven-plus already-verified features depend on. All four researchers reached the same conclusion independently: **the dominant risk is regression, not build difficulty.** The app is already show-ready and device-verified; the way v2.1 fails is not "the new thing is wrong" but "the new thing silently unpicks a stitch in something that passed device UAT" (VoiceOver + external keyboard a11y, the installed-PWA safe-area math, the cross-device presence wire protocol).
 
-The recommended approach is deliberately minimal: **exactly one new runtime dependency** (`@supabase/supabase-js` v2, latest 2.110.8) added to `packages/app` only; **exactly one new pure `core` function** (`deriveDexSummary(DexStats) -> DexSummary`); and **zero new supporting libraries** — the offline write-queue is a hand-rolled Dexie `outbox` (~40 lines), payload validation reuses the existing zod, and reactive UI reuses `useLiveQuery`. Every Supabase import is fenced into a single app-layer folder (`packages/app/src/sync/`) so core purity is preserved *by construction* and lint-auditable in one place. The sync model is the load-bearing simplification: because each user writes only their own row under read-all/write-own RLS, it is a **low-conflict one-way projection, not bidirectional sync** — last-write-wins is correct by construction, there is no server merge, and Dexie stays the single local source of truth.
+The stack answer is unusually clean: **add nothing.** `motion` 12.42.2 is already installed *and already load-bearing* in four shipped modules (`WaveToast`, `BingoCelebration`, `OrbitStage`, `ShowView`), so its ~34 kB is already paid for - every new use costs 0 bytes. `<Sheet variant="fullscreen">` already ships in production on four surfaces with focus trap, `inert`, LIFO Escape, and portal-to-body. The date helper is six lines. The z-fix is a test. Net new dependencies: **zero**; the only recommended package change is pinning `motion` exact (it is the sole caret-ranged runtime dep). The tool split is per-use-case, not blanket: `motion`/`AnimatePresence` for sheets, full-screen overlays, and the reaction fly-up (the exit animation on a `if (!open) return null` + portal contract is the hard part, and `AnimatePresence` is the only clean answer); **CSS transitions only** for the chrome hide/show, because its debut surface is GizzVerse where `react-force-graph-2d` owns the main thread and a composited `translateY` costs ~0 while a JS spring costs frames.
 
-The risk profile is dominated by the collision between offline-first and a network backend. Four "collision zones" (flagged 🔴) recur across the pitfalls research: (1) never block boot on a network auth check — restore synchronously from `getSession()`; (2) never Workbox-cache the Supabase origin — auth/REST must be network-only and Realtime `wss://` is un-cacheable by construction; (3) offline JWT refresh — raise the JWT expiry toward ~1 week and refresh-then-flush the outbox on reconnect; (4) iOS Safari localStorage session eviction — reuse the app's existing `persist()` + install-prompt defenses (strictly worse than dex eviction because there is no offline recovery). The single highest-severity individual mistake is leaking the `service_role` key: Vite inlines any `VITE_`-prefixed env into the public bundle, so the admin key must stay env-only in the seed script and **never** carry a `VITE_` prefix. Mitigation for every one of these is known and documented; the phase order below front-loads the riskiest seam (offline-safe identity) so nothing depends on it before it is device-verified.
+Two findings reshape the milestone's structure. First, **the Fullscreen API does not exist on iPhone Safari** (verified: no `safari_ios` implementation entry), and an installed standalone PWA has no browser chrome to hide anyway - so backlog item #9's "fullscreen toggle" is *necessarily* an in-app chrome-hide, collapsing #9 and #4 (hide tabs in-show) into one mechanism. Second, **that shared chrome mechanism is the milestone keystone and the backlog's phase order inverts its dependency**: the tab-bar-height / bottom-inset arithmetic is hard-coded in seven-to-nine independent places in four different notations that *already disagree with each other by one safe-area inset*, and three separate consumers (in-show tab hiding, the GizzVerse toggle, and the reaction fly-up's spawn anchor) all depend on it - yet the backlog schedules it in Phase C, after both consumers. Three of four researchers independently recommended a **foundation phase first**. That same arithmetic is where the installed-PWA bottom-gap bug lives (a double-counted `env(safe-area-inset-bottom)`, the exact structural twin of the shipped Phase-13 UX-01 top-inset fix), so fixing it inside the foundation phase is strictly cheaper than fixing it twice in two layout states.
 
 ## Key Findings
 
-### Recommended Stack
+### Recommended Stack - "add nothing"
 
-The v1 stack (Vite 8 + React 19 + TS 6 + npm workspaces, Dexie 4, vite-plugin-pwa/Workbox `registerType:'prompt'`, zod, Tailwind) is already shipped and validated — **not re-researched.** v2.0 changes the dependency tree by exactly one package. See `STACK.md`.
+See `.planning/research/STACK.md`.
 
-**Core technologies:**
-- **`@supabase/supabase-js` 2.110.8 (v2)** — the *only* new runtime dependency; one meta-package pulls auth + Postgres/PostgREST + Realtime, framework-agnostic ESM, no React peer dep. Added to `packages/app` only, never `core`. Stay on the v2 line (v3 is pre-release on the `next` tag only).
-- **Dexie 4.4.4 (already present)** — reused for the hand-rolled `outbox`/`syncQueue` offline write-queue via an additive `version(6)` migration. No new offline-sync library (RxDB/PowerSync/Replicache are heavyweight overkill for one counters row + ~5 users).
-- **zod 4.4.3 (already present)** — reused at the app-layer boundary to validate untrusted Realtime/`postgres_changes` payloads, same discipline as the existing kglw.net ingestion schemas. Network-payload schemas are app concerns, not core.
-- **Zero-dep repo scripts** — `seed-users.mjs` (GoTrue admin API via native Node `fetch`) and `schema.sql` (pasted into the Supabase SQL editor). Not package dependencies; live in a root `supabase/` folder outside the bundle.
+**Core technologies (all already installed):**
+- **`motion` 12.42.2** - sheet enter/exit, full-screen overlay enter/exit, reaction fly-up. Already the codebase idiom in 4 shipped files; `AnimatePresence` is the only clean exit-animation path for the portal + closed-renders-null contract. **Pin exact** (currently the only caret-ranged runtime dep).
+- **CSS transitions (Tailwind 4.3.2 + `styles.css`)** - chrome hide/show only. Two-state, always-mounted, interruptible, composited; the repo already has the `@media (prefers-reduced-motion: no-preference)` idiom in 6 blocks.
+- **Existing `<Sheet variant="fullscreen">`** - the bingo deal + board overlays. Already portals to body, traps focus, wires LIFO Escape and ref-counted `inert`, sits at `z.sheet` (50). A second overlay primitive would fork expensively-validated a11y.
+- **`useSyncExternalStore` + module store** - the chrome-hidden state, the show-overlay state, the hoisted `beforeinstallprompt` capture. Mirrors the shipped `usePresence`/`progressSync`/`bottomOverlayInset` engine-to-reader idiom (D-16). Not zustand, not context.
+- **Pure-string date helper (no `Date`, no `Intl`)** - inputs are canonical `YYYY-MM-DD`; skipping both removes all timezone and ICU-version surface. Can live in `packages/core` (passes the purity scan) and be reused by the CLI reports.
+- **`lucide-react` 1.23.0 (installed)** - all candidate deal-type icons verified present in the installed `.d.ts`. No upgrade needed.
+
+**Explicitly rejected native platform APIs** (all availability-verified against webstatus.dev): Fullscreen API (**impossible on iPhone**), View Transitions (not interruptible; hostile to a live canvas), Popover API and `<dialog>` (duplicate a validated primitive for zero gain), `@starting-style`/`allow-discrete` (available, but conflicts with `<Sheet>`'s closed-renders-nothing contract - keep in the back pocket), CSS anchor positioning (Baseline `limited`, and the sender is on *another device* so there is no local element to anchor to), `interpolate-size`/`calc-size()` (**no Safari implementation at all**), `interactive-widget` meta (Safari ignores it entirely).
 
 ### Expected Features
 
-Three feature areas, all spike-chosen. The single most consequential design decision is the **sync payload projection** (see `FEATURES.md`): recommend **Option B — counters + caught `songId` int[]** (<=264 small ints, ~1–3 KB/user). Option B is what lets the *already-shipped* `compareDexes` run live for free; Option A (counters only) would mean throwing away working diff code; Option C (raw attendance rows) is an anti-feature that reopens SOCL-V2-01 reconciliation.
+See `.planning/research/FEATURES.md`.
 
 **Must have (table stakes):**
-- Pre-made email/password sign-in + **offline-safe session restore** — the gate for everything; make-or-break offline boot.
-- First-login data namespacing — the existing single-user dex cleanly becomes the logged-in user's (a `meta.userId` claim, not data movement).
-- `deriveSharedProgress`/`deriveDexSummary` (pure core) + debounced progress upsert (Option-B payload).
-- Friends screen with live headline progress via `postgres_changes` (requires `alter publication supabase_realtime add table progress`).
-- Read-all / write-own RLS enforcement.
-- "Gizz With Friends" rebrand (chrome only; labels, no route/storage-key changes).
+- Shared `useChromeVisibility` / `chromeHidden` mechanism exposing the reserved bottom height - **the keystone; L complexity; 4 consumers.**
+- Every bottom-anchored surface reads the reserved height instead of a `4rem`/`bottom-16`/`64px` literal.
+- Bingo board + bingo deal as full-screen overlays, `ShowView` never unmounting; view-state, **never a route**.
+- A visible, labelled, >=44px close control that is always on screen; Escape; back-gesture dismissal via a pushed history entry (Android back *and* iOS standalone edge-swipe both exist).
+- Tabs auto-hide during a tracked show **with a persistent reveal affordance that latches open for the session** - a mode must be escapable; the user must reach Map without ending the show.
+- Hidden chrome removed from the accessibility tree (`inert`/`hidden`, not just translated off).
+- GizzVerse toggle whose exit control is in the same place as the entry, always visible, never auto-faded.
+- Presence-anchored reaction fly-up with an explicit anchor fallback ladder, receive-side concurrency cap + per-sender burst coalescing, optimistic local echo, and a throttled `aria-live` announcement (position carries the payload and position is invisible to a screen reader).
+- Tab display rename with **wire tokens frozen** + a `TAB_DISPLAY_LABEL` map.
+- Toast deep-link action on badge/supernova tiers only, dwell extended to 6-8s, timer paused on focus/pointer, gated on a permanent path existing.
+- Sheet enter/exit animation in the ONE primitive; z-tier ordering invariant test; UTC-safe "Mon D, YYYY" helper; ordinal (never color-coded) difficulty icons; install instructions moved to Settings, hidden when installed.
 
-**Should have (competitive):**
-- **Live head-to-head compare reusing `compareDexes`** — the highest-leverage reuse in the milestone; the async file-compare view becomes a live tap-a-friend view with zero new diff logic (requires Option B).
-- Online presence dots + broadcast/targeted waves (ephemeral, never persisted).
-- "What they're doing" coarse status (which tab) — same channel, no new infra.
-- Mini-leaderboard sorts, per-album/per-tier friend breakdown, emoji reaction palette, auto identity color, polished stale-token reconnect UX.
+**Should have (differentiators):** a labelled "Back to show" close chip instead of a bare X; suppressing bingo toasts while the bingo overlay is open; the in-show spatial rule (reactions confined to the outer 25% margins at <=0.85 opacity so nothing crosses the orbit); a sender-identity-colored name pill; a brief pulse on the sender's tab icon; chrome state resetting on tab change and cold boot; a neutral one-line "Install to home screen" row kept in `AppMenu` deep-linking to Settings (preserves the 1-tap fallback at near-zero cost).
 
-**Defer (v2.x / out):**
-- **Shared live setlist co-tracking (SOCL-V2-01)** — the hard scope line; reopens offline reconciliation. Explicitly out.
-- Historical progress timelines / night-by-night graphs (needs time-series storage).
-- Push notifications (out of scope per PROJECT.md).
-- Self-service sign-up, magic-link/OTP, password-reset UI, profile editing, multi-account-on-one-device switching.
+**Anti-features (actively harmful - do not build):** swipe-down-to-dismiss on the in-show overlays; edge-swipe to reveal chrome (collides with the OS back gesture on both platforms); timed auto-re-hide (moves a tap target under a reaching thumb - violates the founding "targets never move on their own" rule); persisting the chrome-hidden flag across launches; reaching the board via `navigate("games")`; a bottom sheet for the deal flow (produces sheet-on-sheet with `SwapSheet`); auto-presenting the deal overlay; an action button on mark-toasts or a whole-toast tap target; queuing over-cap reactions; sound; renaming the presence wire tokens; color-coded difficulty tiers; renumbering the z ladder speculatively.
 
 ### Architecture Approach
 
-One load-bearing constraint governs everything: **`packages/core` stays pure; all Supabase lives in `packages/app/src/sync/`, the only folder that imports `@supabase/supabase-js`.** Core gains exactly one *pure* addition — `deriveDexSummary(DexStats) -> DexSummary` — mirroring the existing `deriveDex`/`compareDexes` pure-derivation, app-layer-transport split. The `progress` row is a **regenerable projection** of Dexie-derived `DexStats`, never a source of truth (extends the "Pokédex counts derived, never stored" rule one hop to the server). See `ARCHITECTURE.md`.
+See `.planning/research/ARCHITECTURE.md`. Every v2.1 item is an *integration* into shipped code, not greenfield. The five invariants that must not break: core purity (statically scanned), the single-config rule, one pipeline per artifact, singleton engines mounted once at the shell with pure readers, and display labels decoupled from routes/storage keys.
 
-**Major components:**
-1. **`packages/app/src/sync/` (NEW)** — `supabase.ts` (client singleton), `useSession.ts` (offline-safe boot), `useProgressSync.ts` (push my summary, debounced + outbox), `useFriends.ts` (read-all + `postgres_changes` re-pull), `usePresence.ts` (presence + waves, no DB), `syncQueue.ts` (single-slot offline write-queue), `namespaceLocalData.ts` (first-login userId claim). The hard Supabase boundary.
-2. **`packages/core/src/dex/dex-summary.ts` (NEW, pure)** — `deriveDexSummary`; unit-testable from Node with fixtures; zero I/O.
-3. **Supabase (hosted)** — one durable `progress` table (one row/user, RLS read-all/write-own, in the realtime publication) + one ephemeral Realtime channel (`gizz-room`) for presence + broadcast waves. Never persist presence/waves.
-4. **Modified existing seams** — `db.ts` additive `version(6)` (`syncQueue` + `meta.userId`), `App.tsx` (session gate + presence mounts + wave-toast emitter), `AppShell.tsx` (header identity affordance), `config.ts` (a `sync` block — no scattered magic strings), root `supabase/` (schema.sql + seed-users.mjs, outside the bundle).
+**Major new components:**
+1. **`chrome/chromeHidden.ts`** - a module store keyed by a **reason set** (`"fullscreen" | "inShow"`), not a boolean. Two independent producers must release independently; the project already solved the identical race with ref-counting in `inertRoot.ts`. Ships with a `useHideChromeWhile(reason, active)` registration hook whose cleanup auto-releases on unmount - which makes the in-show producer correct for free (tabs return the moment the user leaves LiveGizz).
+2. **`config.ui.TAB_BAR_HEIGHT_PX` + a bottom-offset hook** - one source for the reservation, consumed by `AppShell`, `BottomTabBar`, `fabLayout`, and five `bottom-16` toasts. Tailwind v4 resolves arbitrary values at author-time, so a JS-config value *must* go through inline style (already documented policy).
+3. **`games/BingoSessionPanel.tsx`** (extracted from `GamesView`) + **`show/InShowBingoOverlay.tsx`** + **`show/showOverlay.ts`** - one renderer, two hosts. The open/close state must be a module store because one producer (the celebration toast deep-link) lives in an App-level host outside `ShowView`'s tree.
+4. **`components/ReactionFlyUp.tsx`** + a pure `sync/reactionSpawn.ts` geometry module - app layer, beside `presenceActivity.ts` (the exact precedent for "deliberately pure, but chrome-dependent, so not core"). The sender's tab is resolved from the **trusted presence store**, never read off the payload - extending the existing `WaveToast` security posture.
+5. **`components/OverlayLayer.tsx`** (proposed) - a one-line portal primitive so every `fixed` overlay lives in the root stacking context.
+6. **`pwa/install/installPrompt.ts`** - hoist the one-shot `beforeinstallprompt` capture to a module singleton, or the relocated Settings affordance is dead on Android forever.
 
 ### Critical Pitfalls
 
-Full detail and the "looks done but isn't" checklist in `PITFALLS.md`. The four 🔴 zones are where offline-first and Supabase actively fight:
+See `.planning/research/PITFALLS.md` (20 pitfalls, each code-grounded).
 
-1. **🔴 Blocking startup on a network auth check** — boot from synchronous `getSession()` (reads localStorage, no network); reconcile via `onAuthStateChange` after paint. Never `await getUser()`/`refreshSession()` on the boot path. Verify with a device airplane-mode cold-boot test.
-2. **🔴 Workbox caching the Supabase origin** — exclude `*.supabase.co` from all runtime caching (network-only); the bundled SDK is precached (correct), but auth/REST responses must never be. Realtime `wss://` is un-interceptable by SWs by construction. Keep `registerType:'prompt'`. Verify: zero Supabase entries in Cache Storage.
-3. **🔴 Offline JWT refresh (blueprint's known open item)** — don't treat expired-token-offline as logout; raise JWT expiry toward ~1 week so a pre-show wifi login survives the show; refresh-then-flush the outbox on reconnect (gate writes on "session valid," not "user exists").
-4. **🔴 iOS localStorage session eviction** — reuse existing `persist()` + install-prompt defenses; make install-to-home-screen and "log in on wifi before the show" onboarding gates. Strictly worse than dex eviction (no offline recovery), so mitigation-not-cure.
-5. **Highest single-severity: leaking `service_role`** — it bypasses RLS entirely. Env-only in the seed script, never `VITE_`-prefixed, never committed, secret-scan CI. (Corollary: don't waste effort hiding the *anon* key — it's public by design; disable public sign-ups instead.)
-
-Also load-bearing but lower-risk: RLS/publication misconfig (silent — needs a two-user RLS test and the `alter publication` line), sync races/double-writes (single-slot outbox, idempotent upsert keyed `user_id`, pull->subscribe->re-pull, ignore own echo), CSP/`connect-src` must list `https://*.supabase.co` **and** `wss://*.supabase.co` and be tested over the cloudflared tunnel, and never coupling the client into `core`.
+1. **The bottom-space arithmetic is duplicated across seven sites and already disagrees.** The four `bottom-16` toasts carry *no* safe-area term while `fabLayout` uses `env(...) + 64px` - they already differ by one inset (~34px) in standalone today. Hiding the chrome without collapsing this first leaves overlays and the FAB floating 64px above nothing. Fix: collapse to one source in the foundation phase; a grep must return exactly one owner.
+2. **The installed-PWA bottom gap is a double-counted `env(safe-area-inset-bottom)`** - `body`'s border-box padding shortens `#root` by one inset while the `fixed` tab bar re-adds it. Invisible in a Safari tab (where the inset reports `0`), visible only in the installed instance. The structural twin of UX-01. Fix: delete `styles.css:220`; **do not reach for `dvh`** (iOS 26.0 shipped a `100dvh` bottom-gap regression, and `AppShell` already carries a hard-won comment about `100vh` breaking Start Show). Measure on an installed home-screen instance before *and* after.
+3. **The tab rename edits an inter-device wire protocol.** `presenceActivity.ts` states outright that the `Tab` tokens ARE the display labels - and they are broadcast over `gizz-room` and validated against a fixed allow-list on receipt. Because the SW is `registerType: 'prompt'`, **mixed builds are the designed state**, so renaming tokens makes cross-version friend pairs show online with silently blank activity. Nothing crashes, nothing logs. Fix: freeze the tokens forever as wire vocabulary; add a `tabLabel` map consumed by the tab bar *and* every presence surface; make `reduceActivity` forward-tolerant (unknown maps to a neutral known label, never render the received string); extend `rebrand.test.ts` to guard the union byte-for-byte.
+4. **The reaction fly-up's anchor is deleted by the feature that hides the tabs** - and a live show is exactly when reactions matter most. Plus a genuine race: `broadcast` and `presence` diffs are independent messages with no ordering guarantee, so a friend who reacts right after switching tabs launches from their *previous* section. Fix: define the fallback ladder in requirements (sender's tab, then screen-bottom-centre, then nothing; never a silent `x=0`); read from an anchor registry, not a DOM query at animation time. *(The researchers split on whether to add an optional `tab?` to `WavePayload` to kill the race - ARCHITECTURE rejects it as a new untrusted field, PITFALLS allows it if additive-optional and allow-list-validated. Owner/planner call.)*
+5. **Animating the chrome via a container `transform` breaks every `position: fixed` descendant** - a non-`none` `transform`/`filter`/`will-change` becomes the containing block, so the tab bar, FAB, FAB scrim, `ExploreFilterFab`, and the peek panel jump *only while animating* and settle at rest. Fix: animate the `header` and `nav` elements themselves; never `height`/`padding`/`<main>`'s reservation.
+6. **A chrome-hide animation fires `ResizeObserver` ~60x and calls `d3ReheatSimulation()` every frame** on the one screen whose entire design driver is settle-and-freeze battery life. Not a correctness bug (nodes are pinned) - a battery and jank bug. Fix: make the chrome `fixed` so it stops occupying layout on frame 1: one resize, one reheat. Instrument the counter and assert **1, not fifteen**.
+7. **Animating the shared `<Sheet>` regresses 11+ VoiceOver/keyboard-verified surfaces at once.** Deferring unmount defers focus restore *and* the `inert` release - the background stays non-interactive through the exit, and a tap during that window is a lost song log. Fix: decouple the a11y lifecycle from the visual lifecycle - drive `useFocusTrap`/`useDialogDismiss` from the logical `open` prop so `inert` clears and focus restores at close-*start* while only pixels linger. Any `waitFor` newly required in `sheet.a11y.test.tsx` is a signal that a11y *timing* changed. Device re-verification is a phase exit criterion; enter-only animation is an acceptable interim fallback.
+8. **`useDialogDismiss` re-pushes on every render** (it depends on `onClose` by identity), and v2.1 makes the latent bug live - the bingo overlay will subscribe to `useLiveQuery` and re-render on every logged song, while a `SwapSheet`/`SearchSheet` sits on top. Escape then closes the wrong dialog. Reproducible **only during active logging - i.e. only at a real show.** Fix: make `pushDialog` order-preserving on re-push; `useCallback`-stable `onClose`; add the re-render-the-lower-dialog test case.
+9. **`DealScreen` throws on a locked card.** `saveDraftCard` throws if `lockedAt != null`, `handleDeal` has no try/catch, and the card is locked at Start Show - so a naively hoisted deal overlay presents three big buttons that do **nothing** when tapped, mid-show, in the dark. Fix: port the *state machine*, not the component; wrap every newly-reachable `db.ts` write.
+10. **Chrome-hidden with no escape hatch** in an installed PWA (no address bar, no back button, overlays are view-state so the OS gesture does nothing) strands the user with force-quit as the only recovery - costing the wake lock and ~20 seconds. Fix: always-rendered >=44px exit control inside the safe area, first in tab order; do not persist the flag; Escape restores chrome via `dialogStack` so LIFO holds.
 
 ## Implications for Roadmap
 
-Research converged unanimously on a three-phase structure that **de-risks identity first**. Phase A is the load-bearing, highest-risk work (it owns 3 of the 4 🔴 offline collisions); B and C both sit on A's `session`/`userId` and are mutually independent (C can parallelize with B once A lands and is device-verified). A backend-foundation setup task precedes A.
+The four researchers independently converged on **four phases with a foundation phase first** - which reorders the backlog's proposed A/B/C/D. ARCHITECTURE and PITFALLS produced nearly identical groupings; the one below merges them.
 
-### Phase 0 (setup task inside Phase A): Backend Foundation
-**Rationale:** Schema, RLS, secrets, and seeding must exist before any client code, and the secret-hygiene gate must be established from the first commit.
-**Delivers:** `supabase/schema.sql` (progress table + read-all/write-own RLS + `alter publication supabase_realtime add table progress`), `supabase/seed-users.mjs` (service_role env-only), disabled public sign-ups, raised JWT expiry, `.env*.local` gitignored, secret-scan CI.
-**Avoids:** service_role leak (P6), RLS/publication misconfig (P5), anon-key-panic (P7).
+### Phase 1: Layout & Layering Foundations
+**Rationale:** Everything else consumes this, and doing it later means doing it twice in two layout states. All four sub-items rewrite the *same* bottom math across `AppShell`, `BottomTabBar`, `fabLayout`, and five toasts - splitting them means touching those files twice and reconciling two half-migrations. The portal fix must precede anything that adds an overlay, or the new overlay inherits the stacking trap and the fix becomes a retrofit.
+**Delivers:** `config.ui.TAB_BAR_HEIGHT_PX` + all 7-9 consumers migrated; the `chromeHidden` reason-set store + `AppShell` wiring; the installed-PWA bottom double-inset fix (measured on device before and after); the z-tier ordering invariant test; the `<Sheet variant="fullscreen">` safe-area contract decided and documented; the UTC-safe date helper. **Consider folding in the tab rename** - it is the lowest-risk item in the milestone and a good early confidence win.
+**Addresses:** the chrome-visibility keystone; reserved-bottom-height threading; the z ordering assertion; the date helper.
+**Avoids:** Pitfalls 1, 2, 13, 17a, 19.
 
-### Phase A: Auth & Offline-Safe Session (+ rebrand/onboarding)
-**Rationale:** The single riskiest seam (offline-safe identity at a dead-signal venue) and the gate for everything downstream — no identity means no per-user rows and no presence key. Prove offline boot on-device *before* anything depends on it.
-**Delivers:** `sync/supabase.ts` (env-driven singleton + lint boundary rule), `sync/useSession.ts` (`getSession()` restore + `onAuthStateChange`), `LoginGate`/`AccountSheet`, `AppShell` identity affordance, `db.ts` `version(6)` (`meta.userId` claim + `namespaceLocalData.ts`), "Gizz With Friends" rebrand, install-first + "log in on wifi" onboarding copy.
-**Addresses:** pre-made email/password sign-in, offline-safe session restore, first-login namespacing, rebrand (FEATURES table stakes).
-**Avoids:** 🔴 blocking startup (P1), 🔴 offline token refresh config (P3), 🔴 iOS session eviction (P4), client-in-core (P10).
-**Exit gate:** sign in on two devices with distinct accounts; kill signal; app still boots to the full dex offline; distinct identities confirmed.
+### Phase 2: Surface Motion & Chrome Consumers
+**Rationale:** The overlays must be built against the *final* `<Sheet>` primitive, not retrofitted after it gains animation. This phase also surfaces the four parent-gated call sites (`DexView` x2, `GamesView` swap, `CompareView`) that unmount `<Sheet>` outright and would never play an exit - knowledge the overlay phase needs. The GizzVerse toggle is the *first consumer* of the chrome mechanism and validates it on the easier surface (one view, its own FAB affordance) before the live-show path depends on it.
+**Delivers:** `<Sheet>` enter/exit via `AnimatePresence` with the a11y/visual lifecycle split (**first slice, so there is room to back it out**); the 4 call-site conversions; the GizzVerse chrome toggle; the install-affordance relocation with the hoisted `beforeinstallprompt` module store.
+**Uses:** `motion` (already installed), CSS transitions for the chrome, `useSyncExternalStore`.
+**Avoids:** Pitfalls 7, 8, 14, 18, 20.
 
-### Phase B: Shared Progress
-**Rationale:** Depends on A's identity. Delivers the visible payoff — friends' real dex progress synced live — and the highest-leverage reuse (live `compareDexes`).
-**Delivers:** `core/dex/dex-summary.ts` (`deriveDexSummary`, pure + fixture unit tests), `sync/useProgressSync.ts` (debounced diff push + single-slot outbox), `sync/syncQueue.ts` (flush-on-reconnect via existing `useOnlineStatus`), `sync/useFriends.ts` (read-all + `postgres_changes` re-pull), `friends/FriendsView.tsx`, live head-to-head compare reusing shipped `compareDexes`.
-**Uses:** Supabase Postgres upsert/select under RLS; Option-B payload (caught songIds).
-**Implements:** the projection/one-way-sync architecture; Dexie-as-local-truth.
-**Avoids:** sync races/double-writes (P8), refresh-then-flush ordering (P3), Realtime-SELECT coupling (P5).
-**Exit gate:** mark a show offline on device 1 -> reconnect -> device 2's FriendsView reflects the new completion %.
+### Phase 3: Immersive In-Show Experience
+**Rationale:** The milestone's headline live-value, and it depends on all of the above (the chrome mechanism, the portal fix, the animated primitive). The producers of the overlay store - FAB action, nudge retarget, peek retarget, toast deep-link - must follow the store's creation, matching the backlog's own "do #3 after #2" note.
+**Delivers:** `BingoSessionPanel` extraction; `showOverlay` store + the fullscreen overlay host; FAB action + nudge/peek retarget; the celebration deep-link chip (with `pointer-events-auto` on the *button only*); in-show tab hiding + the reveal affordance; back-gesture dismissal.
+**Avoids:** Pitfalls 5, 6, 9, 10, 11, 12.
 
-### Phase C: Presence & Reactions
-**Rationale:** Depends on A's identity but is Postgres-independent — the most self-contained area; can parallelize with B.
-**Delivers:** `sync/usePresence.ts` (presence + wave broadcast, no DB), `friends/PresenceRow.tsx`, wave-toast emitter in `App.tsx` (reuse the `BackupToast`/`useBingoCelebrations` module-emitter pattern), coarse "what they're doing" status payload (stubbed forward-compatible), emoji reaction palette.
-**Implements:** ephemeral Realtime presence/broadcast; reduced-motion-aware celebration discipline.
-**Avoids:** persisting presence to Postgres (anti-pattern), CSP/tunnel Realtime failures (P9), the SOCL-V2-01 scope creep tripwire.
-**Exit gate:** device 1 sees device 2 come online; a wave from 1 toasts on 2, verified on-device over the cloudflared tunnel.
-
-Cross-cutting **(P) PWA/SW/deploy hardening** threads through all phases: verify no `runtimeCaching` rule matches `*.supabase.co`, CSP `connect-src` includes both `https:` and `wss:` Supabase, deploy env vars set in the static host.
+### Phase 4: Reactions & Small Polish
+**Rationale:** The fly-up needs the chrome mechanism for its fallback anchor and the portal for correct layering, but has zero coupling to the bingo overlays - so it can run in parallel with Phase 3 once Phase 1 lands. It is the item that rewrites shipped, device-verified Phase-20 code, so it wants its own focused device UAT. The deal icons touch the file Phase 3 extracts around, so sequencing them after avoids a conflict.
+**Delivers:** the presence-anchored fly-up (retargeting `WaveToast` as the reduced-motion path, **not deleting it**); receive-side concurrency cap + burst coalescing + drop-on-hidden; the throttled `aria-live` channel; deal-type icons; app-wide date conversion.
+**Avoids:** Pitfalls 4, 15, 16.
 
 ### Phase Ordering Rationale
 
-- **A before B/C by dependency:** identity keys every progress row and every presence entry; nothing works without it.
-- **A first by risk:** it owns 3 of 4 🔴 offline collisions (startup blocking, token refresh, iOS eviction) — the seams that regress the app's core offline-first value. Prove them on-device before building on them.
-- **B and C parallelizable:** C rides Realtime only (no Postgres dependency on B), so once A is device-verified the two can proceed independently.
-- **Scope tripwire baked into C:** presence *status strings* ("in LiveGizz") are in scope; any *shared mutable setlist* is the deferred SOCL-V2-01 line and must be cut on sight during requirements review.
+- **The backlog's A-then-B-then-C order puts the reaction anchor's dependency after its consumer.** Three researchers independently flagged this. The chrome mechanism must land before both #4 (in-show tab hiding) and #6 (fly-up anchor fallback).
+- **The bottom-gap bug and the chrome mechanism rewrite the same three files' bottom math** - two separate passes would collide, so they belong in one plan.
+- **The tab rename is fully parallel-safe** and the lowest-risk item; land it early for a visible win, but write the token/label split as an explicit requirement rather than leaving it to executor judgment.
+- **The `<Sheet>` animation is the highest-regression-risk item in v2.1 relative to its user value.** Make it the first slice of its phase so it can be backed out; enter-only animation is an explicitly acceptable degraded ship.
 
 ### Research Flags
 
-**Standard patterns — skip `--research-phase` (spike-validated, blueprint-proven):**
-- **Phase A:** the offline-boot/`getSession()` flow, RLS shape, and seed script are all validated live in spikes 002–004; the work is careful integration, not investigation.
-- **Phase B:** projection sync + `postgres_changes` re-pull are blueprint-proven; the reuse surface (`deriveDex`/`compareDexes`) is shipped and inspected.
-- **Phase C:** presence + broadcast on one channel is the validated `gizz-room` design from spike 004.
+Phases likely needing deeper research or a device spike during planning:
+- **Phase 1** - the bottom-gap root cause is HIGH-confidence on the *mechanism* but MEDIUM on *completeness*. Needs an on-device measurement gate (a `#/dev/insets` diagnostic route, following the shipped `#/dev/orb-fit` precedent) before and after, on an **installed** instance, portrait *and* landscape.
+- **Phase 4** - the fly-up motion parameters (travel, duration, drift, rotation, jitter) and the concurrency/coalescing caps are LOW confidence: reasoned from observed convention, no published spec exists. Instrument and tune on device; do not treat the numbers as established.
 
-**Watch items during planning (not full research, but requirements-time decisions):**
-- Phase A: exact JWT expiry value; shared-device second-login policy (refuse-and-export recommended); friends-surface placement (new tab vs folded into GizzDex/Settings).
-- Phase B: progress column set — `per_album` jsonb in v2.0 or defer (keep full `perSong` OFF the live row); progress-write debounce cadence during a show.
-
-These are design choices with recommended defaults, not feasibility unknowns — resolve at requirements time, don't spawn research phases.
+Phases with standard patterns (skip `--research-phase`):
+- **Phase 2 and Phase 3** - every mechanism is an existing in-repo primitive with a documented precedent (`<Sheet variant="fullscreen">` on four shipped surfaces, the `bottomOverlayInset` module-store idiom, `AnimatePresence` in two shipped files). The work is composition and contract, not discovery.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | One dependency, verified registry-authoritative (`npm view`, 2026-07-22); everything else already in the shipped tree. |
-| Features | HIGH | Grounded in the spike-validated blueprint + direct inspection of the shipped `deriveDex`/`compareDexes`/share-card code; ecosystem norms (ephemeral presence) MEDIUM. |
-| Architecture | HIGH | Integration seams read directly from real shipped files; the approach is validated live across two devices. Column-set choices flagged MEDIUM (confirm with owner). |
-| Pitfalls | HIGH | Spike-validated + Supabase docs/issue-verified; the offline-refresh and iOS-eviction mitigations are MEDIUM-HIGH (device-test to confirm the exact behavior). |
+| Stack | **HIGH** | Every version, peer range, and publish date verified via `npm view` + `package-lock.json`; every web-platform claim verified against the webstatus.dev API (MDN BCD). MEDIUM only on motion's self-published ~34 kB bundle figure. |
+| Features | **MEDIUM-HIGH** | Platform conventions (iOS HIG, Material 3, Android immersive, NN/g overlay research, WCAG 2.2.1/2.3.3/2.5.3, web.dev) verified against primary or near-primary sources. Fly-up motion parameters and tab-label discoverability are LOW - flagged inline. |
+| Architecture | **HIGH** | Every structural claim is cited path:line from a file read this session; no path inferred from planning notes. MEDIUM on two root-cause *hypotheses* not yet device-reproduced. |
+| Pitfalls | **HIGH** code-grounded / **MEDIUM-HIGH** iOS | Repo-grounded items are HIGH; iOS Safari behavior rests on dated Apple Developer Forums threads + spec-level CSS. Three items explicitly flagged as reasoning-from-spec, not device-verified. |
 
-**Overall confidence:** HIGH
+**Overall confidence:** HIGH on what to build and in what order; MEDIUM on two device-observable symptoms whose *mechanism* is understood but whose *completeness* needs a measurement.
 
 ### Gaps to Address
 
-- **Sync payload = Option B (recommended):** if requirements instead pick counters-only (Option A), live `compareDexes` can't render and shipped diff code is discarded. Flag this decision explicitly at requirements time. *(Recommend B.)*
-- **`per_album` column:** ship flat scalar columns first; add `per_album` jsonb only if a per-album friend diff lands. Keep the full `perSong` map (~264 entries) OFF the live row — that stays on the file-export/`compareDexes` path. *(Owner decision at requirements.)*
-- **Shared-device second-login:** recommend refuse-and-export over silent merge; per-user Dexie namespacing only if shared-device use actually emerges. *(Owner decision.)*
-- **Exact JWT expiry + progress-write debounce cadence:** propose values at requirements time (JWT toward ~1 week; debounce to coalesce a burst of live logs into one write).
-- **iOS session-eviction real-world behavior + Realtime-over-tunnel:** both need a device test (7+ day installed-vs-tab PWA; Realtime `CHANNEL_ERROR` over cloudflared) — bake into Phase A and Phase C UAT respectively.
+**Resolved since research (record and correct the source):**
+- **GizzDex becomes "Me", not "Dex".** The backlog (`v2.1-ux-polish-backlog.md:41`) says "Dex"; PROJECT.md line 40 says "Me". **The owner has confirmed "Me".** The backlog file needs correcting. FEATURES flags a real consequence: "Me" does not signal that *friends* live behind that tab (post-v2.0 `DexView` holds Dex + Albums + Friends). Recommendation carried forward: pair "Me" with a friends-presence badge on the tab icon, which both fixes the discoverability hole and finally pays off the presence layer.
+
+**Genuine disagreement between researchers - resolve before writing the z-layer requirement:**
+- **Is the z-layer problem structural or numeric?** ARCHITECTURE finds a `position: relative; z-index: 10` stacking context in `ShowView.withBackground` that captures *every* `fixed` descendant - so `FabMenu` (nominally 30), `SearchSheet` (50), and the FullSetlistSheet (40) all composite at 10, and any root-level toast (20) or the supernova (18) paints over them. HIGH confidence on the CSS mechanism, MEDIUM that it is the owner's reported symptom. PITFALLS finds the opposite framing: every z-index is config-sourced (zero raw literals), the tier ordering is internally consistent, toasts and celebrations are *already* below `sheetScrim`, and the only above-sheet tier is the deliberate, device-verified, unit-locked `focusedFab: 60` exception - so the real observed defect is **unidentified**, and renumbering risks silently reverting two documented regression guards (`page < sheetScrim`, `fabScrim < fab`) or an A11Y-02 requirement.
+- **These two findings are in TENSION. What resolves it:** a device repro of "something paints over an open sheet" naming the actual offending surface. If the offender is inside `ShowView`'s subtree, ARCHITECTURE is right and the fix is portal-everything; if it is a root-level toast over a *modal* sheet, the tier list needs one addition. Both researchers agree on the safe common ground: **write the invariant test first, renumber nothing speculatively**, and phrase the requirement as *"nothing paints over an open modal sheet"* so the non-modal `focusedFab` exception survives.
+
+**Open, needing an owner decision or a repro:**
+- **Swipe-down-to-dismiss on the in-show overlays** - recommended **against** by both FEATURES and PITFALLS, on four independent grounds (not the full-screen convention; collides with scrolling the board; `touch-action: manipulation` does not disable panning, and React's synthetic `onTouchMove` is passive by default so `preventDefault()` is a silent no-op on device; a half-dismissed drag landing on the stage logs a spurious song). Does the owner accept the recommendation? If not, the safe thresholded spec exists (grab-handle only, `scrollTop === 0`, >=25% travel or >0.5px/ms, non-passive listener via a ref).
+- **In-show tab-hiding scope** - app-wide while a show is active, or only while on `#/show`? App-wide strands the user with no route to GizzMap at a venue. Recommendation: show-route-scoped, plus an explicit reveal affordance that latches open for the session.
+- **Does the share card adopt the new date format?** `shareCard.ts` draws the date into a fixed-width canvas PNG tuned against the ISO string; the formatted string has different metrics. Recommendation: yes for consistency, but verify the rendered PNG on device at the widest realistic venue name and check the truncation path. Roughly 6 test files seed/assert ISO dates and will need budgeted updates - each scrutinized, since a test loosened to pass is worse than a failing one.
+- **Fly-up motion parameters and battery cost are reasoned, not measured.** Tune and instrument on device. The mitigation is already decided: **retarget `WaveToast` rather than delete it**, which supplies the mandated reduced-motion fallback, the rollback path, and a battery kill-switch in one decision.
+- **Should the wave payload carry the sender's tab?** ARCHITECTURE says no (a wire change AND a new untrusted field in the render path); PITFALLS says yes-if (additive, optional, allow-list-validated, tolerant of old builds) because it kills the presence/broadcast ordering race outright.
+- **Escape-to-exit chrome-hidden?** If yes it must route through `dialogStack` so Escape closes the topmost sheet first - the one legitimate non-dialog use of the stack.
+- **Core barrel export for the PRNG** (a one-line additive change so the fly-up drift is deterministic and unit-testable) vs. `Math.random` in the app with untestable drift.
+
+**Must be verified on device, not in a browser tab:**
+- Every viewport/inset check must run on an **installed home-screen instance** - the whole bug class is invisible in Safari by construction (`env(safe-area-inset-bottom)` reports `0` with the toolbar visible).
+- The `<Sheet>` animation invalidates the A11Y-01 verification (VoiceOver + external keyboard on iOS). Budget the re-verification *inside* the phase, not after.
+- Cross-build two-device presence test for the tab rename.
+- Android: confirm the relocated Settings install button actually installs.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `.claude/skills/spike-findings-guezzer/references/multi-user-supabase.md` — spike-validated blueprint (002 auth/identity, 003 synced-progress, 004 presence/ping), live across two remote devices incl. offline boot — auth/RLS/presence design and the token-refresh open item.
-- `npm view @supabase/supabase-js` (2026-07-22) — `latest` = 2.110.8; sub-packages pinned; v3 pre-release only on `next`.
-- Shipped codebase (read directly): `packages/core/src/dex/derive-dex.ts`, `compare.ts`, `share-stats.ts`; `packages/app/src/dex/useDexStats.ts`, `db/db.ts`, `App.tsx`, `components/AppShell.tsx`, `config.ts`, `vite.config.ts`, `settings/ownerMatch.ts` — integration seams and reuse surface.
-- `.planning/PROJECT.md` — v2.0 milestone scope, revised constraints, SOCL-V2-01 deferral, core-purity + offline-first requirements.
-- supabase/auth-js #677 — token refreshes on expiry, needs network (verifies offline-stale-token pitfall).
-- Supabase Postgres Changes docs + supabase #35195 — publication + RLS-SELECT coupling (verifies Realtime-silent pitfall).
+- **This repository, read directly (2026-07-24)** - `Sheet.tsx`, `AppShell.tsx`, `BottomTabBar.tsx`, `WaveToast.tsx`, `BingoCelebration.tsx`, `config.ts` (z tiers 251-297), `styles.css`, `presenceActivity.ts`, `presenceSync.ts`, `usePresence.ts`, `ConstellationCanvas.tsx`, `GamesView.tsx`, `DealScreen.tsx`, `db.ts`, `useInstallState.ts`, `fabLayout.ts`, `useHashRoute.ts`, `formatMonYear.ts`, `shareCard.ts`, both `package.json` files, `package-lock.json`, and the test suite (`rebrand`, `sheet.a11y`, `configMirror`, `filterFabLift`)
+- **npm registry** (`npm view`, 2026-07-24) - all versions, peer ranges, publish dates
+- **api.webstatus.dev/v1/features** (MDN browser-compat-data) - per-browser availability for Fullscreen, view transitions, starting-style, transition-behavior, popover, dialog, inert, anchor positioning, scroll-driven animations, calc-size, safe-area insets, viewport units
+- [Android - Hide system bars for immersive mode](https://developer.android.com/develop/ui/views/layout/immersive)
+- [web.dev - Patterns for promoting PWA installation](https://web.dev/articles/promote-install) - explicitly provides **no** conversion-rate data
+- [NN/g - Accidental Dismissal of Overlays](https://www.nngroup.com/articles/accidental-overlay-dismissal/)
+- [WebKit Features in Safari 26.0](https://webkit.org/blog/17333/webkit-features-in-safari-26-0/); [Designing Websites for iPhone X](https://webkit.org/blog/7929/designing-websites-for-iphone-x/)
+- [MDN - BeforeInstallPromptEvent.prompt()](https://developer.mozilla.org/en-US/docs/Web/API/BeforeInstallPromptEvent/prompt); [WebKit/standards-positions#619](https://github.com/WebKit/standards-positions/issues/619) - no iOS beforeinstallprompt
 
-### Secondary (MEDIUM-HIGH confidence)
-- supabase discussion #35147 — subscribe-before-replication-ready race.
-- Supabase session-in-localStorage + iOS Safari 7-day script-storage eviction — cross-checked against the app's existing IndexedDB-eviction mitigations (device-test to confirm).
-- Vite `VITE_`-env inlining + Workbox navigation/precache/runtime-caching model + SWs not intercepting `wss://` — established platform behavior, cross-checked against the repo's existing PWA config.
+### Secondary (MEDIUM confidence)
+- [Apple Developer Forums 716552](https://developer.apple.com/forums/thread/716552) - safe-area-inset-bottom reports 0 with the Safari toolbar visible (grounds *why the gap is standalone-only*)
+- [Apple Developer Forums 803987](https://developer.apple.com/forums/thread/803987) - iOS 26.0 100dvh overlays leave a bottom gap (grounds *do not reach for dvh*)
+- [WebKit bug 301108](https://bugs.webkit.org/show_bug.cgi?id=301108) - iOS 26 viewport-fit=cover regression
+- Material Design 3 (Bottom sheets / Dialogs) and Apple HIG (Sheets) - primary pages are JS-rendered; accessed via secondary summaries
+- WCAG 2.2.1 actionable-toast guidance (Atomic Accessibility, Scott O'Hara, w3c/wcag#976); WCAG 2.3.3 reduced-motion
+- Bottom-navigation label conventions (Smashing, UX Planet); pushState/popstate modal dismissal
+- iOS body-scroll-lock footgun (Jay Freestone, CSS-Tricks) - the bug this app architecturally *does not have* and must not acquire
 
-### Tertiary (LOW confidence)
-- Exact `@supabase/supabase-js` patch beyond "v2 latest" — pin re-verified at install time via `npm view` (HIGH on "v2 line," LOW on the specific patch surviving to implementation).
+### Tertiary (LOW confidence - validate on device)
+- **All floating-reaction motion parameters** (travel, duration, easing, drift amplitude, rotation, scale, jitter) - no published spec found for any live-reaction implementation; inferred from observed behavior and sized against existing constants (`SUPERNOVA_ORB_COUNT: 12`, `SUPERNOVA_ORB_TRAVEL_PX: 180`, `MARK_TOAST_MS: 1800`)
+- Reaction concurrency cap, per-sender coalescing threshold, global rate cap - derived from a 5-user group plus the `QUEUE_CAP` precedent
+- "Me" vs "Dex" vs "You" tab-label discoverability - no comparative research exists; the recommendation rests on a structural argument
+- "Don't persist fullscreen state across sessions" - a widely understood failure mode, no citable study
+- iOS timer throttling in backgrounded PWAs - consistent with the device-verified visibleEpoch behavior, but inferred rather than measured
 
 ---
-*Research completed: 2026-07-22*
+*Research completed: 2026-07-24*
 *Ready for roadmap: yes*
