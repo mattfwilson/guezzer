@@ -14,7 +14,8 @@
 import { ChevronRight } from "lucide-react";
 import { config } from "../config.ts";
 import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
-import { IdentityGlyph } from "./FriendRow.tsx";
+import { useSelfPresence } from "../sync/usePresenceReaders.ts";
+import { IdentityGlyph, PresenceActivitySlot, PresenceOnlineSlot } from "./FriendRow.tsx";
 import { TierBadge } from "./TierBadge.tsx";
 import { useDexStats } from "./useDexStats.ts";
 
@@ -27,6 +28,9 @@ export function SelfRow({ onClick }: SelfRowProps) {
   const copy = config.copy.friends;
   const identity = useAuthIdentity();
   const stats = useDexStats();
+  // Own presence from LOCAL signals (Open Q3) — never a store round-trip. Called
+  // before the calm-frame early-return to keep hook order stable (rules of hooks).
+  const presence = useSelfPresence();
 
   // Hold a calm frame until the live reads resolve (no NaN, no flicker). The
   // AuthGate guarantees an identity whenever this renders in-app.
@@ -44,8 +48,8 @@ export function SelfRow({ onClick }: SelfRowProps) {
       onClick={onClick}
       className="flex min-h-11 items-center gap-2 border-b border-hairline px-4 py-3 text-left touch-manipulation"
     >
-      {/* Leading slot — parity with FriendRow (no presence dot for the self row). */}
-      <span data-slot="presence-online" aria-hidden="true" className="shrink-0" />
+      {/* Leading slot — own live dot (hidden when offline, D-17). */}
+      <PresenceOnlineSlot online={presence.online} />
 
       <IdentityGlyph userId={identity.userId} displayName={identity.displayName} />
 
@@ -60,7 +64,12 @@ export function SelfRow({ onClick }: SelfRowProps) {
 
       {rarest != null && <TierBadge tier={rarest} />}
 
-      <span data-slot="presence-activity" aria-hidden="true" className="shrink-0" />
+      {/* Trailing slot — own activity when online; `offline` (muted) when not (D-17). */}
+      {presence.online ? (
+        <PresenceActivitySlot activity={presence.activity} />
+      ) : (
+        <PresenceActivitySlot label={config.copy.presence.offline} />
+      )}
 
       <ChevronRight size={18} className="shrink-0 text-text-muted" aria-hidden="true" />
     </button>

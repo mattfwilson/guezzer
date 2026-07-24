@@ -22,6 +22,7 @@ import { SyncDot } from "../live/SyncDot.tsx";
 import { FriendRow } from "./FriendRow.tsx";
 import { SelfRow } from "./SelfRow.tsx";
 import { buildFriendRows, useFriendsProgress } from "../sync/useFriendsProgress.ts";
+import { usePresenceFor } from "../sync/usePresenceReaders.ts";
 import type { FriendRowData } from "../sync/friendCache.ts";
 
 interface FriendsListProps {
@@ -74,18 +75,48 @@ export function FriendsList({ onOpenFriend, onOpenSelf }: FriendsListProps) {
         </div>
       ) : (
         rows.map((friend) => (
-          <FriendRow
+          <PresenceFriendRow
             key={friend.userId}
-            userId={friend.userId}
-            displayName={friend.displayName}
-            pct={friend.summary.completion.pct}
-            caught={friend.summary.completion.caught}
-            rarest={friend.summary.rarest?.tier ?? null}
+            friend={friend}
             dimmed={offline}
             onClick={() => onOpenFriend(friend)}
           />
         ))
       )}
     </div>
+  );
+}
+
+/**
+ * Reads ONE friend's presence via the pure `usePresenceFor(userId)` reader and
+ * passes `online`/`activity` into the presentational `FriendRow`. Extracted so the
+ * per-row hook is called legally (rules of hooks) inside the `rows.map`. Opens NO
+ * channel — `usePresenceFor` already returns the offline shape when the viewer is
+ * offline (D-16), so no extra offline branch is needed here (the dimmed cached
+ * rows + offline marker path above is untouched). Never adds a placeholder row
+ * (D-13) — membership stays `buildFriendRows`-owned.
+ */
+function PresenceFriendRow({
+  friend,
+  dimmed,
+  onClick,
+}: {
+  friend: FriendRowData;
+  dimmed: boolean;
+  onClick: () => void;
+}) {
+  const { online, activity } = usePresenceFor(friend.userId);
+  return (
+    <FriendRow
+      userId={friend.userId}
+      displayName={friend.displayName}
+      pct={friend.summary.completion.pct}
+      caught={friend.summary.completion.caught}
+      rarest={friend.summary.rarest?.tier ?? null}
+      online={online}
+      activity={activity}
+      dimmed={dimmed}
+      onClick={onClick}
+    />
   );
 }

@@ -19,10 +19,70 @@ import type { RarityTier } from "@guezzer/core";
 import { identityColorIndex } from "@guezzer/core";
 import { ChevronRight } from "lucide-react";
 import { config } from "../config.ts";
+import type { Activity } from "../sync/presenceActivity.ts";
 import { TierBadge } from "./TierBadge.tsx";
 
 /** Dark-on-light initials color — reuses ORB_TEXT_COLOR / IdentityAvatar (D-12). */
 const INITIALS_COLOR = "#0C0C10";
+
+/**
+ * The shipped SyncDot online-green (`SyncDot.tsx:55`, owner-ratified B3 override).
+ * The 8px presence dot reuses this EXACT hue — it is the app's "connected/online"
+ * language (data-semantic, never routed through --color-accent). UI-SPEC §Color.
+ */
+const ONLINE_GREEN = "#22C55E";
+
+/**
+ * Fill the reserved `presence-online` slot: an 8px `#22C55E` `rounded-full` dot
+ * when `online`, otherwise nothing (D-16 — honest absence, never a stale-green
+ * lie). Shared by FriendRow + SelfRow so both dots are byte-identical.
+ */
+export function PresenceOnlineSlot({ online }: { online: boolean }) {
+  return (
+    <span data-slot="presence-online" className="flex shrink-0 items-center justify-center">
+      {online && (
+        <span
+          className="h-2 w-2 rounded-full"
+          style={{ backgroundColor: ONLINE_GREEN }}
+          aria-hidden="true"
+        />
+      )}
+    </span>
+  );
+}
+
+/**
+ * Fill the reserved `presence-activity` slot with the coarse activity label:
+ * `null` → nothing; `atShow` → `At a show 🎸` in `text-text-primary` (the
+ * residency payoff emphasis, D-03 flag-only); else the `activity.tab` brand token
+ * (muted). The dot NEVER conveys state by color alone — a present friend's row
+ * shows BOTH the dot and this text label (WCAG 1.4.1). Shared by FriendRow +
+ * SelfRow. `offline` is passed as an explicit `label`/`emphasized` override.
+ */
+export function PresenceActivitySlot({
+  activity,
+  label,
+  emphasized = false,
+}: {
+  activity?: Activity | null;
+  label?: string;
+  emphasized?: boolean;
+}) {
+  // An explicit label override (the self-row `offline` case) wins.
+  const text = label ?? (activity == null ? null : activity.atShow ? config.copy.presence.atShow : activity.tab);
+  const strong = label != null ? emphasized : activity?.atShow === true;
+  return (
+    <span data-slot="presence-activity" className="shrink-0">
+      {text != null && (
+        <span
+          className={`text-[13px] leading-tight ${strong ? "text-text-primary" : "text-text-muted"}`}
+        >
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
 
 /** 1–2 uppercase initials — echoes IdentityAvatar's `initialsOf` (never imported). */
 function initialsOf(displayName: string): string {
@@ -69,6 +129,10 @@ interface FriendRowProps {
   caught: number;
   /** The friend's single rarest caught tier, or null for a 0-catch friend (D-05). */
   rarest: RarityTier | null;
+  /** Phase-20 presence: binary present-now (fills the leading dot slot, PRES-07). */
+  online: boolean;
+  /** Phase-20 presence: coarse activity for the trailing label slot, or null. */
+  activity: Activity | null;
   /** Offline last-known view (D-18): mute via opacity, never remove the row. */
   dimmed?: boolean;
   onClick: () => void;
@@ -80,6 +144,8 @@ export function FriendRow({
   pct,
   caught,
   rarest,
+  online,
+  activity,
   dimmed = false,
   onClick,
 }: FriendRowProps) {
@@ -93,10 +159,9 @@ export function FriendRow({
         dimmed ? "opacity-50" : ""
       }`}
     >
-      {/* LEADING SLOT — reserved for the Phase-20 online presence dot (PRES-07).
-          Renders nothing this phase; keeps the structural slot so presence fuses
-          in without a rebuild. NO presence logic here. */}
-      <span data-slot="presence-online" aria-hidden="true" className="shrink-0" />
+      {/* LEADING SLOT — the Phase-20 online presence dot (PRES-07). Pure props:
+          an 8px #22C55E dot when online, nothing when offline. NO channel logic. */}
+      <PresenceOnlineSlot online={online} />
 
       <IdentityGlyph userId={userId} displayName={displayName} />
 
@@ -112,9 +177,9 @@ export function FriendRow({
       {/* Single rarest tier badge (D-04) — omitted for a 0-catch friend (D-05). */}
       {rarest != null && <TierBadge tier={rarest} />}
 
-      {/* TRAILING SLOT — reserved for the Phase-20 coarse activity label (PRES-07).
-          Renders nothing this phase. NO presence logic here. */}
-      <span data-slot="presence-activity" aria-hidden="true" className="shrink-0" />
+      {/* TRAILING SLOT — the Phase-20 coarse activity label (PRES-07). Pure props:
+          `At a show 🎸` (emphasized) / tab token (muted) / nothing. NO channel logic. */}
+      <PresenceActivitySlot activity={activity} />
 
       <ChevronRight size={18} className="shrink-0 text-text-muted" aria-hidden="true" />
     </button>
