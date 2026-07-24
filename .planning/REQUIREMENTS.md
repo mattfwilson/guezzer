@@ -30,14 +30,14 @@ Requirements for the Multi-User Foundation milestone. Each maps to exactly one r
 
 ### Shared Dex Progress (PROG)
 
-- [ ] **PROG-01**: A new pure-core `deriveSharedProgress(DexStats) → SharedProgress` projects each user's locally-derived dex into a serializable summary using the **Option B payload**: `display_name`, `songs_caught`, completion %, `show_count`, rarest `{songId,tier}`, per-tier counts, `perAlbum`, and the `caughtSongIds` int[]. Core never imports Supabase.
-- [ ] **PROG-02**: The app upserts the signed-in user's progress summary to Supabase when their dex changes (debounced), writing only that user's own row; presence-style writes touch identity columns only so counts are never reset.
-- [ ] **PROG-03**: Read-all / write-own is enforced by RLS — every friend can read all progress rows, but a user can only insert/update their own (`auth.uid() = user_id`); nobody can inflate another friend's numbers.
-- [ ] **PROG-04**: A friends screen lists each friend's headline progress (name + completion % + caught count + rarest badge), read live from Supabase.
-- [ ] **PROG-05**: When a friend logs a catch, the friends screen updates live via `postgres_changes` (full-table re-pull is fine at ~5 rows) — progress visibly moves during the residency.
-- [ ] **PROG-06**: Tapping a friend shows a live head-to-head comparison by reconstructing a minimal `DexStats` from their synced summary and feeding the **unchanged** shipped `compareDexes(mine, theirs)` — the async file-compare view becomes live with zero new diff logic. *(Requires the Option-B payload.)*
-- [ ] **PROG-07**: The friend comparison exposes a per-album / per-tier breakdown, projecting the shipped `DexStats.perAlbum` + rarity tier counts into the summary (reuses `CompareColumn` semantics).
-- [ ] **PROG-08**: Each friend's rarest catches are showcased (top-N by rarity), reusing the shipped six-tier rarity language and colors.
+- [x] **PROG-01**: A new pure-core `deriveSharedProgress(DexStats) → SharedProgress` projects each user's locally-derived dex into a serializable summary using the **Option B payload**: `display_name`, `songs_caught`, completion %, `show_count`, rarest `{songId,tier}`, per-tier counts, `perAlbum`, and the `caughtSongIds` int[]. Core never imports Supabase.
+- [x] **PROG-02**: The app upserts the signed-in user's progress summary to Supabase when their dex changes (debounced), writing only that user's own row; presence-style writes touch identity columns only so counts are never reset.
+- [x] **PROG-03**: Read-all / write-own is enforced by RLS — every friend can read all progress rows, but a user can only insert/update their own (`auth.uid() = user_id`); nobody can inflate another friend's numbers.
+- [x] **PROG-04**: A friends screen lists each friend's headline progress (name + completion % + caught count + rarest badge), read live from Supabase.
+- [x] **PROG-05**: When a friend logs a catch, the friends screen updates live via `postgres_changes` (full-table re-pull is fine at ~5 rows) — progress visibly moves during the residency.
+- [x] **PROG-06**: Tapping a friend shows a live head-to-head comparison by reconstructing a minimal `DexStats` from their synced summary and feeding the **unchanged** shipped `compareDexes(mine, theirs)` — the async file-compare view becomes live with zero new diff logic. *(Requires the Option-B payload.)*
+- [x] **PROG-07**: The friend comparison exposes a per-album / per-tier breakdown, projecting the shipped `DexStats.perAlbum` + rarity tier counts into the summary (reuses `CompareColumn` semantics).
+- [x] **PROG-08**: Each friend's rarest catches are showcased (top-N by rarity), reusing the shipped six-tier rarity language and colors.
 
 ### Presence & Interactions (PRES)
 
@@ -106,14 +106,14 @@ Which phases cover which requirements. Filled during roadmap creation (Phases 17
 | AUTH-06 | Phase 18 | Pending |
 | AUTH-07 | Phase 18 | Pending |
 | AUTH-08 | Phase 18 | Pending |
-| PROG-01 | Phase 19 | Pending |
-| PROG-02 | Phase 19 | Pending |
-| PROG-03 | Phase 19 | Pending |
-| PROG-04 | Phase 19 | Pending |
-| PROG-05 | Phase 19 | Pending |
-| PROG-06 | Phase 19 | Pending |
-| PROG-07 | Phase 19 | Pending |
-| PROG-08 | Phase 19 | Pending |
+| PROG-01 | Phase 19 | Complete |
+| PROG-02 | Phase 19 | Complete |
+| PROG-03 | Phase 19 | Complete |
+| PROG-04 | Phase 19 | Complete |
+| PROG-05 | Phase 19 | Complete |
+| PROG-06 | Phase 19 | Complete |
+| PROG-07 | Phase 19 | Complete |
+| PROG-08 | Phase 19 | Complete |
 | PRES-01 | Phase 20 | Pending |
 | PRES-02 | Phase 20 | Pending |
 | PRES-03 | Phase 20 | Pending |

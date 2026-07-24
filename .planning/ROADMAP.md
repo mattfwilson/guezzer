@@ -197,7 +197,7 @@ Ordering is dependency- and risk-driven: **SETUP + AUTH gate everything** (no id
 | 16. Gizz Bingo — Build, Live Marking & Celebrations | v1.2 | 6/6 | Complete | 2026-07-21 |
 | 17. Backend Foundation & Secrets | v2.0 | 4/4 | Complete    | 2026-07-22 |
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete   | 2026-07-22 |
-| 19. Shared Dex Progress | v2.0 | 4/4 | Complete   | 2026-07-24 |
+| 19. Shared Dex Progress | v2.0 | 4/4 | Complete    | 2026-07-24 |
 | 20. Presence & Interactions | v2.0 | 0/? | Not started | - |
 
 ---
