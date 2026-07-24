@@ -4,9 +4,10 @@ title: "Bug: mobile Friends-list activity labels update inconsistently"
 area: bug
 source: 20-05 two-device UAT (owner, 2026-07-24)
 severity: medium
-status: both-halves-fix-implemented-awaits-device-recheck
+status: resolved-device-verified
 fix_commit: df6515c
 fix_ref: quick 260724-hqu (presence half) + quick 260724-lgo (progress-feed half)
+device_verified: 2026-07-24 (two-device UAT over cloudflared tunnel — both activity label AND progress row reconcile promptly on mobile foreground)
 files:
   - packages/app/src/sync/usePresence.ts
   - packages/app/src/sync/presenceSync.ts
