@@ -130,6 +130,9 @@ None - no new external service configuration (Supabase provisioned in Phase 17; 
 - Ready for the singleton presence engine (`usePresence()`), the reaction toast host, the ReactionPalette, and the Friends fusion — none has to reverse-engineer these shapes.
 - Core stays Supabase-free (purity guard green); the Supabase import is confined to `packages/app/src/sync/`.
 
+## Self-Check: PASSED
+All 5 created files + the SUMMARY exist on disk; all 5 commits (b4a8c62, e2937ac, c2b0f17, 2c6445a, 9a530a1) are in git history; worktree clean.
+
 ---
 *Phase: 20-presence-interactions*
 *Completed: 2026-07-24*
