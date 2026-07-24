@@ -155,46 +155,68 @@ tier ladder).
 
 ## Traceability
 
-Populated during roadmap creation.
+Populated during roadmap creation (2026-07-24). Phase numbering **continues** from the v2.0
+milestone, which ended at Phase 20 — v2.1 runs Phases 21–24.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | — | Pending |
-| FOUND-02 | — | Pending |
-| FOUND-03 | — | Pending |
-| FOUND-04 | — | Pending |
-| FOUND-05 | — | Pending |
-| CHROME-01 | — | Pending |
-| CHROME-02 | — | Pending |
-| CHROME-03 | — | Pending |
-| CHROME-04 | — | Pending |
-| CHROME-05 | — | Pending |
-| SHEET-01 | — | Pending |
-| SHEET-02 | — | Pending |
-| INSHOW-01 | — | Pending |
-| INSHOW-02 | — | Pending |
-| INSHOW-03 | — | Pending |
-| INSHOW-04 | — | Pending |
-| INSHOW-05 | — | Pending |
-| REACT-01 | — | Pending |
-| REACT-02 | — | Pending |
-| REACT-03 | — | Pending |
-| REACT-04 | — | Pending |
-| REACT-05 | — | Pending |
-| REACT-06 | — | Pending |
-| NAV-01 | — | Pending |
-| NAV-02 | — | Pending |
-| NAV-03 | — | Pending |
-| NAV-04 | — | Pending |
-| NAV-05 | — | Pending |
-| NAV-06 | — | Pending |
-| POLISH-03 | — | Pending |
+| FOUND-01 | Phase 21 | Pending |
+| FOUND-02 | Phase 21 | Pending |
+| FOUND-03 | Phase 21 | Pending |
+| FOUND-04 | Phase 21 | Pending |
+| FOUND-05 | Phase 21 | Pending |
+| CHROME-01 | Phase 22 | Pending |
+| CHROME-02 | Phase 23 | Pending |
+| CHROME-03 | Phase 22 | Pending |
+| CHROME-04 | Phase 22 | Pending |
+| CHROME-05 | Phase 22 | Pending |
+| SHEET-01 | Phase 22 | Pending |
+| SHEET-02 | Phase 22 | Pending |
+| INSHOW-01 | Phase 23 | Pending |
+| INSHOW-02 | Phase 23 | Pending |
+| INSHOW-03 | Phase 23 | Pending |
+| INSHOW-04 | Phase 23 | Pending |
+| INSHOW-05 | Phase 23 | Pending |
+| REACT-01 | Phase 24 | Pending |
+| REACT-02 | Phase 24 | Pending |
+| REACT-03 | Phase 24 | Pending |
+| REACT-04 | Phase 24 | Pending |
+| REACT-05 | Phase 24 | Pending |
+| REACT-06 | Phase 24 | Pending |
+| NAV-01 | Phase 21 | Pending |
+| NAV-02 | Phase 21 | Pending |
+| NAV-03 | Phase 21 | Pending |
+| NAV-04 | Phase 24 | Pending |
+| NAV-05 | Phase 22 | Pending |
+| NAV-06 | Phase 22 | Pending |
+| POLISH-03 | Phase 24 | Pending |
 
 **Coverage:**
 - v2.1 requirements: 30 total
-- Mapped to phases: 0
-- Unmapped: 30 ⚠️ (roadmap pending)
+- Mapped to phases: 30
+- Unmapped: 0 ✓ (100% coverage, no orphans, no duplicates)
+
+**By phase:**
+
+| Phase | Requirements | Count |
+|-------|--------------|-------|
+| 21 — Layout & Layering Foundations | FOUND-01..05, NAV-01, NAV-02, NAV-03 | 8 |
+| 22 — Surface Motion & the Chrome Mechanism | SHEET-01, SHEET-02, CHROME-01, CHROME-03, CHROME-04, CHROME-05, NAV-05, NAV-06 | 8 |
+| 23 — Immersive In-Show Experience | INSHOW-01..05, CHROME-02 | 6 |
+| 24 — Reactions & Small Polish | REACT-01..06, NAV-04, POLISH-03 | 8 |
+
+**Note on the CHROME split.** CHROME-01 (GizzVerse toggle) and CHROME-02 (in-show tab hiding) are
+two consumers of one mechanism. The mechanism's own safety invariants — CHROME-03 (always escapable,
+never persisted), CHROME-04 (removed from the a11y tree), CHROME-05 (one resize, no simulation
+reheat) — are mapped to **Phase 22 with the first consumer**, not deferred to Phase 23 with the
+second. Phase 22 is the first phase in which a user can enter chrome-hidden state, so deferring the
+escape hatch or the a11y-tree removal would leave a phase boundary at which a user can strand
+themselves in an installed PWA; and CHROME-05 names the GizzVerse simulation explicitly, so its
+verification surface *is* the Phase-22 surface. Full reasoning in `ROADMAP.md` § Coverage.
+
+**Device-verification budget** (owned inside the phase, never a trailing cleanup): FOUND-01 +
+FOUND-05 + NAV-03 in Phase 21; SHEET-02 + NAV-06 in Phase 22; REACT-04 in Phase 24.
 
 ---
 *Requirements defined: 2026-07-24*
-*Last updated: 2026-07-24 after v2.1 milestone definition*
+*Last updated: 2026-07-24 after v2.1 roadmap creation — all 30 requirements mapped to Phases 21–24 (100% coverage)*

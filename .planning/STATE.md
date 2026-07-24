@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: UX/UI Polish
-status: planning
-last_updated: "2026-07-24T20:09:42.210Z"
+status: roadmap_complete
+last_updated: "2026-07-24T21:30:00.000Z"
 last_activity: 2026-07-24
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24 after v2.0 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Planning next milestone — v2.1 "UX/UI Polish" (`/gsd-new-milestone`; scope in `.planning/v2.1-ux-polish-backlog.md`)
+**Current focus:** v2.1 "UX/UI Polish" — roadmap created (Phases 21–24, 30/30 requirements mapped). Next: `/gsd-plan-phase 21`
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 21 — Layout & Layering Foundations (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-24 — Milestone v2.1 started
+Status: Roadmap complete, awaiting phase planning
+Last activity: 2026-07-24 — v2.1 roadmap created (4 phases, 100% requirement coverage)
+
+**v2.1 phase map:**
+
+| Phase | Name | Requirements |
+|-------|------|--------------|
+| 21 | Layout & Layering Foundations | FOUND-01..05, NAV-01/02/03 |
+| 22 | Surface Motion & the Chrome Mechanism | SHEET-01/02, CHROME-01/03/04/05, NAV-05/06 |
+| 23 | Immersive In-Show Experience | INSHOW-01..05, CHROME-02 |
+| 24 | Reactions & Small Polish | REACT-01..06, NAV-04, POLISH-03 |
+
+Progress: [                    ] 0% (0/4 phases)
 
 ## Performance Metrics
 
@@ -103,6 +114,7 @@ Last activity: 2026-07-24 — Milestone v2.1 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- Roadmap (v2.1): 30 requirements mapped to 4 phases (21–24), 100% coverage, **foundation-first ordering that deliberately reverses the owner backlog's A/B/C/D shape** (the backlog scheduled the chrome mechanism after its own consumers — flagged independently by 3 of 4 researchers). **Phase 21 Layout & Layering Foundations** (FOUND-01..05 + NAV-01/02/03): the bottom-space arithmetic is duplicated across 7–9 sites in four notations that already disagree by one safe-area inset and three v2.1 features consume it, so it collapses to one owner FIRST — together with the installed-PWA bottom-gap bug that lives in the same arithmetic; the tab rename rides along as the lowest-risk item and an early confidence win. **Phase 22 Surface Motion & the Chrome Mechanism** (SHEET-01/02 + CHROME-01/03/04/05 + NAV-05/06): the `<Sheet>` animation is the highest-regression-risk-per-user-value item (one primitive backs 11+ VoiceOver/keyboard-verified surfaces) so it is the FIRST slice and stays backable-out, with enter-only animation an acceptable degraded ship; the chrome mechanism debuts on GizzVerse (the easier surface) before the live-show path depends on it. **Phase 23 Immersive In-Show Experience** (INSHOW-01..05 + CHROME-02): the headline live-value, dependent on the chrome mechanism + layering fix + animated primitive. **Phase 24 Reactions & Small Polish** (REACT-01..06 + NAV-04 + POLISH-03): parallel-safe with 23 once 21 lands; rewrites shipped device-verified Phase-20 code so it carries its own focused device UAT. **Deviation from research:** CHROME-03/04/05 moved from the proposed Phase 23 to Phase 22 — they are mechanism invariants (escapability, a11y-tree removal, one-resize/no-reheat), and Phase 22 is the first phase in which a user can ENTER chrome-hidden state, so deferring them would leave a phase boundary where an installed-PWA user can strand themselves (force-quit costs the wake lock mid-show); CHROME-05 also names the GizzVerse simulation explicitly, making Phase 22 its verification surface. Phase 23 owns CHROME-02 alone. **Standing constraints:** regression risk dominates build risk (zero new domain capability, zero new runtime deps); FOUND-03 is "write the invariant test, renumber nothing" — no phase may promise a z-tier renumbering, a device repro resolves the structural-vs-numeric researcher disagreement; 6 device-verification items are budgeted INSIDE their owning phase (FOUND-01/FOUND-05/NAV-03 in 21, SHEET-02/NAV-06 in 22, REACT-04 in 24); no phase may leave the live-tracking loop broken — the app is already show-ready for Aug 2026.
 - Roadmap (v2.0): 27 requirements mapped to 4 phases (17–20), 100% coverage, one requirement category per phase — **SETUP + AUTH gate everything** (no identity → no `user_id` to key progress/presence). Phase 17 Backend Foundation & Secrets (SETUP-01..04: Supabase schema + read-all/write-own RLS + realtime publication, idempotent seed script, service_role/passwords env-only, core-purity boundary). Phase 18 Accounts & Offline-Safe Identity (AUTH-01..08; AUTH-02 offline-safe `getSession()` boot is the highest-risk item — must not regress v1 offline boot — device-verify before 19/20 build on it; ships the 'Gizz With Friends' rebrand). Phase 19 Shared Dex Progress (PROG-01..08; depends on AUTH identity + pure-core `deriveSharedProgress` Option-B payload; PROG-06 live `compareDexes` reuse needs that payload). Phase 20 Presence & Interactions (PRES-01..07; depends on AUTH but Postgres-independent/Realtime-only — parallelizable with 19; ephemeral presence/waves never persisted, coarse tab-level status only to stay clear of the deferred SOCL-V2-01 line).
 - Roadmap (v1.2): 22 requirements mapped to 6 phases (11–16), 100% coverage. **Bugs before Bingo** — Phase 11 Live-Sync & Prediction Correctness (LIVE-01/02/03 + PRED-01/02/03, Tier-1 residency-failure cluster, FIRST) → Phase 12 Data Safety & Integrity (SAFE-01..04) → Phase 13 Interface & Explore Polish (UX-01..04, lowest severity). Gizz Bingo decomposed into 3 phases behind TWO hard gates (GATE 1 = Phase 11 live-sync correctness; GATE 2 = Monte-Carlo fill-rate calibration writing locked constants to config.ts): Phase 14 pure-core marking/generation (BINGO-03) → Phase 15 persistence/lock/replay (BINGO-06/07) → Phase 16 build/live-marking/celebrations (BINGO-01/02/04/05/08). Segue excluded from the auto-mark catalog (TrackedEntry is song-level, no transitionKind).
 - Roadmap (v1.1): 9 hardening requirements grouped into 3 phases by theme — Phase 8 (UI polish + a11y, frontend), Phase 9 (data integrity + restore UX, core/data), Phase 10 (human/device pre-show validation). VALID-01/VALID-02 are human/device checkpoints, isolated in the final verification phase which depends on 8 and 9.
@@ -317,9 +329,11 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 ## Session Continuity
 
 Last session: 2026-07-24
-Stopped at: v2.0 "Multi-User Foundation" COMPLETE — archived + tagged (v2.0) + pushed. Close-time mobile Realtime foreground-rejoin bug fixed (both channels) and two-device device-verified. Next: v2.1 "UX/UI Polish".
-Resume file: .planning/v2.1-ux-polish-backlog.md
+Stopped at: v2.1 "UX/UI Polish" roadmap CREATED — 30 requirements mapped to Phases 21–24 (100% coverage, no orphans). Foundation-first ordering; CHROME-03/04/05 deliberately pulled forward into Phase 22 with the mechanism's first consumer. Nothing built yet.
+Resume file: .planning/ROADMAP.md (§ v2.1 Phase Details)
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan the first v2.1 phase with `/gsd-plan-phase 21` (Layout & Layering Foundations)
+- Phase 21 and Phase 24 are flagged for deeper research/device spikes (see research/SUMMARY.md § Research Flags): Phase 21 needs an on-device inset measurement gate on an INSTALLED instance (a `#/dev/insets` route following the `#/dev/orb-fit` precedent), portrait and landscape; Phase 24's fly-up motion parameters and concurrency caps are LOW confidence and must be instrumented on device
+- Phases 22 and 23 use existing in-repo primitives with documented precedents — skip `--research-phase`
