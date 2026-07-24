@@ -4,6 +4,9 @@ title: "Bug: mobile Friends-list activity labels update inconsistently"
 area: bug
 source: 20-05 two-device UAT (owner, 2026-07-24)
 severity: medium
+status: fix-implemented-awaits-device-recheck
+fix_commit: df6515c
+fix_ref: quick 260724-hqu
 files:
   - packages/app/src/sync/usePresence.ts
   - packages/app/src/sync/presenceSync.ts
@@ -71,7 +74,26 @@ The activity read path is entirely `presence:sync`-driven:
   waiting for the next peer-driven diff.
 - Verify the fix on two devices (mobile observer) before closing.
 
+## Fix implemented (2026-07-24, quick 260724-hqu, commit df6515c) — AWAITS DEVICE RECHECK
+
+Hypothesis H1/H2 (WebSocket suspension → missed `sync` with no resync-on-resume) was
+adopted. `usePresence.ts` now increments a `visibleEpoch` on each hidden→visible edge
+(via `prevHiddenRef`) and includes it in the lifecycle effect's deps, so a real mobile
+foreground tears down and re-opens the `gizz-room` channel → fresh subscribe → fresh
+`sync`, reconciling stale friend activity immediately. Backgrounding and in-app
+navigation deliberately do NOT re-open (no subscription churn). Unit tests in
+`packages/app/test/sync/usePresence.test.tsx` assert the foreground edge re-opens and an
+in-app route change does not. tsc clean; 951 tests green.
+
+**Left pending on purpose:** the unit test proves the re-open TRIGGER fires — it does not
+prove live realtime recovery over a genuinely suspended mobile socket. Close this todo
+only after a two-device on-device recheck (mobile observer switches tabs, backgrounds,
+returns → the friend's activity label updates promptly). If it still lags on-device, the
+next lever is H3/H4 (Realtime events-per-second throttle on the sender, or a stale
+multi-device entry winning in `reduceActivity`).
+
 ## Next
 
-Run `/gsd-debug` on this (stateful investigation), or `/gsd-plan-phase 20 --gaps`
-if it's decided to fold the fix into a Phase-20 closure plan.
+Two-device on-device recheck next session. If confirmed fixed, move this file to
+`.planning/todos/completed/`. If not, `/gsd-debug` with the on-device instrumentation
+noted above.
