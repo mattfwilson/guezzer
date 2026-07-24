@@ -1,5 +1,5 @@
 ---
-status: passed
+status: complete
 phase: 19-shared-dex-progress
 source: [19-04-PLAN.md]
 started: 2026-07-23

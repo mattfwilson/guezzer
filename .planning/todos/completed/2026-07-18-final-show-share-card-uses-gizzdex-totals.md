@@ -9,6 +9,8 @@ files:
   - packages/app/src/dex/useDexStats.ts
 ---
 
+> **RESOLVED 2026-07-18 (Phase 10-02, commit `3c09839`):** per-show recap Share card shipped via core `buildRecapShareStats` off `deriveRecap` (six-tier rarity box, share-icon chrome); DexHeader all-time path preserved. Moved to completed at v2.0 close.
+
 ## Problem
 
 When a tracked show ends, the post-show recap (`RecapView`) offers a "Share card"

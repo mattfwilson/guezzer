@@ -1,4 +1,5 @@
 ---
+status: complete
 phase: quick-260718-1no
 plan: 01
 subsystem: show-mode

@@ -1,4 +1,5 @@
 ---
+status: complete
 phase: quick-260717-kxs
 plan: 01
 subsystem: show (LiveGizz tracking view)

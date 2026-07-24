@@ -1,7 +1,8 @@
 ---
 phase: 01-corpus-ingestion-schema-foundation
 verified: 2026-07-08T22:30:00Z
-status: human_needed
+status: passed
+resolution: "DATA-04 tuning spot-check completed by VALID-01 (Phase 10, 2026-07-18, zero backtest regression); the human_verification item below is superseded."
 score: 5/5 must-haves verified
 overrides_applied: 0
 human_verification:

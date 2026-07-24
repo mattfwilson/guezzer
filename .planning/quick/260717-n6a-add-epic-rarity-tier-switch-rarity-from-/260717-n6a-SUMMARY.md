@@ -1,4 +1,5 @@
 ---
+status: complete
 phase: quick-260717-n6a
 plan: 01
 subsystem: dex/rarity

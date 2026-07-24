@@ -1,4 +1,5 @@
 ---
+status: complete
 phase: quick-260717-ij8
 plan: 01
 subsystem: app/show

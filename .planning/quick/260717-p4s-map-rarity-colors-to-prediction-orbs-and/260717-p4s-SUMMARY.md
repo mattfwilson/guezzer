@@ -1,4 +1,5 @@
 ---
+status: complete
 phase: quick-260717-p4s
 plan: 01
 subsystem: show-mode-ui / dex-styling

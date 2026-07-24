@@ -1,4 +1,5 @@
 ---
+status: complete
 phase: quick-260717-gvm
 plan: 01
 subsystem: app/show

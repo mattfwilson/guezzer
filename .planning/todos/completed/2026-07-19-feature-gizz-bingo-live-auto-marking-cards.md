@@ -10,6 +10,8 @@ files:
   - packages/app/src/components/BottomTabBar.tsx
 ---
 
+> **SHIPPED across v1.2 Phases 14–16 (2026-07-20/21):** Gizz Bingo delivered — pure-core consume-once `deriveMarks` + seeded deal (Phase 14), Dexie-persisted lock/replay (Phase 15), live auto-marking + celebrations + trophy PNG (Phase 16). BINGO-01..08 all validated on-device. Moved to completed at v2.0 close.
+
 ## Problem
 
 **Feature idea #3 — THE casual +1 anchor: the answer to "how do we engage users who don't know
