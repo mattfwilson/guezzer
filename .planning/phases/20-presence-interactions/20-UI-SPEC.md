@@ -1,10 +1,11 @@
 ---
 phase: 20
 slug: presence-interactions
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-24
+reviewed_at: 2026-07-24
 ---
 
 # Phase 20 — UI Design Contract
