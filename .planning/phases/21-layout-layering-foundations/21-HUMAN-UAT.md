@@ -1,23 +1,25 @@
 ---
-status: partial
+status: diagnosed
 phase: 21-layout-layering-foundations
 source: [21-VALIDATION.md, 21-UI-SPEC.md]
 started: 2026-07-25T01:16:45Z
-updated: 2026-07-25T02:41:00Z
+updated: 2026-07-25T03:20:00Z
 ---
 
 ## Current Test
 
-number: 1
-name: Installed-PWA bottom gap — BEFORE half, NUMERIC capture (FOUND-01)
-expected: |
-  The gap is confirmed to reproduce visually. What remains is the measurement that picks the fix:
-  on the installed instance with `?layoutProbe=1`, on a NAMED route, record `sab`, `bodyH-rootH`
-  and `>>> GAP` in portrait AND landscape.
+[both plan-21-04 gates resolved by static analysis — see tests 1 and 7]
 
-  `bodyH-rootH === sab` AND `GAP === sab` → D-15 confirmed → 21-07 deletes `styles.css:220`.
-  `GAP != sab` (non-zero)              → D-15 falsified → 21-07 opens the D-14 investigation.
-awaiting: user response
+Plan 21-04's three `must_haves` are now answerable WITHOUT a device session:
+  - test 7 names the offending surfaces      → SearchSheet + FabMenu (stacking-context nesting)
+  - test 1 selects a branch                  → CONFIRMATION BRANCH (D-15 confirmed)
+  - 21-07 and 21-11 therefore know what to build.
+
+Waves 3-8 are unblocked. What remains OWED to the requirement (not to development):
+  - Success criterion 1's on-device before/after record, portrait AND landscape (D-18) — and it
+    needs a CORRECTED probe first; the shipped `GAP` formula measures a constant (see test 1).
+  - Test 3's max-Dynamic-Type pass, test 5's D-37 descender check, test 6's mixed-build run,
+    and tests 2/4/8 which are AFTER-the-fix confirmations. All batched into plan 21-13.
 
 ## Session Notes
 
@@ -103,7 +105,45 @@ result: |
   - Route was not stated. `<main>`'s bottom padding adds a dynamic `overlayInset` on `#/show`
     (`AppShell.tsx:75-77`), so the route must be named for the AFTER run to be comparable.
 
-  Outstanding: numeric BEFORE capture via `?layoutProbe=1`, both orientations, on a named route.
+  BRANCH RESOLVED ANALYTICALLY (2026-07-25, Claude) — CONFIRMATION BRANCH (D-15 confirmed).
+
+  The layout chain is fully determined by source; no measurement is needed to select the branch.
+  Premises, each verified in-tree:
+    - `html, body, #root { height: 100% }` (`styles.css:15-19`)
+    - `body { margin: 0 }` and a bottom inset but NO top inset (`styles.css:205-224`)
+    - Tailwind preflight `box-sizing: border-box` (`@import "tailwindcss"`, `styles.css:1`)
+    - `<main>` is `flex-1` inside AppShell's `h-full` column (`AppShell.tsx:39,62-67`)
+    - `<nav>` is `fixed bottom-0`, height `calc(4rem + env(sab))` (`BottomTabBar.tsx:28,33`)
+    - `overlayInset` defaults to 0 (`pwa/bottomOverlayInset.ts:24`)
+
+  With V = visible viewport height and S = env(safe-area-inset-bottom):
+    body border-box = V, so body CONTENT box = V - S
+    #root = 100% of body's content box  = V - S
+    <main> border-box bottom             = V - S
+    <main> content bottom  = (V - S) - (4rem + S) = V - 4rem - 2S
+    <nav> is FIXED, so viewport-relative, ignoring body padding entirely:
+    nav top                              = V - 4rem - S
+
+    DEAD GAP = navTop - mainContentBottom = S   ← exactly one safe-area inset
+
+  This is precisely D-15: the body-level inset is counted while the fixed tab bar ignores it.
+  Deleting `styles.css:220` puts main's content bottom at V - 4rem - S — flush. Plan 21-07 is
+  therefore licensed to remove the declaration. The left/right body gutters stay (no duplicate).
+
+  HARNESS DEFECT FOUND — the probe cannot measure this (blocks a meaningful AFTER run):
+    - `GAP` is computed as `tabTop - main.getBoundingClientRect().bottom`. `getBoundingClientRect`
+      returns the BORDER box, which INCLUDES main's padding, so
+      GAP = (V - 4rem - S) - (V - S) = -4rem — a constant, independent of S, identical before and
+      after the fix. It never measured the dead gap.
+    - `bodyH-rootH` equals S by construction on ANY build, fixed or not — it confirms the body
+      padding exists but is not evidence of a defect.
+    Both "load-bearing" lines are non-discriminating. The probe needs its GAP formula corrected to
+    `navTop - (mainRect.bottom - mainPaddingBottom)` before the D-18 before/after capture can mean
+    anything.
+
+  STILL OWED (requirement bookkeeping, no longer a development blocker): success criterion 1 says
+  "measured on-device before and after, portrait AND landscape". The derivation licenses the code
+  change; it does not substitute for that record. Capture it with a FIXED probe in plan 21-13.
 severity: major
 
 ### 2. bottom-16 overlay overlap on the installed instance (FOUND-02)
@@ -266,7 +306,52 @@ expected: |
     (anything on the shared `<Sheet>` primitive) should paint correctly OVER the band — that
     contrast is what proves the diagnosis is nesting, not tier numbering.
 result: |
-  PENDING
+  RESOLVED BY STATIC ANALYSIS (2026-07-25, Claude) — browser repro NOT run (the Chrome extension
+  was not connected). The offending surfaces are named below with spec-level certainty; the manual
+  repro remains available for confirmation but is no longer a blocker on plan 21-11.
+
+  OFFENDING SURFACES — `SearchSheet` and `FabMenu` (both scrim and speed-dial rows).
+
+  Why, per CSS spec rather than observation. `ShowView.withBackground` (`ShowView.tsx:174-185`)
+  wraps the show column in `className="relative ..."` + `style={{ zIndex: config.ui.z.content }}`.
+  `position: relative` with a NON-auto `z-index` creates a stacking context by spec. Therefore
+  every descendant's z-index is resolved WITHIN that context, and the whole subtree composites
+  against the root at effective level 10.
+
+  Both defective surfaces render inside `withBackground` (`ShowView.tsx:507,599,612`):
+    - `SearchSheet`  — `zIndex: config.ui.z.sheet` (50)      → effective 10
+    - `FabMenu`      — `zIndex: config.ui.z.fabScrim` (25)   → effective 10
+                       `zIndex: config.ui.z.fab` (30)        → effective 10
+
+  The toast family renders as SIBLINGS of `<AppShell>` in `App.tsx:128-130+` (InstallBanner,
+  UpdateToast, BackupToast, WaveToast, BingoCelebration, and the `LayerReproToast` harness), so
+  they sit in the ROOT stacking context at their literal tier — `toast: 20`.
+
+  20 (root) > 10 (the whole ShowView subtree). A `sheet: 50` loses to a `toast: 20` at any number.
+  This is D-20's predicted signature exactly: the tier numbers are consistent and the NESTING is
+  not. Renumbering cannot fix it — 50 already loses — which is why the standing constraint
+  ("write the invariant test, renumber nothing") is correct.
+
+  Tap-eating follows from paint order: `LayerReproToast` is deliberately not `pointer-events-none`
+  (`layerRepro.tsx:17-20`), so wherever it paints on top it also receives the events. The FabMenu
+  case is the venue-relevant one (D-27) — a toast eating speed-dial taps mid-show.
+
+  NEGATIVE CASE CONFIRMS THE DIAGNOSIS: `Sheet.tsx` is the ONLY `createPortal` site in the app
+  (`Sheet.tsx:77,90` — verified by an exhaustive grep for `createPortal` across `packages/app/src`).
+  Surfaces on the shared `<Sheet>` primitive escape to `document.body` and therefore composite in
+  the root context at their literal tier, winning against `toast: 20` as designed. Same tier
+  numbers, opposite outcome, decided purely by DOM position — which is what proves the cause is
+  nesting rather than tier numbering.
+
+  Plan 21-11's fix (portal `SearchSheet` and `FabMenu` to `document.body`, renumber nothing) is
+  confirmed correct and is unblocked.
+
+  CONFIDENCE / LIMITS: the paint-order conclusion is deductive from the CSS stacking-context rules
+  plus verified source, so it is stronger than a one-off eyeball. It is NOT an observation — it
+  assumes no other ancestor introduces a stacking context and no `isolation`/`transform`/`filter`
+  intervenes. Plan 21-11's `layerOrder.test.tsx` ancestor-walk invariant is what should convert
+  this from analysis into a permanent mechanical guarantee; run the `?layerRepro=1` repro
+  opportunistically to confirm.
 
 ### 8. SearchSheet gesture suppression after portaling (FOUND-03, D-23)
 expected: |
@@ -378,11 +463,18 @@ Session 1 (2026-07-25) — device pass on the installed instance, tunnel build `
 
 | Test | Result |
 |------|--------|
-| 1. Bottom gap (BEFORE) | ISSUE — reproduces visually; numeric capture outstanding |
+| 1. Bottom gap (BEFORE) | ISSUE — reproduces; branch RESOLVED analytically (D-15 confirmed) |
 | 3. Tab strip / Dynamic Type | PASS (max-text-size pass unconfirmed) |
 | 5. Share-card footer | PASS (D-37 descender check unconfirmed) |
 | 6. Mixed-build presence | PENDING — same-build labels good, mixed-build case untouched |
-| 2, 4, 7, 8 | Not run |
+| 7. Layer paint order | RESOLVED by static analysis — SearchSheet + FabMenu named |
+| 2, 4, 8 | Blocked on plans 21-10 / 21-11 |
+
+Session 2 (2026-07-25) — static analysis, no device. Both plan-21-04 gates resolved from source:
+test 1's branch (CONFIRMATION — the dead gap derives to exactly one safe-area inset) and test 7's
+offending surfaces (SearchSheet + FabMenu, trapped in ShowView's `content: 10` stacking context).
+Also surfaced a defect in the 21-01 `?layoutProbe=1` harness: its `GAP` formula measures a
+constant and could never have discriminated the branches. See tests 1 and 7 for full derivations.
 
 Also confirmed this session, outside the 8 numbered tests: **FOUND-04 full-date rendering** reads
 correctly and consistently across all five call sites (ShowView header, ShowsList, SetlistView,
@@ -409,7 +501,11 @@ Notes:
     on the installed instance."
   severity: major
   test: 1
-  root_cause: ""     # Cannot be assigned without the numeric capture — two candidate causes remain
+  root_cause: "body's `padding-bottom: env(safe-area-inset-bottom)` (styles.css:220) shortens
+    #root and therefore <main>'s box by S, while <main> ALSO reserves `4rem + env(sab)` of its own
+    padding — so the inset is counted twice on the content side. The tab bar is `fixed bottom-0`
+    and viewport-relative, so it ignores body padding entirely. Net dead gap = exactly one S.
+    D-15 confirmed by derivation from source (see test 1 result for the full chain)."
   artifacts:
     - path: "packages/app/src/styles.css:220"
       issue: "body padding-bottom: env(safe-area-inset-bottom) — D-15's predicted double-count"
@@ -418,7 +514,40 @@ Notes:
     - path: "packages/app/src/components/AppShell.tsx:75-77"
       issue: "main paddingBottom calc(4rem + env(...) + overlayInset) — the third owner"
   missing:
-    - "Numeric BEFORE capture (sab, bodyH-rootH, GAP) via ?layoutProbe=1, portrait AND landscape,
-       on a named route — this is what selects between deleting styles.css:220 (D-15 confirmed)
-       and opening the D-14 viewport-vs-box-model investigation (D-15 falsified)."
+    - "Delete `padding-bottom: env(safe-area-inset-bottom)` from body (styles.css:220) as part of
+       plan 21-07's single-owner conversion. The measurement gate is satisfied by derivation."
+    - "FIX the ?layoutProbe=1 GAP formula before any D-18 before/after capture: it currently reads
+       `tabTop - mainRect.bottom`, which includes main's padding and evaluates to a constant -4rem
+       regardless of the inset. It must read `navTop - (mainRect.bottom - mainPaddingBottom)` to
+       measure the actual dead space."
+    - "On-device before/after record, portrait AND landscape, for success criterion 1's bookkeeping
+       (plan 21-13) — owed to the requirement, not blocking development."
+  debug_session: ""
+
+- truth: "No surface can paint over an open modal sheet; any tier renumbering requires a repro
+    naming the offending surface first (FOUND-03, success criterion 3, D-20)"
+  status: diagnosed
+  reason: "Static analysis (2026-07-25) — SearchSheet and FabMenu are trapped inside ShowView's
+    `content: 10` stacking context and lose to root-level `toast: 20` siblings of AppShell."
+  severity: major
+  test: 7
+  root_cause: "`ShowView.withBackground` (ShowView.tsx:174-185) sets `position: relative` plus a
+    non-auto `zIndex: config.ui.z.content` (10), which creates a stacking context by CSS spec. Every
+    descendant z-index resolves inside it, so the entire ShowView subtree composites at effective
+    level 10 — including SearchSheet (sheet: 50) and FabMenu (fabScrim: 25 / fab: 30). The toast
+    family renders as siblings of <AppShell> in App.tsx and keeps its literal `toast: 20` in the
+    root context. 20 beats 10, so a 50 loses to a 20. Nesting, not tier numbering — D-20 confirmed."
+  artifacts:
+    - path: "packages/app/src/show/ShowView.tsx:174-185"
+      issue: "relative + zIndex:content creates the trapping stacking context"
+    - path: "packages/app/src/show/SearchSheet.tsx:99-100"
+      issue: "sheet: 50 rendered inside the trap; not portaled"
+    - path: "packages/app/src/show/FabMenu.tsx:120,129"
+      issue: "fabScrim: 25 / fab: 30 inside the trap — D-27, eats speed-dial taps mid-show"
+    - path: "packages/app/src/components/Sheet.tsx:77,90"
+      issue: "NEGATIVE CASE — the only createPortal site in the app; these surfaces behave"
+  missing:
+    - "Portal SearchSheet and FabMenu (scrim + rows) to document.body — plan 21-11, renumber nothing."
+    - "layerOrder.test.tsx ancestor-walk invariant to convert this analysis into a mechanical guard."
+    - "Re-apply gesture-suppression classes on the portaled roots (D-23, test 8)."
   debug_session: ""
