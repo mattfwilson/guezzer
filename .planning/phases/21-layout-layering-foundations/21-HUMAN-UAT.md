@@ -1,12 +1,22 @@
 ---
-status: pending
+status: testing
 phase: 21-layout-layering-foundations
 source: [21-VALIDATION.md, 21-UI-SPEC.md]
 started: 2026-07-25T01:16:45Z
-updated: 2026-07-25T01:16:45Z
+updated: 2026-07-25T02:04:00Z
 ---
 
 ## Current Test
+
+number: 1
+name: Installed-PWA bottom gap — BEFORE half, portrait and landscape (FOUND-01)
+expected: |
+  On the installed home-screen PWA with `?layoutProbe=1`, record `sab`, `bodyH-rootH` and `>>> GAP`
+  in BOTH orientations, plus device/OS/dpr/htmlFont. Confirm `standalone: nav=true` first.
+  Branch on the numbers per the test-1 entry below (confirmation / GAP===0 / GAP!=sab).
+awaiting: user response
+
+## Session Notes
 
 Tests **1 (the BEFORE half)** and **7** are the next open items, and they are the two that gate
 downstream work:
