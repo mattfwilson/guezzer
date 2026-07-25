@@ -85,6 +85,11 @@ function showData(): ShareCardData {
   };
 }
 
+/** A per-show recap card for a named date/venue — the FOUND-05 footer fixtures. */
+function showDataAt(date: string, venue: string | null): ShareCardData {
+  return { ...(showData() as Extract<ShareCardData, { scope: "show" }>), show: { date, venue } };
+}
+
 interface RecordedCall {
   fn: string;
   args: unknown[];
@@ -111,6 +116,21 @@ function makeMockCtx() {
     restore() {},
   };
   return { ctx, calls };
+}
+
+/** The footer `date · venue` line is the LAST text both card branches draw. */
+function footerLine(calls: RecordedCall[]): string {
+  const texts = calls.filter((c) => c.fn === "fillText");
+  return String(texts[texts.length - 1]?.args[0] ?? "");
+}
+
+function drawnCalls(data: ShareCardData): RecordedCall[] {
+  const { ctx, calls } = makeMockCtx();
+  drawShareCard(ctx as unknown as CanvasRenderingContext2D, data, {
+    width: config.share.CARD_WIDTH,
+    height: config.share.CARD_HEIGHT,
+  });
+  return calls;
 }
 
 const file = () => new File(["png-bytes"], "guezzer-dex.png", { type: "image/png" });
@@ -235,6 +255,25 @@ describe("drawShareCard — pure (ctx, data) canvas draw (Pitfall 8)", () => {
     expect(calls.some((c) => c.fn === "fillText" && String(c.args[0]) === config.copy.share.card.showLabel)).toBe(true);
     // The vertical box still renders every tier label (shared renderer).
     expect(calls.some((c) => c.fn === "fillText" && String(c.args[0]) === config.copy.dex.tierLabels.epic)).toBe(true);
+  });
+});
+
+describe("share-card footer — formatted date, ellipsized venue (FOUND-05 / D-36)", () => {
+  it("draws 'Mon D, YYYY · Venue' and ellipsizes only the venue when the line overflows", () => {
+    const short = footerLine(drawnCalls(showDataAt("2026-08-14", "Red Rocks")));
+    expect(short).toBe("Aug 14, 2026 · Red Rocks");
+
+    const long = footerLine(
+      drawnCalls(
+        showDataAt(
+          "2026-08-14",
+          "Saint Augustine Amphitheatre at the Anastasia Island Fairgrounds and Concert Lawn Pavilion",
+        ),
+      ),
+    );
+    expect(long).toBe("Aug 14, 2026 · Saint Augustine Amphitheatre at the Anastasia Island Fairgrounds …");
+    expect(long).toContain("Aug 14, 2026");
+    expect(long.length * 12).toBeLessThanOrEqual(config.share.CARD_WIDTH * 0.9);
   });
 });
 
