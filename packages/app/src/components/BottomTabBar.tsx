@@ -26,12 +26,18 @@ export function BottomTabBar() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 flex items-stretch justify-around border-t border-hairline bg-elevated"
-      // Fixed 4rem button-area height (matches AppShell's <main> bottom reservation
-      // so body content sits flush with the top of the tabs — no dead gap), with the
-      // iOS home-indicator safe-area gutter ADDED below it (border-box).
+      // FOUND-02: the bar's height IS the chrome reserve — this side and AppShell's
+      // <main> now read the SAME `--gz-chrome-reserve` from the one owner in
+      // layout/bottomSpace.ts, so they cannot drift. The home-indicator gutter is
+      // subtracted back out as padding, leaving the button area at the bar's height
+      // minus its own inset (border-box) — geometrically identical to what shipped.
+      // The old comment here claimed a hand-written bar height "matches AppShell's
+      // bottom reservation ... no dead gap"; the plan-21-04 measurement proved otherwise
+      // (FOUND-01, CONFIRMATION BRANCH: body's bottom inset was double-counted
+      // against this bar, leaving a dead gap of exactly one safe-area inset).
       style={{
-        height: "calc(4rem + env(safe-area-inset-bottom))",
-        paddingBottom: "env(safe-area-inset-bottom)",
+        height: "var(--gz-chrome-reserve)",
+        paddingBottom: "var(--gz-safe-bottom)",
       }}
     >
       {TABS.map(({ route, label, Icon }) => {

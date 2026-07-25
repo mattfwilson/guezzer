@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Menu } from "lucide-react";
 import { BottomTabBar } from "./BottomTabBar";
 import { IdentityAvatar } from "../auth/IdentityAvatar.tsx";
-import { useBottomOverlayInset } from "../pwa/bottomOverlayInset";
+import { useBottomSpaceVars } from "../layout/bottomSpace.ts";
 
 export function AppShell({
   children,
@@ -19,17 +19,23 @@ export function AppShell({
    */
   scroll?: boolean;
 }) {
-  // Bug fix (debug session: start-show-not-clickable) — the base 4rem here
-  // matches the fixed BottomTabBar; `overlayInset` adds whatever height any
-  // OTHER fixed-bottom overlay (InstallBanner, UpdateToast) is really
+  // Bug fix (debug session: start-show-not-clickable) — this hook writes the
+  // `--gz-*` bottom-space ladder (layout/bottomSpace.ts, the FOUND-02 single
+  // owner) onto document.documentElement. <main> reserves `--gz-content-reserve`
+  // on scrolling routes, and that composition already folds in whatever height
+  // any OTHER fixed-bottom overlay (InstallBanner, UpdateToast) is really
   // rendering at right now, so <main>'s content is never covered/untappable
-  // underneath one of those overlays. See pwa/bottomOverlayInset.ts.
-  const overlayInset = useBottomOverlayInset();
+  // underneath one of those overlays. See pwa/bottomOverlayInset.ts — that
+  // module still does the measuring; useBottomSpaceVars() now consumes it in
+  // this component's place.
+  useBottomSpaceVars();
 
   // Bug fix (debug session: start-show-not-clickable) — height is `h-full`
   // ONLY, never `min-h-screen`. The `html/body/#root { height:100% }` chain
-  // (styles.css) grounds `h-full` to the real VISIBLE viewport (and it already
-  // respects body's safe-area padding). `min-h-screen` (=100vh) is the iOS
+  // (styles.css) grounds `h-full` to the real VISIBLE viewport (the bottom
+  // safe-area inset is now reserved by `--gz-content-reserve` /
+  // `--gz-chrome-reserve` on <main>, not by body padding — Phase-21 FOUND-01
+  // deleted that body-level declaration). `min-h-screen` (=100vh) is the iOS
   // trap: on mobile Safari 100vh is the LARGE viewport (toolbars hidden), so it
   // forced this column taller than the visible screen — vertically-centered
   // content (PreShowLauncher's Start Show button) then centered against a box
@@ -72,9 +78,14 @@ export function AppShell({
           // those overlays FLOAT over the bottom edge — reserving the inset here would
           // permanently squish a `flex-1` full-height stage every time a transient
           // banner appears. Only the static tab-bar height is reserved for them.
+          // D-02: this divergence is deliberate and preserved. The two values are no
+          // longer two hand-written strings but the owner's two NAMED compositions —
+          // `--gz-content-reserve` (chrome + the measured overlay inset) and
+          // `--gz-chrome-reserve` (chrome alone). See layout/bottomSpace.ts; they must
+          // not be collapsed into one value.
           paddingBottom: scroll
-            ? `calc(4rem + env(safe-area-inset-bottom) + ${overlayInset}px)`
-            : `calc(4rem + env(safe-area-inset-bottom))`,
+            ? "var(--gz-content-reserve)"
+            : "var(--gz-chrome-reserve)",
         }}
       >
         {children}

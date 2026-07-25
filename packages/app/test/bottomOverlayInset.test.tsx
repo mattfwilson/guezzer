@@ -57,14 +57,26 @@ describe("bottomOverlayInset store", () => {
   });
 });
 
-// jsdom's CSSOM re-serializes `calc()` term order (e.g. "4rem + 0px" comes
-// back out as "0px + 4rem") — functionally identical (addition commutes), so
-// assertions below check both terms are present rather than exact string
-// equality, which would be coupled to jsdom's serialization quirk.
+/**
+ * Phase-21 FOUND-02 conversion. `<main>` no longer hand-writes
+ * `calc(4rem + env(...) + Npx)`; it reserves `var(--gz-content-reserve)`, and the
+ * measured overlay height reaches that composition through `--gz-overlay-inset` on
+ * `document.documentElement` (layout/bottomSpace.ts, the single owner).
+ *
+ * The regression this file exists to guard is UNCHANGED: a tall InstallBanner's REAL
+ * rendered height must still be reserved, never a static guess. So the assertion now
+ * checks both halves of the new path — that `<main>` reserves the content
+ * composition, and that the composition's overlay term carries the registered height.
+ *
+ * Read the reservation off the `style` ATTRIBUTE, not `main.style.paddingBottom`:
+ * jsdom's CSS parser does not reliably round-trip a `var()` value through a typed
+ * longhand property.
+ */
 function expectPaddingBottom(main: HTMLElement, px: number): void {
-  const value = main.style.paddingBottom;
-  expect(value).toContain("4rem");
-  expect(value).toContain(`${px}px`);
+  expect(main.getAttribute("style")).toContain("var(--gz-content-reserve)");
+  expect(
+    document.documentElement.style.getPropertyValue("--gz-overlay-inset"),
+  ).toBe(`${px}px`);
 }
 
 describe("AppShell bottom padding reservation", () => {
@@ -73,7 +85,7 @@ describe("AppShell bottom padding reservation", () => {
     __resetBottomOverlayInsetForTests();
   });
 
-  it("reserves only the base 4rem (BottomTabBar) when no overlay is registered", () => {
+  it("reserves only the base chrome (BottomTabBar) when no overlay is registered", () => {
     const { container } = render(
       <AppShell>
         <div>content</div>
