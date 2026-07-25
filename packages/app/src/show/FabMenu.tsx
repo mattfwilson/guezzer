@@ -36,9 +36,20 @@
  * re-expressed, not undone — the reserved slot is always ≥ the rendered rows it
  * holds. The motion-safe transition glides that one reposition. Never accent —
  * gold is reserved for Start Show / focus ring (UI-SPEC §Color).
+ *
+ * Phase-21 FOUND-03 / D-20/D-27 — PORTALED to `document.body`. This is the worst
+ * symptom of the nesting defect, because it lands in the LIVE-LOGGING LOOP.
+ * `ShowView.withBackground` gives the show column `position: relative` +
+ * `zIndex: config.ui.z.content`, which creates a stacking context, so the scrim's
+ * `fabScrim: 25` and the speed-dial's `fab: 30` were both composited at effective
+ * level 10 and lost to the `toast: 20` siblings of `<AppShell>`. A toast could
+ * therefore paint over the open speed-dial and EAT a tap mid-show — a lost song,
+ * with no error to notice (21-HUMAN-UAT §7, T-21-30). No tier is renumbered: the
+ * numbers were never wrong, the nesting was.
  */
 import { CircleHelp, CircleStop, ListChecks, Minus, Plus, Search, Star, Undo2 } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { config } from "../config.ts";
 import { showBottomFabOffset } from "./fabLayout.ts";
 
@@ -113,7 +124,21 @@ export function FabMenu({
   const bottomOffset = showBottomFabOffset(stripSlotReserved);
   const rightOffset = "calc(env(safe-area-inset-right) + 16px)";
 
-  return (
+  // Phase-21 FOUND-03 / D-20/D-27 — SSR-and-jsdom guard, copied from `Sheet.tsx`.
+  if (typeof document === "undefined") return null;
+
+  // Portaling the FAB is a LAYERING fix, not a positioning one. Both roots are
+  // already `position: fixed` and therefore anchored to the VIEWPORT, not to any
+  // ancestor box, so their offsets resolve identically outside `#app-content` —
+  // including `var(--gz-fab-offset)` (plan 21-08), because plan 21-07 writes the
+  // bottom-space ladder onto `document.documentElement` and `document.body`
+  // inherits from it. Nothing about the geometry changes; only which stacking
+  // context the two boxes composite in.
+  //
+  // Both roots travel together in ONE portal so the scrim stays immediately below
+  // the speed-dial in DOM order and their `fabScrim: 25 < fab: 30` relationship is
+  // re-established at the top level rather than inside ShowView's `content: 10`.
+  return createPortal(
     <>
       {/* Full-viewport scrim UNDER the open menu: blocks orbit taps and collapses
           on tap (T-06-04). Only present while open. */}
@@ -172,6 +197,7 @@ export function FabMenu({
           />
         </button>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }

@@ -360,6 +360,43 @@ describe("FOUND-03: no modal sheet-tier surface may sit inside a stacking contex
     expectNoStackingAncestors(fabDial(), "FabMenu speed-dial");
     expectEscapesContentTree(fabScrim(), container, "FabMenu scrim");
     expectEscapesContentTree(fabDial(), container, "FabMenu speed-dial");
+    // Both roots portal to body directly, and together — not one wrapped in the
+    // other, and not one left behind in the content column.
+    expect(fabScrim().parentElement).toBe(document.body);
+    expect(fabDial().parentElement).toBe(document.body);
+  });
+
+  it("FabMenu's RENDERED tiers still satisfy CR-01 after portaling (D-27)", () => {
+    render(
+      <WithBackground>
+        <FabMenu
+          onSearch={vi.fn()}
+          onUnknown={vi.fn()}
+          onSetBreak={vi.fn()}
+          onEncore={vi.fn()}
+          onUndo={vi.fn()}
+          onCatchUp={vi.fn()}
+          onEndShow={vi.fn()}
+          stripSlotReserved={false}
+        />
+      </WithBackground>,
+    );
+    openFabMenu();
+
+    // The config-level guard lives below; this one reads the INLINE values that
+    // actually shipped onto the two boxes, which is what the compositor sees.
+    const scrimZ = Number(fabScrim().style.zIndex);
+    const dialZ = Number(fabDial().style.zIndex);
+    expect(scrimZ).toBe(config.ui.z.fabScrim);
+    expect(dialZ).toBe(config.ui.z.fab);
+    expect(scrimZ).toBeLessThan(dialZ); // CR-01 on the rendered nodes
+
+    // Gesture suppression travelled with them: `.fab-menu` is already in the
+    // styles.css selector list, so neither root needs `gesture-guard`.
+    expect(fabScrim().className).toContain("fab-menu");
+    expect(fabDial().className).toContain("fab-menu");
+    // And the shipped contract the fabMenu.test.tsx queries depend on.
+    expect(fabDial().dataset.stripSlotReserved).toBe("false");
   });
 
   it("the shared <Sheet> primitive is the NEGATIVE case: same tiers, already portaled", () => {
