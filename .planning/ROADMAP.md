@@ -102,9 +102,9 @@ Ordering is dependency-driven and deliberately **reorders the owner's original b
 Plans:
 **Wave 1**
 
-- [ ] 21-01-PLAN.md — Dev harnesses (?layerRepro=1, ?layoutProbe=1) + 21-HUMAN-UAT scaffold
-- [ ] 21-02-PLAN.md — formatDate.ts helper module + rename + importers
-- [ ] 21-03-PLAN.md — Tab + presence label maps (NAV-01/02/03)
+- [x] 21-01-PLAN.md — Dev harnesses (?layerRepro=1, ?layoutProbe=1) + 21-HUMAN-UAT scaffold
+- [x] 21-02-PLAN.md — formatDate.ts helper module + rename + importers
+- [x] 21-03-PLAN.md — Tab + presence label maps (NAV-01/02/03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -240,7 +240,7 @@ This is the research's own stated rationale followed through: validating the mec
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete | 2026-07-22 |
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete | 2026-07-24 |
 | 20. Presence & Interactions | v2.0 | 5/5 | Complete | 2026-07-24 |
-| 21. Layout & Layering Foundations | v2.1 | 0/? | Not started | - |
+| 21. Layout & Layering Foundations | v2.1 | 3/13 | In Progress|  |
 | 22. Surface Motion & the Chrome Mechanism | v2.1 | 0/? | Not started | - |
 | 23. Immersive In-Show Experience | v2.1 | 0/? | Not started | - |
 | 24. Reactions & Small Polish | v2.1 | 0/? | Not started | - |
