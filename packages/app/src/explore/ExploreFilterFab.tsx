@@ -23,10 +23,14 @@ import { ExploreFilterPanel, type ExploreView } from "./ExploreFilterPanel.tsx";
 import { useVisibleViewportHeight } from "./useVisibleViewportHeight.ts";
 
 /**
- * The FAB's resting distance from the viewport bottom in px, matching the numeric
- * terms of `bottomOffset` below (BottomTabBar 64px + 8px gap). `env(safe-area-
- * inset-bottom)` is NOT resolvable in JS, so the lift math omits it — the inset is
- * a small constant and the `FAB_SHEET_GAP_PX` cushion absorbs the rounding.
+ * The FAB's resting distance from the viewport bottom in px, as a JS-side
+ * APPROXIMATION of the CSS `bottomOffset` below (the chrome reserve plus the `sm`
+ * gap). It is a separate literal on purpose: `bottomOffset` is now a `var()`/`env()`
+ * expression, and neither resolves to a number in JS without a `getComputedStyle`
+ * round-trip. This value feeds only the A11Y-02 LIFT math, never the resting
+ * position — so a few px of drift (the home-indicator inset, Dynamic Type growing
+ * the bar) is absorbed by the `FAB_SHEET_GAP_PX` cushion and never moves the FAB
+ * at rest.
  */
 const RESTING_BOTTOM_PX = 64 + 8;
 
@@ -67,10 +71,18 @@ export function ExploreFilterFab({
   onDexOverlayChange,
   lifted,
 }: ExploreFilterFabProps) {
-  // Clear the app BottomTabBar (h-16 = 64px) + a small gap + the home-indicator
-  // inset. NO SUGGESTION_STRIP_HEIGHT term (Show-Mode-only chrome). The tab bar /
-  // gap / inset are layout offsets, not model tunables.
-  const bottomOffset = "calc(env(safe-area-inset-bottom) + 64px + 8px)";
+  // Clear the bottom chrome via the owner's `--gz-chrome-reserve` (FOUND-02) — the
+  // tab-bar height and the home-indicator inset are composed in exactly one place
+  // (`src/layout/bottomSpace.ts`) and read as a variable here. Byte-for-byte the
+  // same rendered value as the arithmetic this replaced.
+  //
+  // The `8px` STAYS an inline literal: it is the UI-SPEC §Spacing `sm` token for the
+  // gap between a lifted control and the surface below it — a spacing decision local
+  // to this FAB, not a bottom-space-owner value, and deliberately outside the D-12
+  // guard's pattern. Do not re-litigate it into `config.ui.bottomSpace`.
+  //
+  // NO SUGGESTION_STRIP_HEIGHT term (Show-Mode-only chrome).
+  const bottomOffset = "calc(var(--gz-chrome-reserve) + 8px)";
   const rightOffset = "calc(env(safe-area-inset-right) + 16px)";
 
   // A11Y-02 lift (D-03, Pattern 5): raise the FAB so it clears the NodeSheet's

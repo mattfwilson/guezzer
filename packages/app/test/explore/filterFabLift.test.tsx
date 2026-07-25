@@ -108,6 +108,21 @@ describe("ExploreFilterFab lift (A11Y-02 / D-03)", () => {
     expect(wrapper.style.zIndex).toBe(String(config.ui.z.fab));
   });
 
+  /**
+   * FOUND-02: the resting bottom offset composes the bottom-space owner's
+   * `--gz-chrome-reserve` instead of re-deriving the tab-bar + safe-area arithmetic.
+   * The `+ 8px` stays inline on purpose — it is the UI-SPEC §Spacing `sm` gap that
+   * belongs to this FAB, not a bottom-space-owner value. The lift assertions above
+   * are untouched: only the notation of the RESTING offset changed, not the value.
+   */
+  it("rests on the owner's chrome reserve, deriving no bottom space of its own", () => {
+    renderFab(false);
+    const style = fabWrapper().getAttribute("style") ?? "";
+    expect(style).toContain("calc(var(--gz-chrome-reserve) + 8px)");
+    expect(style).not.toContain("env(safe-area-inset-bottom)");
+    expect(style).not.toContain("64px");
+  });
+
   it("keeps focusedFab strictly above the sheet tier (no occlusion)", () => {
     // The whole point of D-03: the lifted FAB must out-rank the non-modal sheet.
     expect(config.ui.z.focusedFab).toBeGreaterThan(config.ui.z.sheet);
