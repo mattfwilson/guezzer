@@ -54,6 +54,8 @@
  * surface actually calls `createPortal(…, document.body)` lands in **plan 21-12**.
  * This file proves the invariant at runtime for the surfaces it renders.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -283,6 +285,56 @@ describe("FOUND-03: no modal sheet-tier surface may sit inside a stacking contex
     expect(dialog.getAttribute("aria-modal")).toBe("true");
     expectNoStackingAncestors(dialog, "SearchSheet");
     expectEscapesContentTree(dialog, container, "SearchSheet");
+    // Portaled straight to body, not into some intermediate wrapper.
+    expect(dialog.parentElement).toBe(document.body);
+  });
+
+  it("SearchSheet keeps its contract across the portal (D-21/D-23)", () => {
+    render(
+      <WithBackground>
+        <SearchSheet
+          open
+          onClose={vi.fn()}
+          onSelect={vi.fn()}
+          onUnknown={vi.fn()}
+        />
+      </WithBackground>,
+    );
+
+    const dialog = screen.getByRole("dialog");
+    // a11y contract pinned unchanged.
+    expect(dialog.getAttribute("role")).toBe("dialog");
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(dialog.getAttribute("aria-label")).toBe(
+      config.copy.show.searchPlaceholder,
+    );
+    expect(dialog.style.zIndex).toBe(String(config.ui.z.sheet));
+
+    // D-23 item 1 — gesture suppression is now carried explicitly. jsdom does not
+    // cascade the stylesheet, so this asserts the HOOK; the CSS block itself is
+    // asserted in the styles.css check below and confirmed on-device in 21-13.
+    expect(dialog.className).toContain("gesture-guard");
+
+    // D-23 item 3 — autoFocus still lands on the search input after portaling.
+    const input = screen.getByRole("textbox", {
+      name: config.copy.show.searchPlaceholder,
+    });
+    expect(document.activeElement).toBe(input);
+  });
+
+  it("D-23: styles.css applies the gesture-suppression block to .gesture-guard", () => {
+    // Source read (never `dist`): the class is only useful if the selector list
+    // actually names it, and jsdom cannot tell us that from the rendered node.
+    const css = readFileSync(
+      join(import.meta.dirname, "..", "src", "styles.css"),
+      "utf8",
+    );
+    const block = css.slice(css.indexOf(".orbit-stage,"));
+    const selectorList = block.slice(0, block.indexOf("{"));
+    expect(selectorList).toContain(".gesture-guard");
+    expect(block.slice(0, block.indexOf("}"))).toContain(
+      "-webkit-touch-callout: none",
+    );
   });
 
   it("FabMenu's scrim and speed-dial, opened inside the ShowView content column (D-27)", () => {

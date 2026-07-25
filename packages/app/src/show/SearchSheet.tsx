@@ -15,8 +15,37 @@
  * A no-match query surfaces the copy.show no-match line + an inline "Log as ???"
  * action reusing the ??? handler (D-14). All kglw-derived song names render as
  * React text only — never `dangerouslySetInnerHTML` (T-04-12, ASVS V5).
+ *
+ * Phase-21 FOUND-03 / D-20/D-21 — PORTALED to `document.body`. It renders from
+ * `ShowView.withBackground`, whose content column is `position: relative` +
+ * `zIndex: config.ui.z.content`, and that pair creates a stacking context by spec.
+ * Nested there this sheet's `sheet: 50` was resolved INSIDE a level-10 context, so
+ * the whole subtree composited at 10 and lost to the `toast: 20` siblings of
+ * `<AppShell>` — a toast painted over the open sheet and ate taps through it
+ * (21-HUMAN-UAT §7). The fix is structural: escape the context. No tier is
+ * renumbered; the numbers were never wrong, the nesting was.
+ *
+ * D-22 — this surface stays HAND-ROLLED. It deliberately does NOT migrate onto the
+ * shared `<Sheet>` primitive and does not adopt its focus-trap / dismiss hooks: that
+ * keeps Phase 22's sheet-animation blast radius at 11 surfaces rather than 16.
+ *
+ * D-23 — what a portaled node loses, audited:
+ *   - Gesture suppression: it never had an `.orbit-stage` / `.action-bar` /
+ *     `.fab-menu` ancestor (those live on sibling subtrees), so nothing regressed
+ *     here — but this IS the one-thumb, in-the-dark surface (SHOW-13), so the
+ *     `gesture-guard` class below opts it into that CSS block deliberately.
+ *   - Escape: this surface has never handled Escape; there is no tree-position-
+ *     dependent handler to lose. Closing is the X button (and, on the way in,
+ *     selecting a result). Adding `useDialogDismiss` would be adopting `Sheet`'s
+ *     machinery, which D-22 rules out.
+ *   - Focus: React applies `autoFocus` on mount regardless of portal target, so the
+ *     search input still takes focus on open (asserted in layerOrder.test.tsx).
+ *   - Inert: the sheet now renders OUTSIDE `#app-content`, so a `<Sheet>`-driven
+ *     `inert` on that wrapper would no longer reach it. No behavior change is made
+ *     here — see the plan SUMMARY for why the combination is unreachable today.
  */
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Search, X } from "lucide-react";
 import { makeCatalogSearcher, toCatalog } from "@guezzer/core";
 import { config } from "../config.ts";
@@ -91,12 +120,16 @@ export function SearchSheet({
     onUnknown();
   };
 
-  return (
+  // Phase-21 FOUND-03 / D-20: SSR-and-jsdom guard, copied from `Sheet.tsx`, so the
+  // portal below never touches an undefined `document`.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-label={copy.searchPlaceholder}
-      className="fixed inset-0 flex flex-col bg-surface"
+      className="gesture-guard fixed inset-0 flex flex-col bg-surface"
       style={{ zIndex: config.ui.z.sheet }}
     >
       {/* Search field row — Body typography (text-base = 16px) avoids iOS zoom. */}
@@ -185,6 +218,7 @@ export function SearchSheet({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
