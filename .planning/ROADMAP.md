@@ -127,7 +127,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 21-11-PLAN.md — Layer-order invariant test + portal SearchSheet & FabMenu
+- [x] 21-11-PLAN.md — Layer-order invariant test + portal SearchSheet & FabMenu
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
@@ -240,7 +240,7 @@ This is the research's own stated rationale followed through: validating the mec
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete | 2026-07-22 |
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete | 2026-07-24 |
 | 20. Presence & Interactions | v2.0 | 5/5 | Complete | 2026-07-24 |
-| 21. Layout & Layering Foundations | v2.1 | 10/13 | In Progress|  |
+| 21. Layout & Layering Foundations | v2.1 | 11/13 | In Progress|  |
 | 22. Surface Motion & the Chrome Mechanism | v2.1 | 0/? | Not started | - |
 | 23. Immersive In-Show Experience | v2.1 | 0/? | Not started | - |
 | 24. Reactions & Small Polish | v2.1 | 0/? | Not started | - |
