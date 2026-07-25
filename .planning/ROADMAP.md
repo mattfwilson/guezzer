@@ -98,7 +98,23 @@ Ordering is dependency-driven and deliberately **reorders the owner's original b
   4. Every full calendar date in the app — ShowView header, ShowsList, SetlistView, ArchiveBrowser, RecapView subline — and the share-card PNG read "Mon D, YYYY" from one shared UTC-safe helper, with the PNG verified on-device at the widest realistic venue name without truncation or overflow (FOUND-04, FOUND-05).
   5. The bottom tabs read **Live · GizzVerse · Map · Me · Games** while every route, file path, and saved data key is untouched — and a two-device test across *different* app builds shows a friend on an older build with a correct, readable activity label, never a blank and never a raw internal token (NAV-01, NAV-02, NAV-03).
 
-**Plans**: TBD
+**Plans**: 13 plans in 8 waves
+
+Plans:
+- [ ] 21-01-PLAN.md — Dev harnesses (?layerRepro=1, ?layoutProbe=1) + 21-HUMAN-UAT scaffold
+- [ ] 21-02-PLAN.md — formatDate.ts helper module + rename + importers
+- [ ] 21-03-PLAN.md — Tab + presence label maps (NAV-01/02/03)
+- [ ] 21-04-PLAN.md — Device session #1 — layering repro + FOUND-01 before-measurement
+- [ ] 21-05-PLAN.md — Full-date call sites + display-only storage boundary
+- [ ] 21-06-PLAN.md — Share-card footer — formatted date + width-constrained venue
+- [ ] 21-07-PLAN.md — Bottom-space single owner — config + bottomSpace.ts + styles.css + AppShell + BottomTabBar
+- [ ] 21-08-PLAN.md — FAB family conversion + D-05 stripSlotReserved
+- [ ] 21-09-PLAN.md — Sheet-pad / page-footer conversions + D-08 audit
+- [ ] 21-10-PLAN.md — Toast family conversion + D-12 source guard
+- [ ] 21-11-PLAN.md — Layer-order invariant test + portal SearchSheet & FabMenu
+- [ ] 21-12-PLAN.md — Portal the four root-level sheet surfaces + a11y re-verify
+- [ ] 21-13-PLAN.md — Device session #2 — final UAT, all 8 manual verifications closed
+
 **UI hint**: yes
 
 ### Phase 22: Surface Motion & the Chrome Mechanism
