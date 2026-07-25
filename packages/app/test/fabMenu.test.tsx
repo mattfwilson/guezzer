@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FabMenu } from "../src/show/FabMenu.tsx";
+import { showBottomFabOffset } from "../src/show/fabLayout.ts";
 import { config } from "../src/config.ts";
 
 /**
@@ -20,7 +21,7 @@ const actionLabels = [
   config.copy.show.endCta, // End Show — the last FAB item (moved from the header)
 ];
 
-function renderMenu(stripHasContent = false) {
+function renderMenu(stripSlotReserved = false) {
   const handlers = {
     onSearch: vi.fn(),
     onUnknown: vi.fn(),
@@ -30,7 +31,7 @@ function renderMenu(stripHasContent = false) {
     onCatchUp: vi.fn(),
     onEndShow: vi.fn(),
   };
-  render(<FabMenu {...handlers} stripHasContent={stripHasContent} />);
+  render(<FabMenu {...handlers} stripSlotReserved={stripSlotReserved} />);
   return handlers;
 }
 
@@ -51,14 +52,66 @@ function openMenu() {
 describe("FabMenu (D-20 speed-dial replacing ActionBar)", () => {
   afterEach(cleanup);
 
-  it("lifts only when the SuggestionStrip is showing rows, never for an empty slot (owner 2026-07-19)", () => {
-    // jsdom's CSSOM drops calc()/env() from style.bottom, so assert the wiring
+  it("lifts on the RESERVED-SLOT signal, not on rows being visible (D-05)", () => {
+    // jsdom's CSSOM drops calc()/var() from style.bottom, so assert the wiring
     // via the data attribute the container reflects (also a debug hook).
     renderMenu(false);
-    expect(fabContainer().dataset.stripHasContent).toBe("false");
+    expect(fabContainer().dataset.stripSlotReserved).toBe("false");
     cleanup();
     renderMenu(true);
-    expect(fabContainer().dataset.stripHasContent).toBe("true");
+    expect(fabContainer().dataset.stripSlotReserved).toBe("true");
+  });
+
+  /**
+   * FOUND-02 / D-05 — the offset's exact shape, and the trigger that selects it.
+   *
+   * FOUND-02: both branches must COMPOSE the bottom-space owner's `--gz-fab-offset`
+   * rather than re-deriving the tab-bar + safe-area arithmetic, so a search for the
+   * tab-bar height returns exactly one owner. A raw `env()`/`64px`/`4rem` reappearing
+   * here means a surface has started computing its own bottom space again.
+   *
+   * D-05's CROSS-CHECK, in words: the trigger moved from "rows are on screen right
+   * now" to "the strip's slot is reserved", which means the FAB transitions at most
+   * once per show instead of jumping whenever a remotely-timed editor suggestion
+   * lands. That does NOT cost the Phase-10 `a60d5e2` clearance: the reserved slot is
+   * a FIXED height that is always ≥ the height of whatever rows render inside it, so
+   * lifting by the slot clears every rendered row too. The lift is therefore
+   * re-expressed, not undone.
+   *
+   * The reserved branch is built from `config.ui.SUGGESTION_STRIP_HEIGHT`, never a
+   * hardcoded 112 — and it is READ from config rather than measured because D-06
+   * keeps the strip's height a fixed constant. A measured height here would put the
+   * mid-show jump D-05 just removed straight back in.
+   */
+  describe("bottom offset (FOUND-02 composition, D-05 trigger)", () => {
+    it("returns the owner's var at rest and the var + reserved slot when reserved", () => {
+      expect(showBottomFabOffset(false)).toBe("var(--gz-fab-offset)");
+      expect(showBottomFabOffset(true)).toBe(
+        `calc(var(--gz-fab-offset) + ${config.ui.SUGGESTION_STRIP_HEIGHT}px)`,
+      );
+    });
+
+    it("re-derives no bottom-space arithmetic of its own (FOUND-02)", () => {
+      for (const offset of [showBottomFabOffset(false), showBottomFabOffset(true)]) {
+        expect(offset).not.toContain("env(");
+        expect(offset).not.toContain("64px");
+        expect(offset).not.toContain("4rem");
+      }
+    });
+
+    it("renders that exact offset on the FAB container for each branch", () => {
+      // Assert on the raw style ATTRIBUTE, not the typed longhand: a parsed
+      // property is not guaranteed to round-trip a `var()` in jsdom.
+      renderMenu(false);
+      expect(fabContainer().getAttribute("style")).toContain(
+        showBottomFabOffset(false),
+      );
+      cleanup();
+      renderMenu(true);
+      expect(fabContainer().getAttribute("style")).toContain(
+        showBottomFabOffset(true),
+      );
+    });
   });
 
   it("is collapsed by default: only the FAB is in the tree, no action buttons", () => {
