@@ -443,7 +443,11 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
             moved up beside their respective titles as icon buttons. */}
         <div
           className="mt-auto flex flex-col gap-2 pt-4 pb-4"
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
+          // This is a full-screen opaque PAGE footer at `config.ui.z.page`, not a modal
+          // sheet, so it deliberately keeps its own 16px rather than adopting
+          // `--gz-sheet-pad-bottom` (21-UI-SPEC §Surfaces converted). Reading
+          // `--gz-safe-bottom` still removes the raw `env()`; the value is unchanged.
+          style={{ paddingBottom: "calc(var(--gz-safe-bottom) + 16px)" }}
         >
           <button
             type="button"

@@ -22,6 +22,16 @@
  * The one-away ring is a STATIC accent outline by default and only pulses under
  * `prefers-reduced-motion: no-preference` (handled in styles.css `.bingo-oneaway-glow`).
  * All kglw-derived labels render as escaped React text (T-16-06).
+ *
+ * PHASE-21 BOTTOM-SPACE AUDIT — D-10: OUT OF SCOPE, deliberately unconverted.
+ * ROADMAP's FOUND-02 success criterion names the "peek strip" among the surfaces to
+ * unify onto the `--gz-*` bottom-space owner. D-10 records that wording as an
+ * overreach: this strip is IN-FLOW in the show column and is NEVER `fixed` (see the
+ * first sentence above), and its expanded panel is absolutely positioned inside its
+ * OWN `relative` container on the `z.peek` tier. It therefore has no bottom offset,
+ * no safe-area read and no tab-bar clearance of its own — there is nothing here to
+ * unify and nothing to compose from the owner. This note exists so the milestone
+ * audit does not read FOUND-02 as unmet against this file.
  */
 import { useMemo, useState } from "react";
 import { ChevronDown, LayoutGrid } from "lucide-react";
