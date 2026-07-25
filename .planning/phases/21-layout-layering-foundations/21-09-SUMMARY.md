@@ -183,6 +183,13 @@ The worktree did spawn stale, at `f29edca`, exactly as the known issue predicts;
 None. Every value the five converted surfaces render resolves to the owner's composition, and the
 two unconverted surfaces are documented no-ops by design rather than deferred work.
 
+## Self-Check: PASSED
+
+All claimed files exist on disk; all four commit hashes resolve in `git log`. `git diff
+--diff-filter=D 1ef66c2..HEAD` is empty (no file was deleted), the working tree is clean, and the
+full diffstat touches exactly the nine files in this plan's `files_modified` list plus the
+summary.
+
 ## Notes for the Orchestrator
 
 Ran as a parallel worktree agent on `worktree-agent-a58db9d30fa36b0f8`; three task commits plus
