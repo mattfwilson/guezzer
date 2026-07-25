@@ -108,7 +108,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 21-04-PLAN.md — Device session #1 — layering repro + FOUND-01 before-measurement
+- [x] 21-04-PLAN.md — Device session #1 — layering repro + FOUND-01 before-measurement
 - [x] 21-05-PLAN.md — Full-date call sites + display-only storage boundary
 - [x] 21-06-PLAN.md — Share-card footer — formatted date + width-constrained venue
 
