@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: UX/UI Polish
 status: planning
-stopped_at: Phase 21 context gathered
-last_updated: "2026-07-24T22:51:39.230Z"
+stopped_at: Phase 21 UI-SPEC approved
+last_updated: "2026-07-25T00:45:20.865Z"
 last_activity: 2026-07-24 — v2.1 roadmap created (4 phases, 100% requirement coverage)
 progress:
   total_phases: 4
@@ -329,9 +329,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-24T22:51:39.225Z
-Stopped at: Phase 21 context gathered
-Resume file: .planning/phases/21-layout-layering-foundations/21-CONTEXT.md
+Last session: 2026-07-24T23:16:20.953Z
+Stopped at: Phase 21 UI-SPEC approved
+Resume file: .planning/phases/21-layout-layering-foundations/21-UI-SPEC.md
 
 ## Operator Next Steps
 

@@ -13,6 +13,11 @@ created: 2026-07-24
 > Derived from `21-RESEARCH.md` § Validation Architecture — see that section for the
 > full requirement→test map with file-level detail.
 
+**Note on frontmatter:** `status`, `nyquist_compliant` and `wave_0_complete` are
+**execution-time** fields. They stay `draft` / `false` through planning by design and are
+flipped during `/gsd-execute-phase` — `wave_0_complete` when the four new test files land,
+`nyquist_compliant` + `status` at the phase gate. A `false` here is not a planning gap.
+
 ---
 
 ## Test Infrastructure
