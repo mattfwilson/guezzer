@@ -8,6 +8,7 @@ import { PlaceholderView } from "./components/PlaceholderView";
 import { UpdateToast } from "./components/UpdateToast";
 import { WaveToast } from "./components/WaveToast.tsx";
 import { isLayerReproEnabled, LayerReproToast } from "./dev/layerRepro.tsx";
+import { isLayoutProbeEnabled, LayoutProbe } from "./dev/LayoutProbe.tsx";
 import { OrbFitHarness } from "./dev/OrbFitHarness.tsx";
 import { DexView } from "./dex/DexView.tsx";
 import { ExploreView } from "./explore/ExploreView.tsx";
@@ -55,6 +56,7 @@ export function App() {
   // keeps the per-render `location.search` parse off the hot path. Both are
   // inert (false) on every normal load, so shipped behavior is untouched.
   const layerRepro = useMemo(() => isLayerReproEnabled(), []);
+  const layoutProbe = useMemo(() => isLayoutProbeEnabled(), []);
 
   // Plan 04 (D-09): request eviction-resistant storage early on first run —
   // on mount AND (idempotently) again on the first user interaction, since
@@ -133,6 +135,10 @@ export function App() {
           context and reproduces the real paint order. Renders only under
           `?layerRepro=1`. */}
       {layerRepro && <LayerReproToast />}
+      {/* Phase-21 (D-14, FOUND-01) diagnostic readout — top-anchored so it never
+          occludes the bottom gap being photographed. Renders only under
+          `?layoutProbe=1`. */}
+      {layoutProbe && <LayoutProbe />}
       <AppMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </div>
   );
