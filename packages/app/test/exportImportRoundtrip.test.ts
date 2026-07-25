@@ -16,6 +16,10 @@ import {
 import { writeIdentityRecord } from "../src/auth/identityRecord.ts";
 import { exportBackup } from "../src/settings/exportDownload.ts";
 import { pickAndImport } from "../src/settings/importPicker.ts";
+// Deep relative import: `attendanceKey` is internal to core (absent from
+// src/index.ts), and the FOUND-04 guard below must not widen core's public API
+// just to be observable.
+import { attendanceKey } from "../../core/src/data-safety/attendance-key.ts";
 
 // The signed-in identity these tests export/import under (Plan 18-07 Task 2):
 // snapshot()/importSnapshot() are now userId-scoped, and exportBackup/
@@ -846,5 +850,126 @@ describe("userId-scoped export/import isolation (AUTH-05 export half, D-09 / Pit
     const result = await exportBackup();
     expect(result).toEqual({ ok: false });
     expect(capturedBlob).toBeNull();
+  });
+});
+
+/**
+ * FOUND-04 / D-35 — the display-only date boundary.
+ *
+ * THE HAZARD, stated plainly: the show date is not merely a label, it is a JOIN
+ * KEY. `attendanceKey` groups an UNBOUND show (no show_id) by
+ * `date:${date}#${sessionId}`, and that key is what BOTH `derive-dex.ts` and
+ * `merge.ts` use to decide whether two records are the same night. If a
+ * formatted date ("Aug 14, 2026") ever reached stored data, the key would
+ * become `date:Aug 14, 2026#…` — it would still be a perfectly valid string, so
+ * nothing would throw, nothing would fail validation, and no error would
+ * surface. The night would simply stop matching its ISO-keyed twin: dex counts
+ * come out wrong, a doubleheader silently splits or collapses, and a restored
+ * backup merges against keys that no longer align (RESEARCH Pitfall 7).
+ *
+ * Plan 21-05 converted seven render sites to `formatFullDate`. That conversion
+ * is safe ONLY because formatting happens at the call site (D-34) and no writer
+ * imports the helper. This block turns that convention into a mechanical
+ * guarantee: a formatted date reaching a join key, a persisted row, or the
+ * export filename fails HERE rather than corrupting dex counts in silence.
+ */
+describe("FOUND-04 / D-35 — a formatted date never crosses into storage", () => {
+  const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+  const UNBOUND_KEY = /^date:\d{4}-\d{2}-\d{2}#/;
+
+  beforeEach(async () => {
+    await wipeAll();
+    await db.bingoCards.clear();
+    capturedBlob = null;
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      capturedBlob = blob;
+      return "blob:mock-url";
+    });
+    URL.revokeObjectURL = vi.fn();
+  });
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await wipeAll();
+    await db.bingoCards.clear();
+  });
+
+  it("the unbound attendanceKey branch stays ISO-shaped", () => {
+    const key = attendanceKey(null, "2026-08-14", "sess-1");
+
+    expect(key).toMatch(UNBOUND_KEY);
+    expect(key).toBe("date:2026-08-14#sess-1");
+    // The regression this guard exists to catch.
+    expect(attendanceKey(null, "Aug 14, 2026", "sess-1")).not.toMatch(UNBOUND_KEY);
+  });
+
+  it("the bound attendanceKey branch is unchanged and carries no date at all", () => {
+    const key = attendanceKey(123, "2026-08-14", "sess-1");
+
+    expect(key).toBe("id:123");
+    expect(key).not.toContain("2026");
+    expect(key).not.toContain("Aug");
+  });
+
+  it("every persisted date survives a full export -> import round-trip as ISO", async () => {
+    await seedAll();
+    await markShowAttended({
+      show_id: 1782000000,
+      showDate: "2026-07-13",
+      cachedSetlist: {
+        show_id: 1782000000,
+        date: "2026-07-13",
+        venueName: "Red Rocks Amphitheatre",
+        city: "Morrison",
+        sets: [{ n: "1", songs: [{ songId: 42, songName: "Rattlesnake" }] }],
+        userId: TEST_USER,
+      },
+    });
+    await db.attendedShows.update(1782000000, { userId: TEST_USER });
+
+    await exportBackup();
+    const json = await capturedBlob!.text();
+
+    await wipeAll();
+    const file = new File([json], "guezzer-backup.json", {
+      type: "application/json",
+    });
+    expect((await pickAndImport(file)).ok).toBe(true);
+
+    // Walk every table that persists a date and assert the stored shape.
+    const trackedShows = await db.trackedShows.toArray();
+    const archiveShows = await db.archiveShows.toArray();
+    const attended = await db.attendedShows.toArray();
+    expect(trackedShows.length).toBeGreaterThan(0);
+    expect(archiveShows.length).toBeGreaterThan(0);
+    expect(attended.length).toBeGreaterThan(0);
+
+    for (const row of trackedShows) expect(row.date).toMatch(ISO_DATE);
+    for (const row of archiveShows) expect(row.date).toMatch(ISO_DATE);
+    for (const row of attended) expect(row.showDate).toMatch(ISO_DATE);
+
+    // The envelope itself, not just the restored rows.
+    const parsed = exportEnvelope.parse(JSON.parse(json));
+    for (const row of parsed.trackedShows) expect(row.date).toMatch(ISO_DATE);
+    for (const row of parsed.archiveShows) expect(row.date).toMatch(ISO_DATE);
+    for (const row of parsed.attendedShows) expect(row.showDate).toMatch(ISO_DATE);
+  });
+
+  it("the export filename keeps an ISO stamp with no comma or space", async () => {
+    let capturedFilename: string | null = null;
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(
+      function (this: HTMLAnchorElement) {
+        capturedFilename = this.download;
+      },
+    );
+
+    await seedAll();
+    expect(await exportBackup()).toEqual({ ok: true });
+
+    const filename = capturedFilename as string | null;
+    expect(filename).not.toBeNull();
+    // A formatted date would introduce a comma and spaces — both illegal here.
+    expect(filename!).toMatch(/^[\w.-]+$/);
+    expect(filename!).not.toMatch(/\d{4},\s/);
+    expect(filename!).toMatch(/\d{4}-\d{2}-\d{2}\.json$/);
   });
 });
