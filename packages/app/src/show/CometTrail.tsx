@@ -228,7 +228,8 @@ function FullSetlistSheet({ entries, onClose, onNodeTap }: FullSetlistSheetProps
     >
       <div
         className="max-h-[80%] overflow-y-auto rounded-t-2xl border-t border-hairline bg-elevated px-4 pt-4"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 32px)" }}
+        // D-07: hand-rolled sheet card — same owned padding as the `Sheet` primitive.
+        style={{ paddingBottom: "var(--gz-sheet-pad-bottom)" }}
         onClick={(event) => event.stopPropagation()}
       >
         {ordered.map((entry) => (

@@ -150,7 +150,11 @@ export function NodeSheet({
         zIndex: config.ui.z.sheet,
         height,
         transition: dragging || reduced ? "none" : `height ${SNAP_MS}ms ease`,
-        paddingBottom: "env(safe-area-inset-bottom)",
+        // The NodeSheet is `fixed bottom-0` and COVERS the tab bar, so it is NOT
+        // tab-bar-relative — it composes from `--gz-safe-bottom`, never
+        // `--gz-chrome-reserve` (same reasoning as D-07 for the sheet primitive).
+        // Value unchanged; this only removes the raw `env()` read.
+        paddingBottom: "var(--gz-safe-bottom)",
         touchAction: "none",
       }}
       onClick={(e) => e.stopPropagation()}

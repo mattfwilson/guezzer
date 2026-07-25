@@ -381,7 +381,8 @@ export function ArchiveBrowser({ archive, onClose }: ArchiveBrowserProps) {
         >
           <div
             className="rounded-t-2xl border-t border-hairline bg-elevated px-4 pt-4"
-            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 32px)" }}
+            // D-07: hand-rolled sheet card — same owned padding as the `Sheet` primitive.
+            style={{ paddingBottom: "var(--gz-sheet-pad-bottom)" }}
             onClick={(event) => event.stopPropagation()}
           >
             <p className="text-[20px] font-semibold leading-tight text-text-primary">

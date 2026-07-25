@@ -464,6 +464,17 @@ export function MapView() {
       </div>
 
       {/* status chips — one-tap check-ins; tapping the active chip clears it */}
+      {/* D-08 AUDIT (Phase-21 FOUND-02) — outcome: NOT CONVERTED, intentionally.
+          This strip is `absolute` inside MapView's own `relative h-full` stage
+          container (above), NOT `fixed`/viewport-anchored, and that container is
+          `<main>`'s child — `<main>` already reserves `--gz-chrome-reserve` for the
+          tab bar (AppShell; `#/map` mounts non-scrolling). So `bottom-0` here is the
+          bottom of the already-reserved content box: there is no inset for this
+          surface to own and it therefore composes no `--gz-*` value.
+          Also audited per D-28: the strip is a SIBLING of the transformed pan/zoom
+          stage, not a descendant of it — no transform ancestor is in play, so nothing
+          here would be repositioned relative to the transform if it ever became
+          `fixed`. Keep it out of the transformed subtree. */}
       <div
         className="absolute bottom-0 left-0 right-0 flex gap-2 overflow-x-auto px-3 pb-3 pt-6"
         style={{

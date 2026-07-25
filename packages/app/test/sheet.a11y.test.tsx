@@ -196,3 +196,33 @@ describe("Sheet A11Y-01 contract", () => {
     expect(appContent()!.inert).toBe(true);
   });
 });
+
+/**
+ * Phase-21 FOUND-02 / D-07 — the sheet primitive's bottom padding reads the ONE
+ * owned value (`--gz-sheet-pad-bottom`, composed in `src/layout/bottomSpace.ts`)
+ * instead of a hand-written `calc(env(safe-area-inset-bottom) + 32px)`.
+ *
+ * The conversion was value-preserving (21-RESEARCH Group B: this card is inside a
+ * `fixed` overlay, so it never double-counted the inset the way `<main>` did).
+ * These cases exist purely to stop a future edit from re-introducing a hand-written
+ * `env()` read here and silently forking the arithmetic again.
+ *
+ * WHY `getAttribute("style")` AND NOT `el.style.paddingBottom`: jsdom's CSS parser
+ * does not reliably round-trip a `var()` value through a typed longhand property, so
+ * the typed read can come back empty even though the attribute is correct. The raw
+ * attribute string is the honest assertion.
+ */
+describe("Sheet bottom padding is owner-composed (FOUND-02 / D-07)", () => {
+  it("bottom-sheet card reads var(--gz-sheet-pad-bottom) and no raw env()", () => {
+    mountAppContent();
+    render(
+      <Sheet open onClose={vi.fn()} ariaLabel="Padded">
+        <button>inside</button>
+      </Sheet>,
+    );
+
+    const style = screen.getByRole("dialog").getAttribute("style") ?? "";
+    expect(style).toContain("var(--gz-sheet-pad-bottom)");
+    expect(style).not.toContain("env(");
+  });
+});

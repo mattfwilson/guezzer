@@ -101,7 +101,13 @@ export function Sheet({
         className="pointer-events-auto rounded-t-2xl border-t border-hairline bg-elevated px-4 pt-4"
         style={{
           zIndex: config.ui.z.sheet,
-          paddingBottom: "calc(env(safe-area-inset-bottom) + 32px)",
+          // D-07: sheet bottom padding is deliberately NOT tab-bar-relative — a sheet
+          // COVERS the tab bar rather than sitting above it, so it composes from
+          // `--gz-safe-bottom`, never `--gz-chrome-reserve`.
+          // The value is inherited from `document.documentElement` (where plan 21-07
+          // writes the ladder), which is why it still resolves inside this
+          // `createPortal(…, document.body)` subtree.
+          paddingBottom: "var(--gz-sheet-pad-bottom)",
         }}
         onClick={(event) => event.stopPropagation()}
       >
