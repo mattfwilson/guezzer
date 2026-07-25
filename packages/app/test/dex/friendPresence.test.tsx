@@ -158,6 +158,23 @@ describe("FriendRow — activity label fills the reserved presence-activity slot
     expect(screen.queryByText(presence.activityUnknown)).not.toBeInTheDocument();
   });
 
+  it("an online friend on the dex tab renders `on GizzDex`, never `Me` (NAV-03/D-40)", () => {
+    render(
+      <FriendRow userId="f1" displayName="Ada" pct={10} caught={10} rarest={null} online activity={{ tab: "GizzDex" }} onClick={() => {}} />,
+    );
+    expect(screen.getByText("on GizzDex")).toBeInTheDocument();
+    // The TAB reads "Me" because it's your tab — a friend's dot must not.
+    expect(screen.queryByText("on Me")).not.toBeInTheDocument();
+    expect(screen.queryByText("GizzDex")).not.toBeInTheDocument();
+  });
+
+  it("an online friend with NO resolvable activity renders `in the app`, not blank (D-41)", () => {
+    render(
+      <FriendRow userId="f1" displayName="Ada" pct={10} caught={10} rarest={null} online activity={null} onClick={() => {}} />,
+    );
+    expect(screen.getByText("in the app")).toBeInTheDocument();
+  });
+
   it("a present friend row shows BOTH the dot and the text label (WCAG 1.4.1)", () => {
     const { container } = render(
       <FriendRow userId="f1" displayName="Ada" pct={10} caught={10} rarest={null} online activity={{ tab: "GizzDex" }} onClick={() => {}} />,
