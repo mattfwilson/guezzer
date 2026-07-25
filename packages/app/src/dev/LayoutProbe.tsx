@@ -18,8 +18,12 @@
  *   - `bodyH-rootH` — D-15 predicts this equals `sab` if the body-level bottom
  *     inset (`styles.css:220`) is being double-counted against
  *     `BottomTabBar.tsx:25-26`. This single equality is the whole diagnosis.
- *   - `GAP` — `tabTop - mainBottom`, the dead gap itself in one subtraction.
- *     This is the number that goes in `21-HUMAN-UAT.md`.
+ *   - `GAP` — `tabTop - mainBottom`, the dead gap itself in one subtraction,
+ *     where `mainBottom` is <main>'s CONTENT bottom (border box minus its
+ *     computed `padding-bottom`). Measuring the border box instead makes `GAP`
+ *     degenerate to a constant once <main> reserves the chrome — see the
+ *     comment at the computation. This is the number that goes in
+ *     `21-HUMAN-UAT.md`.
  *
  * Overlay geometry: anchored to the TOP of the viewport on purpose — the bottom
  * gap is what gets photographed, so the readout must never occlude it.
@@ -151,7 +155,18 @@ function measure(): Row[] {
   const rootH = offsetHeightOf(root);
   const bodyMinusRoot = bodyH !== null && rootH !== null ? bodyH - rootH : null;
 
-  const mainBottom = main ? main.getBoundingClientRect().bottom : null;
+  // `mainBottom` must be where CONTENT ends, not where <main>'s border box ends.
+  // Since plan 21-07, <main> carries `paddingBottom: var(--gz-content-reserve)`
+  // on scrolling routes, so its border box runs to the viewport bottom and
+  // `getBoundingClientRect().bottom` reports the same number regardless of the
+  // real gap — `GAP` degenerated to a constant -(4rem + sab). Subtracting the
+  // computed padding restores the content edge, which is the FOUND-01 quantity.
+  const mainPadBottom = main
+    ? (Number.parseFloat(getComputedStyle(main).paddingBottom) || 0)
+    : 0;
+  const mainBottom = main
+    ? main.getBoundingClientRect().bottom - mainPadBottom
+    : null;
   const tabTop = firstTab ? firstTab.getBoundingClientRect().top : null;
   const gap = mainBottom !== null && tabTop !== null ? tabTop - mainBottom : null;
 
@@ -197,6 +212,9 @@ function measure(): Row[] {
     // ── D-15's single falsifiable equality: this should equal `sab`. ──
     { label: "bodyH-rootH", value: num(bodyMinusRoot), emphasis: true },
     // ── The gap itself, in one subtraction. ──
+    // `mainPadB` is shown so the border-box correction above is auditable from
+    // the screenshot alone: border-box bottom == mainBottom + mainPadB.
+    { label: "mainPadB", value: num(mainPadBottom) },
     { label: "mainBottom", value: num(mainBottom) },
     { label: "tabTop", value: num(tabTop) },
     { label: ">>> GAP", value: num(gap), emphasis: true },
