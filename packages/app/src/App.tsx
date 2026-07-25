@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppMenu } from "./components/AppMenu";
 import { AppShell } from "./components/AppShell";
 import { BackupToast } from "./components/BackupToast";
@@ -7,6 +7,7 @@ import { InstallBanner } from "./components/InstallBanner";
 import { PlaceholderView } from "./components/PlaceholderView";
 import { UpdateToast } from "./components/UpdateToast";
 import { WaveToast } from "./components/WaveToast.tsx";
+import { isLayerReproEnabled, LayerReproToast } from "./dev/layerRepro.tsx";
 import { OrbFitHarness } from "./dev/OrbFitHarness.tsx";
 import { DexView } from "./dex/DexView.tsx";
 import { ExploreView } from "./explore/ExploreView.tsx";
@@ -48,6 +49,12 @@ export function App() {
   // / online gate lives inside the hook, so this call is unconditional. Renders
   // nothing; the pure usePresenceReaders hooks read the store it publishes.
   usePresence();
+
+  // Phase-21 dev harness flags (D-29). Read ONCE per mount — a URL flag can't
+  // change without a reload (the `mockLatest.ts` cache note), so `useMemo([])`
+  // keeps the per-render `location.search` parse off the hot path. Both are
+  // inert (false) on every normal load, so shipped behavior is untouched.
+  const layerRepro = useMemo(() => isLayerReproEnabled(), []);
 
   // Plan 04 (D-09): request eviction-resistant storage early on first run —
   // on mount AND (idempotently) again on the first user interaction, since
@@ -121,6 +128,11 @@ export function App() {
       <BackupToast />
       <BingoCelebration />
       <WaveToast />
+      {/* Phase-21 (D-29, FOUND-03) repro harness — a sibling of AppShell exactly
+          like the five real toasts above, so it lands in the ROOT stacking
+          context and reproduces the real paint order. Renders only under
+          `?layerRepro=1`. */}
+      {layerRepro && <LayerReproToast />}
       <AppMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </div>
   );
