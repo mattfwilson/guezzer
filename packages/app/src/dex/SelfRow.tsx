@@ -66,7 +66,7 @@ export function SelfRow({ onClick }: SelfRowProps) {
 
       {/* Trailing slot — own activity when online; `offline` (muted) when not (D-17). */}
       {presence.online ? (
-        <PresenceActivitySlot activity={presence.activity} />
+        <PresenceActivitySlot activity={presence.activity} online />
       ) : (
         <PresenceActivitySlot label={config.copy.presence.offline} />
       )}

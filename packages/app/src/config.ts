@@ -10,6 +10,12 @@
  * persistence) READ these keys — they do not re-add them.
  */
 import type { RarityTier } from "@guezzer/core";
+// TYPE-ONLY imports (NAV-01/NAV-02, D-39): config.ts stays a leaf module with no
+// runtime dependency on `routing/` or `sync/` — these are erased at build time and
+// exist purely so the two label maps below are exhaustively typed against the
+// frozen `Route` / `Tab` vocabularies.
+import type { Route } from "./routing/useHashRoute.ts";
+import type { Tab } from "./sync/presenceActivity.ts";
 
 export const config = {
   /** D-08: Dexie/IndexedDB database name. */
@@ -815,6 +821,30 @@ export const config = {
   /** UI-SPEC §Copywriting Contract. */
   copy: {
     /**
+     * Bottom-tab DISPLAY labels (NAV-01/NAV-02, D-43), keyed by the frozen
+     * `Route` strings. The short names exist so five tabs fit under one thumb —
+     * a space constraint, not a rebrand.
+     *
+     * These are DISPLAY labels ONLY. This is the second application of the
+     * `260716-wwj` rule: routes (`show`/`explore`/`map`/`dex`/`games`), file
+     * paths, Dexie/storage keys (`config.DB_NAME`), the PWA manifest name and
+     * the `gizz-room` presence wire tokens are ALL untouched by the rename — a
+     * renamed route breaks navigation, a renamed storage key orphans every saved
+     * dex. Locked by `test/rebrand.test.ts`.
+     *
+     * D-43: in-page section headings KEEP the brand names (`copy.games
+     * .sectionHeading` stays `"GizzGames"`); only the tab strip shortens.
+     * `settings` has no bottom tab, so it is deliberately absent here.
+     */
+    tabs: {
+      show: "Live",
+      explore: "GizzVerse",
+      map: "Map",
+      dex: "Me",
+      games: "Games",
+    } as const satisfies Record<Exclude<Route, "settings">, string>,
+
+    /**
      * Sign-in / identity copy (Phase 18, D-01/D-03/D-07/D-18). Exact strings
      * from the 18-UI-SPEC Copywriting Contract. Password recovery is owner-only
      * (re-mint via seed script) — hence "Ask Matt to reset it", never a
@@ -1457,6 +1487,41 @@ export const config = {
       atShow: "At a show 🎸",
       /** Presence-state label: a friend is not currently online (binary present-now, D-14). */
       offline: "offline",
+
+      /**
+       * The PRESENCE voice (NAV-01/NAV-03, D-39/D-40) — the second label map off
+       * the SAME frozen wire token. Keyed by the six `gizz-room` `Tab` tokens.
+       *
+       * D-40, two voices one token: the bottom tab reads "Me" because it is
+       * *your* tab — so a friend's presence dot must NEVER read "Alex is on Me".
+       * Presence therefore uses second-person-sensible wording ("on GizzDex").
+       * `copy.tabs` is the tab voice; this is the presence voice; neither is the
+       * wire token, which is frozen (`sync/presenceActivity.ts`).
+       *
+       * Capitalization rule: the one EMPHASIZED state (`atShow: "At a show 🎸"`)
+       * keeps its capital; every muted state is lowercase-leading (`on GizzDex`,
+       * `idle`, `offline`, `in the app`). `idle` is a state, not a place — it
+       * reads `"idle"`, never `"on idle"`.
+       *
+       * Typed `Record<Tab, string>` so adding a `Tab` member without a label is a
+       * COMPILE error, not a blank presence dot.
+       */
+      activity: {
+        LiveGizz: "on LiveGizz",
+        GizzVerse: "on GizzVerse",
+        GizzMap: "on GizzMap",
+        GizzDex: "on GizzDex",
+        GizzGames: "on GizzGames",
+        idle: "idle",
+      } as const satisfies Record<Tab, string>,
+
+      /**
+       * The D-41 constant fallback: an online friend whose activity cannot be
+       * resolved (no entry at all, or a token this build does not know because a
+       * NEWER build sent it) reads "in the app" — never blank, never a raw
+       * peer-supplied token. Constant string, chosen by us, never echoed input.
+       */
+      activityUnknown: "in the app",
       /** Per-emoji chip labels for the reaction palette (the fixed 4-emoji set). */
       chipLabels: { wave: "Wave", fire: "Fire", lizard: "Lizard", caught: "Caught it" },
       /** Short caption used where a "caught it" reaction is surfaced inline. */

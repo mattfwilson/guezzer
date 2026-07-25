@@ -52,10 +52,48 @@ export function PresenceOnlineSlot({ online }: { online: boolean }) {
 }
 
 /**
+ * Resolve a peer's (or our own) coarse presence activity to its DISPLAY label in
+ * the presence voice (NAV-03, D-39/D-40/D-41). Pure — exported for test.
+ *
+ * NAMED NAV-03 FALLBACK PLACEMENT: option (ii), the RENDER-PATH fallback.
+ * `reduceActivity`'s `TABS` allow-list in `sync/presenceActivity.ts` is a real
+ * input-validation control over untrusted peer presence payloads (ASVS V5) — it
+ * stays exactly as shipped, still dropping unknown tokens at the read boundary.
+ * Relaxing that control to fix a *display* problem would trade a security
+ * property for a cosmetic one, so the fallback lives here instead.
+ *
+ * The label is ALWAYS a constant string chosen by our own map — the `??` arm is
+ * `activityUnknown`, never `?? activity.tab`. No peer-supplied text ever reaches
+ * the DOM through this slot (T-21-06).
+ *
+ * Resolution order:
+ *  1. `atShow` → `At a show 🎸` (the shipped precedence — it wins over the tab).
+ *  2. a known token → its presence-voice label; an UNKNOWN token (a newer build
+ *     sent a tab this build doesn't have) → the constant fallback.
+ *  3. no activity but the friend IS online → `in the app` (D-41 — never blank).
+ *  4. otherwise → `null` (an offline friend keeps today's empty slot).
+ */
+export function presenceActivityLabel(
+  activity: Activity | null | undefined,
+  online: boolean,
+): string | null {
+  const presence = config.copy.presence;
+  if (activity?.atShow === true) return presence.atShow;
+  if (activity != null) {
+    // Index-then-fallback: the ?? arm is a CONSTANT, never the raw token.
+    return presence.activity[activity.tab] ?? presence.activityUnknown;
+  }
+  if (online) return presence.activityUnknown;
+  return null;
+}
+
+/**
  * Fill the reserved `presence-activity` slot with the coarse activity label:
  * `null` → nothing; `atShow` → `At a show 🎸` in `text-text-primary` (the
- * residency payoff emphasis, D-03 flag-only); else the `activity.tab` brand token
- * (muted). The dot NEVER conveys state by color alone — a present friend's row
+ * residency payoff emphasis, D-03 flag-only); else the token's presence-voice
+ * label looked up in `config.copy.presence.activity` (muted), with the constant
+ * `in the app` fallback for an online friend whose activity can't be resolved
+ * (D-41). The dot NEVER conveys state by color alone — a present friend's row
  * shows BOTH the dot and this text label (WCAG 1.4.1). Shared by FriendRow +
  * SelfRow. `offline` is passed as an explicit `label`/`emphasized` override.
  */
@@ -63,13 +101,16 @@ export function PresenceActivitySlot({
   activity,
   label,
   emphasized = false,
+  online = false,
 }: {
   activity?: Activity | null;
   label?: string;
   emphasized?: boolean;
+  /** Binary present-now — drives the D-41 "in the app" never-blank fallback. */
+  online?: boolean;
 }) {
   // An explicit label override (the self-row `offline` case) wins.
-  const text = label ?? (activity == null ? null : activity.atShow ? config.copy.presence.atShow : activity.tab);
+  const text = label ?? presenceActivityLabel(activity, online);
   const strong = label != null ? emphasized : activity?.atShow === true;
   return (
     <span data-slot="presence-activity" className="shrink-0">
@@ -178,8 +219,10 @@ export function FriendRow({
       {rarest != null && <TierBadge tier={rarest} />}
 
       {/* TRAILING SLOT — the Phase-20 coarse activity label (PRES-07). Pure props:
-          `At a show 🎸` (emphasized) / tab token (muted) / nothing. NO channel logic. */}
-      <PresenceActivitySlot activity={activity} />
+          `At a show 🎸` (emphasized) / the token's presence-voice label (muted) /
+          `in the app` when online but unresolvable (D-41) / nothing when offline.
+          NO channel logic. */}
+      <PresenceActivitySlot activity={activity} online={online} />
 
       <ChevronRight size={18} className="shrink-0 text-text-muted" aria-hidden="true" />
     </button>

@@ -18,9 +18,21 @@
 import type { Route } from "../routing/useHashRoute.ts";
 
 /**
- * The presence tab tokens. These ARE the display labels (the brand names shown
- * on a friend's presence dot), so no separate label map is needed — only the
- * `atShow`/`offline` strings live in `config.copy.presence`.
+ * The presence tab tokens — the FROZEN `gizz-room` wire vocabulary. These are
+ * NOT display labels (NAV-01/D-39 corrected that): the tab strip reads from
+ * `config.copy.tabs` (the tab voice — "Live", "Me", …) and a friend's presence
+ * dot reads from `config.copy.presence.activity` (the presence voice — "on
+ * LiveGizz", "on GizzDex", …). Two label voices, one token.
+ *
+ * The vocabulary is frozen because resolution is RECEIVER-side: every device
+ * renders whatever its OWN build's label map says, so an already-shipped build
+ * is immutable. Renaming a token would therefore break presence permanently for
+ * every build that predates the rename — the rename must stay in `config.copy`.
+ *
+ * Honest limitation: the D-41 `activityUnknown` fallback is FORWARD protection
+ * only. It keeps this and every later build readable when a FUTURE build sends a
+ * token they don't know. It cannot fix builds already in the wild — those render
+ * `null` → a blank slot for an unrecognized token.
  */
 export type Tab =
   | "LiveGizz"
