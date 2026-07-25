@@ -15,7 +15,7 @@
 import type { AlbumTrack, SongDexStats, SongRarity } from "@guezzer/core";
 import { Check } from "lucide-react";
 import { config } from "../config.ts";
-import { formatMonYear } from "./formatMonYear.ts";
+import { formatMonYear } from "./formatDate.ts";
 import { TierBadge } from "./TierBadge.tsx";
 
 /** hit-green (§B2) — the caught success semantic, reused, not re-derived. */

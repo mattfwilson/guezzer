@@ -13,7 +13,7 @@
 import { X } from "lucide-react";
 import { Sheet } from "../components/Sheet.tsx";
 import { config } from "../config.ts";
-import { formatMonYear } from "../dex/formatMonYear.ts";
+import { formatMonYear } from "../dex/formatDate.ts";
 import { getRarityIndex } from "../dex/rarityIndex.ts";
 import { TierBadge } from "../dex/TierBadge.tsx";
 import type { OrbitCandidate } from "./PredictionOrb.tsx";
