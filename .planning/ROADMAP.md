@@ -118,8 +118,8 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 21-08-PLAN.md — FAB family conversion + D-05 stripSlotReserved
-- [ ] 21-09-PLAN.md — Sheet-pad / page-footer conversions + D-08 audit
+- [x] 21-08-PLAN.md — FAB family conversion + D-05 stripSlotReserved
+- [x] 21-09-PLAN.md — Sheet-pad / page-footer conversions + D-08 audit
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -240,7 +240,7 @@ This is the research's own stated rationale followed through: validating the mec
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete | 2026-07-22 |
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete | 2026-07-24 |
 | 20. Presence & Interactions | v2.0 | 5/5 | Complete | 2026-07-24 |
-| 21. Layout & Layering Foundations | v2.1 | 7/13 | In Progress|  |
+| 21. Layout & Layering Foundations | v2.1 | 9/13 | In Progress|  |
 | 22. Surface Motion & the Chrome Mechanism | v2.1 | 0/? | Not started | - |
 | 23. Immersive In-Show Experience | v2.1 | 0/? | Not started | - |
 | 24. Reactions & Small Polish | v2.1 | 0/? | Not started | - |
