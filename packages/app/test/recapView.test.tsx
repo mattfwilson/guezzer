@@ -181,6 +181,44 @@ describe("RecapView — the payoff screen (SHOW-14, D-14/D-15)", () => {
   });
 });
 
+/**
+ * FOUND-04 — the recap subline date (plan 21-05, D-32/D-34/D-35).
+ *
+ * D-34 keeps `config.copy.recap.subline` a strings-only template and formats at
+ * the CALL SITE, so the copy layer stays free of presentation logic and
+ * `formatDate.ts` remains the single owner of the format. The second case is the
+ * one that matters for regressions: `formatFullDate("")` returns `""` by the
+ * never-throw contract, so the empty-date branch must stay byte-identical to
+ * what shipped — `" · {venue}"`, not a conditional someone "improved" into a
+ * different string.
+ */
+describe("FOUND-04 — recap subline renders 'Mon D, YYYY · Venue' (D-32, D-34)", () => {
+  it("formats the show date in the subline and never renders raw ISO", async () => {
+    await seedSession();
+    render(<RecapView sessionId="s1" onClose={() => {}} />);
+    await screen.findByText(copy.heading);
+
+    expect(screen.getByText("Jul 14, 2026 · Test Arena")).toBeInTheDocument();
+    expect(screen.queryByText("2026-07-14 · Test Arena")).toBeNull();
+    expect(screen.queryByText(/2026-07-14/)).toBeNull();
+  });
+
+  it("keeps the empty-date path byte-identical at ' · {venue}'", async () => {
+    // An empty stored date is the `?? ""` shape: formatFullDate("") === "", so
+    // the subline must still be the shipped " · {venue}", separator included.
+    await seedSession();
+    await db.trackedShows.update("s1", { date: "" });
+    render(<RecapView sessionId="s1" onClose={() => {}} />);
+    await screen.findByText(copy.heading);
+
+    // Identity normalizer: the default one TRIMS, which would hide exactly the
+    // leading-space regression this case exists to catch.
+    const exact = { normalizer: (s: string) => s };
+    expect(screen.getByText(copy.subline("", "Test Arena"), exact)).toBeInTheDocument();
+    expect(screen.getByText(" · Test Arena", exact)).toBeInTheDocument();
+  });
+});
+
 describe("Bingo replay section (BINGO-07, D-05 present/absent contract)", () => {
   it("renders the Bingo section when the session has a locked card", async () => {
     await seedSession();

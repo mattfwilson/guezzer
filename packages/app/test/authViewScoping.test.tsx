@@ -167,9 +167,11 @@ describe("AUTH-05 read-half: view consumers scope reads to the current identity 
     // Identity A → A's row present, B's row NOT leaked.
     mockIdentity = { userId: USER_A, displayName: "A" };
     render(<ShowsList archive={archive} onOpenTracked={() => {}} onOpenRetro={() => {}} />);
+    // Rows are identified by their DISPLAYED date, which FOUND-04 formats as
+    // "Mon D, YYYY" (plan 21-05); the stored date stays ISO (D-35).
     const rowA = await screen.findByTestId("show-row");
-    expect(within(rowA).getByText("2025-05-01")).toBeInTheDocument();
-    expect(screen.queryByText("2024-05-01")).not.toBeInTheDocument();
+    expect(within(rowA).getByText("May 1, 2025")).toBeInTheDocument();
+    expect(screen.queryByText("May 1, 2024")).not.toBeInTheDocument();
     expect(screen.queryAllByTestId("show-row")).toHaveLength(1);
     cleanup();
 
@@ -177,8 +179,8 @@ describe("AUTH-05 read-half: view consumers scope reads to the current identity 
     mockIdentity = { userId: USER_B, displayName: "B" };
     render(<ShowsList archive={archive} onOpenTracked={() => {}} onOpenRetro={() => {}} />);
     const rowB = await screen.findByTestId("show-row");
-    expect(within(rowB).getByText("2024-05-01")).toBeInTheDocument();
-    expect(screen.queryByText("2025-05-01")).not.toBeInTheDocument();
+    expect(within(rowB).getByText("May 1, 2024")).toBeInTheDocument();
+    expect(screen.queryByText("May 1, 2025")).not.toBeInTheDocument();
     expect(screen.queryAllByTestId("show-row")).toHaveLength(1);
   });
 

@@ -32,6 +32,7 @@ import { replayCard } from "../games/bingoReplay.ts";
 import { loadMatrix } from "../show/matrix.ts";
 import { loadArchive } from "./archive-loader.ts";
 import { loadDexAlbums } from "./dex-albums-loader.ts";
+import { formatFullDate } from "./formatDate.ts";
 import { getRarityIndex } from "./rarityIndex.ts";
 import { ShareCardSheet } from "./ShareCardSheet.tsx";
 import { TierBadge } from "./TierBadge.tsx";
@@ -216,7 +217,10 @@ export function RecapView({ sessionId, onClose }: RecapViewProps) {
 
   const show = (trackedShows ?? []).find((s) => s.sessionId === sessionId);
   const venue = show?.venueName ?? null;
-  const subline = copy.subline(show?.date ?? "", venue);
+  // Display only (D-35) — formatting happens here at the call site, never in the
+  // copy template and never on the stored `show.date`. `formatFullDate("")`
+  // returns `""`, so the absent-date path still renders " · {venue}" verbatim.
+  const subline = copy.subline(formatFullDate(show?.date ?? ""), venue);
 
   // songId → name from the derived rows (formatting lookup, not stat math).
   const nameById = new Map<number, string>();

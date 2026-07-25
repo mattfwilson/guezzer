@@ -66,6 +66,7 @@ import { SuggestionStrip } from "../live/SuggestionStrip.tsx";
 import { SyncDot } from "../live/SyncDot.tsx";
 import { RecapView } from "../dex/RecapView.tsx";
 import { coverUrlList } from "../dex/covers.ts";
+import { formatFullDate } from "../dex/formatDate.ts";
 import { coverUrlForSong } from "../dex/song-cover.ts";
 import { CatchUpSheet, type CatchUpCandidate } from "../games/CatchUpSheet.tsx";
 import { classifyOutcome } from "./scoring.ts";
@@ -512,7 +513,7 @@ export function ShowView() {
           show-specific sub-header row. */}
       <div className="flex shrink-0 items-center justify-between border-b border-hairline bg-elevated px-4 py-2">
         <span className="tabular-nums text-[14px] leading-tight text-text-muted">
-          {session.active.date}
+          {formatFullDate(session.active.date)}
         </span>
         <div className="flex items-center gap-3">
           {/* Quiet online/offline indicator (D-08) — passive, next to the tally.

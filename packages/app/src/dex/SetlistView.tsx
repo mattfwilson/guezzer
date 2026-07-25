@@ -19,6 +19,7 @@ import { useMemo } from "react";
 import { config } from "../config.ts";
 import { db } from "../db/db.ts";
 import { TierBadge } from "./TierBadge.tsx";
+import { formatFullDate } from "./formatDate.ts";
 
 /** Canonical set display order (SetNumber vocabulary). */
 const SET_ORDER = ["1", "2", "e"];
@@ -126,7 +127,7 @@ export function SetlistView({ showId, archive, rarity, onClose }: SetlistViewPro
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={resolved.date}
+      aria-label={formatFullDate(resolved.date)}
       className="fixed inset-0 flex flex-col overflow-y-auto bg-surface"
       style={{ zIndex: config.ui.z.sheet }}
     >
@@ -145,7 +146,7 @@ export function SetlistView({ showId, archive, rarity, onClose }: SetlistViewPro
         </button>
         <div className="flex min-w-0 flex-col">
           <span className="text-[20px] font-semibold leading-tight tabular-nums text-text-primary">
-            {resolved.date}
+            {formatFullDate(resolved.date)}
           </span>
           {resolved.venue != null && (
             <span className="truncate text-[14px] font-semibold leading-tight text-text-muted">
