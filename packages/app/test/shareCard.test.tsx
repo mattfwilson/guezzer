@@ -85,6 +85,26 @@ function showData(): ShareCardData {
   };
 }
 
+/** A per-show recap card for a named date/venue — the FOUND-05 footer fixtures. */
+function showDataAt(date: string, venue: string | null): ShareCardData {
+  return { ...(showData() as Extract<ShareCardData, { scope: "show" }>), show: { date, venue } };
+}
+
+/** The bingo TROPHY branch for a named date/venue — the second FOUND-05 call site. */
+function bingoDataAt(date: string, venue: string | null): ShareCardData {
+  return {
+    scope: "bingo",
+    // 16 squares, row-major, with the pre-marked free center at index 5.
+    squares: Array.from({ length: 16 }, (_, i) => ({
+      label: `Square ${i}`,
+      marked: i % 3 === 0,
+      isFree: i === 5,
+    })),
+    wins: ["line"],
+    show: { date, venue },
+  };
+}
+
 interface RecordedCall {
   fn: string;
   args: unknown[];
@@ -109,8 +129,34 @@ function makeMockCtx() {
     },
     save() {},
     restore() {},
+    // Path/stroke surface used only by the bingo trophy branch (rounded board
+    // cells + badge pills). Recorded as no-ops: the geometry is not what these
+    // tests assert, but the branch must be able to run to reach its footer.
+    lineWidth: 0 as number,
+    strokeStyle: "" as string,
+    beginPath() {},
+    moveTo() {},
+    arcTo() {},
+    closePath() {},
+    fill() {},
+    stroke() {},
   };
   return { ctx, calls };
+}
+
+/** The footer `date · venue` line is the LAST text both card branches draw. */
+function footerLine(calls: RecordedCall[]): string {
+  const texts = calls.filter((c) => c.fn === "fillText");
+  return String(texts[texts.length - 1]?.args[0] ?? "");
+}
+
+function drawnCalls(data: ShareCardData): RecordedCall[] {
+  const { ctx, calls } = makeMockCtx();
+  drawShareCard(ctx as unknown as CanvasRenderingContext2D, data, {
+    width: config.share.CARD_WIDTH,
+    height: config.share.CARD_HEIGHT,
+  });
+  return calls;
 }
 
 const file = () => new File(["png-bytes"], "guezzer-dex.png", { type: "image/png" });
@@ -235,6 +281,82 @@ describe("drawShareCard — pure (ctx, data) canvas draw (Pitfall 8)", () => {
     expect(calls.some((c) => c.fn === "fillText" && String(c.args[0]) === config.copy.share.card.showLabel)).toBe(true);
     // The vertical box still renders every tier label (shared renderer).
     expect(calls.some((c) => c.fn === "fillText" && String(c.args[0]) === config.copy.dex.tierLabels.epic)).toBe(true);
+  });
+});
+
+/**
+ * FOUND-05 / D-36 — the footer `date · venue` line on BOTH card branches.
+ *
+ * HARNESS LIMITATION, stated honestly: `makeMockCtx().measureText` returns
+ * `text.length * 12`. It is linear in character count and ignores the font size
+ * and face entirely. These cases therefore verify the ALGORITHM — the date is
+ * measured first, the venue gets only the leftover budget, the ellipsis is
+ * appended by the shipped `truncateToWidth` — and NOT the real pixel fit of the
+ * 44px system font on a 1080px card. The real-font check is **device UAT test
+ * 5** (`21-HUMAN-UAT.md`), shot at the widest venue name in the archive.
+ *
+ * Under the mock the 972px budget (`CARD_WIDTH * 0.9`) is exactly 81 characters
+ * and the `"Aug 14, 2026 · "` prefix is 15 — leaving a 66-character venue
+ * budget, which is where the exact expected strings below come from.
+ */
+describe("share-card footer — formatted date, ellipsized venue (FOUND-05 / D-36)", () => {
+  const ISO = "2026-08-14";
+  const FORMATTED = "Aug 14, 2026";
+  /** 90 characters — comfortably past the 66-character venue budget. */
+  const OVERFLOW_VENUE =
+    "Saint Augustine Amphitheatre at the Anastasia Island Fairgrounds and Concert Lawn Pavilion";
+  /** The exact line the algorithm must produce — a silent boundary change fails here. */
+  const OVERFLOW_LINE =
+    "Aug 14, 2026 · Saint Augustine Amphitheatre at the Anastasia Island Fairgrounds …";
+  const MAX_WIDTH = config.share.CARD_WIDTH * 0.9;
+
+  it("the fixtures still straddle the mock's 81-character budget", () => {
+    expect(OVERFLOW_VENUE.length).toBe(90);
+    expect(MAX_WIDTH / 12).toBe(81);
+  });
+
+  // Both call sites changed, so both get the identical four cases.
+  const branches: [string, (date: string, venue: string | null) => ShareCardData][] = [
+    ["per-show recap card", showDataAt],
+    ["bingo trophy card", bingoDataAt],
+  ];
+
+  describe.each(branches)("%s", (_name, make) => {
+    it("draws the formatted date and a short venue unchanged", () => {
+      const line = footerLine(drawnCalls(make(ISO, "Red Rocks")));
+      expect(line).toBe(`${FORMATTED} · Red Rocks`);
+      expect(line).not.toContain("…");
+    });
+
+    it("ellipsizes an over-long venue to the exact remaining budget", () => {
+      const line = footerLine(drawnCalls(make(ISO, OVERFLOW_VENUE)));
+      expect(line).toBe(OVERFLOW_LINE);
+      expect(line.startsWith(`${FORMATTED} · `)).toBe(true);
+      expect(line.endsWith("…")).toBe(true);
+      expect(line.length * 12).toBeLessThanOrEqual(MAX_WIDTH);
+    });
+
+    it("never truncates the date, even when the venue overflows", () => {
+      const line = footerLine(drawnCalls(make(ISO, OVERFLOW_VENUE)));
+      expect(line).toContain(FORMATTED);
+      expect(line.slice(0, FORMATTED.length)).toBe(FORMATTED);
+    });
+
+    it("draws the date alone when the venue is null", () => {
+      const line = footerLine(drawnCalls(make(ISO, null)));
+      expect(line).toBe(FORMATTED);
+      expect(line).not.toContain("·");
+      expect(line).not.toContain("…");
+    });
+
+    it("never draws the raw ISO date anywhere on the card", () => {
+      for (const data of [make(ISO, "Red Rocks"), make(ISO, OVERFLOW_VENUE), make(ISO, null)]) {
+        const drawn = drawnCalls(data)
+          .filter((c) => c.fn === "fillText")
+          .map((c) => String(c.args[0]));
+        expect(drawn.some((t) => t.includes(ISO))).toBe(false);
+      }
+    });
   });
 });
 

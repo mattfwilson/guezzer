@@ -18,6 +18,7 @@
 import type { BingoShareCard, BingoWinKind, RarityTier, ShareCardData } from "@guezzer/core";
 import { config } from "../config.ts";
 import { triggerDownload } from "../settings/triggerDownload.ts";
+import { formatFullDate } from "./formatDate.ts";
 import { rarityColor } from "./rarityStyle.ts";
 
 /** System-font stack (05/06-UI-SPEC) — no web-font download; matches the app chrome. */
@@ -190,8 +191,10 @@ export function drawShareCard(
         : null
       : { label: cardCopy.showLabel, date: data.show.date, venue: data.show.venue };
   if (footer != null) {
-    const line = footer.venue ? `${footer.date} · ${footer.venue}` : footer.date;
+    const line = composeFooterLine(ctx, formatFullDate(footer.date), footer.venue, width * 0.9, 44);
     centerText(ctx, footer.label, cx, height * 0.955, 38, COLOR.muted);
+    // D-37: the 0.99 baseline is deliberately unchanged pending the device shot
+    // (plan 21-13 / UAT test 5). If descenders clip there, the cheap fix is 0.97.
     centerText(ctx, line, cx, height * 0.99, 44, COLOR.primary);
   }
 }
@@ -254,6 +257,41 @@ function truncateToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: 
   let s = text;
   while (s.length > 0 && ctx.measureText(`${s}…`).width > maxWidth) s = s.slice(0, -1);
   return `${s}…`;
+}
+
+/**
+ * Compose the footer's `date · venue` line so the whole line fits `maxWidth`
+ * (FOUND-05 / D-36).
+ *
+ * D-36's rule in words: **truncate the venue, never the date.** The date is what
+ * FOUND-05 is about — a card reading "Aug 14, 20…" fails the requirement
+ * outright, while a clipped venue name is a cosmetic loss. So the date is
+ * measured first and the venue gets only what is left over.
+ *
+ * Units: `maxWidth` is canvas pixels (callers pass the card's `width * 0.9`
+ * margin — the same constant the win-badge row uses); `size` is the px font size
+ * the line will actually be drawn at.
+ *
+ * Precondition, and the reason for the `ctx.font` assignment: `measureText` is
+ * only honest at the font it will be drawn with, so this sets the same
+ * `600 {size}px` face `centerText` sets immediately afterwards — an idempotent
+ * assignment, not a hidden state change. Otherwise pure over the passed
+ * context's `measureText`; draws nothing.
+ */
+function composeFooterLine(
+  ctx: CanvasRenderingContext2D,
+  date: string,
+  venue: string | null | undefined,
+  maxWidth: number,
+  size: number,
+): string {
+  // No venue → the date stands alone; there is nothing that could be truncated.
+  if (!venue) return date;
+  ctx.font = `600 ${size}px ${FONT_STACK}`;
+  const venueBudget = maxWidth - ctx.measureText(`${date} · `).width;
+  // A budget too small for even one character collapses to "…" inside
+  // truncateToWidth's length-bounded loop — never an unbounded spin (T-21-14).
+  return `${date} · ${truncateToWidth(ctx, venue, venueBudget)}`;
 }
 
 /** Greedy word-wrap `text` into at most `maxLines` lines that each fit `maxWidth`
@@ -421,8 +459,10 @@ function drawBingoShareCard(
 
   // Footer: honest muted "This show" label + the show's own date · venue — the
   // same footer slots the per-show recap card uses.
-  const line = data.show.venue ? `${data.show.date} · ${data.show.venue}` : data.show.date;
+  const line = composeFooterLine(ctx, formatFullDate(data.show.date), data.show.venue, width * 0.9, 44);
   centerText(ctx, config.copy.share.card.showLabel, cx, height * 0.955, 38, COLOR.muted);
+  // D-37: the 0.99 baseline is deliberately unchanged pending the device shot
+  // (plan 21-13 / UAT test 5). If descenders clip there, the cheap fix is 0.97.
   centerText(ctx, line, cx, height * 0.99, 44, COLOR.primary);
 }
 
