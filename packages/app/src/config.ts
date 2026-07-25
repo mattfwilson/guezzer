@@ -305,6 +305,41 @@ export const config = {
     FAB_SHEET_GAP_PX: 12,
 
     /**
+     * Phase-21 FOUND-02: THE numbers behind the app's bottom-space ladder. The
+     * arithmetic that consumes them lives in exactly one place —
+     * `src/layout/bottomSpace.ts` — which composes them into the `--gz-*` custom
+     * properties every bottom-anchored surface reads. Before Phase 21 this
+     * arithmetic existed in four notations across nine files that disagreed by
+     * one safe-area inset (the FOUND-01 dead gap); "a search for the tab-bar
+     * height returns exactly one owner" is the requirement these constants exist
+     * to satisfy. Add a number here, compose it there, never inline it at a call
+     * site.
+     */
+    bottomSpace: {
+      /**
+       * Phase-21 D-04: BottomTabBar button-area height. `rem`, NOT `px`, is
+       * deliberately the source unit — the 14px/600 tab labels inside the bar
+       * scale with the user's iOS Dynamic Type setting, and a fixed-px bar would
+       * clip them at the largest text size (NAV-01). Everything composed from the
+       * owner inherits that scaling for free.
+       */
+      TAB_BAR_HEIGHT_REM: 4,
+      /**
+       * Phase-21: gap in px between the chrome reserve and the resting Show-Mode
+       * FAB — and the centered "Low confidence" weak-fan hint that aligns
+       * vertically with it. Guards the two drifting apart.
+       */
+      FAB_CLEARANCE_PX: 16,
+      /**
+       * Phase-21 D-07: modal-sheet scroll-container bottom padding in px.
+       * Deliberately NOT tab-bar-relative: a sheet COVERS the tab bar, it does
+       * not sit above it, so composing this from the chrome reserve would reserve
+       * a bar the user cannot see. It composes from the safe-area inset alone.
+       */
+      SHEET_PAD_BOTTOM_PX: 32,
+    },
+
+    /**
      * Phase-16 (BINGO-05, D-16/D-17/D-18) Gizz-Bingo celebration timings —
      * single-config ethos (CLAUDE.md): no scattered magic numbers in
      * BingoCelebration.tsx. Values mirror 16-UI-SPEC §Interaction & Motion —

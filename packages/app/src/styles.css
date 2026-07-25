@@ -12,6 +12,27 @@
   --color-hairline: #2a2a34;
 }
 
+/* Phase-21 FOUND-02 (D-01/D-12): THE one permitted raw `env()` read of the safe-area
+   BOTTOM inset in the codebase. Every other bottom-anchored surface composes from this variable
+   (or from `--gz-chrome-reserve`, which is built on it) via `src/layout/bottomSpace.ts`.
+
+   A plain `:root` block, NOT `@theme` — `@theme` generates Tailwind utilities, which
+   is not what this is; it is a raw custom property read by inline `var()`.
+
+   Authored in CSS rather than written from JS on purpose: `:root { --x: env(...) }` is
+   the documented, widely-deployed pattern, whereas round-tripping `env()` through a JS
+   `setProperty` call is unverified in Safari. A silent failure there would collapse
+   every composed reserve — and would still LOOK correct in a desktop tab, where the
+   inset is `0` (21-RESEARCH Pitfall 8 / assumption A2). The one place the value can
+   fail is the one place we can neither test in jsdom nor see on a laptop, so it never
+   passes through JS.
+
+   Scope note: `env(safe-area-inset-top/left/right)` are OUT of scope for this guard and
+   keep their shipped per-surface idiom (see the `body` rule's UX-01/D-01 note). */
+:root {
+  --gz-safe-bottom: env(safe-area-inset-bottom);
+}
+
 html,
 body,
 #root {
