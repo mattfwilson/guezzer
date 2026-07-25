@@ -1,19 +1,22 @@
 ---
-status: testing
+status: partial
 phase: 21-layout-layering-foundations
 source: [21-VALIDATION.md, 21-UI-SPEC.md]
 started: 2026-07-25T01:16:45Z
-updated: 2026-07-25T02:04:00Z
+updated: 2026-07-25T02:41:00Z
 ---
 
 ## Current Test
 
 number: 1
-name: Installed-PWA bottom gap — BEFORE half, portrait and landscape (FOUND-01)
+name: Installed-PWA bottom gap — BEFORE half, NUMERIC capture (FOUND-01)
 expected: |
-  On the installed home-screen PWA with `?layoutProbe=1`, record `sab`, `bodyH-rootH` and `>>> GAP`
-  in BOTH orientations, plus device/OS/dpr/htmlFont. Confirm `standalone: nav=true` first.
-  Branch on the numbers per the test-1 entry below (confirmation / GAP===0 / GAP!=sab).
+  The gap is confirmed to reproduce visually. What remains is the measurement that picks the fix:
+  on the installed instance with `?layoutProbe=1`, on a NAMED route, record `sab`, `bodyH-rootH`
+  and `>>> GAP` in portrait AND landscape.
+
+  `bodyH-rootH === sab` AND `GAP === sab` → D-15 confirmed → 21-07 deletes `styles.css:220`.
+  `GAP != sab` (non-zero)              → D-15 falsified → 21-07 opens the D-14 investigation.
 awaiting: user response
 
 ## Session Notes
@@ -84,7 +87,24 @@ expected: |
   record the same three numbers plus screenshots alongside the before set. FOUND-01 is closed only
   when before AND after exist for BOTH orientations (D-18).
 result: |
-  PENDING
+  ISSUE — REPRODUCES (visual confirmation, 2026-07-25). Owner reports a visible dead gap between
+  content and the tab bar on the installed instance.
+
+  What this settles: the D-19 falsification branch (`GAP === 0`) is RULED OUT. FOUND-01 is a real
+  defect on this device, not a non-reproduction, so plan 21-07 must ship an actual fix rather than
+  closing the requirement on a flush baseline.
+
+  What this does NOT yet settle — 21-07 is still gated:
+  - `sab`, `bodyH-rootH` and `>>> GAP` were not recorded, so the CONFIRMATION branch
+    (`bodyH-rootH === sab` AND `GAP === sab` → delete `styles.css:220`) cannot be distinguished
+    from the second FALSIFICATION branch (`GAP != sab` AND `GAP != 0` → D-14 investigation).
+    These are different fixes; the numbers pick between them.
+  - Orientation was not stated. D-18 requires portrait AND landscape independently.
+  - Route was not stated. `<main>`'s bottom padding adds a dynamic `overlayInset` on `#/show`
+    (`AppShell.tsx:75-77`), so the route must be named for the AFTER run to be comparable.
+
+  Outstanding: numeric BEFORE capture via `?layoutProbe=1`, both orientations, on a named route.
+severity: major
 
 ### 2. bottom-16 overlay overlap on the installed instance (FOUND-02)
 expected: |
@@ -129,7 +149,15 @@ expected: |
   - Note: "GizzVerse" is deliberately the one long label kept (it is a real place, not a prefixed
     noun), so it is the worst case — check it first.
 result: |
-  PENDING
+  PASS (2026-07-25) — owner reports the tab labels read correctly with no clipping, wrapping or
+  collision. All five post-rename labels (Live / GizzVerse / Map / Me / Games) render cleanly on the
+  installed instance.
+
+  Caveat on scope: the owner's confirmation covered the labels as displayed. It was not separately
+  stated whether the OS text-size slider was driven to MAXIMUM (Settings → Display & Brightness →
+  Text Size, and/or Accessibility → Larger Text). NAV-01's success criterion is specifically the
+  largest Dynamic Type setting — at default sizing the labels were never at risk. If the max-size
+  pass was not run, re-confirm during device session #2 (plan 21-13) before closing NAV-01.
 
 ### 4. SearchSheet with the soft keyboard up (FOUND-03, D-17)
 expected: |
@@ -170,7 +198,15 @@ expected: |
   - Save the generated PNG out through the real iOS share sheet and confirm the saved file matches
     what was previewed.
 result: |
-  PENDING
+  PASS (2026-07-25) — owner reports the share-card footer renders correctly: the venue reads well,
+  with no truncation of the date and no overflow past the card edges. The plan-21-06
+  `composeFooterLine` width constraint behaves against real canvas font metrics, which is what the
+  linear-in-length `measureText` unit mock could not prove.
+
+  Caveat on scope: not separately confirmed were (a) the D-37 descender check on the footer BASELINE
+  (the footer sits at `height * 0.99` at 44px, so g/y/p/j/q tails may clip at the card's bottom edge
+  independent of the date change), and (b) the widest-realistic-venue worst case specifically. Both
+  are cheap to re-confirm during device session #2 (plan 21-13).
 
 ### 6. Two devices on different builds, both directions (NAV-03, D-42)
 expected: |
@@ -192,7 +228,22 @@ expected: |
     `visibleEpoch` hidden→visible rejoin should reconcile after backgrounding).
   - Record which build each device ran and screenshot both friend rows.
 result: |
-  PENDING
+  PENDING — partial credit only.
+
+  The owner confirmed (2026-07-25) that presence/activity labels render correctly and readably on
+  the POST-rename build: human copy, never blank, no raw wire token leaking through. That exercises
+  the plan-21-03 `presenceActivityLabel` resolution and the D-41 `activityUnknown` constant on a
+  SINGLE build.
+
+  It does NOT satisfy NAV-03. This test's entire subject is the MIXED-build case — two devices on
+  DIFFERENT app builds, checked in BOTH directions, where the new build emits a token vocabulary the
+  old build has never seen. A same-build check cannot produce an unrecognized token, so the D-41
+  fallback path is exactly the thing that stayed untested. The failure mode is silent, and this
+  project has twice learned (`260724-hqu` / `260724-lgo`) that a unit-proven realtime path is not a
+  verified one.
+
+  Remains open for device session #2 (plan 21-13), which needs the two-worktree / two-tunnel harness
+  described below.
 
 ### 7. Live paint order over a real toast (FOUND-03, D-29)
 expected: |
@@ -317,11 +368,26 @@ Test 6 needs the PRE-rename build and the POST-rename build live at the same tim
 ## Summary
 
 total: 8
-passed: 0
-issues: 0
-pending: 8
+passed: 2
+issues: 1
+pending: 5
 skipped: 0
 blocked: 0
+
+Session 1 (2026-07-25) — device pass on the installed instance, tunnel build `f7467d9`:
+
+| Test | Result |
+|------|--------|
+| 1. Bottom gap (BEFORE) | ISSUE — reproduces visually; numeric capture outstanding |
+| 3. Tab strip / Dynamic Type | PASS (max-text-size pass unconfirmed) |
+| 5. Share-card footer | PASS (D-37 descender check unconfirmed) |
+| 6. Mixed-build presence | PENDING — same-build labels good, mixed-build case untouched |
+| 2, 4, 7, 8 | Not run |
+
+Also confirmed this session, outside the 8 numbered tests: **FOUND-04 full-date rendering** reads
+correctly and consistently across all five call sites (ShowView header, ShowsList, SetlistView,
+ArchiveBrowser, RecapView subline) with no off-by-one date shift — the real-device confirmation that
+the plan-21-02/21-05 UTC-pinned `formatFullDate` holds outside jsdom.
 
 Notes:
 - All 8 carried verbatim from `21-VALIDATION.md` §Manual-Only Verifications; tests 1–6 also map to
@@ -331,8 +397,28 @@ Notes:
 - Test 7 gates plan 21-11 and is the only desktop-browser item.
 - Tests 2, 4 and 8 are AFTER-the-fix confirmations (plans 21-10 and 21-11 respectively) and cannot
   be run before those plans land.
-- D-19 stands over test 1: a non-reproduction still satisfies FOUND-01.
+- D-19 is now MOOT for test 1 — the gap reproduces, so FOUND-01 cannot be closed on a flush
+  baseline and plan 21-07 must ship a real fix.
 
 ## Gaps
 
-- None recorded yet — no test has been run.
+- truth: "On an installed home-screen PWA, body content sits flush against the top of the bottom tab
+    bar with no dead gap (FOUND-01, success criterion 1)"
+  status: failed
+  reason: "User reported: there is a gap still — visible dead space between content and the tab bar
+    on the installed instance."
+  severity: major
+  test: 1
+  root_cause: ""     # Cannot be assigned without the numeric capture — two candidate causes remain
+  artifacts:
+    - path: "packages/app/src/styles.css:220"
+      issue: "body padding-bottom: env(safe-area-inset-bottom) — D-15's predicted double-count"
+    - path: "packages/app/src/components/BottomTabBar.tsx:33-34"
+      issue: "height calc(4rem + env(...)) AND paddingBottom env(...) — the second owner"
+    - path: "packages/app/src/components/AppShell.tsx:75-77"
+      issue: "main paddingBottom calc(4rem + env(...) + overlayInset) — the third owner"
+  missing:
+    - "Numeric BEFORE capture (sab, bodyH-rootH, GAP) via ?layoutProbe=1, portrait AND landscape,
+       on a named route — this is what selects between deleting styles.css:220 (D-15 confirmed)
+       and opening the D-14 viewport-vs-box-model investigation (D-15 falsified)."
+  debug_session: ""
