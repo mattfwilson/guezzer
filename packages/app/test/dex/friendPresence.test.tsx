@@ -131,11 +131,13 @@ describe("FriendRow — online dot fills the reserved presence-online slot (PRES
 });
 
 describe("FriendRow — activity label fills the reserved presence-activity slot", () => {
-  it("renders the tab brand token (muted) for a plain activity", () => {
+  it("renders the token's presence-voice label (muted) for a plain activity", () => {
     render(
       <FriendRow userId="f1" displayName="Ada" pct={10} caught={10} rarest={null} online activity={{ tab: "GizzVerse" }} onClick={() => {}} />,
     );
-    expect(screen.getByText("GizzVerse")).toBeInTheDocument();
+    // NAV-01/D-39: the presence voice, not the bare wire token.
+    expect(screen.getByText(presence.activity.GizzVerse)).toBeInTheDocument();
+    expect(screen.queryByText("GizzVerse")).not.toBeInTheDocument();
   });
 
   it("renders `At a show 🎸` with text-primary emphasis for an atShow activity", () => {
@@ -147,12 +149,13 @@ describe("FriendRow — activity label fills the reserved presence-activity slot
     expect(label.className).toContain("text-text-primary");
   });
 
-  it("renders no activity label when activity is null", () => {
+  it("renders no activity label for an OFFLINE friend with no activity", () => {
     render(
-      <FriendRow userId="f1" displayName="Ada" pct={10} caught={10} rarest={null} online activity={null} onClick={() => {}} />,
+      <FriendRow userId="f1" displayName="Ada" pct={10} caught={10} rarest={null} online={false} activity={null} onClick={() => {}} />,
     );
-    expect(screen.queryByText("GizzVerse")).not.toBeInTheDocument();
+    expect(screen.queryByText(presence.activity.GizzVerse)).not.toBeInTheDocument();
     expect(screen.queryByText(presence.atShow)).not.toBeInTheDocument();
+    expect(screen.queryByText(presence.activityUnknown)).not.toBeInTheDocument();
   });
 
   it("a present friend row shows BOTH the dot and the text label (WCAG 1.4.1)", () => {
@@ -160,7 +163,7 @@ describe("FriendRow — activity label fills the reserved presence-activity slot
       <FriendRow userId="f1" displayName="Ada" pct={10} caught={10} rarest={null} online activity={{ tab: "GizzDex" }} onClick={() => {}} />,
     );
     expect(onlineDot(container)).not.toBeNull();
-    expect(screen.getByText("GizzDex")).toBeInTheDocument();
+    expect(screen.getByText(presence.activity.GizzDex)).toBeInTheDocument();
   });
 });
 
@@ -171,7 +174,7 @@ describe("SelfRow — own live dot + activity, offline hides the dot (D-15/D-17)
     const dot = onlineDot(container);
     expect(dot).not.toBeNull();
     expect(dot!.style.backgroundColor).toBe("rgb(34, 197, 94)");
-    expect(screen.getByText("GizzDex")).toBeInTheDocument();
+    expect(screen.getByText(presence.activity.GizzDex)).toBeInTheDocument();
   });
 
   it("stamps `At a show 🎸` on the show route with an active tracked show", () => {
