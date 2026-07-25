@@ -191,3 +191,36 @@ describe("ArchiveBrowser — mark attended shows (D-09..D-12)", () => {
     expect(await db.attendedShows.get(2026001)).toBeTruthy();
   });
 });
+
+/**
+ * FOUND-04 — archive row dates read "Mon D, YYYY" (plan 21-05, D-32/D-33).
+ *
+ * Two sites here: the visible row date and the unmark-confirm control's
+ * accessible name, which is the ONLY thing identifying which show a VoiceOver
+ * user is about to unmark — announcing "2025-11-20" as a bare number sequence
+ * is what D-33 fixes. Both must format; neither may leak into a write (D-35,
+ * pinned separately in `exportImportRoundtrip.test.ts`).
+ */
+describe("FOUND-04 — archive dates render 'Mon D, YYYY' (D-32, D-33)", () => {
+  it("renders the visible row date formatted, not raw ISO", async () => {
+    render(<ArchiveBrowser archive={archive} onClose={() => {}} />);
+
+    const row = await screen.findByTestId("archive-row-2025001");
+    expect(within(row).getByText("Nov 20, 2025")).toBeInTheDocument();
+    expect(within(row).queryByText("2025-11-20")).toBeNull();
+    expect(screen.queryByText("2025-06-10")).toBeNull();
+  });
+
+  it("announces the formatted date on the unmark-confirm control (D-33)", async () => {
+    await db.attendedShows.put({ show_id: 2025001, showDate: "2025-11-20" });
+    render(<ArchiveBrowser archive={archive} onClose={() => {}} />);
+
+    const row = await screen.findByTestId("archive-row-2025001");
+    await waitFor(() => expect(row.getAttribute("data-marked")).toBe("true"));
+
+    // Composed from the shipped copy constant so the test never hardcodes the prefix.
+    const label = `${copy.unmarkConfirm} Nov 20, 2025`;
+    expect(within(row).getByLabelText(label)).toBeInTheDocument();
+    expect(within(row).queryByLabelText(`${copy.unmarkConfirm} 2025-11-20`)).toBeNull();
+  });
+});

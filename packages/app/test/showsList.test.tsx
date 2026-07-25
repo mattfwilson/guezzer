@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   cleanup,
   fireEvent,
@@ -127,8 +130,11 @@ describe("Dex Shows segment — ShowsList + SetlistView (D-16, HIST-01)", () => 
 
     const rows = await screen.findAllByTestId("show-row");
     expect(rows.length).toBe(2);
-    expect(within(rows[0]).getByText("2025-05-01")).toBeInTheDocument();
-    expect(within(rows[1]).getByText("2024-05-01")).toBeInTheDocument();
+    // FOUND-04: rows render the shared "Mon D, YYYY" format, never raw ISO.
+    expect(within(rows[0]).getByText("May 1, 2025")).toBeInTheDocument();
+    expect(within(rows[1]).getByText("May 1, 2024")).toBeInTheDocument();
+    expect(screen.queryByText("2025-05-01")).toBeNull();
+    expect(screen.queryByText("2024-05-01")).toBeNull();
   });
 
   it("dedupes a night that is BOTH tracked and retro-marked into one tracked row", async () => {
@@ -193,5 +199,38 @@ describe("Dex Shows segment — ShowsList + SetlistView (D-16, HIST-01)", () => 
     await gotoShows();
     expect(await screen.findByTestId("show-row")).toBeInTheDocument();
     expect(screen.queryByText(copy.showsEmptyHeading)).toBeNull();
+  });
+});
+
+/**
+ * FOUND-04 — the ShowView header date (plan 21-05, D-32/D-35).
+ *
+ * ShowView's header is the seventh converted full-date site, and the only one
+ * with no render harness in this repo: mounting it pulls the whole
+ * Dexie/session/matrix/wake-lock stack, which is why `recapView.test.tsx` gives
+ * its one full-ShowView integration case a 15s budget. Paying that cost again
+ * for a single date string is not worth it, so this site is pinned by a source
+ * scan instead (the `rebrand.test.ts` readFileSync idiom). The other six sites
+ * are covered by real render assertions in this file, `setlistView.test.tsx`,
+ * `archiveBrowser.test.tsx` and `recapView.test.tsx`.
+ */
+describe("FOUND-04 — ShowView header date (source guard)", () => {
+  const showViewPath = join(
+    dirname(fileURLToPath(import.meta.url)),
+    "../src/show/ShowView.tsx",
+  );
+
+  it("formats the header date through formatFullDate and never renders raw ISO", () => {
+    const src = readFileSync(showViewPath, "utf8");
+    expect(src).toContain("formatFullDate(session.active.date)");
+    // The bare render is what a regression would look like.
+    expect(src).not.toContain("{session.active.date}");
+  });
+
+  it("imports the shared helper rather than formatting inline", () => {
+    const src = readFileSync(showViewPath, "utf8");
+    expect(src).toContain('import { formatFullDate } from "../dex/formatDate.ts"');
+    // No component-local Intl formatter — formatDate.ts is the single owner.
+    expect(src).not.toContain("new Intl.DateTimeFormat");
   });
 });
