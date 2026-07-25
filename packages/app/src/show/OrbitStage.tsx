@@ -46,9 +46,11 @@ interface OrbitStageProps {
   onWhy: (candidate: OrbitCandidate) => void;
   /** Pre-opener: tapping the center prompt opens Search to seed the opener (SHOW-04). */
   onOpenSearch: () => void;
-  /** Whether the SuggestionStrip is showing rows — lifts the weak-fan hint in step
-   *  with the FAB so the two stay vertically aligned (shared `showBottomFabOffset`). */
-  stripHasContent: boolean;
+  /** Whether the SuggestionStrip's fixed slot is RESERVED (the opener-seeded
+   *  signal) — lifts the weak-fan hint in step with the FAB so the two stay
+   *  vertically aligned (shared `showBottomFabOffset`). D-05: the reserved slot,
+   *  not "rows are visible now", so neither surface moves mid-show. */
+  stripSlotReserved: boolean;
 }
 
 /** The tapped-orb collapse animation: a frozen snapshot of the OUTGOING fan +
@@ -117,7 +119,7 @@ export function OrbitStage({
   onTapOrb,
   onWhy,
   onOpenSearch,
-  stripHasContent,
+  stripSlotReserved,
 }: OrbitStageProps) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -331,12 +333,14 @@ export function OrbitStage({
       {weak && !inCollapse && fan.length > 0 && (
         // A single "Low confidence" line, FIXED to the viewport and horizontally
         // centred, sitting at the SAME bottom offset as the FAB (shared
-        // `showBottomFabOffset`) — an `h-14` (56px, the FAB diameter) items-center
-        // box so the text's vertical centre lines up with the FAB to the right.
+        // `showBottomFabOffset`, which composes the owner's `--gz-fab-offset`) —
+        // an `h-14` (56px, the FAB diameter) items-center box so the text's
+        // vertical centre lines up with the FAB to the right. Same reserved-slot
+        // trigger as the FAB (D-05), so the pair moves together or not at all.
         // Out of the orbit group's flow, so the orb group reclaims the full stage.
         <div
           className="pointer-events-none fixed inset-x-0 flex h-14 items-center justify-center px-4 text-center"
-          style={{ bottom: showBottomFabOffset(stripHasContent), zIndex: config.ui.z.peek }}
+          style={{ bottom: showBottomFabOffset(stripSlotReserved), zIndex: config.ui.z.peek }}
         >
           <span className="text-[14px] font-semibold leading-tight text-text-muted">
             {config.copy.show.weakFanHeading}

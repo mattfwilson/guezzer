@@ -489,14 +489,15 @@ export function ShowView() {
   // both collapse so the "Search for the opener" orb centers with no blank bar.
   const openerSeeded = session.currentSongId !== null;
 
-  // The FAB lifts above the SuggestionStrip only when it is actually RENDERING
-  // rows (advisory suggestions or fill-??? hints) — NOT merely when the fixed slot
-  // is reserved. An empty (reserved-but-invisible) strip has nothing to overlap,
-  // so the FAB stays in its resting corner and only repositions when a row is
-  // genuinely there to clear (owner 2026-07-19, FabMenu.stripHasContent). Mirrors
-  // the strip's own `hasContent` (suggestions or fill hints present).
-  const stripHasContent =
-    visibleSuggestions.length > 0 || visibleFillHints.length > 0;
+  // D-05: the FAB's (and the aligned weak-fan hint's) layout input is `openerSeeded`
+  // above — the RESERVED-SLOT signal — not a "rows are on screen right now" flag. A
+  // tap target must never move on its own, and a remotely timed editor suggestion
+  // must not reposition one mid-show. The former rendered-rows derivation that lived
+  // here had no other consumer and is gone. `hasContent` remains a *rendering* input
+  // INSIDE SuggestionStrip (border/background only). D-06 keeps that strip exempt
+  // from the measured-height mechanism: its slot is a fixed, always-reserved
+  // constant (the Phase-10 56→112px drift was a wrong constant, not a wrong
+  // mechanism), and measuring it here would reintroduce exactly the jump D-05 removes.
 
   // Pre-opener opener suggestions (QUICK-260718-1no) — a stable, module-memoized
   // top-N recency-weighted opener list (NOT a hook, so it's safe below the early
@@ -574,7 +575,7 @@ export function ShowView() {
         onTapOrb={handleTapOrb}
         onWhy={setWhyCandidate}
         onOpenSearch={() => setSearchOpen(true)}
-        stripHasContent={stripHasContent}
+        stripSlotReserved={openerSeeded}
       />
 
       {/* SuggestionStrip (05-04, D-01): the advisory editor songs + fill-???
@@ -604,7 +605,7 @@ export function ShowView() {
         onUndo={handleUndo}
         onCatchUp={() => setCatchUpOpen(true)}
         onEndShow={() => setEndOpen(true)}
-        stripHasContent={stripHasContent}
+        stripSlotReserved={openerSeeded}
       />
 
       {/* Fuzzy catalog search over core searchCatalog — opener-seed + mid-show

@@ -20,7 +20,7 @@ const actionLabels = [
   config.copy.show.endCta, // End Show — the last FAB item (moved from the header)
 ];
 
-function renderMenu(stripHasContent = false) {
+function renderMenu(stripSlotReserved = false) {
   const handlers = {
     onSearch: vi.fn(),
     onUnknown: vi.fn(),
@@ -30,7 +30,7 @@ function renderMenu(stripHasContent = false) {
     onCatchUp: vi.fn(),
     onEndShow: vi.fn(),
   };
-  render(<FabMenu {...handlers} stripHasContent={stripHasContent} />);
+  render(<FabMenu {...handlers} stripSlotReserved={stripSlotReserved} />);
   return handlers;
 }
 
@@ -51,14 +51,14 @@ function openMenu() {
 describe("FabMenu (D-20 speed-dial replacing ActionBar)", () => {
   afterEach(cleanup);
 
-  it("lifts only when the SuggestionStrip is showing rows, never for an empty slot (owner 2026-07-19)", () => {
-    // jsdom's CSSOM drops calc()/env() from style.bottom, so assert the wiring
+  it("lifts on the RESERVED-SLOT signal, not on rows being visible (D-05)", () => {
+    // jsdom's CSSOM drops calc()/var() from style.bottom, so assert the wiring
     // via the data attribute the container reflects (also a debug hook).
     renderMenu(false);
-    expect(fabContainer().dataset.stripHasContent).toBe("false");
+    expect(fabContainer().dataset.stripSlotReserved).toBe("false");
     cleanup();
     renderMenu(true);
-    expect(fabContainer().dataset.stripHasContent).toBe("true");
+    expect(fabContainer().dataset.stripSlotReserved).toBe("true");
   });
 
   it("is collapsed by default: only the FAB is in the tree, no action buttons", () => {

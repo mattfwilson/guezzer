@@ -20,17 +20,22 @@
  *     once (auto-collapse-then-act).
  *
  * Fixed-position anchor (unlike the in-flow ActionBar): 16px in from the right
- * edge (plus the safe-area inset) and 16px above the app BottomTabBar. When the
- * SuggestionStrip is actually showing rows (`stripHasContent` — advisory
- * suggestions or fill-`???` hints are on screen), the FAB LIFTS by the strip's
- * fixed height so it sits fully above those rows and never overlaps a row's +/X
- * buttons (owner 2026-07-18, revising the earlier 2026-07-17
- * symmetric-inset-that-tolerates-overlap call). The lift is keyed to VISIBLE
- * content, not the strip's reserved slot: an empty (reserved-but-invisible) strip
- * has nothing to overlap, so the FAB stays in its resting corner and only
- * repositions when a row is genuinely there to clear (owner 2026-07-19). The
- * motion-safe transition glides the reposition. Never accent — gold is reserved
- * for Start Show / focus ring (UI-SPEC §Color).
+ * edge (plus the safe-area inset) and, vertically, the bottom-space owner's
+ * `--gz-fab-offset` via the shared `showBottomFabOffset` (FOUND-02). When the
+ * SuggestionStrip's slot is RESERVED (`stripSlotReserved` — i.e. the opener is
+ * seeded), the FAB LIFTS by that slot's fixed height so it sits fully above any
+ * rows the strip renders and never overlaps a row's +/X buttons (owner
+ * 2026-07-18, revising the earlier 2026-07-17 symmetric-inset-that-tolerates-
+ * overlap call).
+ *
+ * D-05: the lift is keyed to the RESERVED SLOT, not to whether rows are visible
+ * right now. Keyed to visible content (as it shipped through Phase 10) a remote
+ * editor suggestion arriving mid-show moved the FAB under a reaching thumb; a tap
+ * target must never move on its own. Keyed to the reserved slot the FAB
+ * transitions at most once per show, at the opener. The `a60d5e2` clearance is
+ * re-expressed, not undone — the reserved slot is always ≥ the rendered rows it
+ * holds. The motion-safe transition glides that one reposition. Never accent —
+ * gold is reserved for Start Show / focus ring (UI-SPEC §Color).
  */
 import { CircleHelp, CircleStop, ListChecks, Minus, Plus, Search, Star, Undo2 } from "lucide-react";
 import { useState } from "react";
@@ -55,13 +60,14 @@ interface FabMenuProps {
    *  header button. */
   onEndShow: () => void;
   /**
-   * True when the SuggestionStrip is actually rendering rows (advisory
-   * suggestions or fill-`???` hints on screen). Lifts the FAB by the strip's
-   * fixed height so it never overlaps a strip row's +/X buttons (owner
-   * 2026-07-19). Keyed to VISIBLE content — NOT the reserved-but-empty slot — so
-   * the FAB only repositions when a row is genuinely there to clear.
+   * True when the SuggestionStrip's fixed slot is RESERVED — the same
+   * opener-seeded signal passed to `<SuggestionStrip reserveSpace>`. Lifts the FAB
+   * by that slot's height so it never overlaps a strip row's +/X buttons. D-05:
+   * deliberately NOT the "rows are on screen right now" signal, so a remotely
+   * timed suggestion can never move a live-logging tap target mid-show; the slot
+   * is always ≥ the rows it holds, so the clearance is unchanged.
    */
-  stripHasContent: boolean;
+  stripSlotReserved: boolean;
 }
 
 export function FabMenu({
@@ -72,7 +78,7 @@ export function FabMenu({
   onUndo,
   onCatchUp,
   onEndShow,
-  stripHasContent,
+  stripSlotReserved,
 }: FabMenuProps) {
   const [open, setOpen] = useState(false);
   const copy = config.copy.show;
@@ -98,12 +104,13 @@ export function FabMenu({
     fn();
   };
 
-  // Bottom offset = 16px above the app BottomTabBar (h-16 = 64px), atop the
-  // safe-area inset. When the SuggestionStrip is actually showing rows, ADD its
-  // fixed height so the FAB clears those rows entirely (owner 2026-07-19) instead
-  // of overlapping a row's +/X buttons. Empty (reserved-but-invisible) strip →
-  // resting offset, since there is nothing to overlap.
-  const bottomOffset = showBottomFabOffset(stripHasContent);
+  // Bottom offset comes from the ONE source (`fabLayout.ts`), which composes the
+  // owner's `--gz-fab-offset` (FOUND-02) — this file derives no tab-bar or
+  // safe-area arithmetic of its own. When the strip's slot is RESERVED, that
+  // source adds the slot's fixed height so the FAB clears any row rendered inside
+  // it; pre-opener (slot collapsed) it returns the resting offset. D-05: the
+  // trigger is the reserved slot, never the transient presence of rows.
+  const bottomOffset = showBottomFabOffset(stripSlotReserved);
   const rightOffset = "calc(env(safe-area-inset-right) + 16px)";
 
   return (
@@ -125,7 +132,7 @@ export function FabMenu({
 
       <div
         className="fab-menu fixed flex flex-col items-end gap-2 motion-safe:transition-[bottom] motion-safe:duration-300 motion-safe:ease-out"
-        data-strip-has-content={stripHasContent ? "true" : "false"}
+        data-strip-slot-reserved={stripSlotReserved ? "true" : "false"}
         style={{ zIndex: config.ui.z.fab, bottom: bottomOffset, right: rightOffset }}
       >
         {open && (
