@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CometTrail, trailCapacity } from "../src/show/CometTrail.tsx";
 import { config } from "../src/config.ts";
@@ -213,5 +213,47 @@ describe("CometTrail fit-to-width capacity (SHOW-08)", () => {
     } finally {
       delete proto.clientWidth;
     }
+  });
+});
+
+/**
+ * Phase-21 FOUND-02 / D-07 — the hand-rolled full-setlist sheet reads the ONE owned
+ * value (`--gz-sheet-pad-bottom`, composed in `src/layout/bottomSpace.ts`) instead of
+ * a hand-written `calc(env(safe-area-inset-bottom) + 32px)`.
+ *
+ * The conversion was value-preserving (21-RESEARCH Group B: this card sits inside a
+ * `fixed` overlay and never double-counted the inset). The case exists to stop a
+ * future edit from re-introducing a hand-written `env()` read and forking the
+ * arithmetic away from the owner again. D-22 keeps this surface hand-rolled rather
+ * than migrating it onto `<Sheet>`, so it needs its own guard.
+ *
+ * Asserts `getAttribute("style")`, not `el.style.paddingBottom` — jsdom's CSS parser
+ * does not reliably round-trip a `var()` value through a typed longhand property.
+ */
+describe("Full-setlist sheet padding is owner-composed (FOUND-02 / D-07)", () => {
+  afterEach(cleanup);
+
+  it("scroll container reads var(--gz-sheet-pad-bottom) and no raw env()", () => {
+    // The sheet only mounts once history compresses into the tappable +N chip.
+    const { TRAIL_COMPRESS_AT, TRAIL_VISIBLE_RECENT } = config.show;
+    render(
+      <CometTrail
+        entries={Array.from({ length: TRAIL_COMPRESS_AT }, (_, i) =>
+          entry(i + 1, "hit"),
+        )}
+        onNodeTap={vi.fn()}
+      />,
+    );
+    fireEvent.click(
+      screen.getByText(`+${TRAIL_COMPRESS_AT - TRAIL_VISIBLE_RECENT}`),
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Full setlist" });
+    const scroller = dialog.querySelector<HTMLElement>(".overflow-y-auto");
+    expect(scroller).toBeTruthy();
+
+    const style = scroller!.getAttribute("style") ?? "";
+    expect(style).toContain("var(--gz-sheet-pad-bottom)");
+    expect(style).not.toContain("env(");
   });
 });
