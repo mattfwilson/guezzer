@@ -17,8 +17,37 @@
  * of the map's filters. A zero-outgoing node shows the honest "No next songs on
  * record" state (D-08), never an error. Song names render as React text only
  * (T-07-05).
+ *
+ * Phase-21 FOUND-03 / D-20/D-21 — PORTALED to `document.body`. It was **not** broken:
+ * `ExploreView` renders it as a fragment child of `<main>`, already at root level. The
+ * portal is PROPHYLACTIC — it makes the D-24 structural invariant uniformly true across
+ * every sheet-tier surface so the source scan in `layerOrder.test.tsx` has no exception
+ * to carry. No tier is renumbered.
+ *
+ * D-26 exemption, restated where it lives: this sheet is `aria-modal={false}` — a
+ * NON-modal peek with no scrim — so FOUND-03's "open MODAL sheet" walk deliberately
+ * skips it, by its own attribute rather than by a list entry. `focusedFab: 60 > sheet:
+ * 50` (D-03) stays as-is so the ExploreFilterFab still lifts ABOVE this sheet when a
+ * node is focused; renumbering that would be an a11y regression, and portaling changes
+ * nothing about it — both boxes are `position: fixed` and now both are top-level, which
+ * is exactly the condition under which the tier comparison means what it says.
+ *
+ * D-23 — audited: this sheet already owns its gesture suppression via the INLINE
+ * `touchAction: "none"` on its own root (and `pan-y` on the scroll body), and inline
+ * style travels with the portaled node — no class-scoped cascade is inherited or lost,
+ * so it needs no `.gesture-guard`. Escape is handled through the shared LIFO
+ * `dialogStack` (`useDialogDismiss`), which listens on `document` and is therefore
+ * tree-position-independent. Focus-restore captures `document.activeElement` on mount
+ * and restores on unmount — also position-independent. `useVisibleViewportHeight` reads
+ * `visualViewport`, and `--gz-safe-bottom` is written onto `document.documentElement`
+ * (plan 21-07), which `document.body` inherits — so the peek geometry and the bottom
+ * padding resolve identically outside `#app-content`.
+ *
+ * D-22 — stays HAND-ROLLED: no `<Sheet>` migration; the drag/snap geometry is this
+ * surface's own and the primitive has no equivalent.
  */
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 import type { OutgoingBar, TuningFamily } from "@guezzer/core";
 import { config } from "../config.ts";
@@ -140,7 +169,11 @@ export function NodeSheet({
   const shownBars = expanded ? bars : bars.slice(0, topN);
   const hasTail = bars.length > topN;
 
-  return (
+  // Phase-21 FOUND-03 / D-20: SSR-and-jsdom guard, copied from `Sheet.tsx`, so the
+  // portal below never touches an undefined `document`.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       role="dialog"
       aria-modal={false}
@@ -221,6 +254,7 @@ export function NodeSheet({
           </p>
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -19,6 +19,27 @@
  * retried). Marking a fetched show persists its setlist to `archiveShows` with
  * song NAMES sourced from the fetch result — the only name source for
  * post-corpus debuts (Pitfall 5). Offline: the row is replaced by a muted note.
+ *
+ * Phase-21 FOUND-03 / D-20/D-21 — PORTALED to `document.body`. Like `AlbumDetail` this
+ * one was **not** broken: `DexView.tsx:99` has no `z-index` and no `transform`, so it
+ * already competed at the top level. The portal is PROPHYLACTIC — it makes the D-24
+ * invariant uniformly true and removes the latent trap that a future `z-index` on that
+ * DexView wrapper would spring on three dex sheets at once. No tier is renumbered.
+ *
+ * Note the deliberate INTRA-surface nesting below: the D-12 unmark-confirm dialog
+ * (`sheetScrim`) renders INSIDE this `sheet` root. That is the same shape the shared
+ * `<Sheet>` primitive has (scrim wrapper containing its own card) and it is correct —
+ * the pair travels through this one portal and competes at the top level as one unit.
+ * FOUND-03 forbids a FOREIGN stacking-context ancestor, not a surface's own.
+ *
+ * D-22 — stays HAND-ROLLED: no `<Sheet>` migration, no focus-trap / dismiss hooks.
+ *
+ * D-23 — audited: no `.orbit-stage` / `.action-bar` / `.fab-menu` ancestor existed
+ * (those are Show/Explore surfaces), so no gesture cascade was lost; Escape has never
+ * been handled here (closing is the ✕ control, and the confirm dialog cancels by scrim
+ * tap or its own button); no focus is managed before or after; nothing read a
+ * `#app-content`-scoped style. The `useLiveQuery` / `useOnlineStatus` / `useAuthIdentity`
+ * reads are context-free and unaffected by DOM position.
  */
 import {
   fetchRecentShows,
@@ -30,6 +51,7 @@ import {
 import { useLiveQuery } from "dexie-react-hooks";
 import { ChevronDown, ChevronUp, Circle, CircleCheck, X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { config } from "../config.ts";
 import {
   db,
@@ -266,7 +288,11 @@ export function ArchiveBrowser({ archive, onClose }: ArchiveBrowserProps) {
     );
   };
 
-  return (
+  // Phase-21 FOUND-03 / D-20: SSR-and-jsdom guard, copied from `Sheet.tsx`, so the
+  // portal below never touches an undefined `document`.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -406,7 +432,8 @@ export function ArchiveBrowser({ archive, onClose }: ArchiveBrowserProps) {
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
 

@@ -11,9 +11,27 @@
  * The setlist source is the bundled archive (by show_id) first, falling back to
  * the online-fallback `archiveShows` cache row for post-corpus marks absent from
  * the bundle (Pitfall 5). Set order follows the SHOW-06 vocabulary "1"/"2"/"e".
+ *
+ * Phase-21 FOUND-03 / D-20/D-21 — PORTALED to `document.body`, on BOTH return paths:
+ * the loading hold-the-frame dialog and the resolved one. Both carry `role="dialog"
+ * aria-modal="true"` at `config.ui.z.sheet`, so portaling only one would leave the
+ * invariant true for half this surface's lifetime — the half nobody looks at.
+ *
+ * Like `AlbumDetail` this was **not** broken (`DexView.tsx:99` has no `z-index` and no
+ * `transform`), so the portal is PROPHYLACTIC: it makes the D-24 invariant uniformly
+ * true and removes the latent trap a future `z-index` on that wrapper would spring. No
+ * tier is renumbered.
+ *
+ * D-22 — stays HAND-ROLLED: no `<Sheet>` migration, no focus-trap / dismiss hooks.
+ *
+ * D-23 — audited: no `.orbit-stage` / `.action-bar` / `.fab-menu` ancestor existed;
+ * Escape has never been handled here (closing is the ≥44px back control); no focus is
+ * managed before or after; nothing read a `#app-content`-scoped style. The `useLiveQuery`
+ * cache read is context-free and unaffected by DOM position.
  */
 import type { ArchiveArtifact, RarityIndex, RarityTier } from "@guezzer/core";
 import { ChevronLeft } from "lucide-react";
+import { createPortal } from "react-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo } from "react";
 import { config } from "../config.ts";
@@ -110,20 +128,26 @@ export function SetlistView({ showId, archive, rarity, onClose }: SetlistViewPro
     return null;
   }, [showId, archive, cache, rarity]);
 
+  // Phase-21 FOUND-03 / D-20: SSR-and-jsdom guard, copied from `Sheet.tsx`, so BOTH
+  // portals below never touch an undefined `document`. Placed before the loading
+  // early-return so it covers that path too.
+  if (typeof document === "undefined") return null;
+
   // Not in the bundle and the cache row hasn't resolved yet — hold the frame.
   if (resolved == null) {
-    return (
+    return createPortal(
       <div
         role="dialog"
         aria-modal="true"
         aria-label={copy.albumBack}
         className="fixed inset-0 bg-surface"
         style={{ zIndex: config.ui.z.sheet }}
-      />
+      />,
+      document.body,
     );
   }
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -181,6 +205,7 @@ export function SetlistView({ showId, archive, rarity, onClose }: SetlistViewPro
           </div>
         ))}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
