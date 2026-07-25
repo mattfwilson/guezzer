@@ -6,6 +6,7 @@ import {
   useBottomOverlayInset,
 } from "../src/pwa/bottomOverlayInset";
 import { AppShell } from "../src/components/AppShell";
+import { bottomSpaceVarEntries } from "../src/layout/bottomSpace";
 
 /**
  * Debug session: start-show-not-clickable. Root cause was AppShell's
@@ -103,7 +104,7 @@ describe("AppShell bottom padding reservation", () => {
       </AppShell>,
     );
     // 220px models InstallBanner's iOS-instructions branch, which comfortably
-    // exceeds the old static 64px (pb-16) reservation that caused the bug.
+    // exceeds the static tab-bar-only reservation that caused the bug.
     act(() => setBottomOverlayHeight("installBanner", 220));
     const main = container.querySelector("main");
     expectPaddingBottom(main!, 220);
@@ -119,5 +120,77 @@ describe("AppShell bottom padding reservation", () => {
     act(() => setBottomOverlayHeight("installBanner", 0));
     const main = container.querySelector("main");
     expectPaddingBottom(main!, 0);
+  });
+});
+
+/**
+ * FOUND-02 / D-03 — the store feeds the CONTENT reserve only.
+ *
+ * The measured height reaches layout through exactly one term,
+ * `--gz-overlay-inset`, which `--gz-content-reserve` adds on top of
+ * `--gz-chrome-reserve`. The chrome reserve must be byte-identical whether an
+ * overlay is registered or not: it is what every fixed-bottom surface (the five
+ * toasts, both FABs) pins itself to, so letting a transient banner move it would
+ * make every one of them jump when the banner appeared.
+ *
+ * PLAN-21-10 CORRECTION, recorded here because this is the file that measures it:
+ * `useBottomOverlayHeightRegistration` reads `el.offsetHeight`. InstallBanner,
+ * UpdateToast and BackupToast used to set their own `paddingBottom` from a raw
+ * safe-area bottom read — compensation for a bottom offset that sat one inset too
+ * low — so their measured height was one safe-area inset LARGER than what they
+ * actually needed, and `<main>` over-reserved by that inset whenever one was
+ * visible. Plan 21-10 pinned all five overlays to `var(--gz-chrome-reserve)` and
+ * deleted those three paddings in the same edits, so the measured height is now the
+ * real rendered height.
+ *
+ * The reserve on scrolling routes therefore got SMALLER by one inset while one of
+ * those three toasts is visible. That direction is the correction, not a regression —
+ * but under-reserving is the failure mode that covers a control, so it is explicitly
+ * re-checked on an installed instance in 21-13 UAT test 2 rather than trusted from
+ * arithmetic alone.
+ */
+describe("D-03: the measured overlay height feeds the content reserve only", () => {
+  afterEach(() => {
+    cleanup();
+    __resetBottomOverlayInsetForTests();
+  });
+
+  function varsFor(overlayInsetPx: number): Record<string, string> {
+    return Object.fromEntries(bottomSpaceVarEntries(overlayInsetPx));
+  }
+
+  it("a registered overlay's height lands verbatim in --gz-overlay-inset", () => {
+    render(<Probe />);
+    act(() => setBottomOverlayHeight("updateToast", 72));
+    const inset = Number(screen.getByTestId("inset").textContent);
+    expect(inset).toBe(72);
+    expect(varsFor(inset)["--gz-overlay-inset"]).toBe("72px");
+  });
+
+  it("--gz-chrome-reserve is identical at 0 and at a registered height", () => {
+    // Every fixed-bottom surface composes from this one. If a transient toast
+    // could move it, the tab bar, both FABs and the other four toasts would all
+    // shift the moment that toast appeared.
+    expect(varsFor(72)["--gz-chrome-reserve"]).toBe(
+      varsFor(0)["--gz-chrome-reserve"],
+    );
+  });
+
+  it("--gz-overlay-inset DOES differ between the two — the reserve is live", () => {
+    expect(varsFor(72)["--gz-overlay-inset"]).not.toBe(
+      varsFor(0)["--gz-overlay-inset"],
+    );
+    expect(varsFor(0)["--gz-overlay-inset"]).toBe("0px");
+  });
+
+  it("reserves the REAL rendered height — no safe-area term is added on top", () => {
+    // The plan-21-10 correction, asserted rather than described: whatever the
+    // overlay measured is what gets reserved. If a future edit re-introduced a
+    // self-padding compensation, that inset would show up inside this value (the
+    // store's own input), and if the composition ever grew a second safe-area term
+    // the string below would stop being a bare px value.
+    expect(varsFor(220)["--gz-overlay-inset"]).toBe("220px");
+    expect(varsFor(220)["--gz-overlay-inset"]).not.toContain("safe");
+    expect(varsFor(220)["--gz-overlay-inset"]).not.toContain("calc");
   });
 });
