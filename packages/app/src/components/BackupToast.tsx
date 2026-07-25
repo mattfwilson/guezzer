@@ -14,10 +14,11 @@ import { useBottomOverlayHeightRegistration } from "../pwa/bottomOverlayInset";
  * emitter is the decoupled seam that lets `handleConfirm` trigger it without a
  * `setState` on the unmounting dialog.
  *
- * Mirrors `UpdateToast` for layout/inset behavior: same `fixed bottom-16`
- * overlay, `role="status"`, `config.ui.z.toast` z-tier, and its own measured
- * height registered under the `"backupToast"` key so AppShell reserves space
- * and this toast never covers/intercepts taps on page content underneath it.
+ * Mirrors `UpdateToast` for layout/inset behavior: same fixed overlay pinned
+ * above the tab bar via the FOUND-02 owner's `--gz-chrome-reserve`,
+ * `role="status"`, `config.ui.z.toast` z-tier, and its own measured height
+ * registered under the `"backupToast"` key so AppShell reserves space and
+ * this toast never covers/intercepts taps on page content underneath it.
  */
 
 /** Single active listener — the mounted `<BackupToast/>` subscribes here. */
@@ -68,10 +69,20 @@ export function BackupToast() {
     <div
       ref={ref}
       role="status"
-      className="fixed inset-x-0 bottom-16 flex items-center border-t border-hairline bg-elevated px-4 py-4 motion-safe:transition-all motion-safe:duration-200"
+      className="fixed inset-x-0 flex items-center border-t border-hairline bg-elevated px-4 py-4 motion-safe:transition-all motion-safe:duration-200"
       style={{
         zIndex: config.ui.z.toast,
-        paddingBottom: "env(safe-area-inset-bottom)",
+        // D-09 / FOUND-02: this was a Tailwind bottom utility hard-coding the tab
+        // bar's NOMINAL height, measured from the viewport — one home-indicator
+        // inset short of the bar's real height, so this toast overlapped the bar's
+        // buttons on an installed instance.
+        //
+        // The `paddingBottom` deleted from here (a raw safe-area bottom read) was
+        // the compensation for that shortfall. Now that the offset comes from the
+        // chrome reserve, which already includes the inset, keeping it would
+        // double-count: ~34px of dead space inside the toast, and one inset of
+        // over-reserve in the overlay store measuring this element.
+        bottom: "var(--gz-chrome-reserve)",
       }}
     >
       <p className="text-base leading-normal text-text-primary">

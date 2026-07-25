@@ -2,21 +2,32 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 
 /**
  * Root-cause fix (debug session: start-show-not-clickable). AppShell's
- * `<main>` used to reserve a single static `pb-16` (64px) for the fixed
- * BottomTabBar only. Any OTHER `fixed bottom-16` overlay stacked above it
- * (InstallBanner, UpdateToast) renders at its own real content height, which
- * nothing accounted for. InstallBanner's iOS multi-step instructions in
- * particular render well over 64px tall on a phone viewport, so the banner
+ * `<main>` used to reserve a single static tab-bar height for the fixed
+ * BottomTabBar only. Any OTHER fixed overlay stacked above it (InstallBanner,
+ * UpdateToast) renders at its own real content height, which nothing
+ * accounted for. InstallBanner's iOS multi-step instructions in particular
+ * render well over a tab bar's height on a phone viewport, so the banner
  * silently covered — and intercepted taps on — page content underneath
  * (observed: PreShowLauncher's "Start Show" button was untappable).
  *
- * This is a tiny external store: overlay components that render
- * `fixed inset-x-0 bottom-16` measure their OWN real rendered height via
+ * This is a tiny external store: overlay components pinned above the tab bar
+ * measure their OWN real rendered height via
  * `useBottomOverlayHeightRegistration` and register it here; AppShell
- * subscribes via `useBottomOverlayInset` and adds the total on top of its
- * static tab-bar reservation. Reserved space then always matches whatever is
- * actually on screen — no static estimate to fall out of sync with copy,
+ * subscribes via `useBottomOverlayInset` and the total reaches `<main>`
+ * through `--gz-overlay-inset` on the FOUND-02 owner's ladder
+ * (`src/layout/bottomSpace.ts`). Reserved space then always matches whatever
+ * is actually on screen — no static estimate to fall out of sync with copy,
  * locale, or font-size changes again.
+ *
+ * Phase 21 (plan 21-10) correction — every registered overlay now composes
+ * its offset from `var(--gz-chrome-reserve)`, which already carries the
+ * safe-area bottom inset. The three toasts that used to set their own
+ * `paddingBottom` from a raw safe-area bottom read no longer do, so the
+ * `offsetHeight` measured below no longer includes a safe-area inset:
+ * `--gz-overlay-inset` reserves the overlay's REAL rendered height rather
+ * than one inset more than it. The reserve on scrolling routes therefore got
+ * SMALLER by one inset while one of those toasts is visible — the correction,
+ * re-checked on device (21-13 UAT test 2) to confirm nothing became covered.
  */
 
 const heights = new Map<string, number>();

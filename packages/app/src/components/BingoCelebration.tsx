@@ -203,13 +203,20 @@ export function BingoCelebration() {
             animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="pointer-events-none fixed inset-x-0 bottom-16 flex items-center border-t border-hairline bg-elevated px-4 py-4"
-            // No safe-area paddingBottom here: the toast sits at `bottom-16`, ABOVE
-            // the BottomTabBar (which already reserves the home-indicator inset), so
-            // overriding paddingBottom with env(safe-area-inset-bottom) only made the
-            // bottom padding smaller than `py-4`'s top — the text read as cut off.
-            // Plain `py-4` gives even top/bottom padding.
-            style={{ zIndex: config.ui.z.toast }}
+            className="pointer-events-none fixed inset-x-0 flex items-center border-t border-hairline bg-elevated px-4 py-4"
+            // No safe-area paddingBottom here, and none is needed (D-09 / FOUND-02).
+            // The offset is the owner's `--gz-chrome-reserve`
+            // (`src/layout/bottomSpace.ts`) = the tab bar's height PLUS the
+            // home-indicator inset, so the toast's box starts exactly at the top of
+            // the bar in both a Safari tab and an installed instance. Nothing is left
+            // for a self-padding to compensate for; `py-4` gives even top/bottom.
+            //
+            // Supersedes the old rationale here, which was a tab-only observation:
+            // in a Safari tab the inset is 0, so adding the padding REPLACED
+            // `py-4`'s 16px with 0 and the text read as cut off. Installed, the
+            // inset is ~34 > 16 and that reasoning inverts — which is why the
+            // mechanism, not the observation, is what's recorded now.
+            style={{ zIndex: config.ui.z.toast, bottom: "var(--gz-chrome-reserve)" }}
           >
             <p className="text-base font-semibold leading-normal tabular-nums text-text-primary">
               {toast.text}

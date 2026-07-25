@@ -11,13 +11,14 @@ import { IosInstallInstructions } from "./IosInstallInstructions";
  * session. The Install button is the ONLY accent element here (UI-SPEC
  * §Color, accent reserved list #2) — "Not now" stays muted.
  *
- * Bug fix (debug session: start-show-not-clickable) — this is a
- * `fixed bottom-16` overlay stacked above the BottomTabBar. Its real
- * rendered height (especially the iOS multi-step instructions branch) can
- * exceed AppShell's static reservation, so it registers its own measured
- * height via `useBottomOverlayHeightRegistration` — AppShell adds that on
- * top of its base reservation so this banner never covers/intercepts taps
- * on page content underneath it again.
+ * Bug fix (debug session: start-show-not-clickable) — this is a fixed
+ * overlay stacked above the BottomTabBar; it composes its bottom offset from
+ * the FOUND-02 owner (`--gz-chrome-reserve`, `src/layout/bottomSpace.ts`).
+ * Its real rendered height (especially the iOS multi-step instructions
+ * branch) can exceed AppShell's static reservation, so it registers its own
+ * measured height via `useBottomOverlayHeightRegistration` — AppShell adds
+ * that on top of its base reservation so this banner never covers/intercepts
+ * taps on page content underneath it again.
  *
  * Phase-6 D-22 (once-per-version gate) — SUPERSEDES the Phase-3 D-05 session-only
  * dismissal as the primary throttle: the banner now shows at most once per app
@@ -87,10 +88,23 @@ export function InstallBanner() {
       ref={ref}
       role="region"
       aria-label={headline}
-      className="fixed inset-x-0 bottom-16 border-t border-hairline bg-elevated px-4 py-4 motion-safe:transition-all motion-safe:duration-200"
+      className="fixed inset-x-0 border-t border-hairline bg-elevated px-4 py-4 motion-safe:transition-all motion-safe:duration-200"
       style={{
         zIndex: config.ui.z.toast,
-        paddingBottom: "env(safe-area-inset-bottom)",
+        // D-09 / FOUND-02: this used to be a Tailwind bottom utility hard-coding
+        // the tab bar's NOMINAL height, measured from the viewport (a `fixed` box
+        // ignores body padding). The bar's real height is that nominal value PLUS
+        // the home-indicator inset, so on an installed instance this banner
+        // overlapped the top of the bar by exactly one inset. The chrome reserve
+        // already carries the inset, so the overlap is gone.
+        //
+        // The self `paddingBottom` deleted from here (a raw safe-area bottom read)
+        // was the compensation for sitting one inset too low — it pushed content
+        // up clear of the bar. Against the reserve it is double-counting: it would
+        // open ~34px of dead space INSIDE the banner on an installed instance, and
+        // inflate the height this component registers with the overlay store by
+        // that same inset.
+        bottom: "var(--gz-chrome-reserve)",
       }}
     >
       {isIos ? (

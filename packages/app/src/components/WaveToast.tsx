@@ -165,8 +165,14 @@ export function WaveToast() {
           animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="pointer-events-none fixed inset-x-0 bottom-16 flex items-center gap-2 border-t border-hairline bg-elevated px-4 py-4"
-          style={{ zIndex: config.ui.z.toast }}
+          className="pointer-events-none fixed inset-x-0 flex items-center gap-2 border-t border-hairline bg-elevated px-4 py-4"
+          // D-09 / FOUND-02: the Tailwind bottom utility this replaces hard-coded
+          // the tab bar's NOMINAL height from the viewport — one home-indicator
+          // inset short of the bar's real height, so this toast overlapped the
+          // bar's buttons on an installed instance. The owner's
+          // `--gz-chrome-reserve` already carries that inset, so no self-padding
+          // is needed here (and never was one).
+          style={{ zIndex: config.ui.z.toast, bottom: "var(--gz-chrome-reserve)" }}
         >
           {/* Sender glyph — deterministic identity color + escaped initials (D-09). */}
           <IdentityGlyph userId={shown.payload.from} displayName={name} />
