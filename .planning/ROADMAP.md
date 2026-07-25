@@ -131,7 +131,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 21-12-PLAN.md — Portal the four root-level sheet surfaces + a11y re-verify
+- [x] 21-12-PLAN.md — Portal the four root-level sheet surfaces + a11y re-verify
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
@@ -240,7 +240,7 @@ This is the research's own stated rationale followed through: validating the mec
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete | 2026-07-22 |
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete | 2026-07-24 |
 | 20. Presence & Interactions | v2.0 | 5/5 | Complete | 2026-07-24 |
-| 21. Layout & Layering Foundations | v2.1 | 11/13 | In Progress|  |
+| 21. Layout & Layering Foundations | v2.1 | 12/13 | In Progress|  |
 | 22. Surface Motion & the Chrome Mechanism | v2.1 | 0/? | Not started | - |
 | 23. Immersive In-Show Experience | v2.1 | 0/? | Not started | - |
 | 24. Reactions & Small Polish | v2.1 | 0/? | Not started | - |
