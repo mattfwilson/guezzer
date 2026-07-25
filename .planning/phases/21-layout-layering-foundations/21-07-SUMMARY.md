@@ -196,6 +196,10 @@ Two criteria could not be met as literally written; both are satisfied in substa
 
 None. Every value the two converted surfaces render is wired to the owner.
 
+## Self-Check: PASSED
+
+All created files exist on disk; all four commit hashes resolve in `git log`.
+
 ## Notes for the Orchestrator
 
 This agent ran in the **main repo checkout on `master`**, not a worktree — `.git` is a
