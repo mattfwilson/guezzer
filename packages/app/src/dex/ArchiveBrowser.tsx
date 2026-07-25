@@ -39,6 +39,7 @@ import {
 } from "../db/db.ts";
 import { useOnlineStatus } from "../live/useOnlineStatus.ts";
 import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
+import { formatFullDate } from "./formatDate.ts";
 
 interface ArchiveBrowserProps {
   archive: ArchiveArtifact;
@@ -205,8 +206,10 @@ export function ArchiveBrowser({ archive, onClose }: ArchiveBrowserProps) {
 
     const rowText = (
       <span className="flex min-w-0 flex-col text-left">
+        {/* Display only (D-35) — handleMark above still writes the raw ISO
+            `show.date`; a formatted date must never reach a stored row. */}
         <span className="text-[14px] font-semibold leading-tight text-text-primary tabular-nums">
-          {show.date}
+          {formatFullDate(show.date)}
         </span>
         <span className="truncate text-base leading-normal text-text-muted">
           <span className="text-text-primary">{show.venue}</span>
@@ -246,7 +249,9 @@ export function ArchiveBrowser({ archive, onClose }: ArchiveBrowserProps) {
             {unmarkable ? (
               <button
                 type="button"
-                aria-label={`${copy.unmarkConfirm} ${show.date}`}
+                // Display only (D-35) — the accessible name formats, the
+                // unmark write path below keeps the raw ISO `show`.
+                aria-label={`${copy.unmarkConfirm} ${formatFullDate(show.date)}`}
                 onClick={() => setUnmarkTarget(show)}
                 className="ml-auto flex min-h-11 min-w-11 items-center justify-center shrink-0 touch-manipulation"
               >

@@ -25,6 +25,7 @@ import {
   type TrackedShow,
 } from "../db/db.ts";
 import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
+import { formatFullDate } from "./formatDate.ts";
 
 /** A finalized live-tracked show row — carries the tally chip, opens the recap. */
 interface TrackedShowRow {
@@ -231,7 +232,7 @@ export function ShowsList({ archive, onOpenTracked, onOpenRetro }: ShowsListProp
         >
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="text-[14px] font-semibold leading-tight tabular-nums text-text-primary">
-              {row.date}
+              {formatFullDate(row.date)}
             </span>
             {row.venue != null && (
               <span className="truncate text-base leading-normal text-text-muted">
