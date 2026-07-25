@@ -1093,7 +1093,10 @@ end-of-phase checks — they are **sequencing dependencies**.
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All five were settled during planning. Each carries a **RESOLVED** line naming the plan and task
+that settled it; the resolution binds there, not here.
 
 1. **Which NAV-03 fallback placement?**
    - Known: resolution is receiver-side; `reduceActivity` currently drops unknown tokens → `null` →
@@ -1103,12 +1106,23 @@ end-of-phase checks — they are **sequencing dependencies**.
    - Recommendation: **option (ii)** — smaller diff, does not weaken a real input-validation control,
      and `SelfRow.tsx:67-71` already branches on `presence.online` for this exact slot. Whichever is
      chosen must be *named* in the plan, because it is the difference between NAV-03 met and nominally met.
+   - **RESOLVED — option (ii), the render-path fallback, in `21-03-PLAN.md` Task 2.** Named in the
+     first line of that task's action; `reduceActivity`'s `TABS` allow-list stays byte-identical
+     (pinned by a comment-only-diff acceptance criterion) and the fallback resolves to the constant
+     `config.copy.presence.activityUnknown`, never `?? activity.tab`. Locked by
+     `test/presenceLabels.test.ts`'s `!== "SomeFutureTab"` case (21-03 Task 3).
 
 2. **`--gz-safe-bottom` in CSS or in JS?**
    - Known: the `:root { --x: env(...) }` CSS form is documented and widely deployed.
    - Unclear: whether the JS `setProperty` round-trip preserves `env()` in Safari (A2).
    - Recommendation: CSS-authored, guard whitelists that one `:root` block. Costs nothing, removes the
      risk. If the planner insists on the strict D-01 reading, add a device verification task.
+   - **RESOLVED — CSS-authored, in `21-07-PLAN.md` Task 1.** `--gz-safe-bottom:
+     env(safe-area-inset-bottom)` is declared in a plain `:root` block in `styles.css` (not in
+     `@theme`), is the one permitted raw `env(safe-area-inset-bottom)` in the codebase, and is
+     deliberately excluded from `BOTTOM_SPACE_VAR_NAMES` (the JS-written list). A2 is therefore
+     never relied on. Locked by the `styles.css` source assertions in 21-07 Task 3 and whitelisted
+     by the D-12 guard in 21-10.
 
 3. **Portal all five sheet surfaces, or only `SearchSheet`?**
    - Known: only `SearchSheet` is actually captured by a stacking context today; the other four are at
@@ -1117,6 +1131,11 @@ end-of-phase checks — they are **sequencing dependencies**.
    - Recommendation: portal all five (it makes the D-24 invariant uniformly true and removes a latent
      trap), but **sequence `SearchSheet` first as its own commit** and treat the other four as a second,
      independently revertible group. If schedule pressure appears, the four are the droppable part.
+   - **RESOLVED — split exactly as recommended.** The live capture, `SearchSheet`, is fixed in
+     `21-11-PLAN.md` Task 2 (its own commit, with the four D-23 audit items). The four
+     prophylactic surfaces are `21-12-PLAN.md`, a separate wave-7 plan that is independently
+     revertible and is the droppable part under schedule pressure. `FabMenu` is 21-11 Task 3
+     (see Q4).
 
 4. **Is `FabMenu` portaled too?**
    - Known: D-27 includes it in the repro; it is at effective level 10 under a `toast: 20`, and it is the
@@ -1126,12 +1145,22 @@ end-of-phase checks — they are **sequencing dependencies**.
      `.fab-menu` gesture suppression (`styles.css:27-35`) must be re-applied on the portaled root — the
      same D-23 hazard as `SearchSheet`, on the surface that owns the live-logging loop. This may deserve
      its own commit and its own device check.
+   - **RESOLVED — yes, gated on the recorded repro, in `21-11-PLAN.md` Task 3.** That task opens by
+     branching on `21-HUMAN-UAT.md` test 7's recorded result (D-27/D-28: fix only what reproduces);
+     if it reproduces, both roots are portaled together in one commit. The gesture hazard does not
+     apply here — both roots already carry `.fab-menu`, which is already in the `styles.css`
+     suppression selector list, so the suppression travels with them. Its own device check is UAT
+     test 8, closed in `21-13-PLAN.md` Task 2.
 
 5. **How many device sessions does the phase need?**
    - Known: D-30 orders repro → bottom-space → portals, and D-14 wants the diagnosis **before** the fix.
    - Unclear: whether the before-measurement and after-measurement can share one session.
    - Recommendation: assume **two** device sessions (before/diagnose, and after/verify-all-six). Plan the
      first as an early gating task, not an end-of-phase check.
+   - **RESOLVED — two sessions, exactly as recommended.** Session #1 is `21-04-PLAN.md` (wave 2,
+     `autonomous: false`): the desktop repro and the FOUND-01 before-measurement, planned as gating
+     inputs to waves 3 and 6 rather than as verification. Session #2 is `21-13-PLAN.md` (wave 8):
+     the after-measurement plus the other six manual items, on the same device.
 
 ---
 
