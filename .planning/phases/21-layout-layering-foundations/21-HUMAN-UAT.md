@@ -3,7 +3,7 @@ status: diagnosed
 phase: 21-layout-layering-foundations
 source: [21-VALIDATION.md, 21-UI-SPEC.md]
 started: 2026-07-25T01:16:45Z
-updated: 2026-07-25T03:20:00Z
+updated: 2026-07-25T04:40:00Z
 ---
 
 ## Current Test
@@ -16,10 +16,21 @@ Plan 21-04's three `must_haves` are now answerable WITHOUT a device session:
   - 21-07 and 21-11 therefore know what to build.
 
 Waves 3-8 are unblocked. What remains OWED to the requirement (not to development):
-  - Success criterion 1's on-device before/after record, portrait AND landscape (D-18) — and it
-    needs a CORRECTED probe first; the shipped `GAP` formula measures a constant (see test 1).
+  - Success criterion 1's on-device before/after record, portrait AND landscape (D-18).
+    The probe defect this line used to flag is now FIXED (`dafadeb`): `GAP` measured `<main>`'s
+    border box, which after 21-07 includes `padding-bottom: var(--gz-content-reserve)`, so it
+    degenerated to a constant `-(4rem + sab)`. It now subtracts the computed padding to measure
+    the CONTENT edge, and prints `mainPadB` so the correction is auditable from the screenshot.
   - Test 3's max-Dynamic-Type pass, test 5's D-37 descender check, test 6's mixed-build run,
     and tests 2/4/8 which are AFTER-the-fix confirmations. All batched into plan 21-13.
+
+Waves 3-7 are now COMPLETE (plans 21-07 … 21-12). Only plan 21-13 — this device session —
+remains. Note two gates that were cleared by static analysis and are still UNOBSERVED:
+  - Test 7's `?layerRepro=1` browser repro was never run; 21-11's portal fix was made on
+    spec-level reasoning. 21-12 widened that check to five surfaces.
+  - Test 2's overlay reserve got SMALLER by one inset in 21-10 (deleting three toasts'
+    self-padding made `offsetHeight` honest). Under-reserving is the direction that covers a
+    control, so the scrolling-route check in test 2 is load-bearing, not a formality.
 
 ## Session Notes
 
