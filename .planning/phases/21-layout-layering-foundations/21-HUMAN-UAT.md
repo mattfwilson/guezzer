@@ -155,6 +155,43 @@ result: |
   STILL OWED (requirement bookkeeping, no longer a development blocker): success criterion 1 says
   "measured on-device before and after, portrait AND landscape". The derivation licenses the code
   change; it does not substitute for that record. Capture it with a FIXED probe in plan 21-13.
+
+  ── MEASURED BEFORE (session #2, 2026-07-26) ──────────────────────────────────────────────────
+
+  Installed home-screen instance, GizzDex ("Me") tab, `standalone: nav=true mq=true` on both
+  readings. Build: pre-21-07 `83ea0d8` with the corrected probe (`dafadeb`) cherry-picked on top,
+  built and served from a separate worktree so the shipped tree was never modified. Verified as the
+  BEFORE build at the shipped-CSS level: `padding-bottom:env(safe-area-inset-bottom)` present in
+  the served stylesheet. Device: [PENDING — owner to record model + iOS version, D-18].
+  Screenshots: `BEFORE-portrait.PNG`, `BEFORE-landscape.PNG`.
+
+  | field       | portrait | landscape |
+  |-------------|----------|-----------|
+  | sab         | 34       | 20        |
+  | bodyH       | 812      | 402       |
+  | rootH       | 778      | 382       |
+  | bodyH-rootH | 34       | 20        |
+  | mainPadB    | 98       | 84        |
+  | mainBottom  | 680      | 298       |
+  | tabTop      | 715      | 319       |
+  | >>> GAP     | 35       | 21        |
+
+  `bodyH-rootH === sab` in BOTH orientations — the body-level inset is present and is shortening
+  `#root` by exactly one inset. That is D-15's premise confirmed by measurement, not derivation.
+
+  PROBE CALIBRATION (+1px — discovered in this session, applies to every reading):
+  `tabTop` reads the first tab BUTTON's `getBoundingClientRect().top`, but `<nav>` carries
+  `border-t border-hairline` (1px) in both builds (`BottomTabBar.tsx:28`), so the button's top sits
+  one pixel inside the nav's border box. The measured `GAP` is therefore `trueDeadGap + 1`:
+    - portrait : GAP 35 → true dead gap 34 === sab 34
+    - landscape: GAP 21 → true dead gap 20 === sab 20
+  The analytic derivation (DEAD GAP = exactly one safe-area inset) is confirmed to the pixel in
+  both orientations, on a real installed instance.
+
+  CONSEQUENCE FOR THE AFTER RUN: the expected reading is **GAP === 1**, not 0. The plan's
+  "Expected `GAP === 0`" was written against the uncalibrated probe. A literal 0 would mean main's
+  content bottom overlaps the nav's border by a pixel; a reading of `sab + 1` would mean the fix
+  did not land at all.
 severity: major
 
 ### 2. bottom-16 overlay overlap on the installed instance (FOUND-02)
