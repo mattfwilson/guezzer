@@ -295,6 +295,19 @@ result: |
   largest Dynamic Type setting — at default sizing the labels were never at risk. If the max-size
   pass was not run, re-confirm during device session #2 (plan 21-13) before closing NAV-01.
 
+  RESOLVED — PASS at MAXIMUM (session #2, 2026-07-26). Owner confirms the text-size slider WAS at
+  maximum for this check. That closes the one sub-criterion session #1 left open: all five
+  post-rename labels (Live / GizzVerse / Map / Me / Games) fit on one line each at the largest
+  Dynamic Type setting, with no clipping, wrapping or collision. "GizzVerse", the deliberate
+  worst-case label, holds.
+
+  NAV-01 is closed. D-04 is vindicated: `rem` sizing lets the strip grow with the OS setting rather
+  than clip, which is the behaviour the unit was chosen for.
+
+  Evidence gap (recorded, not fatal): no max-size screenshot was captured this session, so the
+  acceptance criterion's "with a screenshot reference" is satisfied by owner attestation rather
+  than by an artifact. The verdict itself is not in doubt; only its photographic backing is absent.
+
 ### 4. SearchSheet with the soft keyboard up (FOUND-03, D-17)
 expected: |
   jsdom has no `visualViewport` resize and a desktop browser has no soft keyboard, so this is
