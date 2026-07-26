@@ -163,7 +163,7 @@ result: |
   built and served from a separate worktree so the shipped tree was never modified. Verified as the
   BEFORE build at the shipped-CSS level: `padding-bottom:env(safe-area-inset-bottom)` present in
   the served stylesheet. Device: [PENDING — owner to record model + iOS version, D-18].
-  Screenshots: `BEFORE-portrait.PNG`, `BEFORE-landscape.PNG`.
+  Screenshots: `evidence/BEFORE-portrait.PNG`, `evidence/BEFORE-landscape.PNG`.
 
   | field       | portrait | landscape |
   |-------------|----------|-----------|
@@ -192,6 +192,54 @@ result: |
   "Expected `GAP === 0`" was written against the uncalibrated probe. A literal 0 would mean main's
   content bottom overlaps the nav's border by a pixel; a reading of `sab + 1` would mean the fix
   did not land at all.
+
+  ── MEASURED AFTER (session #2, 2026-07-26) ───────────────────────────────────────────────────
+
+  PASS. Same device, same GizzDex ("Me") tab, same installed-instance conditions
+  (`standalone: nav=true mq=true`). Build: `94b99ea` (phase-21 HEAD), verified as the AFTER build
+  at the shipped-CSS level: zero occurrences of `padding-bottom:env(safe-area-inset-bottom)` in the
+  served stylesheet. Screenshots: `evidence/AFTER-portrait.PNG`, `evidence/AFTER-landscape.PNG`.
+
+  | field       | portrait | landscape |
+  |-------------|----------|-----------|
+  | sab         | 34       | 20        |
+  | bodyH       | 812      | 402       |
+  | rootH       | 812      | 402       |
+  | bodyH-rootH | 0        | 0         |
+  | mainPadB    | 98       | 84        |
+  | mainBottom  | 714      | 318       |
+  | tabTop      | 715      | 319       |
+  | >>> GAP     | 1        | 1         |
+
+  BEFORE → AFTER comparison (the D-18 record success criterion 1 asks for):
+
+  | field       | portrait before → after | landscape before → after |
+  |-------------|-------------------------|--------------------------|
+  | sab         | 34 → 34   (control, unchanged) | 20 → 20   (control, unchanged) |
+  | tabTop      | 715 → 715 (control, unchanged) | 319 → 319 (control, unchanged) |
+  | bodyH-rootH | 34 → 0                          | 20 → 0                          |
+  | rootH       | 778 → 812  (+34 = +sab)         | 382 → 402  (+20 = +sab)         |
+  | mainBottom  | 680 → 714  (+34 = +sab)         | 298 → 318  (+20 = +sab)         |
+  | >>> GAP     | 35 → 1     (−34 = −sab)         | 21 → 1     (−20 = −sab)         |
+  | true gap    | 34 → 0                          | 20 → 0                          |
+
+  VERDICT: FOUND-01 is closed. `GAP` reads the 1px nav border and nothing more in BOTH
+  orientations, i.e. the true dead gap is 0. The comparison is controlled: `sab` and `tabTop` are
+  identical before and after within each orientation, so the only quantities that moved are the
+  ones the fix targets — `#root` regained exactly one safe-area inset of height (`bodyH-rootH`
+  34 → 0 and 20 → 0), and `<main>`'s content bottom advanced by that same inset to sit flush
+  against the tab bar. The magnitude of the change equals `sab` in each orientation independently,
+  which is the D-15 signature rather than a coincidental improvement.
+
+  Landscape correctness (D-11) is confirmed by the same reading: the bar stays bottom-anchored
+  full-width, and the arithmetic holds when the inset shrinks from 34 to 20 — the gap closes to the
+  same true 0 without any landscape-specific layout.
+
+  STILL OWED ON THIS TEST:
+  - Device model + iOS version (D-18) — [PENDING — owner to record from Settings → General → About]
+  - The "scroll the Me tab to the very bottom, confirm no content under the home indicator" check
+    was not separately performed; the measurement above establishes the geometry but not the
+    scrolled-to-end visual. [PENDING]
 severity: major
 
 ### 2. bottom-16 overlay overlap on the installed instance (FOUND-02)
