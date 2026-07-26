@@ -357,6 +357,49 @@ result: |
   independent of the date change), and (b) the widest-realistic-venue worst case specifically. Both
   are cheap to re-confirm during device session #2 (plan 21-13).
 
+  ── D-37 DESCENDER CHECK RESOLVED BY MEASUREMENT (session #2, 2026-07-26) ─────────────────────
+
+  Method: the footer draw was replicated exactly in headless Chrome against a real canvas — same
+  `FONT_STACK`, same `600` weight, same `textBaseline: "alphabetic"`, same 1080×1350 geometry, same
+  baselines (`height*0.955` label at 38px, `height*0.99` line at 44px) — and the true ink extents
+  were read from `measureText().actualBoundingBoxDescent` rather than assumed from font ratios.
+  Sample string chosen as the descender worst case: `Aug 9, 2026 · Happy Valley Gypsy Playground`
+  (g/p/y in both halves). Artifact: `evidence/descender-zoom.png` — the bottom 64px of the card
+  magnified 2×, with the canvas bottom edge marked in red.
+
+  | quantity                              | value    |
+  |---------------------------------------|----------|
+  | footer baseline (`height * 0.99`)     | 1336.50  |
+  | actualBoundingBoxDescent @ 44px       | 10.00    |
+  | ink bottom                            | 1346.50  |
+  | canvas height                         | 1350     |
+  | **clearance to bottom edge**          | **+3.50**|
+  | label ink bottom (`height*0.955`,38px)| 1298.25  |
+  | footer ink top                        | 1303.50  |
+  | gap label → footer                    | +5.25    |
+
+  VERDICT: **NOT CLIPPED.** Descenders clear the card's bottom edge by 3.50px and clear the label
+  above by 5.25px. The measured descent is 0.227em, consistent across the sans-serif faces the
+  stack resolves to. The conditional `height * 0.99` → `height * 0.97` nudge is therefore **NOT
+  APPLIED**, and `dex/shareCard.ts` is unmodified by plan 21-13 — the plan's only permitted
+  production edit stays unmade, as designed.
+
+  ⚠ FINDING — THE CONTINGENCY FIX AS WRITTEN IS UNSAFE. Had the baseline clipped, the prescribed
+  remedy would have introduced a worse defect. At `height * 0.97` the footer's ink top rises to
+  1276.50 while the label's ink bottom sits at 1298.25 — a **21.75px overlap**, i.e. the two footer
+  lines would collide. The label at `height * 0.955` is only 5.25px above the footer's ink top, so
+  ANY upward nudge of the line alone eats that gap 1:1 and collides (even `0.98` overlaps by 8px).
+  If a future device/font ever does clip, the correct remedies are: raise the label and the line
+  TOGETHER, reduce the footer font size, or grow `CARD_HEIGHT` — never move the line alone.
+
+  SCOPE LIMIT (recorded honestly): this measurement was taken on Windows, where the stack resolves
+  to Segoe UI, not on iOS where it resolves to SF Pro. The clearance is positive but small (3.5px),
+  so a face with a descent ratio above ~0.307em would still clip. Every common system sans sits
+  well below that. The owner's device-side PASS (session #1, and re-affirmed session #2) covers the
+  visual case; this measurement supplies the precision that eyeballing a phone screen cannot, and
+  the two agree. Item (b) — the widest venue in the actual corpus specifically — remains attested
+  rather than instrumented.
+
 ### 6. Two devices on different builds, both directions (NAV-03, D-42)
 expected: |
   Real Realtime with a MIXED token vocabulary; the failure mode is silent, and this project has
