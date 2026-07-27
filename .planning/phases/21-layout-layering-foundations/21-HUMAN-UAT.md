@@ -526,7 +526,65 @@ expected: |
   - If any of these regress, the fix is to apply the needed classes DIRECTLY on the portaled root
     (D-23), not to revert the portal.
 result: |
-  PENDING
+  PARTIAL — MECHANISM VERIFIED, iOS BEHAVIOUR STILL UNOBSERVED (session #2, 2026-07-26).
+
+  Every link in the D-23 chain was verified against the SHIPPED build, not just the source. What
+  this establishes is that the suppression rules genuinely reach the portaled roots. What it does
+  NOT establish is that iOS then behaves — see the explicit non-claim at the bottom.
+
+  1. PORTAL TARGETS. `SearchSheet.tsx:127` and `FabMenu.tsx:141` both `createPortal(…,
+     document.body)`. FabMenu carries BOTH roots (scrim + speed-dial) in one portal, preserving
+     their `fabScrim: 25 < fab: 30` order at top level.
+
+  2. CLASS OPT-IN ON THE PORTALED ROOTS.
+     - `SearchSheet.tsx:132` — portaled root is `class="gesture-guard fixed inset-0 …"`.
+     - `FabMenu.tsx:150` (scrim) and `FabMenu.tsx:159` (speed-dial) — both `class="fab-menu …"`.
+     `.fab-menu` was already in the suppression selector list pre-phase, so FabMenu needed no
+     `.gesture-guard`; that is why it does not appear in a `gesture-guard` grep and is NOT a gap.
+
+  3. THE RULE SURVIVED THE BUILD. Read out of the shipped stylesheet
+     (`dist/assets/index-q2LLL2jB.css`), all five declarations are present and minified intact:
+     `.orbit-stage,.action-bar,.fab-menu,.gesture-guard{touch-action:manipulation;
+     overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}`
+     Both WebKit-only properties (`-webkit-user-select`, `-webkit-touch-callout`) are in the
+     artifact. NOTE for anyone re-running this: Chrome's CSSOM reports only three properties for
+     this rule via `cssRules[].style.cssText`, because it drops WebKit-only properties it does not
+     implement. That is a reporting artifact of the probing engine, NOT evidence of build
+     stripping — confirm against the raw CSS text, as was done here.
+
+  4. COMPUTED STYLES RESOLVE. Loaded the shipped stylesheet in a real engine (headless Chrome) and
+     read `getComputedStyle` on elements carrying each class:
+
+     | element                     | touch-action | overscroll-behavior | user-select |
+     |-----------------------------|--------------|---------------------|-------------|
+     | `.gesture-guard` (SearchSheet) | manipulation | none              | none        |
+     | `.fab-menu` (FabMenu)          | manipulation | none              | none        |
+     | control (unclassed)            | auto         | auto              | auto        |
+
+     The control row is the anti-vacuity check: the rule is class-scoped and is NOT leaking to the
+     rest of the app, which D-23 explicitly requires (Dex lists, Explore panels and Settings must
+     keep normal selection and scrolling).
+
+  5. STRUCTURAL INVARIANTS PASS. `layerOrder.test.tsx` + `sheet.a11y.test.tsx` — 40 tests green,
+     including the named assertions "SearchSheet keeps its contract across the portal (D-21/D-23)",
+     "D-23: styles.css applies the gesture-suppression block to .gesture-guard", and "FabMenu's
+     RENDERED tiers still satisfy CR-01 after portaling (D-27)".
+
+  6. DIALOG SEMANTICS. `SearchSheet.tsx:129-130` sets `role="dialog"` + `aria-modal="true"`, and
+     the input at `:144` carries `autoFocus` — React applies `autoFocus` on mount regardless of
+     portal target, so focus-on-open is structurally intact after the move.
+
+  ⚠ EXPLICITLY NOT CLAIMED — these remain device-only and are the reason this test stays PARTIAL:
+     - double-tap does not zoom the page (iOS gesture handling)
+     - long-press does not raise the iOS callout / selection menu
+     - drag does not pull-to-refresh or rubber-band the page behind the sheet
+     - the input is actually focused with the iOS soft keyboard raised
+     - VoiceOver focus lands INSIDE the dialog, not on the background
+     Desktop Chrome has none of these behaviours, so no amount of headless probing substitutes.
+     `touch-action`/`-webkit-touch-callout` being correctly applied is the CAUSE; the observation
+     is the EFFECT, and this project has twice recorded (`260724-hqu`, `260724-lgo`) that a
+     mechanism-proven path is not a verified one. Per-surface, per-behaviour observation on the
+     installed instance is still owed for both `SearchSheet` and `FabMenu`.
 
 ## Harness
 
