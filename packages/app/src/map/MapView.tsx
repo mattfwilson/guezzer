@@ -192,7 +192,7 @@ export function MapView() {
   return (
     <div className="relative h-full overflow-hidden bg-surface">
       {/* stage — owns pan/zoom/long-press */}
-      <div ref={stageRef} className="absolute inset-0 touch-none" style={{ cursor: "grab" }}>
+      <div ref={stageRef} className="absolute inset-0 touch-none select-none" style={{ cursor: "grab" }}>
         <div
           className="absolute"
           style={
@@ -209,7 +209,7 @@ export function MapView() {
             height={imageHeight}
             alt={`${mapResult.artifact.festival} festival map`}
             draggable={false}
-            className="pointer-events-none block max-w-none select-none"
+            className="pointer-events-none block max-w-none select-none [-webkit-user-drag:none]"
           />
 
           {/* meeting pins */}
