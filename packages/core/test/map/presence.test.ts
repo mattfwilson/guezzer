@@ -3,8 +3,6 @@ import { config } from "../../src/config.ts";
 import {
   ageLabel,
   describeOffset,
-  friendBeaconSchema,
-  meetPinSchema,
   shouldPublishBeacon,
   stalenessTier,
 } from "../../src/map/presence.ts";
@@ -77,59 +75,5 @@ describe("shouldPublishBeacon", () => {
 
   it("publishes IMMEDIATELY on an avatar change (identity edits land now)", () => {
     expect(shouldPublishBeacon({ last, next: { ...still, avatar: "🐊" } })).toBe(true);
-  });
-});
-
-describe("plaintext schemas (ASVS V5 clamps on friend-crossing strings)", () => {
-  it("rejects an over-length status and accepts a valid beacon", () => {
-    const beacon = {
-      memberId: "m1",
-      name: "Max",
-      lat: 38.843,
-      lng: -106.156,
-      accuracyM: 12,
-      status: null,
-      avatar: "🐊",
-      updatedAt: NOW,
-    };
-    expect(friendBeaconSchema.safeParse(beacon).success).toBe(true);
-    expect(
-      friendBeaconSchema.safeParse({
-        ...beacon,
-        status: "x".repeat(config.map.STATUS_MAX_LENGTH + 1),
-      }).success,
-    ).toBe(false);
-  });
-
-  it("fills avatar=null for pre-avatar beacons (crew update-window tolerance)", () => {
-    const legacy = {
-      memberId: "m1",
-      name: "Max",
-      lat: 38.843,
-      lng: -106.156,
-      accuracyM: 12,
-      status: null,
-      updatedAt: NOW,
-    };
-    const parsed = friendBeaconSchema.safeParse(legacy);
-    expect(parsed.success).toBe(true);
-    if (parsed.success) expect(parsed.data.avatar).toBeNull();
-    expect(
-      friendBeaconSchema.safeParse({ ...legacy, avatar: "x".repeat(9) }).success,
-    ).toBe(false);
-  });
-
-  it("rejects a pin with an empty label or out-of-range coordinate", () => {
-    const pin = {
-      pinId: "p1",
-      createdBy: "Max",
-      label: "Meet after encore",
-      lat: 38.843,
-      lng: -106.156,
-      createdAt: NOW,
-    };
-    expect(meetPinSchema.safeParse(pin).success).toBe(true);
-    expect(meetPinSchema.safeParse({ ...pin, label: "" }).success).toBe(false);
-    expect(meetPinSchema.safeParse({ ...pin, lat: 91 }).success).toBe(false);
   });
 });

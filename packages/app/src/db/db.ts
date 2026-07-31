@@ -232,14 +232,14 @@ export interface DbSnapshot {
 // ── GizzMap: friend presence + meeting pins (version(6)) ─────────────────────
 
 /**
- * A friend's last-known decrypted beacon (GizzMap). One row per member,
- * upserted by the sync loop — NEVER a history (mirrors the relay's no-history
- * TTL ethos client-side). `receivedAt` is the RELAY's receipt stamp (the
- * honesty clock — device clocks drift); `updatedAt` is the sender's GPS-fix
- * stamp. Deliberately EXCLUDED from DbSnapshot/export: presence is ephemeral
- * by design and TTLs out everywhere — a backup must never resurrect it.
+ * A friend's last-known beacon (GizzMap), validated at the Supabase read
+ * boundary (map/mapSync.ts). One row per member, the whole cache replaced on
+ * every pull — NEVER a history. Deliberately EXCLUDED from DbSnapshot/export:
+ * presence is ephemeral by design and TTLs out everywhere — a backup must
+ * never resurrect it.
  */
 export interface FriendBeaconRow {
+  /** The friend's Supabase user id (was a device-minted UUID in the relay era — same key, new mint). */
   memberId: string;
   name: string;
   lat: number;
@@ -248,8 +248,8 @@ export interface FriendBeaconRow {
   status: string | null;
   /** Gizz-set emoji; null = render the name initial. Not indexed — no schema bump needed. */
   avatar: string | null;
+  /** Epoch-ms stamp of the friend's underlying GPS fix (drives staleness tiers). */
   updatedAt: number;
-  receivedAt: number;
 }
 
 /**
@@ -260,7 +260,10 @@ export interface FriendBeaconRow {
  */
 export interface MapPinRow {
   pinId: string;
+  /** The creator's Supabase user id (RLS insert-own key). */
   createdBy: string;
+  /** The creator's display name at drop time — the "Dropped by {name}" byline. */
+  createdByName: string;
   label: string;
   lat: number;
   lng: number;

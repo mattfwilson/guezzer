@@ -14,11 +14,11 @@ import { describe, expect, it } from "vitest";
  * TWO LOAD-BEARING EXCEPTIONS (do not "tighten" the ban to include these — each
  * would red the existing suite with a false positive):
  *
- *   (1) `fetch` is NOT banned. Core legitimately uses the global `fetch` in four
- *       Node CLIs — live/poll-latest.ts, cli/fetch-corpus.ts, map/relay-client.ts,
- *       and dex/recent-shows.ts. "No network in core" was always about the
+ *   (1) `fetch` is NOT banned. Core legitimately uses the global `fetch` in
+ *       Node CLIs — live/poll-latest.ts, cli/fetch-corpus.ts, and
+ *       dex/recent-shows.ts. "No network in core" was always about the
  *       *browser* Supabase client, not Node's global fetch. Banning `fetch`
- *       instantly false-positives those four files.
+ *       instantly false-positives those files.
  *
  *   (2) There is NO bare `/\bwindow\./` rule. model/predict.ts declares a LOCAL
  *       array variable named `window` and calls `window.filter(...)` — a bare

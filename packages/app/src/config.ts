@@ -684,22 +684,14 @@ export const config = {
 
   /**
    * GizzMap RENDER + lifecycle constants (owner-approved exploration
-   * 2026-07-21; GSD bypassed by owner). Pure-derivation constants (staleness
-   * tiers, publish throttle, TTLs, key-derivation params) live in
-   * `@guezzer/core` config.map — the map feature imports core config directly
+   * 2026-07-21; relay + group-phrase join retired 2026-07-30 — map sync rides
+   * Supabase behind the Phase-18 auth roster). Pure-derivation constants
+   * (staleness tiers, publish throttle, pin TTL) live in `@guezzer/core`
+   * config.map — the map feature imports core config directly
    * (`@guezzer/core/config`) for those, so there is deliberately NO mirror
    * block here to drift. Only app-tier rendering/lifecycle values live below.
    */
   map: {
-    /**
-     * The deployed relay origin (packages/relay → `npm run deploy` prints it;
-     * deployed by the owner 2026-07-22). EMPTY STRING = relay not deployed:
-     * GizzMap runs local-only (own position + locally-created pins, no friend
-     * sync) and says so in a muted banner — the app must stay fully functional
-     * with no relay (owner constraint).
-     */
-    RELAY_BASE_URL: "https://guezzer-relay.maxretter.workers.dev",
-
     /** Re-render cadence for age labels/staleness opacity while the map is open. */
     AGE_TICK_MS: 30_000,
 
@@ -1569,26 +1561,13 @@ export const config = {
     /**
      * GizzMap copy — verbatim. Throughline: honest staleness ("4 min ago",
      * never a live-looking stale pin) and zero-drama degradation (offline /
-     * no relay / no GPS all read as calm states, not errors). Friend names +
-     * statuses + pin labels are friend-crossing UNTRUSTED strings — always
-     * rendered as React text, never HTML (the compare-view discipline).
+     * no GPS both read as calm states, not errors). There is no join flow —
+     * the Phase-18 auth roster IS the group (group phrase retired
+     * 2026-07-30). Friend names + statuses + pin labels are friend-crossing
+     * UNTRUSTED strings — always rendered as React text, never HTML (the
+     * compare-view discipline).
      */
     map: {
-      /** Join card (no group configured yet). */
-      joinHeading: "Join your crew",
-      joinBody:
-        "Everyone enters the same group phrase. Locations are encrypted — only your crew can read them, and they expire after 12 hours.",
-      secretPlaceholder: "Group phrase",
-      namePlaceholder: "Your name",
-      joinCta: "Join",
-      joinSecretTooShort: (min: number): string =>
-        `Group phrase needs at least ${min} characters.`,
-      joinNeedsName: "Add your name so friends know whose dot you are.",
-      /** crypto.subtle needs a secure context (https/localhost) — the LAN-http testing trap (uuid.ts precedent). */
-      joinInsecureContext:
-        "Joining needs a secure connection (https). Open Guezzer over https and try again.",
-      /** Muted banner when config.map.RELAY_BASE_URL is empty. */
-      relayNotConfigured: "Friend sync isn't set up yet — showing just you.",
       /** Muted line when geolocation is denied/unavailable — check-ins still work. */
       geoDenied: "No GPS — your dot is hidden, but check-ins and pins still work.",
       /** Muted line while the first fix is pending (permission prompt up, or GPS still searching). */
@@ -1619,12 +1598,6 @@ export const config = {
       /** Existing-pin sheet. */
       pinByLine: (name: string): string => `Dropped by ${name}`,
       pinDelete: "Remove pin",
-      /** Leave-group control (Settings-adjacent, on the map). */
-      leaveCta: "Leave group",
-      leaveHeading: "Leave this group?",
-      leaveBody: "Clears the group phrase and everyone's pins from this phone. Your dex is untouched.",
-      leaveConfirm: "Leave",
-      leaveCancel: "Stay",
       /** Map-artifact load failure (mirrors the model-load-failure pattern). */
       loadFailureHeading: "Couldn't load the festival map.",
       loadFailureBody: "Reopen Guezzer to try again.",

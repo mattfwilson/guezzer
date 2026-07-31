@@ -9,10 +9,9 @@
  * zero-wall-clock discipline): the app tier owns time, core stays
  * deterministic and fixture-testable.
  *
- * Beacons/pins carry PLAINTEXT domain shapes here; the relay only ever sees
- * their encrypted envelopes (group-crypto.ts + relay-client.ts).
+ * Beacon/pin ROW validation lives app-side at the Supabase read boundary
+ * (the validateFriendRow discipline) — core keeps only the pure derivations.
  */
-import { z } from "zod";
 import { config } from "../config.ts";
 import {
   compass8,
@@ -21,41 +20,6 @@ import {
   type Compass8,
   type GeoPoint,
 } from "./georef.ts";
-
-/** A friend's decrypted presence beacon — the plaintext inside the relay envelope. */
-export const friendBeaconSchema = z.strictObject({
-  memberId: z.string().min(1),
-  name: z.string().min(1).max(config.map.MEMBER_NAME_MAX_LENGTH),
-  lat: z.number().gte(-90).lte(90),
-  lng: z.number().gte(-180).lte(180),
-  /** GPS accuracy radius in meters; null when the device didn't report one. */
-  accuracyM: z.number().nonnegative().nullable(),
-  /** One-tap check-in status ("At the rail"); null when unset. */
-  status: z.string().max(config.map.STATUS_MAX_LENGTH).nullable(),
-  /**
-   * Chosen map avatar — an emoji from the app's Gizz set ("🐊" Gizzy Gator…);
-   * null = render the name initial. `.default(null)` keeps beacons from
-   * pre-avatar builds parseable during the crew's update window (a missing
-   * key is filled, never rejected).
-   */
-  avatar: z.string().max(config.map.AVATAR_MAX_LENGTH).nullable().default(null),
-  /** Sender's epoch-ms stamp of the underlying GPS fix. */
-  updatedAt: z.number().int().nonnegative(),
-});
-
-export type FriendBeacon = z.infer<typeof friendBeaconSchema>;
-
-/** A shared "meet here" pin — the plaintext inside the relay envelope. Synced in lat/lng, ALWAYS (never pixels). */
-export const meetPinSchema = z.strictObject({
-  pinId: z.string().min(1),
-  createdBy: z.string().min(1).max(config.map.MEMBER_NAME_MAX_LENGTH),
-  label: z.string().min(1).max(config.map.PIN_LABEL_MAX_LENGTH),
-  lat: z.number().gte(-90).lte(90),
-  lng: z.number().gte(-180).lte(180),
-  createdAt: z.number().int().nonnegative(),
-});
-
-export type MeetPin = z.infer<typeof meetPinSchema>;
 
 /**
  * Honest-staleness tiers, thresholds in config.map. `gone` beacons are not

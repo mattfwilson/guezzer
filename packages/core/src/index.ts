@@ -372,15 +372,15 @@ export type {
 } from "./bingo/types.ts";
 
 /**
- * GizzMap core (owner-approved exploration 2026-07-21; GSD bypassed by owner).
- * Four pure slices, all Node-testable: `georef` maps GPS onto the illustrated
+ * GizzMap core (owner-approved exploration 2026-07-21; GSD bypassed by owner;
+ * relay + group-crypto retired 2026-07-30 — sync rides Supabase behind the
+ * Phase-18 auth roster, so the group phrase and its E2E envelope layer are gone).
+ * Two pure slices, both Node-testable: `georef` maps GPS onto the illustrated
  * festival map (control points → mean-centered least-squares affine — global
  * affine is data-justified, piecewise REJECTED; see map/georef.ts header);
  * `presence` is the honest-staleness vocabulary (a stale pin never masquerades
- * as live; `now` always a parameter); `group-crypto` derives the relay token +
- * AES-GCM group key from one shared secret (relay stores only ciphertext);
- * `relay-client` is the pollLatest-style never-throw HTTP tier for the
- * self-owned Worker relay (packages/relay). The app owns all lifecycle/timing.
+ * as live; `now` always a parameter) plus the pure beacon-publish throttle
+ * gate. The app owns all lifecycle/timing and the Supabase transport.
  */
 export {
   solveGeoref,
@@ -405,32 +405,7 @@ export {
   ageLabel,
   describeOffset,
   shouldPublishBeacon,
-  friendBeaconSchema,
-  meetPinSchema,
-  type FriendBeacon,
-  type MeetPin,
   type StalenessTier,
   type GeoOffset,
 } from "./map/presence.ts";
-export {
-  deriveGroupKeys,
-  encryptJson,
-  decryptJson,
-  type EncryptedEnvelope,
-  type GroupKeys,
-  type GroupCryptoKey,
-} from "./map/group-crypto.ts";
 export { identityColorIndex } from "./identity/color.ts";
-export {
-  publishBeacon,
-  publishPin,
-  deletePin,
-  fetchGroupState,
-  beaconRecordSchema,
-  pinRecordSchema,
-  groupStateSchema,
-  type RelayDeps,
-  type BeaconRecord,
-  type PinRecord,
-  type GroupState,
-} from "./map/relay-client.ts";
