@@ -17,6 +17,7 @@ import { useBingoCelebrations } from "./games/useBingoCelebrations.ts";
 import { MapView } from "./map/MapView.tsx";
 import { requestPersistenceOnce } from "./pwa/persist.ts";
 import { useHashRoute } from "./routing/useHashRoute";
+import { ScheduleView } from "./schedule/ScheduleView.tsx";
 import { SettingsView } from "./settings/SettingsView.tsx";
 import { ShowView } from "./show/ShowView.tsx";
 import { usePresence } from "./sync/usePresence.ts";
@@ -114,6 +115,8 @@ export function App() {
           <ExploreView />
         ) : route === "map" ? (
           <MapView />
+        ) : route === "schedule" ? (
+          <ScheduleView />
         ) : route === "settings" ? (
           <SettingsView />
         ) : route === "dex" ? (

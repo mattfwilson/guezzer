@@ -1,11 +1,11 @@
-import { BookOpen, Compass, Gamepad2, Map, Music } from "lucide-react";
+import { BookOpen, CalendarDays, Compass, Gamepad2, Map, Music } from "lucide-react";
 import { config } from "../config.ts";
 import { navigate, useHashRoute, type Route } from "../routing/useHashRoute";
 
-/** The five content routes that own a bottom tab (`settings` has none). */
+/** The six content routes that own a bottom tab (`settings` has none). */
 type TabRoute = Exclude<Route, "settings">;
 
-// NAV-01/NAV-02 (D-43): the five labels are DISPLAY strings read from
+// NAV-01/NAV-02 (D-43): the labels are DISPLAY strings read from
 // `config.copy.tabs` — the route keys, the file path and every persisted key are
 // unchanged. D-43's tab-icon note: `BookOpen` beside "Me" is an acknowledged,
 // deliberate non-change, reviewed in Phase 24.
@@ -13,6 +13,9 @@ const TABS: { route: TabRoute; label: string; Icon: typeof Music }[] = [
   { route: "show", label: config.copy.tabs.show, Icon: Music },
   { route: "explore", label: config.copy.tabs.explore, Icon: Compass },
   { route: "map", label: config.copy.tabs.map, Icon: Map },
+  // Schedule tab (2026-07-30): 5→6 tabs accepted by the owner — short labels
+  // keep every tab ≥ 44px wide via `flex-1` even at 375px.
+  { route: "schedule", label: config.copy.tabs.schedule, Icon: CalendarDays },
   { route: "dex", label: config.copy.tabs.dex, Icon: BookOpen },
   // D-01: GizzGames is the forward-compatible home for future games (Gizzle /
   // Guezz League), so the generic Gamepad2 hub icon — not a bingo-specific glyph.

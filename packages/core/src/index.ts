@@ -412,6 +412,26 @@ export {
 export { identityColorIndex } from "./identity/color.ts";
 
 /**
+ * Festival schedule (owner request 2026-07-30): the committed FOV 2026
+ * schedule artifact + who's-going derivations for the Sched tab. Picks sync
+ * rides Supabase (schedule_picks, one row per user) with `sanitizeEventIds`
+ * as the untrusted read boundary — unknown ids drop, hostile shapes skip the
+ * row, never a crash.
+ */
+export {
+  scheduleArtifactSchema,
+  parseScheduleArtifact,
+  sanitizeEventIds,
+  attendeesByEvent,
+  minToClock,
+  formatEventTime,
+  type ScheduleArtifact,
+  type ScheduleEvent,
+  type SchedulePicksRow,
+  type EventAttendee,
+} from "./schedule/schedule.ts";
+
+/**
  * "Max's predictor" (2026-07-30): pure-TS port of the owner's setlist
  * transformer (setlist-predictor repo). Artifact-driven — weights, vocab
  * (song tokens stamped with kglw songIds), and PyTorch golden vectors ship

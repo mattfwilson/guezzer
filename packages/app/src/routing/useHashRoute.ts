@@ -10,6 +10,7 @@ export const ROUTES = [
   "show",
   "explore",
   "map",
+  "schedule",
   "dex",
   "games",
   "settings",

@@ -69,36 +69,49 @@ describe("Gizz With Friends rebrand (AUTH-06 / D-15/D-16)", () => {
  *  - a renamed in-page HEADING would turn a thumb-space fix into a rebrand (D-43).
  */
 describe("Tab rename is display-only (NAV-02 / D-43/D-44)", () => {
-  it("config.copy.tabs is exactly the five short labels", () => {
+  // 2026-07-30: the `schedule` route / "GizzSched" token are ADDITIVE members
+  // (the schedule feature). Adding is forward-safe (D-41 fallback); these
+  // assertions still lock every PRE-EXISTING name against a rename.
+  it("config.copy.tabs is exactly the six short labels", () => {
     expect(config.copy.tabs).toEqual({
       show: "Live",
       explore: "GizzVerse",
       map: "Map",
+      schedule: "Sched",
       dex: "Me",
       games: "Games",
     });
   });
 
-  it("ROUTES and the Route union are unchanged", () => {
-    expect([...ROUTES]).toEqual(["show", "explore", "map", "dex", "games", "settings"]);
+  it("ROUTES and the Route union are unchanged (plus the additive schedule route)", () => {
+    expect([...ROUTES]).toEqual([
+      "show",
+      "explore",
+      "map",
+      "schedule",
+      "dex",
+      "games",
+      "settings",
+    ]);
   });
 
-  it("ROUTE_TO_TAB is unchanged — the wire vocabulary is frozen", () => {
+  it("ROUTE_TO_TAB is unchanged — the wire vocabulary is frozen (rename-locked)", () => {
     expect(ROUTE_TO_TAB).toEqual({
       show: "LiveGizz",
       explore: "GizzVerse",
       map: "GizzMap",
+      schedule: "GizzSched",
       dex: "GizzDex",
       games: "GizzGames",
       settings: "idle",
     });
   });
 
-  it("the Tab union members are unchanged (the six frozen tokens)", () => {
+  it("the Tab union members are unchanged (the frozen tokens + additive GizzSched)", () => {
     // The presence label map is typed `Record<Tab, string>`, so its key set IS
     // the Tab union — a token added or renamed shows up here.
     expect(Object.keys(config.copy.presence.activity).sort()).toEqual(
-      ["GizzDex", "GizzGames", "GizzMap", "GizzVerse", "LiveGizz", "idle"].sort(),
+      ["GizzDex", "GizzGames", "GizzMap", "GizzSched", "GizzVerse", "LiveGizz", "idle"].sort(),
     );
   });
 

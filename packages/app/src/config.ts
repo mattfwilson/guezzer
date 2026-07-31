@@ -764,6 +764,34 @@ export const config = {
   },
 
   /**
+   * Schedule tab (owner request 2026-07-30): render constants for the FOV
+   * 2026 who's-going schedule. The artifact itself is core-validated
+   * (`parseScheduleArtifact`); only chrome lives here.
+   */
+  schedule: {
+    /**
+     * Venue chip colors, matched to the official poster's stage colors
+     * (Phantom Island orange / The Castle green / Main Stage lavender);
+     * the rest are ours. Chips are places, not data semantics — deliberately
+     * OUTSIDE the rarity-tier palette's meaning space.
+     */
+    VENUE_COLORS: {
+      "Phantom Island": "#F5A947",
+      "The Castle": "#57C785",
+      "Main Stage": "#CDA1D6",
+      Timeland: "#94A3B8",
+      "Main Street": "#FACC15",
+      "Drag Camp": "#F472B6",
+    } as Record<string, string>,
+    /** Fallback chip color for a venue missing from the map above. */
+    VENUE_COLOR_FALLBACK: "#A1A1AA",
+    /** Attendee initial-dot diameter in px (the who's-going row strip). */
+    ATTENDEE_DOT_PX: 22,
+    /** Own-picks push debounce in ms after a toggle burst (mirrors friends.DEBOUNCE_MS intent, faster — picks are tiny). */
+    PUSH_DEBOUNCE_MS: 1500,
+  },
+
+  /**
    * Identity / account chrome (Phase 18, AUTH-06/07). No auth *logic* lives
    * here — only the display palette the pure-core `identityColorIndex` helper
    * indexes into.
@@ -840,6 +868,7 @@ export const config = {
       show: "Live",
       explore: "GizzVerse",
       map: "Map",
+      schedule: "Sched",
       dex: "Me",
       games: "Games",
     } as const satisfies Record<Exclude<Route, "settings">, string>,
@@ -1528,6 +1557,7 @@ export const config = {
         LiveGizz: "on LiveGizz",
         GizzVerse: "on GizzVerse",
         GizzMap: "on GizzMap",
+        GizzSched: "on GizzSched",
         GizzDex: "on GizzDex",
         GizzGames: "on GizzGames",
         idle: "idle",
@@ -1638,6 +1668,27 @@ export const config = {
       pinDelete: "Remove pin",
       /** Map-artifact load failure (mirrors the model-load-failure pattern). */
       loadFailureHeading: "Couldn't load the festival map.",
+      loadFailureBody: "Reopen Guezzer to try again.",
+    },
+
+    /**
+     * Schedule tab copy (owner request 2026-07-30). Friend display names are
+     * friend-crossing UNTRUSTED strings — rendered as React text only.
+     */
+    schedule: {
+      /** In-page section heading (keeps the festival name; the tab strip says "Sched"). */
+      heading: "FOV 2026",
+      /** Sub-line under the heading. */
+      subheading: "Tap anything you're going to — everyone sees who's in.",
+      /** Accessible label for a row's going-toggle. */
+      goingAria: (title: string, going: boolean): string =>
+        going ? `Stop going to ${title}` : `Go to ${title}`,
+      /** Muted line when nobody has picked an event yet (rendered nowhere per-row; reserved). */
+      nobodyYet: "No picks yet",
+      /** Chip label marking your own dot in a row's attendee strip. */
+      youLabel: "You",
+      /** Artifact load failure (mirrors the model/map-load-failure pattern). */
+      loadFailureHeading: "Couldn't load the schedule.",
       loadFailureBody: "Reopen Guezzer to try again.",
     },
 

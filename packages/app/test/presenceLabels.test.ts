@@ -23,11 +23,12 @@ import type { Tab } from "../src/sync/presenceActivity.ts";
  * text ever reaches the DOM.
  */
 
-/** The six frozen wire tokens, listed explicitly (not derived from the map). */
+/** The frozen wire tokens (+ the additive 2026-07-30 GizzSched), listed explicitly (not derived from the map). */
 const TAB_TOKENS: Tab[] = [
   "LiveGizz",
   "GizzVerse",
   "GizzMap",
+  "GizzSched",
   "GizzDex",
   "GizzGames",
   "idle",
@@ -36,11 +37,12 @@ const TAB_TOKENS: Tab[] = [
 const presence = config.copy.presence;
 
 describe("config.copy.presence.activity — the presence voice map (D-39)", () => {
-  it("equals exactly the six-token label map", () => {
+  it("equals exactly the seven-token label map", () => {
     expect(presence.activity).toEqual({
       LiveGizz: "on LiveGizz",
       GizzVerse: "on GizzVerse",
       GizzMap: "on GizzMap",
+      GizzSched: "on GizzSched",
       GizzDex: "on GizzDex",
       GizzGames: "on GizzGames",
       idle: "idle",
