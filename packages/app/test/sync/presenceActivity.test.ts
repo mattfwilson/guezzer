@@ -21,6 +21,7 @@ describe("ROUTE_TO_TAB", () => {
       show: "LiveGizz",
       explore: "GizzVerse",
       map: "GizzMap",
+      schedule: "GizzSched",
       dex: "GizzDex",
       games: "GizzGames",
       settings: "idle",

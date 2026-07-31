@@ -43,7 +43,7 @@ describe("markShowAttended / unmarkShowAttended (DEX-02)", () => {
     // version(6) friendBeacons/mapPins tables; Phase 18 added the userId index as
     // version(7); Phase 19 added friendProgressCache as version(8). The DB now
     // opens at verno 8. archiveShows (v4) is still present and unchanged.
-    expect(db.verno).toBe(8);
+    expect(db.verno).toBe(9);
     expect(db.archiveShows).toBeDefined();
   });
 

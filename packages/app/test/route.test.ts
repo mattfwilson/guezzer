@@ -36,6 +36,7 @@ describe("useHashRoute / currentRoute", () => {
       "show",
       "explore",
       "map",
+      "schedule",
       "dex",
       "games",
       "settings",

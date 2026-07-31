@@ -13,7 +13,7 @@ describe("db version(6) — GizzMap tables (additive)", () => {
   it("opens at the max version with friendBeacons + mapPins present", () => {
     // Phase 18 added the userId index as version(7); Phase 19 added the
     // friendProgressCache table as version(8); the DB opens at that max.
-    expect(db.verno).toBe(8);
+    expect(db.verno).toBe(9);
     expect(db.friendBeacons).toBeDefined();
     expect(db.mapPins).toBeDefined();
   });

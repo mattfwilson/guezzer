@@ -77,7 +77,7 @@ describe("db version(3) additive migration", () => {
     // friendProgressCache as version(8)); the v3 upgrade still runs on the way up
     // from the seeded v2 data.
     await db.open();
-    expect(db.verno).toBe(8);
+    expect(db.verno).toBe(9);
 
     // Backfill: the pre-existing source-less entry now reads "manual".
     const entry = await db.trackedEntries.where("sessionId").equals("s1").first();

@@ -38,6 +38,7 @@ export type Tab =
   | "LiveGizz"
   | "GizzVerse"
   | "GizzMap"
+  | "GizzSched"
   | "GizzDex"
   | "GizzGames"
   | "idle";
@@ -61,6 +62,9 @@ export const ROUTE_TO_TAB: Record<Route, Tab> = {
   show: "LiveGizz",
   explore: "GizzVerse",
   map: "GizzMap",
+  // ADDITIVE token (2026-07-30, schedule feature). Adding is forward-safe —
+  // the D-41 fallback covers builds that predate it; only RENAMES are frozen.
+  schedule: "GizzSched",
   dex: "GizzDex",
   games: "GizzGames",
   settings: "idle",
@@ -71,6 +75,7 @@ const TABS: ReadonlySet<Tab> = new Set<Tab>([
   "LiveGizz",
   "GizzVerse",
   "GizzMap",
+  "GizzSched",
   "GizzDex",
   "GizzGames",
   "idle",

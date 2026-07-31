@@ -57,6 +57,11 @@ export default defineConfig({
       "@nnModel": fileURLToPath(
         new URL("../../data/nn/setlist-transformer.json", import.meta.url),
       ),
+      // FOV 2026 schedule artifact (owner-transcribed poster) — @matrix idiom:
+      // rides the JS bundle, precached by the `**/*.js` glob.
+      "@schedule": fileURLToPath(
+        new URL("../../data/schedule/fov-2026.json", import.meta.url),
+      ),
     },
   },
   plugins: [

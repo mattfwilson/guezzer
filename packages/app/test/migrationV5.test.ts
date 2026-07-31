@@ -117,7 +117,7 @@ describe("db version(5) additive migration (D-14 / SC-4)", () => {
     // applied, plus the version(8) friendProgressCache table; the DB opens at the
     // max version (8).
     await db.open();
-    expect(db.verno).toBe(8);
+    expect(db.verno).toBe(9);
 
     // The new table exists and is empty.
     expect(await db.bingoCards.count()).toBe(0);

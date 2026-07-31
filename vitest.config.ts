@@ -39,6 +39,9 @@ export default defineConfig({
             "@nnModel": fileURLToPath(
               new URL("./data/nn/setlist-transformer.json", import.meta.url),
             ),
+            "@schedule": fileURLToPath(
+              new URL("./data/schedule/fov-2026.json", import.meta.url),
+            ),
           },
         },
         test: {

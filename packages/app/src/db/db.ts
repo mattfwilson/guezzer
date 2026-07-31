@@ -302,6 +302,25 @@ export interface FriendProgressCacheRow {
   fetchedAt: number;
 }
 
+/**
+ * One member's schedule picks (own row INCLUDED — userId === the signed-in
+ * id). `eventIds` are validated slugs from the bundled schedule artifact
+ * (core sanitizeEventIds at the read boundary; the own row only ever holds
+ * ids the local artifact knows). Supabase `schedule_picks` is the durable
+ * source; this table is the offline cache + the instant-toggle write-through.
+ * Excluded from DbSnapshot/export (friend data, mirrors friendProgressCache).
+ */
+export interface SchedulePickRow {
+  /** The member's Supabase user id (own row included). */
+  userId: string;
+  displayName: string;
+  eventIds: string[];
+  /** The member's client-set row stamp; null when the row lacked one. */
+  updatedAt: string | null;
+  /** OUR local Date.now() when this row was last written (pull or local toggle). */
+  fetchedAt: number;
+}
+
 export class GuezzerDB extends Dexie {
   meta!: Table<MetaRow, string>;
   attendedShows!: Table<AttendedShow, number>;
@@ -312,6 +331,7 @@ export class GuezzerDB extends Dexie {
   friendBeacons!: Table<FriendBeaconRow, string>;
   mapPins!: Table<MapPinRow, string>;
   friendProgressCache!: Table<FriendProgressCacheRow, string>;
+  schedulePicks!: Table<SchedulePickRow, string>;
 
   constructor() {
     super(config.DB_NAME);
@@ -424,6 +444,17 @@ export class GuezzerDB extends Dexie {
     // userId-stamping hook loop below.
     this.version(8).stores({
       friendProgressCache: "&userId",
+    });
+
+    // Version 9 (Schedule picks, owner request 2026-07-30): ADDITIVE only —
+    // one new table caching every member's schedule picks (own row included;
+    // Supabase `schedule_picks` is the DURABLE source, this is the offline
+    // last-known view + the instant-toggle write-through for the own row).
+    // Keyed by the stable per-member `&userId`. Friend data like
+    // `friendProgressCache` — EXCLUDED from DbSnapshot/export and from the
+    // userId-stamping hook loop below (rows carry their OWNER's id already).
+    this.version(9).stores({
+      schedulePicks: "&userId",
     });
   }
 }
