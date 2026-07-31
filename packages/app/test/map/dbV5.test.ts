@@ -28,10 +28,9 @@ describe("db version(6) — GizzMap tables (additive)", () => {
       status: null,
       avatar: "🐊",
       updatedAt: 111,
-      receivedAt: 112,
     };
     await db.friendBeacons.put(beacon);
-    await db.friendBeacons.put({ ...beacon, lat: 38.844, updatedAt: 222, receivedAt: 223 });
+    await db.friendBeacons.put({ ...beacon, lat: 38.844, updatedAt: 222 });
 
     expect(await db.friendBeacons.count()).toBe(1);
     expect((await db.friendBeacons.get("m1"))?.updatedAt).toBe(222);
@@ -40,7 +39,8 @@ describe("db version(6) — GizzMap tables (additive)", () => {
   it("mapPins indexes `synced` so the sync loop can query offline-created pins", async () => {
     const pin = (pinId: string, synced: 0 | 1): MapPinRow => ({
       pinId,
-      createdBy: "Max",
+      createdBy: "user-1",
+      createdByName: "Max",
       label: "Meet here",
       lat: 38.843,
       lng: -106.156,

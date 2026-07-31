@@ -31,6 +31,14 @@ import { RARITY_ORB_TEXT_COLOR, rarityColor, rarityTierForSong } from "../dex/ra
 /** A ranked candidate enriched with its tuning family (resolved from the matrix node in ShowView). */
 export interface OrbitCandidate extends PredictionCandidate {
   tuningFamily: TuningFamily | null;
+  /**
+   * "Max's predictor" agreement (2026-07-30) — present when the owner's
+   * transformer also ranks this song in its top-K: the orb face shows BOTH
+   * percentages and the why sheet gains the nn line.
+   */
+  nn?: { nnProb: number; nnRank: number } | null;
+  /** True when this orb exists ONLY because of Max's predictor (the extra flagged dot). */
+  nnExtra?: boolean;
 }
 
 interface PredictionOrbProps {
@@ -57,6 +65,9 @@ export function PredictionOrb({
 }: PredictionOrbProps) {
   const fill = rarityColor(rarityTierForSong(candidate.songId));
   const percent = formatOrbPercent(candidate.score);
+  const nnCopy = config.copy.show.nn;
+  const nnPercent = candidate.nn ? formatOrbPercent(candidate.nn.nnProb) : null;
+  const isNnExtra = candidate.nnExtra === true;
 
   // D-21 + POLISH-01 (08-08): wrap + scale-to-fit the full name inside this orb's
   // CIRCLE. Fit against the CONTENT diameter (raw diameter minus the `px-1` face
@@ -150,12 +161,22 @@ export function PredictionOrb({
         onPointerLeave={handlePointerEnd}
         onPointerCancel={handlePointerEnd}
         onContextMenu={(event) => event.preventDefault()}
-        aria-label={`Log ${candidate.songName}, ${percent} confidence`}
+        aria-label={
+          isNnExtra
+            ? `Log ${candidate.songName}, ${nnCopy.flagLabel} ${nnPercent ?? percent}`
+            : nnPercent
+              ? `Log ${candidate.songName}, ${percent} confidence, ${nnCopy.flagLabel} ${nnPercent}`
+              : `Log ${candidate.songName}, ${percent} confidence`
+        }
         className="flex h-full w-full min-h-11 min-w-11 select-none flex-col items-center justify-center rounded-full px-1 text-center touch-manipulation motion-safe:transition-all motion-safe:duration-200"
         style={{
           backgroundColor: fill,
           color: RARITY_ORB_TEXT_COLOR,
           WebkitTouchCallout: "none",
+          // The extra dot must READ as Max's, not as a 6th statistical orb:
+          // an inset dashed ring in the face-text color (palette-neutral —
+          // rarity fills stay the only color semantics on the face).
+          border: isNnExtra ? `2px dashed ${RARITY_ORB_TEXT_COLOR}` : undefined,
         }}
       >
         <span
@@ -169,13 +190,24 @@ export function PredictionOrb({
           ))}
         </span>
         <span
-          className="text-[14px] font-semibold leading-tight tabular-nums motion-safe:transition-opacity"
+          className="font-semibold leading-tight tabular-nums motion-safe:transition-opacity"
           style={{
+            // Dual readout ("34% · 🍄 41%") drops to the smaller size so both
+            // percentages fit the same single reserved line (D-21 reserve
+            // unchanged); the extra dot shows ONLY the model's number.
+            fontSize:
+              nnPercent && !isNnExtra
+                ? config.show.ORB_DUAL_PERCENT_FONT_PX
+                : 14,
             opacity: collapsing ? 0 : 1,
             transitionDuration: `${config.show.orbitAnim.COLLAPSE_MS}ms`,
           }}
         >
-          {percent}
+          {isNnExtra
+            ? `${nnCopy.percentPrefix} ${nnPercent ?? percent}`
+            : nnPercent
+              ? `${percent} · ${nnCopy.percentPrefix} ${nnPercent}`
+              : percent}
         </span>
       </button>
 

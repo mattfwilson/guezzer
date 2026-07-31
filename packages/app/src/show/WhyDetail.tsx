@@ -13,6 +13,7 @@
 import { X } from "lucide-react";
 import { Sheet } from "../components/Sheet.tsx";
 import { config } from "../config.ts";
+import { formatOrbPercent } from "./confidence.ts";
 import { formatMonYear } from "../dex/formatDate.ts";
 import { getRarityIndex } from "../dex/rarityIndex.ts";
 import { TierBadge } from "../dex/TierBadge.tsx";
@@ -60,6 +61,17 @@ export function WhyDetail({ candidate, onClose }: WhyDetailProps) {
       <p className="mt-3 text-base leading-normal text-text-muted">
         {candidate.reason}
       </p>
+
+      {/* "Max's predictor" line (2026-07-30) — the transformer's own probability
+          and rank for this song, shown whenever the model ranks it in top-K. */}
+      {candidate.nn && (
+        <p className="mt-2 text-[14px] font-semibold leading-tight tabular-nums text-text-primary">
+          {config.copy.show.nn.whyLine(
+            formatOrbPercent(candidate.nn.nnProb),
+            candidate.nn.nnRank,
+          )}
+        </p>
+      )}
 
       {/* STAT-01 corpus line, or the D-08 debut framing for zero-history songs. */}
       {rarity != null ? (

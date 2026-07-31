@@ -153,6 +153,14 @@ export const config = {
      * a quick tap still logs the orb (SHOW-03). Tuned so a deliberate-but-slow log
      * tap doesn't accidentally trip the info sheet.
      */
+    /**
+     * "Max's predictor" dual-percent orb line (2026-07-30): when an orb shows
+     * BOTH the statistical % and the transformer's % ("34% · 🍄 41%"), the
+     * line drops to this font px so the pair still fits the single reserved
+     * percent line (ORB_LABEL_PERCENT_LINE_PX unchanged).
+     */
+    ORB_DUAL_PERCENT_FONT_PX: 11,
+
     /** Hold duration in ms before an orb press opens the info sheet instead of logging. */
     ORB_LONG_PRESS_MS: 500,
     /** Pointer travel in px that cancels a pending long-press (treat as a scroll/drag, not a hold). */
@@ -719,22 +727,14 @@ export const config = {
 
   /**
    * GizzMap RENDER + lifecycle constants (owner-approved exploration
-   * 2026-07-21; GSD bypassed by owner). Pure-derivation constants (staleness
-   * tiers, publish throttle, TTLs, key-derivation params) live in
-   * `@guezzer/core` config.map — the map feature imports core config directly
+   * 2026-07-21; relay + group-phrase join retired 2026-07-30 — map sync rides
+   * Supabase behind the Phase-18 auth roster). Pure-derivation constants
+   * (staleness tiers, publish throttle, pin TTL) live in `@guezzer/core`
+   * config.map — the map feature imports core config directly
    * (`@guezzer/core/config`) for those, so there is deliberately NO mirror
    * block here to drift. Only app-tier rendering/lifecycle values live below.
    */
   map: {
-    /**
-     * The deployed relay origin (packages/relay → `npm run deploy` prints it;
-     * deployed by the owner 2026-07-22). EMPTY STRING = relay not deployed:
-     * GizzMap runs local-only (own position + locally-created pins, no friend
-     * sync) and says so in a muted banner — the app must stay fully functional
-     * with no relay (owner constraint).
-     */
-    RELAY_BASE_URL: "https://guezzer-relay.maxretter.workers.dev",
-
     /** Re-render cadence for age labels/staleness opacity while the map is open. */
     AGE_TICK_MS: 30_000,
 
@@ -987,6 +987,24 @@ export const config = {
       endBody: "You won't be able to add more songs after this.",
       endConfirm: "End show",
       endCancel: "Keep tracking",
+      /**
+       * "Max's predictor" copy (2026-07-30) — the owner-trained transformer
+       * overlay. `percentPrefix` marks the model's number on an orb face
+       * ("🍄 41%" — the mushroom, owner pick, matching the 🍄 in the Gizz
+       * avatar set); `flagLabel` is the human name used in aria-labels and
+       * the why sheet (screen readers never read the emoji prefix);
+       * `extraReason` is the why-sheet body for the flagged extra dot (the
+       * statistical pipeline did not rank it — honest framing).
+       */
+      nn: {
+        flagLabel: "Max's predictor",
+        percentPrefix: "🍄",
+        whyLine: (percent: string, rank: number): string =>
+          `Max's predictor: ${percent} (#${rank})`,
+        extraReason:
+          "Max's predictor pick — the statistical model doesn't rank it in tonight's fan.",
+      },
+
       /** Wake-lock unsupported fallback (SHOW-12). */
       wakeLockFallback:
         "Keep your screen on manually — auto screen-wake isn't supported on this device.",
@@ -1604,39 +1622,38 @@ export const config = {
     /**
      * GizzMap copy — verbatim. Throughline: honest staleness ("4 min ago",
      * never a live-looking stale pin) and zero-drama degradation (offline /
-     * no relay / no GPS all read as calm states, not errors). Friend names +
-     * statuses + pin labels are friend-crossing UNTRUSTED strings — always
-     * rendered as React text, never HTML (the compare-view discipline).
+     * no GPS both read as calm states, not errors). There is no join flow —
+     * the Phase-18 auth roster IS the group (group phrase retired
+     * 2026-07-30). Friend names + statuses + pin labels are friend-crossing
+     * UNTRUSTED strings — always rendered as React text, never HTML (the
+     * compare-view discipline).
      */
     map: {
-      /** Join card (no group configured yet). */
-      joinHeading: "Join your crew",
-      joinBody:
-        "Everyone enters the same group phrase. Locations are encrypted — only your crew can read them, and they expire after 12 hours.",
-      secretPlaceholder: "Group phrase",
-      namePlaceholder: "Your name",
-      joinCta: "Join",
-      joinSecretTooShort: (min: number): string =>
-        `Group phrase needs at least ${min} characters.`,
-      joinNeedsName: "Add your name so friends know whose dot you are.",
-      /** crypto.subtle needs a secure context (https/localhost) — the LAN-http testing trap (uuid.ts precedent). */
-      joinInsecureContext:
-        "Joining needs a secure connection (https). Open Guezzer over https and try again.",
-      /** Muted banner when config.map.RELAY_BASE_URL is empty. */
-      relayNotConfigured: "Friend sync isn't set up yet — showing just you.",
       /** Muted line when geolocation is denied/unavailable — check-ins still work. */
       geoDenied: "No GPS — your dot is hidden, but check-ins and pins still work.",
       /** Muted line while the first fix is pending (permission prompt up, or GPS still searching). */
       geoLocating: "Locating you…",
       /** Share-location toggle label ("ghost mode" off = sharing). */
       shareToggle: "Share my location",
-      /** Status chips — one-tap check-ins; tap the active chip again to clear. */
+      /**
+       * Status chips — one-tap check-ins; tap the active chip again to clear.
+       * Practical ones first (least thumb-scroll in the dark), then the goofy
+       * KGLW-flavored tail ("Melting"/"Sleep drifting" = FMB tracks, "Gone
+       * full rat"/"On Planet B" = Rats' Nest, "Fishing for fishies" = Meadow
+       * Creek adjacency). All well under STATUS_MAX_LENGTH.
+       */
       statusPresets: [
         "At the rail",
         "Beer run",
         "Back at camp",
         "Heading to stage",
         "At the pin",
+        "Porta-potty line",
+        "Melting",
+        "Sleep drifting",
+        "Gone full rat",
+        "On Planet B",
+        "Fishing for fishies",
       ] as const,
       /** Off-map friend chip: distance + compass toward them ("2.1 km NE"). */
       offMap: (km: string, compass: string): string => `${km} km ${compass}`,
@@ -1654,12 +1671,6 @@ export const config = {
       /** Existing-pin sheet. */
       pinByLine: (name: string): string => `Dropped by ${name}`,
       pinDelete: "Remove pin",
-      /** Leave-group control (Settings-adjacent, on the map). */
-      leaveCta: "Leave group",
-      leaveHeading: "Leave this group?",
-      leaveBody: "Clears the group phrase and everyone's pins from this phone. Your dex is untouched.",
-      leaveConfirm: "Leave",
-      leaveCancel: "Stay",
       /** Map-artifact load failure (mirrors the model-load-failure pattern). */
       loadFailureHeading: "Couldn't load the festival map.",
       loadFailureBody: "Reopen Guezzer to try again.",

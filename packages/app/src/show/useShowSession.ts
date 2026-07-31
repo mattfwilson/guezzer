@@ -14,22 +14,45 @@
  * `currentSongId !== null` guard below; the pre-opener path returns an empty
  * fan without touching the predictor. The opener is seeded via Search in 04-05.
  */
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
+  currentRunShows,
   currentRunShowSets,
+  mergeNnIntoFan,
+  nnPredict,
   type FinalizedShowInput,
+  type NnModel,
+  type NnNightEntry,
+  type PredictionFactors,
   type TuningFamily,
 } from "@guezzer/core";
 import { config as coreConfig } from "@guezzer/core/config";
+import { config } from "../config.ts";
 import { db, getMeta, type TrackedEntry, type TrackedShow } from "../db/db.ts";
 import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
 import { deriveTally, type Tally } from "./scoring.ts";
 import { getMatrixIndex, loadMatrix } from "./matrix.ts";
+import { ensureNnModel, getNnModel } from "./nnModel.ts";
 import { buildShowContext, predictFan } from "./showContext.ts";
 import { selectFan } from "./orbitLayout.ts";
 import { isWeakFan } from "./confidence.ts";
 import type { OrbitCandidate } from "./PredictionOrb.tsx";
+
+/**
+ * Honest neutral factors for a "Max's predictor" EXTRA orb — the statistical
+ * pipeline did NOT rank it, so every factor is the identity and the why sheet
+ * leads with the nn line instead (WhyDetail).
+ */
+const NN_EXTRA_FACTORS: PredictionFactors = {
+  transitionProb: 0,
+  decay: 1,
+  rotation: 1,
+  alreadyPlayed: 1,
+  eraPrior: 1,
+  backoffTier: "basePlayRate",
+  hardSegueFlag: false,
+};
 
 /** The current centre song for the CenterNode — name, id (rarity color), + tuning family (null pre-opener). */
 export interface CurrentSong {
@@ -115,21 +138,41 @@ export function useShowSession(): ShowSession {
         .where("status")
         .equals("finalized")
         .toArray();
-      const inputs: FinalizedShowInput[] = [];
+      const inputs: (FinalizedShowInput & { nnEntries: NnNightEntry[] })[] = [];
       for (const show of shows) {
         const showEntries = await db.trackedEntries
           .where("sessionId")
           .equals(show.sessionId)
-          .toArray();
+          .sortBy("position");
         inputs.push({
           date: show.date,
           songIds: showEntries
             .filter((e) => e.songId != null)
             .map((e) => e.songId as number),
+          // "Max's predictor" wants each night ORDERED with set numbers —
+          // placeholders INCLUDED (they tokenize as the model's own
+          // unknown-song bucket, nn/tokenize.ts).
+          nnEntries: showEntries.map((e) => ({
+            songId: e.songId,
+            setNumber: e.setNumber,
+          })),
         });
       }
       return inputs;
     }) ?? [];
+
+  // "Max's predictor" — one-time lazy artifact load (own JS chunk); null until
+  // loaded or on any failure, and the orbit renders matrix-only either way.
+  const [nnModel, setNnModel] = useState<NnModel | null>(getNnModel());
+  useEffect(() => {
+    let live = true;
+    void ensureNnModel().then((model) => {
+      if (live && model) setNnModel(model);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
 
   // (c2) Owner reset marker (PRED-03) — a single free-form `db.meta` row written
   // by the Settings "start a fresh run" control. When set, `currentRunShowSets`
@@ -208,7 +251,49 @@ export function useShowSession(): ShowSession {
         tuningFamily: index.nodeById.get(c.songId)?.tuningFamily ?? null,
       }),
     );
-    const fan = selectFan(candidates);
+    let fan = selectFan(candidates);
+
+    // "Max's predictor" overlay (2026-07-30): annotate fan orbs the
+    // transformer also ranks (dual percent), and append its top picks
+    // (EXTRA_FROM_TOP_RANKS) as flagged extra orbs when the fan doesn't show
+    // them. Pure core derivations
+    // (nnPredict/mergeNnIntoFan); this block only assembles inputs from Dexie
+    // data. Skipped entirely while the lazy artifact is loading/unavailable.
+    if (nnModel && active) {
+      const priorRun = currentRunShows(
+        finalizedRunInputs,
+        active.date,
+        { runGapDays: coreConfig.runGapDays },
+        rotationResetDate ?? undefined,
+      );
+      const nights = [...priorRun].reverse().map((show) => show.nnEntries); // oldest-first
+      nights.push(entries.map((e) => ({ songId: e.songId, setNumber: e.setNumber })));
+      const nnCandidates = nnPredict(
+        nnModel,
+        { year: Number(active.date.slice(0, 4)), nights },
+        currentSongId,
+        coreConfig.nn.TOP_K,
+      );
+      const merged = mergeNnIntoFan(fan, nnCandidates, coreConfig.nn.EXTRA_FROM_TOP_RANKS);
+      fan = fan.map((orb, i) =>
+        merged.annotations[i] ? { ...orb, nn: merged.annotations[i] } : orb,
+      );
+      for (const extra of merged.extras) {
+        fan = [
+          ...fan,
+          {
+            songId: extra.songId,
+            songName: extra.songName,
+            score: extra.prob,
+            factors: NN_EXTRA_FACTORS,
+            reason: config.copy.show.nn.extraReason,
+            tuningFamily: index.nodeById.get(extra.songId)?.tuningFamily ?? null,
+            nn: { nnProb: extra.prob, nnRank: extra.rank },
+            nnExtra: true,
+          },
+        ];
+      }
+    }
 
     return {
       candidates,
@@ -217,7 +302,16 @@ export function useShowSession(): ShowSession {
       isWeakFan: isWeakFan(candidates),
       currentSong,
     };
-  }, [currentSongId, currentEntry, entries, recentRunShowSets]);
+  }, [
+    currentSongId,
+    currentEntry,
+    entries,
+    recentRunShowSets,
+    nnModel,
+    active,
+    finalizedRunInputs,
+    rotationResetDate,
+  ]);
 
   return {
     active: active ?? undefined,

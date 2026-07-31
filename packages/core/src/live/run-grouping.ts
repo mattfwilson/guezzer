@@ -59,17 +59,35 @@ export function currentRunShowSets(
   cfg: { runGapDays: number },
   resetBoundaryDate?: string,
 ): number[][] {
+  return currentRunShows(finalized, currentDate, cfg, resetBoundaryDate).map(
+    (show) => show.songIds,
+  );
+}
+
+/**
+ * The generic walk under `currentRunShowSets` — same date-gap chain, same
+ * reset-boundary and prior-only guards, but returns the SHOWS themselves
+ * (newest-first) so callers needing more than `songIds` (the "Max's
+ * predictor" tokenizer wants each night's ORDERED entries with set numbers)
+ * share one run-membership decision instead of re-deriving it.
+ */
+export function currentRunShows<T extends { date: string }>(
+  finalized: T[],
+  currentDate: string,
+  cfg: { runGapDays: number },
+  resetBoundaryDate?: string,
+): T[] {
   const eligible = finalized
     .filter((show) => show.date < currentDate)
     .filter((show) => resetBoundaryDate === undefined || show.date < resetBoundaryDate)
     // newest-first
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 
-  const run: number[][] = [];
+  const run: T[] = [];
   let anchor = currentDate;
   for (const show of eligible) {
     if (dayGap(anchor, show.date) > cfg.runGapDays) break;
-    run.push(show.songIds);
+    run.push(show);
     anchor = show.date;
   }
   return run;

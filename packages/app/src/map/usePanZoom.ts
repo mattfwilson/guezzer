@@ -200,6 +200,11 @@ export function usePanZoom(
       }
     };
 
+    // Native HTML drag-and-drop must never win over the pan gesture: WebKit
+    // ignores draggable={false} on images (ghost-image drag), and marker/label
+    // content can start its own drag — swallow every dragstart inside the stage.
+    const onDragStart = (e: Event) => e.preventDefault();
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const rect = el.getBoundingClientRect();
@@ -218,12 +223,14 @@ export function usePanZoom(
     el.addEventListener("pointermove", onPointerMove);
     el.addEventListener("pointerup", endPointer);
     el.addEventListener("pointercancel", endPointer);
+    el.addEventListener("dragstart", onDragStart);
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => {
       el.removeEventListener("pointerdown", onPointerDown);
       el.removeEventListener("pointermove", onPointerMove);
       el.removeEventListener("pointerup", endPointer);
       el.removeEventListener("pointercancel", endPointer);
+      el.removeEventListener("dragstart", onDragStart);
       el.removeEventListener("wheel", onWheel);
       cancelLongPress();
     };

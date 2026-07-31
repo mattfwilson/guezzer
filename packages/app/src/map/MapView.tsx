@@ -7,43 +7,40 @@
  * render at HONEST staleness (core `stalenessTier`: opacity + explicit age
  * copy; `gone` never renders); off-map friends clamp to the stage border
  * with distance + compass toward them. Own dot renders from the LIVE
- * geolocation fix (never the relay echo). All friend-crossing strings
+ * geolocation fix (never the synced echo). All friend-crossing strings
  * (names, statuses, pin labels) render as React text only.
  *
- * Degradation ladder (each a calm state, never an error): no group → join
- * card; no relay URL → local-only banner; offline → last-synced state; GPS
+ * Identity is the Phase-18 auth record — no group phrase, no join flow
+ * (retired 2026-07-30): everyone signed in is on the map. Degradation ladder
+ * (each a calm state, never an error): offline → last-synced state; GPS
  * denied → check-ins/pins still work.
  */
 import { useLiveQuery } from "dexie-react-hooks";
 import { MapPin as MapPinIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
-import { config as coreConfig } from "@guezzer/core/config";
 import {
   ageLabel,
-  deletePin as relayDeletePin,
   describeOffset,
   pixelToLatLng,
   projectToPixel,
   stalenessTier,
   type GeoPoint,
 } from "@guezzer/core";
-import { Sheet } from "../components/Sheet.tsx";
+import { useAuthIdentity } from "../auth/useAuthIdentity.ts";
 import { config } from "../config.ts";
 import { db, type FriendBeaconRow, type MapPinRow } from "../db/db.ts";
 import { AvatarSheet } from "./AvatarSheet.tsx";
 import { loadFestivalMap } from "./festival-map.ts";
 import {
+  clearLegacyGroupMeta,
   getShareLocation,
-  joinMapGroup,
-  leaveMapGroup,
-  loadMapGroup,
   MAP_META_KEYS,
   setMyAvatar,
   setMyStatus,
   setShareLocation,
-  type MapGroup,
-} from "./groupSettings.ts";
+} from "./mapPrefs.ts";
+import { deletePinRemote } from "./mapSync.ts";
 import { PinSheet, type PinSheetState } from "./PinSheet.tsx";
 import { useGeoPosition } from "./useGeoPosition.ts";
 import { useMapSync } from "./useMapSync.ts";
@@ -96,32 +93,23 @@ function OffMapArrow({
 
 export function MapView() {
   const mapResult = useMemo(loadFestivalMap, []);
-  const [group, setGroup] = useState<MapGroup | null>(null);
-  const [groupLoaded, setGroupLoaded] = useState(false);
+  const identity = useAuthIdentity();
   const [shareLocation, setShare] = useState(true);
   const [pinSheet, setPinSheet] = useState<PinSheetState>(null);
-  const [leaveOpen, setLeaveOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
-  // Group + share preference load; re-runs after join/leave via refreshKey.
-  const [refreshKey, setRefreshKey] = useState(0);
+  // Share preference load + one-time phrase-era credential cleanup.
   useEffect(() => {
     let cancelled = false;
-    void (async () => {
-      const [loadedGroup, loadedShare] = await Promise.all([
-        loadMapGroup(),
-        getShareLocation(),
-      ]);
-      if (cancelled) return;
-      setGroup(loadedGroup);
-      setShare(loadedShare);
-      setGroupLoaded(true);
-    })();
+    void clearLegacyGroupMeta();
+    void getShareLocation().then((loadedShare) => {
+      if (!cancelled) setShare(loadedShare);
+    });
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, []);
 
   // Honest-age ticker — staleness opacity/labels re-derive on this cadence.
   useEffect(() => {
@@ -129,8 +117,8 @@ export function MapView() {
     return () => clearInterval(id);
   }, []);
 
-  const { fix, error: geoError } = useGeoPosition(group !== null);
-  const sync = useMapSync(group, fix, shareLocation);
+  const { fix, error: geoError } = useGeoPosition(identity !== null);
+  const sync = useMapSync(identity, fix, shareLocation);
 
   const friends = useLiveQuery(() => db.friendBeacons.toArray(), [], [] as FriendBeaconRow[]);
   const pins = useLiveQuery(() => db.mapPins.toArray(), [], [] as MapPinRow[]);
@@ -169,10 +157,9 @@ export function MapView() {
       </div>
     );
   }
-  if (!groupLoaded) return <div className="h-full" />;
-  if (!group) {
-    return <JoinCard onJoined={() => setRefreshKey((k) => k + 1)} />;
-  }
+  // AuthGate guarantees a signed-in identity before any tab renders — this
+  // guard is defensive only (a mid-session sign-out unmounts via the gate).
+  if (!identity) return <div className="h-full" />;
 
   const { fit } = mapResult;
   const copy = config.copy.map;
@@ -195,7 +182,7 @@ export function MapView() {
   const offsetOrigin: GeoPoint = fix ?? pixelToLatLng(fit, { x: imageWidth / 2, y: imageHeight / 2 });
 
   const visibleFriends = friends
-    .filter((f) => f.memberId !== group.memberId)
+    .filter((f) => f.memberId !== identity.userId)
     .map((f) => ({ ...f, tier: stalenessTier(f.updatedAt, now) }))
     .filter(
       (f): f is FriendBeaconRow & { tier: "fresh" | "recent" | "stale" } =>
@@ -205,7 +192,7 @@ export function MapView() {
   return (
     <div className="relative h-full overflow-hidden bg-surface">
       {/* stage — owns pan/zoom/long-press */}
-      <div ref={stageRef} className="absolute inset-0 touch-none" style={{ cursor: "grab" }}>
+      <div ref={stageRef} className="absolute inset-0 touch-none select-none" style={{ cursor: "grab" }}>
         <div
           className="absolute"
           style={
@@ -222,7 +209,7 @@ export function MapView() {
             height={imageHeight}
             alt={`${mapResult.artifact.festival} festival map`}
             draggable={false}
-            className="pointer-events-none block max-w-none select-none"
+            className="pointer-events-none block max-w-none select-none [-webkit-user-drag:none]"
           />
 
           {/* meeting pins */}
@@ -306,7 +293,7 @@ export function MapView() {
             );
           })}
 
-          {/* own dot — live fix only, never the relay echo. Clamped to the map
+          {/* own dot — live fix only, never the synced echo. Clamped to the map
               edge like friends when you're away from the venue (the pre-festival
               at-home state), with distance + compass from the venue toward you. */}
           {fix &&
@@ -419,9 +406,6 @@ export function MapView() {
             border: sync.synced ? "none" : "1.5px solid #A1A1AA",
           }}
         />
-        {!sync.relayConfigured && (
-          <span className="text-text-muted">{copy.relayNotConfigured}</span>
-        )}
         {geoError !== null && <span className="text-text-muted">{copy.geoDenied}</span>}
         {/* Waiting on the first fix (permission prompt up / GPS searching) — without
             this the no-dot state reads as silent breakage (owner report 2026-07-22). */}
@@ -440,7 +424,7 @@ export function MapView() {
             className="flex h-7 w-7 items-center justify-center rounded-full border border-hairline bg-elevated text-[15px]"
             aria-hidden
           >
-            {myAvatar ?? group.name.slice(0, 1).toUpperCase()}
+            {myAvatar ?? identity.displayName.slice(0, 1).toUpperCase()}
           </span>
         </button>
         <label className="pointer-events-auto flex min-h-11 items-center gap-1.5 text-text-muted">
@@ -454,13 +438,6 @@ export function MapView() {
           />
           {copy.shareToggle}
         </label>
-        <button
-          type="button"
-          onClick={() => setLeaveOpen(true)}
-          className="pointer-events-auto min-h-11 px-2 text-text-muted underline"
-        >
-          {copy.leaveCta}
-        </button>
       </div>
 
       {/* status chips — one-tap check-ins; tapping the active chip clears it */}
@@ -503,21 +480,12 @@ export function MapView() {
 
       <PinSheet
         state={pinSheet}
-        createdBy={group.name}
+        creator={identity}
         onClose={() => setPinSheet(null)}
         onDeleted={(pinId) => {
-          // Best-effort relay delete; a failure means the pin reappears next
-          // poll (honest, retryable) rather than silently forking group state.
-          if (sync.relayConfigured) {
-            void relayDeletePin(
-              {
-                fetch: globalThis.fetch.bind(globalThis),
-                baseUrl: config.map.RELAY_BASE_URL,
-                token: group.token,
-              },
-              pinId,
-            );
-          }
+          // Best-effort remote delete; a failure means the pin reappears next
+          // pull (honest, retryable) rather than silently forking group state.
+          void deletePinRemote(pinId);
         }}
       />
 
@@ -531,92 +499,6 @@ export function MapView() {
         }}
       />
 
-      <Sheet open={leaveOpen} onClose={() => setLeaveOpen(false)} ariaLabel={copy.leaveHeading}>
-        <h2 className="text-[17px] font-semibold">{copy.leaveHeading}</h2>
-        <p className="mt-1 text-[14px] text-text-muted">{copy.leaveBody}</p>
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              void leaveMapGroup().then(() => {
-                setLeaveOpen(false);
-                setRefreshKey((k) => k + 1);
-              });
-            }}
-            className="min-h-11 flex-1 rounded-xl border border-hairline text-[#EF4444]"
-          >
-            {copy.leaveConfirm}
-          </button>
-          <button
-            type="button"
-            onClick={() => setLeaveOpen(false)}
-            className="min-h-11 flex-1 rounded-xl border border-hairline"
-          >
-            {copy.leaveCancel}
-          </button>
-        </div>
-      </Sheet>
-    </div>
-  );
-}
-
-function JoinCard({ onJoined }: { onJoined: () => void }) {
-  const [secret, setSecret] = useState("");
-  const [name, setName] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const copy = config.copy.map;
-
-  const join = async () => {
-    setBusy(true);
-    setError(null);
-    const result = await joinMapGroup(secret, name);
-    setBusy(false);
-    if (result.ok) {
-      onJoined();
-      return;
-    }
-    setError(
-      result.error === "secret-too-short"
-        ? copy.joinSecretTooShort(coreConfig.map.GROUP_SECRET_MIN_LENGTH)
-        : result.error === "name-required"
-          ? copy.joinNeedsName
-          : copy.joinInsecureContext,
-    );
-  };
-
-  return (
-    <div className="flex h-full flex-col items-center justify-center px-6">
-      <div className="w-full max-w-sm rounded-2xl border border-hairline bg-elevated p-5">
-        <h2 className="text-[19px] font-semibold">{copy.joinHeading}</h2>
-        <p className="mt-1 text-[13px] leading-snug text-text-muted">{copy.joinBody}</p>
-        <input
-          type="text"
-          value={secret}
-          onChange={(e) => setSecret(e.target.value)}
-          placeholder={copy.secretPlaceholder}
-          autoCapitalize="none"
-          autoCorrect="off"
-          className="mt-4 w-full rounded-lg border border-hairline bg-surface px-3 py-2.5 text-[15px]"
-        />
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={copy.namePlaceholder}
-          maxLength={coreConfig.map.MEMBER_NAME_MAX_LENGTH}
-          className="mt-2 w-full rounded-lg border border-hairline bg-surface px-3 py-2.5 text-[15px]"
-        />
-        {error && <p className="mt-2 text-[13px] text-[#EF4444]">{error}</p>}
-        <button
-          type="button"
-          onClick={() => void join()}
-          disabled={busy}
-          className="mt-4 min-h-11 w-full rounded-xl bg-accent font-semibold text-surface disabled:opacity-40"
-        >
-          {copy.joinCta}
-        </button>
-      </div>
     </div>
   );
 }

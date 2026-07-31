@@ -598,20 +598,21 @@ export const config = {
     },
   },
 
-  // --- GizzMap: friend map (georef + presence + relay protocol) ---
-  // Owner-approved scope (exploration 2026-07-21, GSD bypassed by owner):
-  // foreground presence beacons + one-tap statuses + shared meeting pins over
-  // a self-owned Cloudflare Worker relay, rendered on the georeferenced
-  // illustrated festival map. Every value below is [ASSUMED] — starting
-  // defaults to tune at the venue; the relay worker (packages/relay) mirrors
-  // the two TTLs and must be redeployed if they change.
+  // --- GizzMap: friend map (georef + presence) ---
+  // Owner-approved scope (exploration 2026-07-21, GSD bypassed by owner;
+  // relay + group-phrase crypto retired 2026-07-30 — sync rides Supabase
+  // behind the Phase-18 auth roster): foreground presence beacons + one-tap
+  // statuses + shared meeting pins, rendered on the georeferenced illustrated
+  // festival map. Every value below is [ASSUMED] — starting defaults to tune
+  // at the venue.
   map: {
     /** The committed control-point artifact produced by the desktop calibration tool. */
     festivalMapArtifactPath: "data/festival-maps/field-of-vision-2026.json",
 
     /**
-     * [ASSUMED] Group-state poll cadence while the map is open. Matches the
-     * live-sync etiquette shape (SYNC-02) even though this hits OUR relay,
+     * [ASSUMED] Map-state re-pull cadence while the map is open (the realtime
+     * subscription is the fast path; this is the backstop). Matches the
+     * live-sync etiquette shape (SYNC-02) even though this hits OUR Supabase,
      * not kglw.net — festival LTE is the scarce resource being respected.
      */
     POLL_INTERVAL_MS: 30_000,
@@ -631,10 +632,13 @@ export const config = {
     STALE_RECENT_MAX_MS: 10 * 60_000,
     STALE_GONE_AFTER_MS: 12 * 3_600_000,
 
-    /** [ASSUMED] Server-side beacon retention — relay purges past this (no history, ever). */
-    BEACON_TTL_MS: 12 * 3_600_000,
-
-    /** [ASSUMED] Server-side meeting-pin retention ("meet here after the encore" spans a night, not the tour). */
+    /**
+     * [ASSUMED] Meeting-pin retention ("meet here after the encore" spans a
+     * night, not the tour). Client-enforced: expired pins are dropped at the
+     * read boundary and opportunistically deleted from Supabase on sync start
+     * (any signed-in friend may delete any pin). Beacons need no TTL — one
+     * upserted row per user, and `gone`-tier rows never render.
+     */
     PIN_TTL_MS: 48 * 3_600_000,
 
     /** ASVS V5 length clamps on the friend-crossing strings (mirrors OWNER_NAME_MAX_LENGTH). */
@@ -643,17 +647,22 @@ export const config = {
     PIN_LABEL_MAX_LENGTH: 60,
     /** Avatar clamp — one emoji, incl. multi-unit ZWJ/variation sequences (8 UTF-16 units). */
     AVATAR_MAX_LENGTH: 8,
+  },
 
-    /** [ASSUMED] Minimum group-secret length the join flow accepts. */
-    GROUP_SECRET_MIN_LENGTH: 8,
-
+  // --- "Max's predictor": the owner-trained setlist transformer overlay
+  // (2026-07-30). It ANNOTATES the trusted matrix fan, never replaces it —
+  // see nn/nn-predict.ts. Artifact: data/nn/setlist-transformer.json,
+  // exported by setlist-predictor/src/export_web.py; the TS port is gated on
+  // that artifact's PyTorch golden vectors (test/nn/golden.test.ts).
+  nn: {
+    /** [ASSUMED] Transformer song-candidates pulled per recenter — the dual-percent annotation scan depth. */
+    TOP_K: 10,
     /**
-     * PBKDF2 parameters for deriveGroupKeys (group-crypto.ts). The salt is a
-     * fixed app-domain string — the secret is a capability shared by ≤5
-     * friends, not a low-entropy user password; the derivation only needs to
-     * bind key+token to this app's namespace, not resist offline cracking.
+     * Only the model's top-N ranks may spawn EXTRA flagged orbs when absent
+     * from the shown fan (owner rule 2026-07-30, widened top-1 → top-3 same
+     * day: surface the model's top-3 like the top pick). Up to N extra dots;
+     * picks already in the fan dual-annotate instead.
      */
-    KEY_DERIVE_ITERATIONS: 100_000,
-    KEY_DERIVE_SALT: "guezzer-gizzmap-v1",
+    EXTRA_FROM_TOP_RANKS: 3,
   },
 } as const;

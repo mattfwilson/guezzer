@@ -10,6 +10,7 @@
  */
 import { useRef, useState } from "react";
 import { config as coreConfig } from "@guezzer/core/config";
+import type { AuthIdentity } from "../auth/identityRecord.ts";
 import { Sheet } from "../components/Sheet.tsx";
 import { config } from "../config.ts";
 import { db, type MapPinRow } from "../db/db.ts";
@@ -22,15 +23,15 @@ export type PinSheetState =
 
 export function PinSheet({
   state,
-  createdBy,
+  creator,
   onClose,
   onDeleted,
 }: {
   state: PinSheetState;
-  /** Own display name — stamped as the pin creator. */
-  createdBy: string;
+  /** The signed-in identity — stamped as the pin creator (id + byline name). */
+  creator: AuthIdentity;
   onClose: () => void;
-  /** Called AFTER the local delete so the view can fire the best-effort relay delete. */
+  /** Called AFTER the local delete so the view can fire the best-effort remote delete. */
   onDeleted: (pinId: string) => void;
 }) {
   const [label, setLabel] = useState("");
@@ -48,7 +49,8 @@ export function PinSheet({
     if (trimmed.length === 0) return;
     await db.mapPins.put({
       pinId: randomUUID(),
-      createdBy,
+      createdBy: creator.userId,
+      createdByName: creator.displayName,
       label: trimmed,
       lat: state.lat,
       lng: state.lng,
@@ -113,7 +115,7 @@ export function PinSheet({
       <Sheet open onClose={close} ariaLabel={state.pin.label}>
         <h2 className="text-[17px] font-semibold">{state.pin.label}</h2>
         <p className="mt-1 text-[13px] text-text-muted">
-          {copy.pinByLine(state.pin.createdBy)}
+          {copy.pinByLine(state.pin.createdByName)}
         </p>
         <div className="mt-4 flex gap-2">
           <button

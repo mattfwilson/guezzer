@@ -49,6 +49,14 @@ export default defineConfig({
       "@festivalMap": fileURLToPath(
         new URL("../../data/festival-maps/field-of-vision-2026.json", import.meta.url),
       ),
+      // "Max's predictor" transformer artifact (weights + vocab + golden
+      // vectors, exported by setlist-predictor/src/export_web.py). Same
+      // idiom, but DYNAMICALLY imported (show/nnModel.ts) so the 2.4 MB
+      // artifact becomes its own lazy JS chunk — still precached by the
+      // `**/*.js` glob, never parsed on first paint.
+      "@nnModel": fileURLToPath(
+        new URL("../../data/nn/setlist-transformer.json", import.meta.url),
+      ),
     },
   },
   plugins: [
@@ -70,6 +78,11 @@ export default defineConfig({
         // Safe with registerType 'prompt': skipWaiting stays false, so an UPDATED
         // SW still waits for user approval before activating (never mid-show).
         clientsClaim: true,
+        // "Max's predictor" transformer chunk (2.37 MB, its own lazy JS
+        // asset) exceeds Workbox's 2 MB default cap, which HARD-FAILS the
+        // build. Offline-complete-on-first-load is the core value, so raise
+        // the cap rather than exclude the model from precache.
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
       manifest: {
         name: "Gizz With Friends",

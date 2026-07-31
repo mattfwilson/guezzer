@@ -148,6 +148,7 @@ export {
  */
 export {
   currentRunShowSets,
+  currentRunShows,
   type FinalizedShowInput,
 } from "./live/run-grouping.ts";
 
@@ -372,15 +373,15 @@ export type {
 } from "./bingo/types.ts";
 
 /**
- * GizzMap core (owner-approved exploration 2026-07-21; GSD bypassed by owner).
- * Four pure slices, all Node-testable: `georef` maps GPS onto the illustrated
+ * GizzMap core (owner-approved exploration 2026-07-21; GSD bypassed by owner;
+ * relay + group-crypto retired 2026-07-30 — sync rides Supabase behind the
+ * Phase-18 auth roster, so the group phrase and its E2E envelope layer are gone).
+ * Two pure slices, both Node-testable: `georef` maps GPS onto the illustrated
  * festival map (control points → mean-centered least-squares affine — global
  * affine is data-justified, piecewise REJECTED; see map/georef.ts header);
  * `presence` is the honest-staleness vocabulary (a stale pin never masquerades
- * as live; `now` always a parameter); `group-crypto` derives the relay token +
- * AES-GCM group key from one shared secret (relay stores only ciphertext);
- * `relay-client` is the pollLatest-style never-throw HTTP tier for the
- * self-owned Worker relay (packages/relay). The app owns all lifecycle/timing.
+ * as live; `now` always a parameter) plus the pure beacon-publish throttle
+ * gate. The app owns all lifecycle/timing and the Supabase transport.
  */
 export {
   solveGeoref,
@@ -405,32 +406,38 @@ export {
   ageLabel,
   describeOffset,
   shouldPublishBeacon,
-  friendBeaconSchema,
-  meetPinSchema,
-  type FriendBeacon,
-  type MeetPin,
   type StalenessTier,
   type GeoOffset,
 } from "./map/presence.ts";
-export {
-  deriveGroupKeys,
-  encryptJson,
-  decryptJson,
-  type EncryptedEnvelope,
-  type GroupKeys,
-  type GroupCryptoKey,
-} from "./map/group-crypto.ts";
 export { identityColorIndex } from "./identity/color.ts";
+
+/**
+ * "Max's predictor" (2026-07-30): pure-TS port of the owner's setlist
+ * transformer (setlist-predictor repo). Artifact-driven — weights, vocab
+ * (song tokens stamped with kglw songIds), and PyTorch golden vectors ship
+ * in one committed JSON; the forward pass is gated on those vectors
+ * (test/nn/golden.test.ts). The derivation ANNOTATES the trusted matrix fan
+ * (dual percentages + extra flagged orbs for its unshown top picks,
+ * config.nn.EXTRA_FROM_TOP_RANKS), never replaces it.
+ */
 export {
-  publishBeacon,
-  publishPin,
-  deletePin,
-  fetchGroupState,
-  beaconRecordSchema,
-  pinRecordSchema,
-  groupStateSchema,
-  type RelayDeps,
-  type BeaconRecord,
-  type PinRecord,
-  type GroupState,
-} from "./map/relay-client.ts";
+  nnArtifactSchema,
+  decodeNnModel,
+  loadNnModel,
+  type NnArtifact,
+  type NnModel,
+} from "./nn/artifact.ts";
+export { nnForwardProbs } from "./nn/transformer.ts";
+export {
+  tokenizeRun,
+  yearTokenFor,
+  type NnNightEntry,
+  type NnRunInput,
+} from "./nn/tokenize.ts";
+export {
+  nnPredict,
+  mergeNnIntoFan,
+  type NnCandidate,
+  type NnAnnotation,
+  type MergedFan,
+} from "./nn/nn-predict.ts";
