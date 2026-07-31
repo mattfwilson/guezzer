@@ -153,6 +153,14 @@ export const config = {
      * a quick tap still logs the orb (SHOW-03). Tuned so a deliberate-but-slow log
      * tap doesn't accidentally trip the info sheet.
      */
+    /**
+     * "Max's predictor" dual-percent orb line (2026-07-30): when an orb shows
+     * BOTH the statistical % and the transformer's % ("34% · 🍄 41%"), the
+     * line drops to this font px so the pair still fits the single reserved
+     * percent line (ORB_LABEL_PERCENT_LINE_PX unchanged).
+     */
+    ORB_DUAL_PERCENT_FONT_PX: 11,
+
     /** Hold duration in ms before an orb press opens the info sheet instead of logging. */
     ORB_LONG_PRESS_MS: 500,
     /** Pointer travel in px that cancels a pending long-press (treat as a scroll/drag, not a hold). */
@@ -944,6 +952,24 @@ export const config = {
       endBody: "You won't be able to add more songs after this.",
       endConfirm: "End show",
       endCancel: "Keep tracking",
+      /**
+       * "Max's predictor" copy (2026-07-30) — the owner-trained transformer
+       * overlay. `percentPrefix` marks the model's number on an orb face
+       * ("🍄 41%" — the mushroom, owner pick, matching the 🍄 in the Gizz
+       * avatar set); `flagLabel` is the human name used in aria-labels and
+       * the why sheet (screen readers never read the emoji prefix);
+       * `extraReason` is the why-sheet body for the flagged extra dot (the
+       * statistical pipeline did not rank it — honest framing).
+       */
+      nn: {
+        flagLabel: "Max's predictor",
+        percentPrefix: "🍄",
+        whyLine: (percent: string, rank: number): string =>
+          `Max's predictor: ${percent} (#${rank})`,
+        extraReason:
+          "Max's predictor pick — the statistical model doesn't rank it in tonight's fan.",
+      },
+
       /** Wake-lock unsupported fallback (SHOW-12). */
       wakeLockFallback:
         "Keep your screen on manually — auto screen-wake isn't supported on this device.",

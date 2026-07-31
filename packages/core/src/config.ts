@@ -648,4 +648,21 @@ export const config = {
     /** Avatar clamp — one emoji, incl. multi-unit ZWJ/variation sequences (8 UTF-16 units). */
     AVATAR_MAX_LENGTH: 8,
   },
+
+  // --- "Max's predictor": the owner-trained setlist transformer overlay
+  // (2026-07-30). It ANNOTATES the trusted matrix fan, never replaces it —
+  // see nn/nn-predict.ts. Artifact: data/nn/setlist-transformer.json,
+  // exported by setlist-predictor/src/export_web.py; the TS port is gated on
+  // that artifact's PyTorch golden vectors (test/nn/golden.test.ts).
+  nn: {
+    /** [ASSUMED] Transformer song-candidates pulled per recenter — the dual-percent annotation scan depth. */
+    TOP_K: 10,
+    /**
+     * Only the model's top-N ranks may spawn EXTRA flagged orbs when absent
+     * from the shown fan (owner rule 2026-07-30, widened top-1 → top-3 same
+     * day: surface the model's top-3 like the top pick). Up to N extra dots;
+     * picks already in the fan dual-annotate instead.
+     */
+    EXTRA_FROM_TOP_RANKS: 3,
+  },
 } as const;

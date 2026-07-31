@@ -148,6 +148,7 @@ export {
  */
 export {
   currentRunShowSets,
+  currentRunShows,
   type FinalizedShowInput,
 } from "./live/run-grouping.ts";
 
@@ -409,3 +410,34 @@ export {
   type GeoOffset,
 } from "./map/presence.ts";
 export { identityColorIndex } from "./identity/color.ts";
+
+/**
+ * "Max's predictor" (2026-07-30): pure-TS port of the owner's setlist
+ * transformer (setlist-predictor repo). Artifact-driven — weights, vocab
+ * (song tokens stamped with kglw songIds), and PyTorch golden vectors ship
+ * in one committed JSON; the forward pass is gated on those vectors
+ * (test/nn/golden.test.ts). The derivation ANNOTATES the trusted matrix fan
+ * (dual percentages + extra flagged orbs for its unshown top picks,
+ * config.nn.EXTRA_FROM_TOP_RANKS), never replaces it.
+ */
+export {
+  nnArtifactSchema,
+  decodeNnModel,
+  loadNnModel,
+  type NnArtifact,
+  type NnModel,
+} from "./nn/artifact.ts";
+export { nnForwardProbs } from "./nn/transformer.ts";
+export {
+  tokenizeRun,
+  yearTokenFor,
+  type NnNightEntry,
+  type NnRunInput,
+} from "./nn/tokenize.ts";
+export {
+  nnPredict,
+  mergeNnIntoFan,
+  type NnCandidate,
+  type NnAnnotation,
+  type MergedFan,
+} from "./nn/nn-predict.ts";

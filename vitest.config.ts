@@ -36,6 +36,9 @@ export default defineConfig({
             "@festivalMap": fileURLToPath(
               new URL("./data/festival-maps/field-of-vision-2026.json", import.meta.url),
             ),
+            "@nnModel": fileURLToPath(
+              new URL("./data/nn/setlist-transformer.json", import.meta.url),
+            ),
           },
         },
         test: {

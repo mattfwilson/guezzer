@@ -148,4 +148,21 @@ describe("orbitLayout.selectFan — adaptive 5–8 fan (D-12)", () => {
     expect(kept).toHaveLength(config.show.ORB_COUNT_MAX);
     expect(kept.every((c) => c.score >= config.show.ORB_DROP_SCORE)).toBe(true);
   });
+
+  it("orbitLayout selectFan lets a Max's-predictor extra ride ON TOP of the max clamp (idempotent re-select)", () => {
+    const candidates = [
+      { songId: 1, score: 0.24 },
+      { songId: 2, score: 0.2 },
+      { songId: 3, score: 0.12 },
+      { songId: 4, score: 0.08 },
+      { songId: 5, score: 0.05 },
+      { songId: 99, score: 0.31, nnExtra: true },
+    ];
+    const kept = selectFan(candidates);
+    // 5 ranked + the flagged extra appended LAST (never clipped by the clamp,
+    // never re-sorted into the ranked slice despite its high score).
+    expect(kept.map((c) => c.songId)).toEqual([1, 2, 3, 4, 5, 99]);
+    // Idempotent: OrbitStage re-selects the already-selected fan.
+    expect(selectFan(kept)).toEqual(kept);
+  });
 });

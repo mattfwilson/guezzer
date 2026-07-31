@@ -79,17 +79,25 @@ export const defaultFanConfig: FanConfig = {
  * but always keep at least `min` and never more than `max`. `candidates` MUST be
  * sorted desc by score (predict() already returns them that way). Never
  * renormalizes.
+ *
+ * "Max's predictor" extras (`nnExtra`, 2026-07-30) ride ON TOP of the [min,
+ * max] clamp: they exist precisely because the statistical fan doesn't rank
+ * them, so clamping them away would delete the feature. They keep their
+ * appended position (after the ranked fan) — idempotent under the
+ * OrbitStage re-select of an already-selected fan.
  */
-export function selectFan<T extends OrbLayoutInput>(
+export function selectFan<T extends OrbLayoutInput & { nnExtra?: boolean }>(
   candidates: readonly T[],
   cfg: FanConfig = defaultFanConfig,
 ): T[] {
-  const aboveDrop = candidates.filter((c) => c.score >= cfg.dropScore).length;
+  const ranked = candidates.filter((c) => c.nnExtra !== true);
+  const extras = candidates.filter((c) => c.nnExtra === true);
+  const aboveDrop = ranked.filter((c) => c.score >= cfg.dropScore).length;
   // Keep everything above the drop score, but clamp into [min, max]. Taking the
   // slice from the sorted list means the MIN floor may include a few sub-drop
   // orbs (D-12: "always ≥5") — that is intentional and honest.
   const count = Math.min(cfg.max, Math.max(cfg.min, aboveDrop));
-  return candidates.slice(0, count);
+  return [...ranked.slice(0, count), ...extras];
 }
 
 /**
