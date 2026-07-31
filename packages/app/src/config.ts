@@ -1574,13 +1574,25 @@ export const config = {
       geoLocating: "Locating you…",
       /** Share-location toggle label ("ghost mode" off = sharing). */
       shareToggle: "Share my location",
-      /** Status chips — one-tap check-ins; tap the active chip again to clear. */
+      /**
+       * Status chips — one-tap check-ins; tap the active chip again to clear.
+       * Practical ones first (least thumb-scroll in the dark), then the goofy
+       * KGLW-flavored tail ("Melting"/"Sleep drifting" = FMB tracks, "Gone
+       * full rat"/"On Planet B" = Rats' Nest, "Fishing for fishies" = Meadow
+       * Creek adjacency). All well under STATUS_MAX_LENGTH.
+       */
       statusPresets: [
         "At the rail",
         "Beer run",
         "Back at camp",
         "Heading to stage",
         "At the pin",
+        "Porta-potty line",
+        "Melting",
+        "Sleep drifting",
+        "Gone full rat",
+        "On Planet B",
+        "Fishing for fishies",
       ] as const,
       /** Off-map friend chip: distance + compass toward them ("2.1 km NE"). */
       offMap: (km: string, compass: string): string => `${km} km ${compass}`,
