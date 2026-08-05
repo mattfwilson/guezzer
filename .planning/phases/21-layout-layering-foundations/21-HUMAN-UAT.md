@@ -521,6 +521,31 @@ result: |
   the two agree. Item (b) — the widest venue in the actual corpus specifically — remains attested
   rather than instrumented.
 
+  ── SESSION #3: NO CHANGE, AND THE CONTINGENCY EDIT STAYS UNMADE (2026-08-05) ──────────────────
+
+  Test 5 was CLOSED in session #2 and session #3 did not disturb it. Restated here so the closing
+  plan's record is self-contained:
+
+  - The D-37 descender question is answered BY MEASUREMENT (`+3.50px` clearance to the card's bottom
+    edge, `evidence/descender-zoom.png`), not by eyeball. Nothing clips.
+  - Therefore the conditional one-line nudge — both `centerText` footer draws in
+    `packages/app/src/dex/shareCard.ts`, `height * 0.99` → `height * 0.97` — is **NOT APPLIED**.
+    `shareCard.ts` is byte-unmodified by plan 21-13. The plan's only permitted production edit stays
+    unmade, exactly as designed: the rule was "fix only if it clips", and it does not.
+  - The measurement additionally established that the contingency fix AS WRITTEN IS UNSAFE (it would
+    collide the two footer lines by 21.75px). Had this session applied it reflexively, it would have
+    introduced a worse defect than the one it was meant to cure. Recorded above in full; repeated
+    here because a future reader reaching for that nudge must not find it endorsed.
+
+  REGRESSION GATE (`npm test`) — **GREEN, 2026-08-05, at the commit under test**:
+
+      Test Files  134 passed (134)
+      Tests      1135 passed (1135)
+
+  Because no production edit was made, this run is a confirmation that the tree is green at the
+  commit under test rather than a regression check on a fix — which is the outcome the plan
+  anticipated for the no-clip branch.
+
 ### 6. Two devices on different builds, both directions (NAV-03, D-42)
 expected: |
   Real Realtime with a MIXED token vocabulary; the failure mode is silent, and this project has
@@ -706,6 +731,36 @@ result: |
      is the EFFECT, and this project has twice recorded (`260724-hqu`, `260724-lgo`) that a
      mechanism-proven path is not a verified one. Per-surface, per-behaviour observation on the
      installed instance is still owed for both `SearchSheet` and `FabMenu`.
+
+  ── UPGRADED TO PASS BY DEVICE OBSERVATION (session #3, 2026-08-05) ────────────────────────────
+
+  Every behaviour the block above explicitly declined to claim was observed on the installed
+  standalone instance. iPhone 16 Pro, iOS 26.5.2, build `e847183`. Answered per surface, per
+  behaviour — never summarised as "fine":
+
+  | behaviour                                   | `SearchSheet` (portaled) | `FabMenu` (portaled) |
+  |---------------------------------------------|--------------------------|----------------------|
+  | double-tap does not zoom the page           | PASS                     | PASS                 |
+  | long-press raises no iOS callout/selection  | PASS                     | PASS                 |
+  | no pull-to-refresh / overscroll chaining    | PASS                     | not separately exercised |
+  | opens with the input focused                | PASS                     | n/a (no text input)  |
+  | Escape / close + focus restore to trigger   | PASS                     | PASS                 |
+
+  NO REGRESSION FOUND on either surface. Nothing needed the D-23 remedy (applying the suppression
+  classes directly on a portaled root); the classes that plan 21-11/21-12 already put there are
+  doing the work, which is what the mechanism verification above predicted and what this run
+  converts from cause into observed effect.
+
+  ONE ITEM RECORDED SHORT, NOT PASSED: **VoiceOver focus** — that a screen-reader swipe lands INSIDE
+  the dialog rather than on the background — was not exercised this session. The structural half is
+  covered (`role="dialog"` + `aria-modal="true"` at `SearchSheet.tsx:129-130`, and the
+  `sheet.a11y.test.tsx` suite is green), so this is an unobserved assertion rather than a suspected
+  defect. It is the one strand of test 8 still resting on mechanism alone. Overscroll chaining on
+  `FabMenu` is likewise unexercised, and is low-risk: the speed-dial is a short non-scrolling list.
+
+  VERDICT: **PASS**, upgrading the session-#2 PARTIAL. The two residual strands above are named
+  rather than folded into the pass, per the standing rule that a mechanism-proven path is not a
+  verified one. Owner attestation; no screenshots captured this session.
 
 ## Harness
 
