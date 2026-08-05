@@ -1,38 +1,56 @@
 ---
-status: diagnosed
+status: partial
 phase: 21-layout-layering-foundations
 source: [21-VALIDATION.md, 21-UI-SPEC.md]
 started: 2026-07-25T01:16:45Z
-updated: 2026-07-25T04:40:00Z
+updated: 2026-08-05T04:37:18Z
+residual_gap: "test 6 (NAV-03 mixed-build presence) was NOT RUN — deliberate owner-approved time-box before the Aug 2026 shows; see ## Current Test and the Gaps block"
 ---
 
 ## Current Test
 
-[both plan-21-04 gates resolved by static analysis — see tests 1 and 7]
+None in progress — this document is CLOSED at `status: partial` (plan 21-13, 2026-08-05).
 
-Plan 21-04's three `must_haves` are now answerable WITHOUT a device session:
-  - test 7 names the offending surfaces      → SearchSheet + FabMenu (stacking-context nesting)
-  - test 1 selects a branch                  → CONFIRMATION BRANCH (D-15 confirmed)
-  - 21-07 and 21-11 therefore know what to build.
+**ONE NAMED RESIDUAL GAP: test 6 — NAV-03 mixed-build presence. It was NEVER RUN.**
 
-Waves 3-8 are unblocked. What remains OWED to the requirement (not to development):
-  - Success criterion 1's on-device before/after record, portrait AND landscape (D-18).
-    The probe defect this line used to flag is now FIXED (`dafadeb`): `GAP` measured `<main>`'s
-    border box, which after 21-07 includes `padding-bottom: var(--gz-content-reserve)`, so it
-    degenerated to a constant `-(4rem + sab)`. It now subtracts the computed padding to measure
-    the CONTENT edge, and prints `mainPadB` so the correction is auditable from the screenshot.
-  - Test 3's max-Dynamic-Type pass, test 5's D-37 descender check, test 6's mixed-build run,
-    and tests 2/4/8 which are AFTER-the-fix confirmations. All batched into plan 21-13.
+That is the whole reason this closes `partial` rather than `resolved`, and it is a deliberate,
+owner-approved decision, not an oversight and not a miss. The check needs two worktrees, two
+production builds, two simultaneous cloudflared tunnels, two physical devices and two distinct
+signed-in identities; the owner is time-boxed before the Aug 2026 shows and chose to move on. The
+full `<how-to-verify>` is intact in test 6 for whoever picks it up, and the Gaps block carries it
+as an `open` entry with its residual risk sized.
 
-Waves 3-7 are now COMPLETE (plans 21-07 … 21-12). Only plan 21-13 — this device session —
-remains. Note two gates that were cleared by static analysis and are still UNOBSERVED:
-  - Test 7's `?layerRepro=1` browser repro was never run; 21-11's portal fix was made on
-    spec-level reasoning. 21-12 widened that check to five surfaces.
-  - Test 2's overlay reserve got SMALLER by one inset in 21-10 (deleting three toasts'
-    self-padding made `offsetHeight` honest). Under-reserving is the direction that covers a
-    control, so the scrolling-route check in test 2 is load-bearing, not a formality.
+Sized honestly: nothing on the show-#1 critical path depends on it. A wrong or blank friend-activity
+label degrades a social nicety; it cannot break the live-tracking loop, the predictions or the
+setlist log. It is not zero risk — T-21-38 named this session as the phase's only verification of
+the `reduceActivity` allow-list against live untrusted peer payloads, so that control ships
+unit-proven only.
+
+Also carried forward, NOT closed here: the **`260724-hqu` / `260724-lgo` two-device realtime
+recheck** (the `visibleEpoch` mobile-suspension rejoin in `usePresence.ts` and `useProgressSync.ts`).
+It rides on step 5 of test 6, so it is explicitly RESTATED AS OUTSTANDING and survives this phase
+unchanged. Third instance of this project's recurring lesson that a unit-proven realtime path is not
+a verified one.
+
+Two further items are closed but rest on something weaker than a device observation, recorded so no
+one mistakes them for eyeballed passes:
+  - **Test 7** — `?layerRepro=1` was never run in any session. It closes on static analysis that was
+    converted into a mechanical guard (`layerOrder.test.tsx`, widened to five surfaces in 21-12),
+    which is a stronger long-term guarantee than the one-off repro. Not tracked as a gap.
+  - **Tests 2/3/4/8 and test 1's two D-18 fields** — owner attestation from the session-#3
+    standalone re-run; no screenshots were captured that session. Same basis session #2 used for
+    NAV-01.
+
+Everything else in this phase is closed: FOUND-01 by a controlled before/after measurement in both
+orientations, FOUND-02 across all five overlays, FOUND-05 by device pass plus a headless descender
+measurement, NAV-01 at maximum Dynamic Type on the six-tab strip, and FOUND-03's portaled surfaces
+by per-behaviour device observation.
 
 ## Session Notes
+
+> HISTORICAL (written 2026-07-25, before plans 21-07 … 21-13 landed). Both gates described below
+> were subsequently cleared — see `## Current Test` above for the closing state. Retained because it
+> records WHY the work was sequenced the way it was.
 
 Tests **1 (the BEFORE half)** and **7** are the next open items, and they are the two that gate
 downstream work:
@@ -566,7 +584,10 @@ expected: |
     `visibleEpoch` hidden→visible rejoin should reconcile after backgrounding).
   - Record which build each device ran and screenshot both friend rows.
 result: |
-  PENDING — partial credit only.
+  NOT RUN — recorded as this phase's one residual gap (see the SESSION #3 block at the end of this
+  result for the final disposition, and the Gaps block for the tracked entry).
+
+  ── Sessions #1/#2: partial credit only ────────────────────────────────────────────────────────
 
   The owner confirmed (2026-07-25) that presence/activity labels render correctly and readably on
   the POST-rename build: human copy, never blank, no raw wire token leaking through. That exercises
@@ -582,6 +603,56 @@ result: |
 
   Remains open for device session #2 (plan 21-13), which needs the two-worktree / two-tunnel harness
   described below.
+
+  ── SESSION #3 (2026-08-05): NOT RUN — CLOSED AS AN EXPLICIT RESIDUAL GAP ──────────────────────
+
+  **This test was NEVER RUN.** It is recorded as a named gap, not as a pass, not as a deferral with
+  an implied date, and not as "PENDING" — pending would imply someone is still holding it open in
+  this phase. Nobody is. This is the phase's recorded, owner-approved residual gap.
+
+  WHY NOT RUN: it is the single most expensive item in the whole UAT — it needs two worktrees, two
+  production builds, two simultaneous cloudflared tunnels, two physical devices and two distinct
+  signed-in identities. The owner is time-boxed before the Aug 2026 shows and made the explicit call
+  to move on rather than stand up that harness. That is a scheduling decision, not a technical
+  finding.
+
+  WHAT IS AND IS NOT COVERED. Do not read this gap as wider than it is:
+  - COVERED, single-build: presence/activity labels render as human copy on the post-rename build,
+    never blank, no raw wire token leaking through (session #1, owner-confirmed).
+  - COVERED, unit level: `reduceActivity`'s allow-list and the D-41 `activityUnknown` fallback are
+    unit-tested (`presenceLabels.test.ts`), and the plan-21-03 wire vocabulary (`LiveGizz`,
+    `GizzVerse`, `GizzMap`, `GizzDex`, `GizzGames`, `idle`) is FROZEN and byte-identical — which is
+    the structural reason a mixed-build pairing is expected to hold.
+  - NOT COVERED: any live mixed-vocabulary exchange. A same-build check cannot emit a token the
+    receiver has never seen, so the D-41 unrecognized-token fallback — the entire subject of this
+    test — has never executed against real Realtime traffic. Labels are chosen RECEIVER-side, so
+    each build renders whatever its own code says; the frozen wire is what makes that safe in
+    theory. Untested in practice.
+  - NOT COVERED: the `At a show 🎸` precedence check across builds, the background→`idle`→foreground
+    recovery across builds, and the "no blank activity slot for an online friend" assertion.
+
+  RESIDUAL RISK — honestly sized. The failure mode is SILENT: a wrong or blank activity label
+  degrades a social nicety, it does not break the live-tracking loop, the predictions, or the
+  setlist log. Nothing on the show-#1 critical path depends on it. That is why this was an
+  acceptable thing to time-box. It is NOT zero risk: T-21-38 names this session as the only
+  verification of the phase's one real security control (the `reduceActivity` allow-list) against
+  live untrusted peer payloads, and that control now ships unverified against real mixed traffic —
+  proven by unit test only.
+
+  PRECEDENT THAT MAKES THIS WORTH RESTATING: this project has twice recorded (`260724-hqu`,
+  `260724-lgo`) that a unit-proven realtime path is not a verified one. This gap is a third instance
+  of exactly that shape, recorded deliberately with its eyes open rather than discovered later.
+
+  ALSO STILL OUTSTANDING — the `260724-hqu` / `260724-lgo` two-device realtime recheck. Those quick
+  tasks fixed the mobile-suspension rejoin (`visibleEpoch`, hidden→visible edge) in `usePresence.ts`
+  and `useProgressSync.ts` and both explicitly flagged that a unit test proves the re-open TRIGGER,
+  not live socket recovery over a genuinely suspended connection. That recheck rides on step 5 of
+  this test's `<how-to-verify>`. Because this test was not run, it is **NOT closed here — it is
+  explicitly RESTATED AS OUTSTANDING**, unchanged, and carries forward past this phase.
+
+  TO CLOSE LATER: run the `<how-to-verify>` steps above against the corrected harness (see the
+  "Serving two builds simultaneously" sub-section — the pre-rename base is `e92d4a8`, and that line
+  was wrong until this plan fixed it). No code change is expected or implied by this gap.
 
 ### 7. Live paint order over a real toast (FOUND-03, D-29)
 expected: |
@@ -650,6 +721,25 @@ result: |
   intervenes. Plan 21-11's `layerOrder.test.tsx` ancestor-walk invariant is what should convert
   this from analysis into a permanent mechanical guarantee; run the `?layerRepro=1` repro
   opportunistically to confirm.
+
+  ── SESSION #3 (2026-08-05): CLOSED AS STATIC-ONLY, HONESTLY LABELLED ─────────────────────────
+
+  The `?layerRepro=1` desktop repro was **never run** — not in session #1, #2 or #3. This test
+  closes on static analysis plus mechanical test coverage, and that is stated plainly rather than
+  left to look like an observation.
+
+  What upgrades it from "analysis" to "closed" is that the analysis was CONVERTED INTO A TEST:
+  `packages/app/test/layerOrder.test.tsx` walks the ancestor chain and asserts the invariant
+  structurally (plan 21-11, widened to five surfaces in 21-12), so the exact defect diagnosed here —
+  a `sheet: 50` trapped inside a `content: 10` stacking context losing to a root-level `toast: 20` —
+  is now guarded on every CI run rather than by a one-off eyeball. That is a stronger long-term
+  guarantee than the manual repro would have been, which is why the unrun repro is not tracked as a
+  gap alongside test 6.
+
+  RESIDUAL, recorded for completeness: the deductive step still assumes no OTHER ancestor introduces
+  a stacking context via `isolation` / `transform` / `filter`. `layerOrder.test.tsx`'s ancestor walk
+  is precisely what checks that assumption mechanically, in jsdom. The repro remains available and
+  costs ~2 minutes if anyone ever wants the visual confirmation; it is not owed.
 
 ### 8. SearchSheet gesture suppression after portaling (FOUND-03, D-23)
 expected: |
@@ -811,9 +901,17 @@ Test 6 needs the PRE-rename build and the POST-rename build live at the same tim
 
 1. Check the pre-rename commit out into a SECOND worktree so the working tree is untouched:
 
-       git worktree add ../guezzer-prerename <pre-rename-commit-sha>
+       git worktree add ../guezzer-prerename e92d4a8
 
-   Use the last commit before plan 21-13's tab rename lands (`git log --oneline -- packages/app/src/components/BottomTabBar.tsx`).
+   **The pre-rename base is `e92d4a8`.** The tab rename landed in `1cc5787` ("feat(21-03): move tab
+   labels into config.copy and add the presence label voice"), so the last pre-rename commit is
+   `1cc5787^` = `e92d4a8`. Both SHAs verified present in this repo (2026-08-05).
+
+   CORRECTION (plan 21-13): this line previously said "the last commit before plan **21-13**'s tab
+   rename lands". That was wrong in a way that would have silently voided the test — the rename
+   belongs to plan **21-03**, and 21-13 is this closing device session, which renames nothing.
+   Following the old wording would have checked out a base that ALREADY CONTAINED the rename,
+   producing two same-vocabulary builds and a test that passes while exercising nothing.
 
 2. Install and build in that worktree (npm workspaces — do NOT run pnpm/corepack):
 
@@ -839,11 +937,55 @@ Test 6 needs the PRE-rename build and the POST-rename build live at the same tim
 ## Summary
 
 total: 8
-passed: 2
-issues: 1
-pending: 5
-skipped: 0
+passed: 6
+issues: 0
+pending: 0
+skipped: 1
 blocked: 0
+
+Final state at phase close (plan 21-13, 2026-08-05). No test remains `PENDING` — test 6's result
+records plainly that it was NOT RUN and why, which is a recorded result, not a pending one.
+
+| # | Test | Final | Basis |
+|---|------|-------|-------|
+| 1 | Bottom gap before/after (FOUND-01) | CLOSED | measured before/after, both orientations, session #2; D-18 fields completed session #3 |
+| 2 | `bottom-16` overlay overlap (FOUND-02) | PASS | all five overlays, owner attestation, session #3 |
+| 3 | Tab strip at max Dynamic Type (NAV-01) | PASS | re-run at maximum on the SIX-tab strip, session #3 — supersedes the session-#2 five-tab reading |
+| 4 | SearchSheet + soft keyboard (FOUND-03/D-17) | PASS | session #3; no fix required, none made |
+| 5 | Share-card footer (FOUND-05/D-36/D-37) | PASS | device PASS sessions #1/#2 + headless descender measurement; `shareCard.ts` unmodified |
+| 6 | Two devices, different builds (NAV-03/D-42) | **NOT RUN — residual gap** | deliberate, owner-approved time-box; see the Gaps block |
+| 7 | Live paint order (FOUND-03/D-29) | RESOLVED, static-only | static analysis converted into `layerOrder.test.tsx`; `?layerRepro=1` repro never run |
+| 8 | Gesture suppression after portaling (D-23) | PASS | per-surface/per-behaviour on device, session #3 — upgrades the session-#2 PARTIAL |
+
+Counting note: `skipped: 1` is test 6. It is counted as skipped rather than pending or blocked
+because nothing prevented it — it was consciously not run. `issues: 0` reflects that the one ISSUE
+ever raised (test 1's dead gap) was fixed and re-measured, not that no defect was ever found.
+
+Session 3 (2026-08-05) — device pass on the INSTALLED standalone instance, iPhone 16 Pro,
+iOS 26.5.2, build `e847183` over the cloudflared tunnel. Closed tests 2, 4 and the two D-18 fields
+test 1 still owed; re-ran test 3 at maximum Dynamic Type against the six-tab strip; upgraded test 8
+from PARTIAL to PASS. Test 6 was not run and is recorded as the phase's residual gap.
+
+⚠ CONTEXT CORRECTION, recorded because it nearly corrupted the record: the FIRST HALF of session #3
+ran in a **Safari tab, not the installed app**. `?layoutProbe=1` proved it — `sab: 0`,
+`standalone: nav=false mq=false`, `innerH: 714` (`evidence/session3-layoutprobe-safari-sab0-PROOF.PNG`).
+Every observation from that half was DISCARDED, including a convincing-looking "gap between
+`BackupToast` and the tab bar" that was an iOS Safari dynamic-viewport artifact rather than a
+FOUND-02 defect. The owner re-installed correctly and re-ran everything from the home-screen icon;
+all session-#3 results above come from that standalone re-run. Two caveats follow from this and are
+recorded rather than smoothed over: (a) no standalone screenshots were captured for the passing
+re-run, so those results rest on OWNER ATTESTATION — the same basis session #2 used for NAV-01; and
+(b) the `GAP: 1` probe pair reported for test 1 is arithmetically the Safari context, so it does not
+independently corroborate FOUND-01 (see test 1's RECORDED CAVEAT). FOUND-01's closure rests on the
+session-#2 measured before/after, which is sufficient on its own.
+
+Follow-up captured from that misstep:
+`.planning/todos/pending/2026-08-05-add-apple-mobile-web-app-capable-so-ios-installs-are-determi.md`
+(commit `2f97eda`) — iOS "Add to Home Screen" can silently create a Safari BOOKMARK instead of a
+standalone web app when the manifest has not finished parsing. `index.html` has `viewport-fit=cover`
+and `apple-mobile-web-app-status-bar-style` but has never had `apple-mobile-web-app-capable`.
+One-line fix, flagged pre-show because every remaining device session depends on a deterministic
+install (MEMORY `ios-standalone-verification`).
 
 Session 1 (2026-07-25) — device pass on the installed instance, tunnel build `f7467d9`:
 
@@ -882,9 +1024,21 @@ Notes:
 
 - truth: "On an installed home-screen PWA, body content sits flush against the top of the bottom tab
     bar with no dead gap (FOUND-01, success criterion 1)"
-  status: failed
-  reason: "User reported: there is a gap still — visible dead space between content and the tab bar
-    on the installed instance."
+  status: resolved
+  reason: "RESOLVED by the session-#2 measured after-run (2026-07-26), reconciled in plan 21-13.
+    The finding below is retained verbatim as history — it was a REAL defect, correctly reported and
+    correctly diagnosed — but its `status: failed` was stale from session #1 and is superseded by
+    measurement. AFTER build `94b99ea`, same device, same route, both orientations: `GAP` 35 → 1
+    (portrait) and 21 → 1 (landscape), where the residual 1px is the `<nav>` `border-t` and the true
+    dead gap is therefore 0. The comparison is controlled — `sab` and `tabTop` are identical before
+    vs after within each orientation — and the change magnitude equals `sab` independently in each
+    (34 and 20), which is the D-15 signature rather than a coincidental improvement. The originally
+    reported symptom (visible dead space between content and the tab bar) no longer reproduces.
+    Original session-#1 reason, retained: 'User reported: there is a gap still — visible dead space
+    between content and the tab bar on the installed instance.'
+    NOTE: session #3's `GAP: 1` reading does NOT contribute to this resolution — it is arithmetically
+    the `sab: 0` Safari context, where the bug class is unobservable by construction. See test 1's
+    RECORDED CAVEAT. Closure rests on session #2 alone, which is sufficient."
   severity: major
   test: 1
   root_cause: "body's `padding-bottom: env(safe-area-inset-bottom)` (styles.css:220) shortens
@@ -899,22 +1053,71 @@ Notes:
       issue: "height calc(4rem + env(...)) AND paddingBottom env(...) — the second owner"
     - path: "packages/app/src/components/AppShell.tsx:75-77"
       issue: "main paddingBottom calc(4rem + env(...) + overlayInset) — the third owner"
+  missing: []
+  resolved_by:
+    - "DONE (plan 21-07) — deleted `padding-bottom: env(safe-area-inset-bottom)` from body
+       (styles.css:220) as part of the single-owner conversion. Verified at the SHIPPED-CSS level:
+       zero occurrences in the served stylesheet of the AFTER build."
+    - "DONE (`dafadeb`) — fixed the ?layoutProbe=1 GAP formula. It read `tabTop - mainRect.bottom`,
+       which includes main's padding and evaluated to a constant -4rem regardless of the inset; it
+       now reads `navTop - (mainRect.bottom - mainPaddingBottom)` and prints `mainPadB` so the
+       correction is auditable from the screenshot. Without this the D-18 capture would have been
+       meaningless."
+    - "DONE (session #2, 2026-07-26) — on-device before/after record, portrait AND landscape, with
+       device model and iOS version supplied in session #3. Success criterion 1's bookkeeping is
+       satisfied."
+  debug_session: ""
+
+- truth: "Two devices on DIFFERENT builds each show the other a correct, readable activity label, in
+    both directions, with no blank slot and no raw wire token (NAV-03, D-42)"
+  status: open
+  reason: "NOT RUN. Deliberate, owner-approved time-box before the Aug 2026 shows — the check needs
+    two worktrees, two production builds, two simultaneous cloudflared tunnels, two physical devices
+    and two distinct identities, and the owner chose to move on rather than stand that harness up.
+    This is the phase's one named residual gap and the reason 21-HUMAN-UAT.md closes `status:
+    partial` rather than `resolved`. It is a scheduling decision, not a technical finding, and no
+    code change is expected or implied."
+  severity: medium
+  test: 6
+  root_cause: "n/a — nothing is known to be broken. The mixed-vocabulary path is unverified, not
+    failing. Single-build label rendering was confirmed on device in session #1, the wire vocabulary
+    (`LiveGizz`/`GizzVerse`/`GizzMap`/`GizzDex`/`GizzGames`/`idle`) is frozen and byte-identical
+    across the rename, and `reduceActivity`'s allow-list plus the D-41 `activityUnknown` fallback are
+    unit-covered. What has never executed is a live exchange in which the receiver meets a token its
+    own build has not seen — which is the entire subject of the test, because labels are chosen
+    receiver-side."
+  artifacts:
+    - path: ".planning/phases/21-layout-layering-foundations/21-HUMAN-UAT.md test 6"
+      issue: "the unrun verification, with its full how-to-verify still intact for a later session"
+    - path: "packages/app/test/presenceLabels.test.ts"
+      issue: "the unit coverage that stands in for the unrun device check — proof of mechanism, not
+        of behaviour over real Realtime"
   missing:
-    - "Delete `padding-bottom: env(safe-area-inset-bottom)` from body (styles.css:220) as part of
-       plan 21-07's single-owner conversion. The measurement gate is satisfied by derivation."
-    - "FIX the ?layoutProbe=1 GAP formula before any D-18 before/after capture: it currently reads
-       `tabTop - mainRect.bottom`, which includes main's padding and evaluates to a constant -4rem
-       regardless of the inset. It must read `navTop - (mainRect.bottom - mainPaddingBottom)` to
-       measure the actual dead space."
-    - "On-device before/after record, portrait AND landscape, for success criterion 1's bookkeeping
-       (plan 21-13) — owed to the requirement, not blocking development."
+    - "Run test 6's `<how-to-verify>` against the CORRECTED harness: pre-rename base is `e92d4a8`
+       (= `1cc5787^`), not any 21-13 commit. Record both directions with the exact observed label
+       text, the `At a show 🎸` precedence check, the background→idle→foreground recovery, an
+       explicit no-blank-slot statement, and both device models plus both build SHAs."
+    - "Close the `260724-hqu` / `260724-lgo` two-device realtime recheck, which rides on step 5 of
+       that same run and is RESTATED AS OUTSTANDING here rather than closed. Those quick tasks fixed
+       the `visibleEpoch` mobile-suspension rejoin in `usePresence.ts` and `useProgressSync.ts` and
+       both flagged that a unit test proves the re-open TRIGGER, not live socket recovery over a
+       genuinely suspended connection."
+    - "T-21-38 bookkeeping: this session was the phase's only planned verification of the
+       `reduceActivity` allow-list against live untrusted peer payloads. That control now ships
+       unit-proven only. Risk accepted, not eliminated."
   debug_session: ""
 
 - truth: "No surface can paint over an open modal sheet; any tier renumbering requires a repro
     naming the offending surface first (FOUND-03, success criterion 3, D-20)"
-  status: diagnosed
-  reason: "Static analysis (2026-07-25) — SearchSheet and FabMenu are trapped inside ShowView's
-    `content: 10` stacking context and lose to root-level `toast: 20` siblings of AppShell."
+  status: resolved
+  reason: "RESOLVED by plans 21-11/21-12, reconciled in plan 21-13. The diagnosis below is retained
+    verbatim as history. Original status was `diagnosed` (static analysis, 2026-07-25): SearchSheet
+    and FabMenu were trapped inside ShowView's `content: 10` stacking context and lost to root-level
+    `toast: 20` siblings of AppShell. Both surfaces are now portaled to `document.body` and the
+    diagnosis has been converted into a mechanical guard — `layerOrder.test.tsx` walks the ancestor
+    chain and asserts the invariant on every run, widened to five surfaces in 21-12. Nothing was
+    renumbered, which is what the standing FOUND-03 constraint required. The `?layerRepro=1` visual
+    repro was never run; see test 7 for that recorded honestly."
   severity: major
   test: 7
   root_cause: "`ShowView.withBackground` (ShowView.tsx:174-185) sets `position: relative` plus a
@@ -932,8 +1135,14 @@ Notes:
       issue: "fabScrim: 25 / fab: 30 inside the trap — D-27, eats speed-dial taps mid-show"
     - path: "packages/app/src/components/Sheet.tsx:77,90"
       issue: "NEGATIVE CASE — the only createPortal site in the app; these surfaces behave"
-  missing:
-    - "Portal SearchSheet and FabMenu (scrim + rows) to document.body — plan 21-11, renumber nothing."
-    - "layerOrder.test.tsx ancestor-walk invariant to convert this analysis into a mechanical guard."
-    - "Re-apply gesture-suppression classes on the portaled roots (D-23, test 8)."
+  missing: []
+  resolved_by:
+    - "DONE (plan 21-11) — SearchSheet and FabMenu (scrim + rows) portaled to document.body; nothing
+       renumbered. FabMenu carries both roots in one portal, preserving `fabScrim: 25 < fab: 30`."
+    - "DONE (plans 21-11/21-12) — `layerOrder.test.tsx` ancestor-walk invariant converts the analysis
+       into a mechanical guard, widened to five surfaces in 21-12."
+    - "DONE (D-23) — gesture-suppression classes re-applied on the portaled roots (`.gesture-guard`
+       on SearchSheet, existing `.fab-menu` on FabMenu). Mechanism verified against the shipped
+       stylesheet in session #2 and the iOS behaviours observed on device in session #3 — test 8 is
+       now PASS."
   debug_session: ""
