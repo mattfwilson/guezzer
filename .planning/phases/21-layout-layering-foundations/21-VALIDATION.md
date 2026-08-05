@@ -1,10 +1,12 @@
 ---
 phase: 21
 slug: layout-layering-foundations
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-07-24
+closed: 2026-08-05
+residual: "NAV-03's device clause (UAT test 6, mixed-build presence across two devices) was never run — accepted under a recorded override in 21-VERIFICATION.md, not satisfied. Automated coverage exists (presenceLabels.test.ts proves the label mechanism); live-Realtime behaviour does not."
 ---
 
 # Phase 21 — Validation Strategy

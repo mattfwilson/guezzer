@@ -1,9 +1,18 @@
 ---
 phase: 21-layout-layering-foundations
 verified: 2026-08-05T05:06:41Z
-status: human_needed
-score: 4/5 must-haves verified (1 partial — NAV-03 device clause unverified)
-overrides_applied: 0
+status: passed
+score: 5/5 must-haves accounted for (4 verified, 1 accepted under a recorded override)
+overrides_applied: 1
+overrides:
+  - must_have: "a two-device test across different app builds shows a friend on an older build with a correct, readable activity label (NAV-03)"
+    reason: "Owner-approved time-box before the Aug 2026 shows. Mechanism is delivered and unit-covered; the harness cost (two worktrees, two builds, two tunnels, two devices, two identities) is not justified pre-show. Tracked as the phase's named residual gap in 21-HUMAN-UAT.md and in REQUIREMENTS.md, which correctly still reads NAV-03 Pending. T-21-38 risk accepted, not eliminated."
+    accepted_by: "mattfwilson"
+    accepted_at: "2026-08-05T05:06:41Z"
+resolved_since_verification:
+  - finding: "WR-02 — ArchiveBrowser's scroll list composed no bottom inset, putting its last row and the fallback-search button under the home indicator on an installed instance."
+    resolution: "Fixed in commit `61e0b90`: the list container composes `--gz-sheet-pad-bottom` (D-07 — the browser is `fixed inset-0` at `z.sheet` and COVERS the tab bar, so it must not compose from `--gz-chrome-reserve`). Two positive assertions added in `archiveBrowser.test.tsx`, which the pattern-matching FOUND-02 guard structurally cannot express. Full suite green at 1137 tests."
+    human_item_closed: 3
 human_verification:
   - test: "NAV-03 mixed-build presence, two devices on DIFFERENT builds, both directions. Old build (base `e92d4a8` = `1cc5787^`) on device A, current build on device B, both signed in, both over HTTPS tunnels. Record the exact observed activity label text in each direction, the `At a show 🎸` precedence case, and the background→idle→foreground recovery."
     expected: "Each device shows the other a correct, readable activity label — never a blank slot, never a raw wire token. Device B (new) should read device A's `GizzDex` as 'on GizzDex'; device A (old, pre-`GizzSched`) meeting the newer `GizzSched` token should render the constant fallback, not blank."

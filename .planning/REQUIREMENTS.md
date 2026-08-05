@@ -23,7 +23,7 @@ Doing this after them means doing it twice, in two layout states.
 - [x] **FOUND-01**: In the installed home-screen PWA, body content sits flush with the top of the bottom tab bar — no dead gap — in both portrait and landscape
 - [x] **FOUND-02**: Every bottom-anchored surface (tab bar, FAB, FAB scrim, toasts, peek strip, suggestion strip) derives its offset from one shared reserved-bottom-height source, so a search for the tab-bar height returns exactly one owner
 - [x] **FOUND-03**: Nothing paints over an open modal sheet, locked by an automated layer-ordering test
-- [ ] **FOUND-04**: All full calendar dates render as "Mon D, YYYY" (e.g. `Jan 2, 2026`) across every app surface, from one shared UTC-safe helper — ShowView header, ShowsList, SetlistView, ArchiveBrowser, RecapView subline
+- [x] **FOUND-04**: All full calendar dates render as "Mon D, YYYY" (e.g. `Jan 2, 2026`) across every app surface, from one shared UTC-safe helper — ShowView header, ShowsList, SetlistView, ArchiveBrowser, RecapView subline
 - [x] **FOUND-05**: The share-card PNG draws the show date in the same "Mon D, YYYY" format, verified on-device at the widest realistic venue name without truncation or overflow
 
 ### Chrome Visibility
@@ -72,7 +72,7 @@ FIFO one-at-a-time drain) — recorded here so it is not later rediscovered as a
 ### Navigation & Install
 
 - [x] **NAV-01**: The bottom tabs read **Live · GizzVerse · Map · Me · Games**
-- [ ] **NAV-02**: The rename changes display labels only — routes, file paths, and saved data keys are untouched, so no saved dex is orphaned and no navigation breaks
+- [x] **NAV-02**: The rename changes display labels only — routes, file paths, and saved data keys are untouched, so no saved dex is orphaned and no navigation breaks
 - [ ] **NAV-03**: Friend presence activity keeps working across mixed app builds — a friend on an older build still shows a correct, readable activity label rather than a blank or a raw internal token
 - [ ] **NAV-04**: The Me tab icon shows a badge when friends are online, so the friends surface is discoverable without opening the tab
 - [ ] **NAV-05**: The add-to-home-screen instructions live at the bottom of Settings and are hidden once the app is installed; the top-right menu keeps a single neutral row that deep-links there
@@ -163,7 +163,7 @@ milestone, which ended at Phase 20 — v2.1 runs Phases 21–24.
 | FOUND-01 | Phase 21 | Complete |
 | FOUND-02 | Phase 21 | Complete |
 | FOUND-03 | Phase 21 | Complete |
-| FOUND-04 | Phase 21 | Pending |
+| FOUND-04 | Phase 21 | Complete |
 | FOUND-05 | Phase 21 | Complete |
 | CHROME-01 | Phase 22 | Pending |
 | CHROME-02 | Phase 23 | Pending |
@@ -184,7 +184,7 @@ milestone, which ended at Phase 20 — v2.1 runs Phases 21–24.
 | REACT-05 | Phase 24 | Pending |
 | REACT-06 | Phase 24 | Pending |
 | NAV-01 | Phase 21 | Complete |
-| NAV-02 | Phase 21 | Pending |
+| NAV-02 | Phase 21 | Complete |
 | NAV-03 | Phase 21 | Pending |
 | NAV-04 | Phase 24 | Pending |
 | NAV-05 | Phase 22 | Pending |
