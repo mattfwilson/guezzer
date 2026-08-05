@@ -73,7 +73,7 @@ FIFO one-at-a-time drain) — recorded here so it is not later rediscovered as a
 
 - [x] **NAV-01**: The bottom tabs read **Live · GizzVerse · Map · Me · Games**
 - [x] **NAV-02**: The rename changes display labels only — routes, file paths, and saved data keys are untouched, so no saved dex is orphaned and no navigation breaks
-- [ ] **NAV-03**: Friend presence activity keeps working across mixed app builds — a friend on an older build still shows a correct, readable activity label rather than a blank or a raw internal token
+- [x] **NAV-03**: Friend presence activity keeps working across mixed app builds — a friend on an older build still shows a correct, readable activity label rather than a blank or a raw internal token
 - [ ] **NAV-04**: The Me tab icon shows a badge when friends are online, so the friends surface is discoverable without opening the tab
 - [ ] **NAV-05**: The add-to-home-screen instructions live at the bottom of Settings and are hidden once the app is installed; the top-right menu keeps a single neutral row that deep-links there
 - [ ] **NAV-06**: Installing from the relocated Settings affordance works on Android, confirmed on-device
@@ -185,7 +185,7 @@ milestone, which ended at Phase 20 — v2.1 runs Phases 21–24.
 | REACT-06 | Phase 24 | Pending |
 | NAV-01 | Phase 21 | Complete |
 | NAV-02 | Phase 21 | Complete |
-| NAV-03 | Phase 21 | Pending |
+| NAV-03 | Phase 21 | Complete |
 | NAV-04 | Phase 24 | Pending |
 | NAV-05 | Phase 22 | Pending |
 | NAV-06 | Phase 22 | Pending |
