@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: UX/UI Polish
-status: executing
-stopped_at: Phase 21 UI-SPEC approved
-last_updated: "2026-07-25T17:44:19.202Z"
-last_activity: 2026-07-25 -- Phase 21 execution started
+status: verifying
+stopped_at: Completed 21-13-PLAN.md (device UAT close-out)
+last_updated: "2026-08-05T04:45:50.535Z"
+last_activity: 2026-08-05 -- Phase 21 plan 13 complete (device UAT close-out)
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 13
-  completed_plans: 12
-  percent: 0
+  completed_plans: 13
+  percent: 25
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-24 after v2.0 milestone close)
 
 ## Current Position
 
-Phase: 21 (layout-layering-foundations) — EXECUTING
-Plan: 1 of 13
-Status: Executing Phase 21
-Last activity: 2026-07-25 -- Phase 21 execution started
+Phase: 21 (layout-layering-foundations) — ALL 13 PLANS COMPLETE
+Plan: 13 of 13
+Status: Phase 21 execution complete — device UAT closed at `status: partial` (one named residual gap: NAV-03 mixed-build presence, test 6, never run by owner-approved time-box). Ready for phase verification.
+Last activity: 2026-08-05 -- Phase 21 plan 13 complete (device UAT close-out)
 
 **v2.1 phase map:**
 
@@ -107,6 +107,7 @@ Progress: [                    ] 0% (0/4 phases)
 | Phase 15 P02 | 8min | 3 tasks | 7 files |
 | Phase 15 P03 | ~12min | 3 tasks | 9 files |
 | Phase 15 P04 | ~10min | 2 tasks | 6 files |
+| Phase 21 P13 | ~14min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -174,6 +175,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 15-02: bingoCards imports via stable-cardId union-only bulkPut (D-13), never clear+rewrite
 - [Phase ?]: 15-03: replayCard is the shared app->core replay adapter (0-based opener reindex + frozen caughtSnapshot); RecapView Bingo section + GamesView are pure read-only re-derivations (marks never stored, D-23)
 - [Phase 15]: 15-04 (BINGO-06): catch-up grows the trail via shipped adoptSuggestion/logSong paths; deriveMarks/replayCard re-lights squares as a pure consequence (live == replay == catch-up). 'Catch me up' is the top FabMenu item; candidate list = uncapped diffLatestAgainstTrail; every backfill carries shownFanSongIds:[] -> a MISS (honest denominator).
+- [Phase ?]: [Phase 21]: 21-13 device UAT close-out — 21-HUMAN-UAT.md closed at status: partial, NOT resolved. Test 6 (NAV-03 mixed-build presence, two devices on two builds) was NEVER RUN: owner-approved time-box before the Aug 2026 shows, recorded as the phase's one named residual gap in frontmatter + Current Test + Gaps. Sanctioned by the plan's own Task 3 text and T-21-40. Residual risk sized: nothing on the show-#1 critical path depends on it, but T-21-38's reduceActivity allow-list now ships unit-proven only against live untrusted peer payloads. Also carried forward UNCLOSED: the 260724-hqu/260724-lgo two-device realtime recheck (visibleEpoch mobile-suspension rejoin), which rides on test 6 step 5. Rejected session #3's GAP:1 probe pair as FOUND-01 corroboration — 650/651 is arithmetically the sab:0 Safari context (innerH 714), where the double-count is unobservable by construction; FOUND-01 stays closed on the session-#2 measured before/after (GAP 35->1, 21->1, both orientations, controlled). Reconciled both stale Gaps entries (FOUND-01 status:failed, FOUND-03 status:diagnosed) against shipped work, history retained. Corrected the two-build harness base to e92d4a8 (= 1cc5787^, plan 21-03) — the old line said 21-13 and would have produced two same-vocabulary builds. shareCard.ts byte-unmodified: descenders measured clear (+3.50px) and the contingency 0.97 nudge would collide the footer lines by 21.75px. npm test green (134 files / 1135 tests).
 
 ### Pending Todos
 
@@ -256,6 +258,7 @@ Recent decisions affecting current work:
 - [Phase 1] Open schema items to instrument during full corpus ingest: multi-set `setnumber` representation, `transition_id: 4` meaning, tease notation location, silent filter-ignore gotcha
 - [Phase 4] iOS PWA lifecycle spike — RESOLVED 2026-07-13. All six on-device SHOW-12/SHOW-13 checks (wake-lock hold + silent reacquire + gesture suppression + weak-fan softening + force-quit restore + End Show finalize) PASSED on iPhone 16 Pro, iOS 26.3.1. See 04-HUMAN-UAT.md (status: resolved) and 04-VERIFICATION.md (status: passed). Residual non-blocking gap: the iOS <18.4 wake-lock false-positive fallback path was not exercised (test device is 26.3.1); logic is unit-covered — close out opportunistically if a pre-18.4 device becomes available.
 - [Phase 7] Canvas label rendering quality at ~250 nodes on small screens — RESOLVED 2026-07-16 (plan 07-03 device spike on iPhone 16 Pro). Top-8 at-rest labels legible, 1.5/2.5 zoom thresholds and settle-freeze confirmed; the deeper cause (d3-force defaults clumping ~264 nodes) was found and fixed via device-tuned CHARGE_STRENGTH/LINK_DISTANCE + on-load zoomToFit auto-framing + enableNodeDrag=false for clean pinch. See 07-03-SUMMARY.md.
+- [Phase 21] NAV-03 mixed-build presence (21-HUMAN-UAT.md test 6) NOT RUN — owner-approved time-box before the Aug 2026 shows. Needs two worktrees / two tunnels / two devices; pre-rename base is e92d4a8 (= 1cc5787^). Rides with it: the still-open 260724-hqu / 260724-lgo two-device realtime recheck of the visibleEpoch mobile-suspension rejoin. Not on the show-#1 critical path; T-21-38's reduceActivity allow-list ships unit-proven only against live untrusted peer payloads. UAT closed status: partial for this reason.
 
 ## Deferred Items
 
@@ -329,9 +332,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-07-24T23:16:20.953Z
-Stopped at: Phase 21 UI-SPEC approved
-Resume file: .planning/phases/21-layout-layering-foundations/21-UI-SPEC.md
+Last session: 2026-08-05T04:45:24.470Z
+Stopped at: Completed 21-13-PLAN.md (device UAT close-out)
+Resume file: None
 
 ## Operator Next Steps
 

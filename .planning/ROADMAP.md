@@ -78,7 +78,7 @@ Make the app feel immersive and alive in the venue — keep the user inside the 
 
 Ordering is dependency-driven and deliberately **reorders the owner's original backlog A/B/C/D shape**. The backlog scheduled the chrome-visibility mechanism (its Phase C) *after* its own consumers (Phases A and B); three of four researchers independently flagged this. The bottom-space arithmetic is duplicated across 7–9 sites in four notations that already disagree with each other by one safe-area inset, and three separate v2.1 features consume it — so it goes **first**, in one pass, together with the installed-PWA bottom-gap bug that lives in that same arithmetic. Phase 22 then debuts the chrome mechanism on the *easier* surface (GizzVerse) and proves its safety invariants there, before the live-show path in Phase 23 depends on it. Phase 24 is parallel-safe with Phase 23 once Phase 21 lands.
 
-- [ ] **Phase 21: Layout & Layering Foundations** - One owner for the bottom-space arithmetic, no installed-PWA dead gap, one date format, and the short tab names
+- [x] **Phase 21: Layout & Layering Foundations** - One owner for the bottom-space arithmetic, no installed-PWA dead gap, one date format, and the short tab names (completed 2026-08-05)
 - [ ] **Phase 22: Surface Motion & the Chrome Mechanism** - Animate the one shared sheet primitive without losing an a11y guarantee; debut chrome-hide on GizzVerse with its escape and a11y invariants proven
 - [ ] **Phase 23: Immersive In-Show Experience** - Bingo dealing and the bingo board become full-screen overlays on top of tracking; tabs get out of the way while tracking
 - [ ] **Phase 24: Reactions & Small Polish** - Reactions fly up from the sender's actual section, never crossing the orbit; friends-online tab badge and deal-type icons
@@ -135,7 +135,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 21-13-PLAN.md — Device session #2 — final UAT, all 8 manual verifications closed
+- [x] 21-13-PLAN.md — Device session #2 — final UAT, all 8 manual verifications closed
 
 **UI hint**: yes
 
@@ -240,7 +240,7 @@ This is the research's own stated rationale followed through: validating the mec
 | 18. Accounts & Offline-Safe Identity | v2.0 | 7/7 | Complete | 2026-07-22 |
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete | 2026-07-24 |
 | 20. Presence & Interactions | v2.0 | 5/5 | Complete | 2026-07-24 |
-| 21. Layout & Layering Foundations | v2.1 | 12/13 | In Progress|  |
+| 21. Layout & Layering Foundations | v2.1 | 13/13 | Complete   | 2026-08-05 |
 | 22. Surface Motion & the Chrome Mechanism | v2.1 | 0/? | Not started | - |
 | 23. Immersive In-Show Experience | v2.1 | 0/? | Not started | - |
 | 24. Reactions & Small Polish | v2.1 | 0/? | Not started | - |
