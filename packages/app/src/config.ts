@@ -326,10 +326,22 @@ export const config = {
     bottomSpace: {
       /**
        * Phase-21 D-04: BottomTabBar button-area height. `rem`, NOT `px`, is
-       * deliberately the source unit — the 14px/600 tab labels inside the bar
-       * scale with the user's iOS Dynamic Type setting, and a fixed-px bar would
-       * clip them at the largest text size (NAV-01). Everything composed from the
-       * owner inherits that scaling for free.
+       * deliberately the source unit, so the bar tracks the root font size and
+       * everything composed from this owner inherits that scaling for free.
+       *
+       * ACCURACY NOTE (phase-21 close, code review WR-04) — read this before
+       * relying on the unit choice for a text-scaling claim. The tab labels are
+       * `text-[14px]` (`BottomTabBar.tsx:59`), a FIXED px size. They therefore do
+       * NOT grow with iOS Dynamic Type, and UAT test 3's "PASS at maximum Dynamic
+       * Type" recorded IMMUNITY, not resilience: at max text size the bar grows
+       * (rem follows the root size) and the labels stay put, so nothing clips.
+       * NAV-01 is satisfied — it asks whether the five labels fit on one line —
+       * but not by the mechanism this comment previously described.
+       *
+       * The consequence that matters: if a later phase converts the labels to a
+       * scaling unit (`rem`/`text-sm`) to make them honour Dynamic Type, NAV-01's
+       * clipping risk becomes REAL for the first time and must be re-verified on
+       * device at maximum text size. Do not treat the recorded pass as covering it.
        */
       TAB_BAR_HEIGHT_REM: 4,
       /**
