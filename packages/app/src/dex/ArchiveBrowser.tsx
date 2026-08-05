@@ -331,7 +331,19 @@ export function ArchiveBrowser({ archive, onClose }: ArchiveBrowserProps) {
         />
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div
+        data-testid="archive-list"
+        className="min-h-0 flex-1 overflow-y-auto"
+        style={{
+          // D-07: this browser is `fixed inset-0` at `z.sheet` — it COVERS the tab bar
+          // rather than sitting above it, so it composes from `--gz-safe-bottom` via
+          // `--gz-sheet-pad-bottom`, never `--gz-chrome-reserve`. Without it the last
+          // show row and the fallback-search button sit under the home indicator on an
+          // installed instance. The ladder is written to `document.documentElement`, so
+          // it still resolves inside this `createPortal(…, document.body)` subtree.
+          paddingBottom: "var(--gz-sheet-pad-bottom)",
+        }}
+      >
         {searchHits != null ? (
           searchHits.length > 0 ? (
             searchHits.map((hit) => renderRow(hit.show, false, archive.songs as unknown as Record<number, string>))

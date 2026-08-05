@@ -224,3 +224,35 @@ describe("FOUND-04 — archive dates render 'Mon D, YYYY' (D-32, D-33)", () => {
     expect(within(row).queryByLabelText(`${copy.unmarkConfirm} 2025-11-20`)).toBeNull();
   });
 });
+
+describe("FOUND-01 — the scrolling list clears the home indicator (WR-02)", () => {
+  /**
+   * The phase-21 FOUND-02 guard scans for HAND-WRITTEN insets (`4rem`, `bottom-16`,
+   * a raw bottom `env()`), so it can only catch a surface that composes the inset
+   * WRONGLY — never one that omits it entirely. This browser omitted it: its last
+   * show row and the fallback-search button sat under the home indicator on an
+   * installed instance. These are the positive assertions that guard can't express.
+   */
+  it("composes a bottom inset on the scroll container from the owner's ladder", async () => {
+    render(<ArchiveBrowser archive={archive} onClose={() => {}} />);
+    await screen.findByText("Red Rocks");
+
+    const list = screen.getByTestId("archive-list");
+    // D-07: this browser is `fixed inset-0` at `z.sheet` — it COVERS the tab bar, so
+    // it must compose from `--gz-safe-bottom` (via `--gz-sheet-pad-bottom`) and NOT
+    // from `--gz-chrome-reserve`, which would double-reserve a bar it already hides.
+    expect(list.style.paddingBottom).toBe("var(--gz-sheet-pad-bottom)");
+    expect(list.style.paddingBottom).not.toContain("chrome-reserve");
+  });
+
+  it("keeps the fallback-search control inside the padded scroll container", async () => {
+    // The button is the LAST thing in the list, so it is the surface that actually
+    // lands in the swipe zone when the inset is missing. Pinning containment here
+    // means moving it out of the scroller re-opens the bug loudly.
+    render(<ArchiveBrowser archive={archive} onClose={() => {}} />);
+    await screen.findByText("Red Rocks");
+
+    const list = screen.getByTestId("archive-list");
+    expect(within(list).getByText(copy.fallbackSearch)).toBeInTheDocument();
+  });
+});
