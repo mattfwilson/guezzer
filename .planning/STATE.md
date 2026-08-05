@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: UX/UI Polish
-status: verifying
-stopped_at: Completed 21-13-PLAN.md (device UAT close-out)
+status: ready
+stopped_at: Phase 21 complete and verified — ready to discuss Phase 22
 last_updated: "2026-08-05T12:06:24.831Z"
 last_activity: 2026-08-05
 progress:
@@ -21,14 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24 after v2.0 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 21 — layout-layering-foundations
+**Current focus:** Phase 22 — surface-motion-&-the-chrome-mechanism (not yet discussed)
 
 ## Current Position
 
 Phase: 22
 Plan: Not started
-Status: Phase 21 execution complete — device UAT closed at `status: partial` (one named residual gap: NAV-03 mixed-build presence, test 6, never run by owner-approved time-box). Ready for phase verification.
+Status: Phase 21 COMPLETE and VERIFIED (2026-08-05) — 13/13 plans, verification `passed` at 4/5 must-haves verified + 1 accepted override. Next step is `/gsd-discuss-phase 22`; no 22-CONTEXT.md exists yet.
 Last activity: 2026-08-05
+
+**Carried into Phase 22 — read before planning:**
+
+- **NAV-03 is Pending, not delivered.** Its mixed-build two-device presence check (21-HUMAN-UAT test 6) was never run — owner-approved time-box before the Aug 2026 shows, recorded as an accepted override in `21-VERIFICATION.md`, not as a pass. `21-HUMAN-UAT.md` is `status: partial`. Do not let a later phase read it as closed.
+- **The chrome-collapse seam already exists and is pinned.** `layout/bottomSpace.ts`'s `chromeVisible` parameter (D-16) ships pinned `true` with no caller passing `false` — it is the single source Phase 22 flips to hide the bottom chrome, so every consumer follows automatically instead of revisiting nine call sites. Use it; do not build a second layout state.
+- **Bottom-space arithmetic has exactly one owner.** `config.ui.bottomSpace` holds the numbers, `layout/bottomSpace.ts` composes the `--gz-*` ladder onto `document.documentElement`, `styles.css :root` declares the single `--gz-safe-bottom`. `bottomSpace.test.ts` guards against new hand-written insets — but it is pattern-matching, so it CANNOT catch a surface that omits the inset entirely (that gap shipped a real bug in ArchiveBrowser, fixed in `61e0b90`). New bottom-anchored surfaces need a positive assertion, not just guard silence.
+- **D-07 split:** surfaces that COVER the tab bar compose from `--gz-sheet-pad-bottom`; surfaces that sit ABOVE it compose from `--gz-chrome-reserve`. Picking the wrong one double-reserves or under-reserves by one inset.
+- **Tab labels are `text-[14px]`, fixed.** They do not scale with iOS Dynamic Type, so NAV-01's recorded pass measured immunity, not resilience. Converting them to a scaling unit makes the clipping risk real for the first time and requires on-device re-verification at maximum text size. See the note on `TAB_BAR_HEIGHT_REM` in `config.ts`.
+- **Two open defects in this area**, both pre-existing and both in `.planning/todos/pending/`: simultaneous bottom overlays overlap while the reserve sums their heights (CR-01), and `SetlistView`'s loading state is an unrecoverable `aria-modal` trap when the show is in neither the bundle nor the cache (CR-02). Phase 22 touches this surface area.
 
 **v2.1 phase map:**
 
