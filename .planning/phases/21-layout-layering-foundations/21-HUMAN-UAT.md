@@ -162,7 +162,8 @@ result: |
   readings. Build: pre-21-07 `83ea0d8` with the corrected probe (`dafadeb`) cherry-picked on top,
   built and served from a separate worktree so the shipped tree was never modified. Verified as the
   BEFORE build at the shipped-CSS level: `padding-bottom:env(safe-area-inset-bottom)` present in
-  the served stylesheet. Device: [PENDING — owner to record model + iOS version, D-18].
+  the served stylesheet. Device: **iPhone 16 Pro (402×874 CSS @ dpr 3), iOS 26.5.2** — recorded in
+  session #3 (2026-08-05); see SESSION #3 CLOSURE below for the D-18 provenance.
   Screenshots: `evidence/BEFORE-portrait.PNG`, `evidence/BEFORE-landscape.PNG`.
 
   | field       | portrait | landscape |
@@ -235,11 +236,54 @@ result: |
   full-width, and the arithmetic holds when the inset shrinks from 34 to 20 — the gap closes to the
   same true 0 without any landscape-specific layout.
 
-  STILL OWED ON THIS TEST:
-  - Device model + iOS version (D-18) — [PENDING — owner to record from Settings → General → About]
-  - The "scroll the Me tab to the very bottom, confirm no content under the home indicator" check
-    was not separately performed; the measurement above establishes the geometry but not the
-    scrolled-to-end visual. [PENDING]
+  ── SESSION #3 CLOSURE (2026-08-05) ───────────────────────────────────────────────────────────
+
+  Both items this test still owed are now closed. Build under test: `e847183` (post-rename),
+  production build served over the cloudflared tunnel, run from the INSTALLED standalone home-screen
+  icon.
+
+  1. DEVICE (D-18) — CLOSED. **iPhone 16 Pro, 402×874 CSS @ dpr 3, iOS 26.5.2.** This is the
+     owner's only test device and the same handset behind the session-#2 before/after tables above
+     and the Phase-4 device UAT. The iOS point release is stamped as of session #3; the exact point
+     release in force during session #2 was not separately captured, and is not material — the
+     before and after halves were taken minutes apart on one device, which is what D-18's
+     "same device" clause protects.
+
+  2. SCROLLED-TO-END VISUAL — CLOSED. The **Me** (GizzDex) tab was scrolled to its very bottom on
+     the installed instance: no content sits under the home indicator. Owner attestation; no
+     screenshot captured.
+
+  ⚠ RECORDED CAVEAT — session #3's probe reading is NOT an independent standalone corroboration.
+  `21-SESSION-3-RESULTS.md` reports `mainBottom: 650`, `tabTop: 651`, `GAP: 1` as independent
+  corroboration of the +1 calibration. Those numbers are arithmetically reachable ONLY from the
+  `sab: 0` Safari context, not from the installed instance:
+
+  | context                              | viewport | sab | navTop = vp − 4rem − sab | button top |
+  |--------------------------------------|----------|-----|--------------------------|------------|
+  | Safari tab (session #3, proven)      | 714      | 0   | 650                      | **651**    |
+  | installed instance (session #2, same route) | 812 | 34 | 714                     | **715**    |
+
+  The first row reproduces session #3's reported pair exactly; the second reproduces session #2's
+  recorded `tabTop: 715` exactly. A genuine standalone session-#3 reading would have printed
+  ~714/715, not 650/651. Corroborating facts: `evidence/session3-layoutprobe-safari-sab0-PROOF.PNG`
+  is the ONLY probe artifact from session #3 and shows `sab: 0`, `standalone: nav=false mq=false`,
+  `innerH: 714`; no standalone probe screenshot was captured for the re-run. (The courier's
+  parenthetical "true standalone on this device is ~874" is the device's nominal CSS viewport; the
+  MEASURED standalone `bodyH` on this route is 812. Either figure is far from the 714 that 650/651
+  requires.)
+
+  Under `sab: 0` the FOUND-01 double-count is unobservable BY CONSTRUCTION — the inset that would be
+  counted twice is zero — so this reading can neither confirm nor falsify the fix. It is consistent
+  with the 1px nav-border calibration and nothing more. Recording it as independent corroboration
+  would have laundered a browser-tab reading into the closed evidence, which is exactly the failure
+  MEMORY `ios-standalone-verification` was written about.
+
+  CONSEQUENCE: **FOUND-01 stays CLOSED — on the session-#2 measured before/after**, which carries
+  non-zero insets in both orientations (sab 34/20), a controlled comparison (`sab` and `tabTop`
+  identical before vs after within each orientation), and a change magnitude equal to `sab`
+  independently in each orientation — the D-15 signature. Session #3 neither strengthens nor
+  weakens that record. No re-run is required: the session-#2 pair already satisfies success
+  criterion 1 and D-18 in both orientations, and session #3 supplied the two missing D-18 fields.
 severity: major
 
 ### 2. bottom-16 overlay overlap on the installed instance (FOUND-02)
@@ -267,7 +311,46 @@ expected: |
   - `BackupToast` is easiest to trigger via End Show (the auto-backup path); `UpdateToast` needs two
     sequential builds served over the tunnel; `InstallBanner` is once-per-version.
 result: |
-  PENDING
+  PASS — ALL FIVE OVERLAYS (session #3, 2026-08-05). Installed standalone instance, iPhone 16 Pro,
+  iOS 26.5.2, build `e847183`. Owner attestation; no screenshots captured this session.
+
+  | overlay             | verdict | how it was triggered                                         |
+  |---------------------|---------|--------------------------------------------------------------|
+  | `InstallBanner`     | PASS    | re-armed by the fresh IndexedDB that came with re-installing |
+  | `BingoCelebration`  | PASS    | locked card, logged onto a marked square                     |
+  | `WaveToast`         | PASS    | sent from a second signed-in device                          |
+  | `BackupToast`       | PASS    | End Show auto-backup path                                    |
+  | `UpdateToast`       | PASS    | verified against a deliberately bumped `dist/sw.js`          |
+
+  Each clears the tab-bar buttons completely — the buttons stay fully visible underneath, no
+  overlap. FOUND-02's `bottom-16`-vs-`64px + inset` overlap (D-09) is confirmed fixed against a real
+  NON-ZERO inset, which is the only context in which it was ever observable.
+
+  INTERNAL DEAD SPACE — explicitly answered (RESEARCH Pitfall 2). **None.** The three formerly
+  self-padded toasts — `InstallBanner`, `UpdateToast`, `BackupToast` — show NO dead space inside the
+  toast below their text. Plan 21-10 deleted their own `paddingBottom: env(safe-area-inset-bottom)`
+  in the same edit that moved them onto the chrome reserve, so the inset is owned once rather than
+  twice; that is what the device confirms.
+
+  UNDER-RESERVE CHECK (the load-bearing direction). The plan-21-10 reserve got SMALLER by one inset,
+  and under-reserving is the direction that COVERS a control. No covered content and no unreachable
+  control was observed with a toast visible.
+
+  OPERATIONAL NOTE for any future session — **three separate SW bumps were needed** to land the
+  `UpdateToast` check. Each re-install re-baselines the cached worker, so the pending update
+  disappears and the toast cannot fire. Bump `dist/sw.js` *after* the install is final, then
+  force-quit and relaunch.
+
+  EVIDENCE BASIS (recorded honestly): this verdict rests on owner attestation of the corrected
+  standalone context, the same basis session #2 used for NAV-01. The first half of session #3 ran in
+  a SAFARI TAB and every observation from it was DISCARDED — including a convincing-looking "gap
+  between `BackupToast` and the tab bar". That gap was an iOS Safari dynamic-viewport artifact: on
+  scroll Safari collapses its bottom toolbar, the layout viewport grows, and `fixed` bottom-anchored
+  elements stay anchored to a viewport bottom that is now below the visible glass. It is **not** a
+  FOUND-02 defect — and with `sab: 0` the double-count bug class is unobservable by construction, so
+  that half could neither reproduce nor rule it out. Retained as the discarded-context record:
+  `evidence/session3-DISCARDED-safari-recap-backuptoast.PNG` and
+  `evidence/session3-DISCARDED-safari-scrolled-toolbar-hidden.PNG`.
 
 ### 3. Tab strip at the largest Dynamic Type setting (NAV-01)
 expected: |
@@ -308,6 +391,30 @@ result: |
   acceptance criterion's "with a screenshot reference" is satisfied by owner attestation rather
   than by an artifact. The verdict itself is not in doubt; only its photographic backing is absent.
 
+  ── RE-RUN ON THE SIX-TAB STRIP — SUPERSEDES THE ABOVE (session #3, 2026-08-05) ────────────────
+
+  PASS at MAXIMUM Dynamic Type on a **SIX**-tab strip. iPhone 16 Pro, iOS 26.5.2, installed
+  standalone instance, build `e847183`.
+
+  WHY THIS IS A SUPERSESSION, NOT A REPETITION. Session #2 passed NAV-01 at maximum text size
+  against a **five**-tab strip (Live / GizzVerse / Map / Me / Games). The **Sched** tab landed in
+  commit `2028a95` on 2026-07-30 — AFTER that reading — making the strip six tabs:
+
+      Live · GizzVerse · Map · Sched · Me · Games
+
+  A sixth tab narrows every `flex-1` slot, so the session-#2 result was no longer the worst case and
+  could not be carried forward. This session re-ran the check at maximum on the six-tab strip and it
+  holds: all six labels fit on one line each, no clipping, no wrap, no ellipsis, no collision with a
+  neighbour, and the strip grew with the setting rather than clipping. "GizzVerse", the deliberate
+  worst-case label, still holds at six tabs.
+
+  D-04 is vindicated a second time and under more pressure: `rem` sizing is what lets the strip grow
+  with the OS setting instead of clipping. NAV-01 is closed against the strip as it actually ships.
+
+  Evidence basis unchanged: owner attestation, no max-size screenshot captured in this session
+  either. The acceptance criterion's "with a screenshot reference" therefore remains satisfied by
+  attestation rather than by an artifact, across both readings.
+
 ### 4. SearchSheet with the soft keyboard up (FOUND-03, D-17)
 expected: |
   jsdom has no `visualViewport` resize and a desktop browser has no soft keyboard, so this is
@@ -324,7 +431,21 @@ expected: |
   - Re-run this check AFTER plan 21-11 portals the SearchSheet to `document.body` — portaling changes
     the sheet's containing block, so the keyboard behavior must be re-confirmed, not assumed.
 result: |
-  PENDING
+  PASS (session #3, 2026-08-05). Installed standalone instance, iPhone 16 Pro, iOS 26.5.2, build
+  `e847183` — i.e. AFTER plan 21-11 portaled the SearchSheet to `document.body`, which is the run
+  that matters, since portaling changes the sheet's containing block.
+
+  Observed with the soft keyboard raised: the sheet is not pushed under the keyboard, the search
+  input stays visible, and the result rows stay scrollable and tappable. Neither the FAB nor the
+  suggestion strip rides up on top of the keyboard. Dismissing the keyboard settles the sheet back
+  cleanly.
+
+  D-17 — **NO FIX REQUIRED, AND NONE MADE.** The reserved arithmetic behaves, so the speculative
+  `visualViewport` mechanism D-17 holds in reserve was correctly not built. D-17's rule is "fix only
+  if the reserved arithmetic misbehaves"; it did not, so nothing was changed. This is the recorded
+  PASS that rule asks for, not an absence of investigation.
+
+  Owner attestation; no screenshot captured this session.
 
 ### 5. Share-card PNG at the widest realistic venue name (FOUND-05, D-36/D-37)
 expected: |
