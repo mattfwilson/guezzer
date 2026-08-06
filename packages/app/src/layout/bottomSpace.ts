@@ -31,7 +31,7 @@ import { useBottomOverlayInset } from "../pwa/bottomOverlayInset.ts";
  */
 
 /**
- * The six property names this module writes from JS, in composition order.
+ * The seven property names this module writes from JS, in composition order.
  *
  * `--gz-safe-bottom` is deliberately ABSENT: it is CSS-authored (see above), so it
  * is read by these compositions but never set by them.
@@ -39,6 +39,7 @@ import { useBottomOverlayInset } from "../pwa/bottomOverlayInset.ts";
 export const BOTTOM_SPACE_VAR_NAMES = [
   "--gz-tab-bar-h",
   "--gz-overlay-inset",
+  "--gz-tab-bar-box",
   "--gz-chrome-reserve",
   "--gz-content-reserve",
   "--gz-sheet-pad-bottom",
@@ -49,24 +50,36 @@ export const BOTTOM_SPACE_VAR_NAMES = [
  * Composes the whole ladder from `config.ui.bottomSpace`. Pure, DOM-free and
  * unit-testable — it returns name/value pairs and touches nothing.
  *
- * D-02 — THE TWO NAMED COMPOSITIONS. These are not redundant and must never be
+ * D-02 — THE THREE NAMED COMPOSITIONS. These are not redundant and must never be
  * "simplified" into one value:
- *   - `--gz-chrome-reserve` is the TAB BAR ONLY (its height plus the home-indicator
- *     inset). Every `fixed`/`absolute` bottom-anchored surface composes from this.
+ *   - `--gz-tab-bar-box` is the BAR'S OWN BOX (its height plus the home-indicator
+ *     inset) and NEVER COLLAPSES. Only `BottomTabBar` reads it, to size itself.
+ *   - `--gz-chrome-reserve` is HOW MUCH BOTTOM SPACE THE CHROME CURRENTLY OCCUPIES,
+ *     and it DOES collapse. Every `fixed`/`absolute` bottom-anchored surface composes
+ *     from this.
  *   - `--gz-content-reserve` additionally folds in the measured height of whatever
  *     transient fixed-bottom overlay (InstallBanner, UpdateToast) is on screen right
  *     now, and is for SCROLLING `<main>` ONLY. Reserving the overlay inset on a
  *     NON-scrolling route would permanently squish a `flex-1` full-height stage (the
  *     orbit, the constellation) every time a transient banner appeared.
  *
+ * WHY THE FIRST TWO SPLIT (Phase-22 CHROME-01, 22-RESEARCH Pitfall 6). Through
+ * Phase 21 they were one value, because "how tall the bar is" and "how much space
+ * the chrome occupies" were the same number. They diverge exactly when chrome hides:
+ * if the bar kept sizing itself from the collapsing reserve it would SQUASH to a bare
+ * safe-area strip, and `translateY(100%)` of a squashed box no longer clears the
+ * viewport — leaving a visible sliver that still looks reachable. The arithmetic did
+ * not move; it only acquired a name of its own.
+ *
  * D-16 — THE CHROME-COLLAPSE SEAM. `chromeVisible` exists so Phase 22 can hide the
  * bottom chrome by flipping THIS ONE SOURCE, with every consumer following
  * automatically, instead of revisiting nine call sites in a second layout state.
- * Phase 21 ships it PINNED `true`: no caller passes `false`, there is no toggle and
- * there is no behavior change. It is a seam, not a feature.
+ * Phase 21 shipped it PINNED `true`; Phase 22 (plan 22-05) makes it a REAL INPUT,
+ * driven by `layout/chromeVisibility.ts` through `useBottomSpaceVars(chromeVisible)`.
+ * The default stays `true`, so every existing call site is value-preserving.
  *
  * @param overlayInsetPx measured total height of the fixed-bottom overlays on screen
- * @param chromeVisible D-16 seam — pinned `true` for all of Phase 21
+ * @param chromeVisible D-16 seam — `false` collapses the chrome reserve (CHROME-01)
  */
 export function bottomSpaceVarEntries(
   overlayInsetPx: number,
@@ -78,11 +91,10 @@ export function bottomSpaceVarEntries(
   return [
     ["--gz-tab-bar-h", `${TAB_BAR_HEIGHT_REM}rem`],
     ["--gz-overlay-inset", `${overlayInsetPx}px`],
+    ["--gz-tab-bar-box", "calc(var(--gz-tab-bar-h) + var(--gz-safe-bottom))"],
     [
       "--gz-chrome-reserve",
-      chromeVisible
-        ? "calc(var(--gz-tab-bar-h) + var(--gz-safe-bottom))"
-        : "var(--gz-safe-bottom)",
+      chromeVisible ? "var(--gz-tab-bar-box)" : "var(--gz-safe-bottom)",
     ],
     [
       "--gz-content-reserve",
@@ -123,15 +135,22 @@ export function applyBottomSpaceVars(
  *
  * A LAYOUT effect, never a passive one: the values must land BEFORE the first paint of
  * the same commit that renders the tab bar and the toasts, or every bottom-anchored
- * surface flashes at an unresolved reserve on mount.
+ * surface flashes at an unresolved reserve on mount. Phase-22 CHROME-05 depends on the
+ * same property: the `setProperty` calls must land in the MUTATION phase of the same
+ * commit that flips the header out of flow, before paint and before the frame's
+ * "update the rendering" step, so a chrome toggle produces exactly ONE resize. Do not
+ * "tidy" this into a passive `useEffect`.
  *
  * Call it once, from the app shell.
+ *
+ * @param chromeVisible read from `layout/chromeVisibility.ts` by the app shell. It is
+ *   a dep, so flipping the store rewrites the ladder in the very next commit.
  */
-export function useBottomSpaceVars(): void {
+export function useBottomSpaceVars(chromeVisible: boolean): void {
   const overlayInset = useBottomOverlayInset();
 
   useLayoutEffect(() => {
     if (typeof document === "undefined") return;
-    applyBottomSpaceVars(document.documentElement, overlayInset);
-  }, [overlayInset]);
+    applyBottomSpaceVars(document.documentElement, overlayInset, chromeVisible);
+  }, [overlayInset, chromeVisible]);
 }
