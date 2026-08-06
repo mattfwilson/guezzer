@@ -163,4 +163,74 @@ describe("installStore singleton (NAV-06, D-33, D-36)", () => {
 
     expect(read("a", "canInstall")).toBe("false");
   });
+
+  it("a REJECTED prompt() resolves anyway and still drops canInstall (CR-02)", async () => {
+    // Chromium rejects `prompt()` with a DOMException on a second call ("The
+    // prompt() method may only be called once"). The shipped version had no
+    // try/catch and cleared `deferred` only AFTER both awaits, so the rejection
+    // escaped before the clear: `canInstall` stayed true over an already-consumed
+    // event and the install affordance was dead for the rest of the session, in
+    // BOTH surfaces, with the buttons still offering it. Both call sites are
+    // `void promptInstall()`, so it was an unhandled rejection too.
+    const event = new Event("beforeinstallprompt");
+    Object.assign(event, {
+      prompt: vi
+        .fn()
+        .mockRejectedValue(new Error("The prompt() method may only be called once")),
+      userChoice: Promise.resolve({ outcome: "dismissed", platform: "web" }),
+    });
+
+    render(<Probe id="a" />);
+    act(() => {
+      window.dispatchEvent(event);
+    });
+    expect(read("a", "canInstall")).toBe("true");
+
+    // The documented never-throw contract, asserted rather than described.
+    await act(async () => {
+      await expect(promptInstall()).resolves.toBeUndefined();
+    });
+
+    // The event is spent either way, so the snapshot must say so — this is what
+    // keeps the affordance from wedging on permanently.
+    expect(read("a", "canInstall")).toBe("false");
+    expect(getInstallSnapshot().canInstall).toBe(false);
+  });
+
+  it("a SECOND tap during the native dialog is a no-op, not a re-entry (CR-02)", async () => {
+    // The window that produced the rejection above: neither call site disables
+    // its button while `userChoice` is pending. Consuming the stash before the
+    // first await makes the re-entry hit the `if (!d) return` guard instead of
+    // calling the one-shot `prompt()` twice.
+    const prompt = vi.fn().mockResolvedValue(undefined);
+    let settleChoice: (value: { outcome: string; platform: string }) => void =
+      () => {};
+    const event = new Event("beforeinstallprompt");
+    Object.assign(event, {
+      prompt,
+      userChoice: new Promise((resolve) => {
+        settleChoice = resolve as typeof settleChoice;
+      }),
+    });
+
+    render(<Probe id="a" />);
+    act(() => {
+      window.dispatchEvent(event);
+    });
+
+    // First tap: in flight, `userChoice` deliberately unsettled.
+    const first = promptInstall();
+    // Second tap DURING that window.
+    await act(async () => {
+      await promptInstall();
+    });
+
+    expect(prompt).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      settleChoice({ outcome: "accepted", platform: "web" });
+      await first;
+    });
+    expect(read("a", "canInstall")).toBe("false");
+  });
 });

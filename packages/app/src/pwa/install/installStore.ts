@@ -132,14 +132,41 @@ export function getInstallServerSnapshot(): InstallSnapshot {
  *
  * The trailing `notify()` IS the D-33 fix: every subscriber loses
  * `canInstall` together, instead of only the one that fired the prompt.
+ *
+ * ## 22-REVIEW CR-02 — why the stash is consumed BEFORE the outcome is awaited
+ *
+ * `BeforeInstallPromptEvent` is one-shot in the strong sense: Chromium REJECTS a
+ * second `prompt()` on the same event ("The prompt() method may only be called
+ * once"). The shipped version cleared `deferred` only after `userChoice` settled
+ * — i.e. not until the user had dismissed the native dialog — and neither call
+ * site disables its button, so a double-tap re-entered with the same event. The
+ * rejection then escaped BEFORE `deferred = null; notify()`, leaving the store
+ * with `canInstall === true` over an already-consumed event: the install
+ * affordance was dead for the rest of the session, in the banner AND in Settings
+ * (D-33 deliberately shares one event), while both buttons kept offering it.
+ * Both call sites are `void promptInstall()`, so it was also an unhandled
+ * rejection.
+ *
+ * Clearing first makes the second tap a silent no-op (the `if (!d) return` above)
+ * instead of a re-entry, and the `catch` honours the never-throw contract this
+ * docstring already claimed. T-22-23 IS PRESERVED: `deferred = null` and entering
+ * the `try` are both SYNCHRONOUS, so `d.prompt()` is still the first awaited
+ * expression and the user-gesture chain is intact.
  */
 export async function promptInstall(): Promise<void> {
   const d = deferred;
   if (!d) return;
-  await d.prompt();
-  await d.userChoice;
   deferred = null;
-  notify();
+  try {
+    await d.prompt();
+    await d.userChoice;
+  } catch {
+    // Never-throw house style (`wakeLock.ts`, `persist.ts`). A rejected prompt
+    // only means the invitation did not appear; the affordance is gone from the
+    // snapshot either way, which is the honest state — the event is spent.
+  } finally {
+    notify();
+  }
 }
 
 if (typeof window !== "undefined") {
