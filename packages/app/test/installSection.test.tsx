@@ -219,6 +219,46 @@ describe("relocated install affordance (NAV-05)", () => {
     // the failure by adding a shim here.
   });
 
+  it("does NOT re-steal focus when Settings is REMOUNTED after a used deep link (CR-01)", () => {
+    // The case the shipped Pitfall-10 test above could not catch, because it
+    // never unmounts. `SettingsView` is conditionally rendered by App.tsx
+    // (`route === "settings" ? <SettingsView /> : …`), so leaving #/settings
+    // UNMOUNTS it and coming back REMOUNTS it — and React runs a mount effect
+    // regardless of deps. Against the shipped monotonic counter the effect body
+    // re-fired on that remount, so every plain Settings visit for the rest of the
+    // session opened scrolled to the bottom with focus parked on the install
+    // heading. The store now hands out `requestCount - handledCount`, so a
+    // consumed request reads 0 on the next mount.
+    render(<SettingsView />);
+    act(() => {
+      requestInstallSectionFocus();
+    });
+    expect(document.activeElement).toBe(
+      screen.getByRole("heading", { name: config.copy.install.sectionHeading }),
+    );
+
+    // Leave Settings, then come back — WITHOUT any new request.
+    cleanup();
+    render(<SettingsView />);
+
+    const heading = screen.getByRole("heading", {
+      name: config.copy.install.sectionHeading,
+    });
+    // Anti-vacuity: the heading really is present and really is focusable, so
+    // this is "focus was not stolen", not "there was nothing to steal it to".
+    expect(heading).toBeInTheDocument();
+    expect(heading).toHaveAttribute("tabindex", "-1");
+    expect(document.activeElement).not.toBe(heading);
+    expect(document.activeElement).toBe(document.body);
+
+    // And a genuinely NEW request still works after the remount — the fix
+    // consumes the request, it does not disable the deep link.
+    act(() => {
+      requestInstallSectionFocus();
+    });
+    expect(document.activeElement).toBe(heading);
+  });
+
   it("the iOS branch contributes no second heading inside #install (D-32)", () => {
     __resetInstallStoreForTests({ isIos: true });
     const { container } = render(<SettingsView />);

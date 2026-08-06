@@ -29,6 +29,7 @@ import type { PersistStatus } from "../pwa/persist.ts";
 import { exportBackup } from "./exportDownload.ts";
 import { InstallSection } from "./InstallSection.tsx";
 import {
+  acknowledgeInstallSectionFocus,
   getInstallSectionFocusServerSnapshot,
   getInstallSectionFocusSnapshot,
   subscribeInstallSectionFocus,
@@ -82,7 +83,14 @@ export function SettingsView() {
   // commit, so a passive effect runs strictly after that restore and is not
   // clobbered by it. A layout effect could interleave and lose the focus move.
   useEffect(() => {
-    // 0 is "never requested" — do not steal focus on a plain visit to Settings.
+    // 0 is "nothing pending" — do not steal focus on a plain visit to Settings.
+    //
+    // 22-REVIEW CR-01: this guard is only true because the store's snapshot is
+    // now `requestCount - handledCount` rather than a bare monotonic count. This
+    // view is CONDITIONALLY MOUNTED (App.tsx: `route === "settings" ? … : …`), so
+    // every return to Settings is a REMOUNT and React runs a mount effect
+    // regardless of deps. Against a monotonic counter that stayed at 1, this body
+    // re-fired on every later Settings visit for the rest of the session.
     if (installFocusRequest === 0) return;
     // Both calls are optional: the section renders NOTHING once the app is
     // installed (D-34's shared gate also hides the menu row, so this is
@@ -91,6 +99,11 @@ export function SettingsView() {
     // silent no-op, not an exception on a Settings render.
     installHeadingRef.current?.scrollIntoView?.({ block: "start" });
     installHeadingRef.current?.focus();
+    // CONSUME the request. Acknowledging unconditionally (rather than only when
+    // the heading resolved) is deliberate: if the section is not rendered there
+    // is no target to focus and never will be on this visit, so leaving the
+    // request pending would only make it fire on some unrelated later mount.
+    acknowledgeInstallSectionFocus();
   }, [installFocusRequest]);
 
   // Reactive read of the persistence status recorded by requestPersistenceOnce

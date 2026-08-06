@@ -24,10 +24,31 @@
  * the snapshot is a plain **number**, not an object, React 19's
  * "result of getSnapshot should be cached" footgun (Pitfall 9) cannot apply
  * here at all.
+ *
+ * ## Why the request must also be ACKNOWLEDGED (22-REVIEW CR-01)
+ *
+ * A counter alone is not enough, because `SettingsView` is CONDITIONALLY MOUNTED
+ * (`App.tsx`: `route === "settings" ? <SettingsView /> : …`). Leaving `#/settings`
+ * unmounts it and returning remounts it, and React runs a mount effect regardless
+ * of deps — so a bare monotonic counter that stayed at `1` made EVERY later visit
+ * to Settings scroll to and focus the install heading, which is exactly what the
+ * "do not steal focus on a plain visit" comment in `SettingsView` promised not to
+ * do.
+ *
+ * The fix is a REQUEST/HANDLED pair. The snapshot is the DIFFERENCE, so `0` means
+ * "nothing pending" in both the never-requested and the already-handled case, and
+ * a remount reads `0` rather than a stale `1`. It is still a plain number, so
+ * Pitfall 9 stays unreachable.
+ *
+ * A `useRef(installFocusRequest)` seed in the view would NOT work: the cross-route
+ * deep link bumps the counter BEFORE the view mounts, so the ref would initialise
+ * already-handled and the deep link would silently do nothing. The consumable
+ * state has to live here, where both orderings see the same value.
  */
 
 const listeners = new Set<() => void>();
 let requestCount = 0;
+let handledCount = 0;
 
 /**
  * Signals that the Settings install section should be scrolled to and focused.
@@ -39,6 +60,18 @@ export function requestInstallSectionFocus(): void {
   for (const listener of listeners) listener();
 }
 
+/**
+ * Called by the subscriber once it has actually performed the focus move, so the
+ * request stops being pending. Idempotent: acknowledging with nothing pending is
+ * a silent no-op and notifies nobody (never-throw house style, and it keeps the
+ * effect → acknowledge → notify → effect round trip bounded at one extra render).
+ */
+export function acknowledgeInstallSectionFocus(): void {
+  if (handledCount === requestCount) return;
+  handledCount = requestCount;
+  for (const listener of listeners) listener();
+}
+
 /** `useSyncExternalStore` subscribe half — returns the unsubscribe function. */
 export function subscribeInstallSectionFocus(listener: () => void): () => void {
   listeners.add(listener);
@@ -47,9 +80,13 @@ export function subscribeInstallSectionFocus(listener: () => void): () => void {
   };
 }
 
-/** Current request count. `0` means "never requested" — the initial state. */
+/**
+ * Number of UNHANDLED requests. `0` means "nothing pending" — which covers both
+ * "never requested" (the initial state) and "already acted on", so a remount of
+ * the subscriber never re-fires a request that was consumed on an earlier visit.
+ */
 export function getInstallSectionFocusSnapshot(): number {
-  return requestCount;
+  return requestCount - handledCount;
 }
 
 /**
@@ -64,5 +101,6 @@ export function getInstallSectionFocusServerSnapshot(): number {
 /** Test-only escape hatch to reset module state between test cases/files. */
 export function __resetInstallSectionFocusForTests(): void {
   requestCount = 0;
+  handledCount = 0;
   listeners.clear();
 }
