@@ -44,7 +44,7 @@ created: 2026-08-05
 | SHEET-01 | Enter/exit props carry translate under motion, opacity-only under reduced motion; `variant="fullscreen"` never translates (D-26) | unit (jsdom, mocked `motion`) | `npx vitest run --project @guezzer/app packages/app/test/sheet.motion.test.tsx` | ❌ W0 | ⬜ pending |
 | SHEET-01 | Motion constants come from `config.ui.motion`, not literals (D-25) | source guard | same file — grep `Sheet.tsx` for `duration: 0.` | ❌ W0 | ⬜ pending |
 | SHEET-01 | Primitive still portals to `document.body` and renders nothing when closed (Phase-21 D-24 + V7) | unit | `npx vitest run --project @guezzer/app packages/app/test/sheet.a11y.test.tsx` | ✅ amend | ⬜ pending |
-| **SHEET-02** | **Close-start contract (D-20):** after `open→false` with subtree still in DOM — background not `inert`, `document.activeElement === trigger`, card+scrim carry `pointer-events: none`, click on exiting scrim does **not** call `onClose` | unit (**retaining** `AnimatePresence` double) | `npx vitest run --project @guezzer/app packages/app/test/sheet.closeStart.test.tsx` | ❌ W0 | ⬜ pending |
+| **SHEET-02** | **Close-start contract (D-20):** after `open→false` with subtree still in DOM — background not `inert`, `document.activeElement === trigger`, card+scrim carry `pointer-events: none`, click on exiting scrim does **not** call `onClose` | unit (**real `AnimatePresence`** — see Correction below) | `npx vitest run --project @guezzer/app packages/app/test/sheet.closeStart.test.tsx` | ❌ W0 | ⬜ pending |
 | SHEET-02 | `aria-hidden="true"` on the exiting card, and `document.activeElement` is **outside** it at that moment (Pitfall 4a) | unit | same file | ❌ W0 | ⬜ pending |
 | SHEET-02 | Stacked release does not underflow: closing the **bottom** sheet while the top stays open leaves `#app-content` inert (Pitfall 5) | unit | extend `sheet.a11y.test.tsx` stacked-modals case | ✅ extend | ⬜ pending |
 | SHEET-02 | `initialFocusRef` focused only after `onAnimationComplete`, and not at all on exit (D-27, Pitfall 12) | unit | `sheet.closeStart.test.tsx` | ❌ W0 | ⬜ pending |
@@ -73,7 +73,7 @@ created: 2026-08-05
 New test files:
 
 - [ ] `packages/app/test/sheet.motion.test.tsx` — SHEET-01 prop shape + reduced motion + fullscreen
-- [ ] `packages/app/test/sheet.closeStart.test.tsx` — SHEET-02 (D-20); **requires the retaining `AnimatePresence` double** from RESEARCH § Code Examples. The shipped pass-through mock at `WaveToast.test.tsx:18` makes this assertion vacuous — do not copy it.
+- [ ] `packages/app/test/sheet.closeStart.test.tsx` — SHEET-02 (D-20); **use the real `AnimatePresence`, no hand-rolled double** — see § Correction below. The shipped pass-through mock at `WaveToast.test.tsx:18` makes this assertion vacuous — do not copy it.
 - [ ] `packages/app/test/chromeToggle.test.tsx` — CHROME-01 / 03 / 04
 - [ ] `packages/app/test/chromeResize.test.tsx` — CHROME-05 (D-09); requires stubbed `ResizeObserver` + mocked `ForceGraph2D`
 - [ ] `packages/app/test/installSection.test.tsx` — NAV-05
@@ -112,6 +112,49 @@ Listed so the planner does not over-test and the checker does not flag these as 
 - **D-14 "an open `NodeSheet` settles into the freed space."** `NodeSheet` is `fixed bottom-0` composing from `--gz-chrome-reserve`, which the toggle collapses. No new code, no new test. (One cheap positive assertion that `NodeSheet` reads the variable and not a literal is already CR-01/FOUND-02 territory.)
 - **D-15 "a toast fires at the collapsed position."** Same reasoning — toasts compose from `--gz-chrome-reserve`. No special case, no test.
 - **D-18 "no kill-switch."** The absence of a flag is the deliverable.
+
+---
+
+## Correction — D-20 close-start test uses the REAL library (supersedes the earlier draft)
+
+The first research pass assumed jsdom could not run exit animations and specified a hand-rolled
+"retaining `AnimatePresence` double". **That assumption was wrong and is now retracted**, verified
+by live probe against the repo's actual `motion@12.42.2` + `jsdom@29.1.1`:
+
+- `Element.prototype.animate` is undefined in jsdom, so motion falls back to rAF.
+- The exit **completes**: the node is retained synchronously and removed after the duration.
+- Therefore the real `AnimatePresence` is sufficient — and required.
+
+**Why the double is not merely unnecessary but actively harmful:** a double that re-renders
+`children` fresh would make the D-20 test **pass against the Pitfall 14 defect** below. It would
+be a green test proving nothing.
+
+### Pitfall 14 — frozen React element on exit (highest-risk finding in this phase)
+
+An exiting `AnimatePresence` child renders from a **frozen React element**. Any value derived from
+the `open` prop — `aria-hidden`, `pointer-events`, scrim `onClick`, `onAnimationComplete` guards —
+keeps its open-state value for the entire exit window. D-19 items 3 and 4 silently never happen,
+**and every test written against the open state still passes.**
+
+Derive all of these from `useIsPresent()`, not from `open`. Every close-start assertion in this
+phase must include an anti-vacuity check (see RESEARCH § Code Examples) that would fail if the
+component were reading `open`.
+
+If an imperative teardown is used instead of `useIsPresent()`, it MUST explicitly undo the
+imperative `aria-hidden` / `pointer-events` on re-activate — D-22 requires interrupt-and-reverse
+and the DOM node is reused on re-open. `useIsPresent()` self-corrects; imperative mutation does not.
+
+### Two further verified items affecting device UAT
+
+- **`apple-mobile-web-app-capable` is not a cosmetic no-op.** Apple's reference states verbatim that
+  `apple-mobile-web-app-status-bar-style` — already shipped as `black-translucent` at
+  `index.html:9` — has no effect unless full-screen mode is first specified via
+  `apple-mobile-web-app-capable`. Adding the tag can push content under the status bar, in the very
+  phase whose exit control must be *provably* inside the safe area. If the tag is added, a
+  before/after `?layoutProbe=1` capture on a **reinstalled** instance is mandatory.
+- **Safe-area top reserve trap.** `env(safe-area-inset-top)` is reserved only by the header's own
+  `paddingTop`. The instant the header goes `position: absolute`, nothing reserves it and the
+  constellation runs under the notch — **invisible on desktop**, where the inset is `0`.
 
 ---
 
