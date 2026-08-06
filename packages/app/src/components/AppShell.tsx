@@ -169,13 +169,32 @@ export function AppShell({
             driven from the shared store rather than by a view reaching into AppShell,
             and rather than by adding an AppShell header SLOT — a slot's contents
             would vanish together with the header, which is fatal for CHROME-03's
-            always-reachable exit control. */}
+            always-reachable exit control.
+
+            22-REVIEW WR-03 — THE RESERVE MUST CARRY THE SAME INSET THE TOGGLE DOES.
+            `ChromeToggle` positions at `right: calc(env(safe-area-inset-right) +
+            16px)` with a 44px diameter, so its left edge is at
+            `W − insetRight − 60`. A FIXED `paddingRight: 52` inside a header whose
+            own right padding is `px-4` put the Menu button's right edge at
+            `W − 68`, making the clearance `8 − insetRight`: the documented 8px in
+            portrait, but NEGATIVE for any right inset above 8px. On a notched
+            iPhone in landscape `env(safe-area-inset-right)` is ~44px, so the
+            toggle sat ~36px on top of the Menu button — two overlapping 44px tap
+            targets in the region the user reaches for in the dark. Nothing
+            prevents landscape (the manifest is `display: standalone` with no
+            `orientation` key), and jsdom resolves `env()` to nothing so no test
+            could observe the collision.
+
+            Adding the same `env(safe-area-inset-right)` term here makes the
+            clearance a constant 8px at every inset, and makes the two expressions
+            unable to drift: both now read the inset, so a change to one is visible
+            against the other. */}
         <div
           data-testid="app-header-controls"
           className="flex items-center gap-1"
           style={{
             paddingRight: toggleMounted
-              ? config.ui.chrome.CHROME_TOGGLE_SLOT_PX
+              ? `calc(env(safe-area-inset-right) + ${config.ui.chrome.CHROME_TOGGLE_SLOT_PX}px)`
               : undefined,
           }}
         >

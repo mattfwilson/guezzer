@@ -290,7 +290,17 @@ describe("the header's toggle slot follows the store's mount count", () => {
   it("reserves the slot only while a toggle is mounted, and restores the chrome on unregister", () => {
     const { header } = renderShell();
     const controls = screen.getByTestId("app-header-controls");
-    const slot = `padding-right: ${config.ui.chrome.CHROME_TOGGLE_SLOT_PX}px`;
+    // WR-03: the reserve carries the SAME `env(safe-area-inset-right)` term the
+    // toggle positions with, so the 8px clearance between them holds at every
+    // inset instead of only in portrait. jsdom REORDERS a `calc()` sum's terms
+    // (the authored `calc(env(safe-area-inset-right) + 52px)` serializes with the
+    // px term first), so this asserts the normalized form — the same convention
+    // the CHROME-03 case below uses for the toggle's own insets. Still
+    // non-vacuous: jsdom DROPS a bare `env()` value entirely, so if the inset term
+    // were ever lost the declaration would be absent, not merely reordered.
+    const slot =
+      `padding-right: calc(${config.ui.chrome.CHROME_TOGGLE_SLOT_PX}px` +
+      ` + env(safe-area-inset-right))`;
 
     expect(controls.getAttribute("style") ?? "").not.toContain("padding-right");
 
@@ -407,6 +417,31 @@ describe("CHROME-03: the escape control is rendered, big enough and inside the s
     const expression = "calc(env(safe-area-inset-top) + 12px)";
     expect(readSrc("components/AppShell.tsx")).toContain(expression);
     expect(readSrc("explore/ChromeToggle.tsx")).toContain(expression);
+  });
+
+  it("WR-03: the header's toggle reserve carries the SAME right inset the toggle does", () => {
+    // Geometry, stated as arithmetic because jsdom has no layout engine and
+    // resolves `env()` to nothing. The toggle's left edge sits at
+    // `W − insetRight − (16 + SIZE)`; the Menu button's right edge sits at
+    // `W − (16 + reserve)`, where 16 is the header's own `px-4`. Clearance is
+    // therefore `reserve − 16 − SIZE + (16 + insetRight − insetRightInReserve)`.
+    // With a bare `paddingRight: 52` that collapsed to `8 − insetRight`, which is
+    // NEGATIVE at a landscape notch inset (~44px) — the toggle overlapped the
+    // Menu button by ~36px. Both terms must therefore read the inset.
+    const inset = "env(safe-area-inset-right)";
+    expect(readSrc("explore/ChromeToggle.tsx")).toContain(
+      `calc(${inset} + 16px)`,
+    );
+    expect(readSrc("components/AppShell.tsx")).toContain(
+      `calc(${inset} + \${config.ui.chrome.CHROME_TOGGLE_SLOT_PX}px)`,
+    );
+
+    // And the constant itself still leaves room: 52 reserved for a 44px control
+    // is the documented 8px gap, now inset-independent.
+    expect(
+      config.ui.chrome.CHROME_TOGGLE_SLOT_PX -
+        config.ui.chrome.CHROME_TOGGLE_SIZE_PX,
+    ).toBe(8);
   });
 });
 
