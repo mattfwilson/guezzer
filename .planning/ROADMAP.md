@@ -165,9 +165,9 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 22-04-PLAN.md — CR-02 SetlistView loading-vs-missing + the fullscreen sheet conversion
-- [ ] 22-05-PLAN.md — Chrome-visibility store + --gz-tab-bar-box ladder + AppShell collapse
-- [ ] 22-06-PLAN.md — Settings install section + neutral menu row + focus-moving deep link
+- [x] 22-04-PLAN.md — CR-02 SetlistView loading-vs-missing + the fullscreen sheet conversion
+- [x] 22-05-PLAN.md — Chrome-visibility store + --gz-tab-bar-box ladder + AppShell collapse
+- [x] 22-06-PLAN.md — Settings install section + neutral menu row + focus-moving deep link
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -267,7 +267,7 @@ This is the research's own stated rationale followed through: validating the mec
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete | 2026-07-24 |
 | 20. Presence & Interactions | v2.0 | 5/5 | Complete | 2026-07-24 |
 | 21. Layout & Layering Foundations | v2.1 | 13/13 | Complete    | 2026-08-05 |
-| 22. Surface Motion & the Chrome Mechanism | v2.1 | 3/10 | In Progress|  |
+| 22. Surface Motion & the Chrome Mechanism | v2.1 | 6/10 | In Progress|  |
 | 23. Immersive In-Show Experience | v2.1 | 0/? | Not started | - |
 | 24. Reactions & Small Polish | v2.1 | 0/? | Not started | - |
 
