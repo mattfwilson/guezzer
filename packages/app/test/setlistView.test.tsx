@@ -172,6 +172,38 @@ describe("SetlistView — pending vs unresolvable (CR-02)", () => {
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
+  it("makes its aria-modal claim TRUE — focus moves in, the background goes inert (WR-01)", () => {
+    // CR-02 turned this branch into a real interactive surface, and
+    // `aria-modal="true"` is a promise to AT that everything outside is
+    // unavailable. It was not: focus stayed on the ShowsList row that triggered
+    // the drill-in (now completely occluded) and Tab walked the user through the
+    // header, the tab bar and the whole dex behind an opaque overlay.
+    const appContent = document.createElement("div");
+    appContent.id = "app-content";
+    const trigger = document.createElement("button");
+    appContent.appendChild(trigger);
+    document.body.appendChild(appContent);
+    trigger.focus();
+    expect(document.activeElement).toBe(trigger);
+
+    liveQuery.result = { row: undefined };
+    const view = renderMissing();
+
+    // Half 1: focus is INSIDE the dialog, on its only control.
+    const back = screen.getByRole("button", { name: config.copy.dex.albumBack });
+    expect(document.activeElement).toBe(back);
+    // Half 2: the background is out of the tab order, pointer events and the a11y
+    // tree — which is the part `aria-modal` alone does NOT deliver.
+    expect(appContent.inert).toBe(true);
+
+    // ...and both are released on close, with focus handed back to the trigger.
+    view.unmount();
+    expect(appContent.inert).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+
+    appContent.remove();
+  });
+
   it("still resolves a post-corpus show from the offline cache row", () => {
     // The object-wrap must not break the fallback path that the bare `cache`
     // value served before: a show absent from the bundle whose setlist rides in

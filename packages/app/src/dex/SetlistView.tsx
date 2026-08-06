@@ -59,9 +59,10 @@ import type { ArchiveArtifact, RarityIndex, RarityTier } from "@guezzer/core";
 import { ChevronLeft } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { config } from "../config.ts";
 import { db } from "../db/db.ts";
+import { setRootInert } from "../components/a11y/inertRoot.ts";
 import { useDialogDismiss } from "../components/a11y/useDialogDismiss.ts";
 import { TierBadge } from "./TierBadge.tsx";
 import { formatFullDate } from "./formatDate.ts";
@@ -183,6 +184,42 @@ export function SetlistView({ showId, archive, rarity, onClose }: SetlistViewPro
   const missing = resolved == null && !cachePending;
   useDialogDismiss(missing, onClose);
 
+  // 22-REVIEW WR-01 — make the `aria-modal="true"` on the MISSING branch TRUE.
+  //
+  // CR-02 promoted that branch from a blank blocker into a real interactive
+  // surface (a 44px Back plus Escape), and `aria-modal="true"` is a promise to AT
+  // that everything outside the dialog is unavailable. It was not: focus stayed on
+  // whatever triggered the drill-in (a `ShowsList` row, now completely occluded by
+  // an opaque full-viewport overlay) and Tab walked the user through the header,
+  // the tab bar and the whole dex behind a surface they cannot see.
+  //
+  // This is focus PLACEMENT plus the shared ref-counted background `inert`, NOT a
+  // focus trap — D-22's "stays hand-rolled, no `<Sheet>` migration, no focus trap"
+  // is unchanged. `inert` is what `aria-modal` alone does not do: it removes the
+  // background from the tab order, from pointer events AND from the a11y tree, so
+  // the two halves of the promise hold for the branch's whole lifetime. The
+  // dialog itself is portaled to `document.body`, outside `#app-content`, so it
+  // stays interactive while everything behind it does not.
+  //
+  // Deliberately NOT extended to the pending branch above: it renders no focusable
+  // at all (there is nothing to move focus TO), and it is the pre-existing
+  // hold-the-frame state rather than a surface this phase made control-bearing.
+  const backRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!missing) return;
+    setRootInert(true);
+    // Captured BEFORE the focus move, so the restore target is the real trigger.
+    const previous = document.activeElement as HTMLElement | null;
+    backRef.current?.focus();
+    return () => {
+      setRootInert(false);
+      // `isConnected` guard, matching `useFocusTrap`'s restore: the trigger row
+      // can be gone by the time the drill-in closes, and focusing a detached node
+      // silently sends focus to `<body>` instead of leaving it where it is.
+      if (previous?.isConnected) previous.focus();
+    };
+  }, [missing]);
+
   // Phase-21 FOUND-03 / D-20: SSR-and-jsdom guard, copied from `Sheet.tsx`, so ALL
   // THREE portals below never touch an undefined `document`. Placed before the
   // loading early-return so it covers that path too.
@@ -224,6 +261,7 @@ export function SetlistView({ showId, archive, rarity, onClose }: SetlistViewPro
           style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
         >
           <button
+            ref={backRef}
             type="button"
             aria-label={copy.albumBack}
             onClick={onClose}
