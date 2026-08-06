@@ -183,7 +183,15 @@ export function DexView() {
         <RecapView sessionId={openShow.sessionId} onClose={() => setOpenShow(null)} />
       )}
       {openShow?.kind === "retro" && rarity != null && (
+        // `key` is LOAD-BEARING, not decoration (CR-02). `SetlistView` distinguishes
+        // "still resolving" from "no such row" by whether its `useLiveQuery` has
+        // returned yet — but `useObservable`'s monitor keeps `hasResult: true` across a
+        // deps change, so a `showId` change on a LIVE instance yields the previous
+        // show's result instead of reverting to pending. Keying on `showId` remounts
+        // the component, which makes the pending window honest by construction rather
+        // than by the accident that this call site happens to conditionally mount.
         <SetlistView
+          key={openShow.showId}
           showId={openShow.showId}
           archive={archive}
           rarity={rarity}
@@ -201,43 +209,69 @@ export function DexView() {
       )}
 
       {/* Own trophy case (D-06) — rarest showcase only, NO head-to-head columns. A
-          full-screen Sheet over the live own dex; view-state within #/dex. */}
-      {selfCaseOpen && rarity != null && (
-        <Sheet
-          open
-          onClose={() => setSelfCaseOpen(false)}
-          modal
-          variant="fullscreen"
-          ariaLabel={config.copy.friends.rarestOwn}
-        >
-          <div
-            className="flex items-center gap-3 border-b border-hairline bg-elevated px-4 py-3"
-            style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
-          >
-            <button
-              type="button"
-              aria-label={config.copy.friends.back}
-              onClick={() => setSelfCaseOpen(false)}
-              className="flex min-h-11 min-w-11 shrink-0 items-center justify-center text-text-muted touch-manipulation"
+          full-screen Sheet over the live own dex; view-state within #/dex.
+
+          ⚠ PROP-DRIVEN ON PURPOSE — this is the phase's D-21 FULLSCREEN exemplar.
+
+          `<Sheet>` can only exit-animate a surface whose `open` prop flips: the nine
+          sites whose PARENT stops rendering them die synchronously, `AnimatePresence`
+          and all, so they get an enter animation and no exit. Every `fullscreen`
+          consumer was in that unmount-driven set, which left D-26's fullscreen exit
+          fade (opacity only — a full-bleed overlay sliding a viewport height reads as
+          a page transition, not a sheet) with NO live consumer and therefore
+          impossible to device-verify. This is the cheapest of the five fullscreen
+          sites to convert — one guard expression, no payload to retain — so it is the
+          one that carries the fade into the plan-22-09 device session.
+
+          The guard moved from the ELEMENT to the BODY. The element is now always
+          mounted so `AnimatePresence` can own its lifecycle; `rarity` is nullable and
+          the children read it, so the children stay guarded. No "last non-null
+          payload" ref is needed: `rarity` comes from the live dex hook and is stable
+          once loaded, and a null `rarity` also makes `open` false, so an exiting frame
+          can never need it.
+
+          The two BOTTOM-SHEET exemplars (`TrailNodeSheet`, `WhyDetail`) are converted
+          in plan 22-10. `CompareView` ×2, `FriendDetail` ×2 and `PinSheet` ×2 stay a
+          deliberate documented seam whose roster lives in `Sheet.tsx`'s module doc
+          (note (b)) — owned by plan 22-10, not edited from here. */}
+      <Sheet
+        open={selfCaseOpen && rarity != null}
+        onClose={() => setSelfCaseOpen(false)}
+        modal
+        variant="fullscreen"
+        ariaLabel={config.copy.friends.rarestOwn}
+      >
+        {rarity != null && (
+          <>
+            <div
+              className="flex items-center gap-3 border-b border-hairline bg-elevated px-4 py-3"
+              style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
             >
-              <ChevronLeft size={24} />
-            </button>
-            <p className="min-w-0 flex-1 truncate text-[20px] font-semibold leading-tight text-text-primary">
-              {config.copy.friends.selfRow}
-            </p>
-          </div>
-          <div className="mt-4 pb-16">
-            <RarestShowcase
-              heading={config.copy.friends.rarestOwn}
-              caughtSongIds={[...dex.perSong.values()]
-                .filter((s) => s.sightings > 0)
-                .map((s) => s.songId)}
-              rarity={rarity}
-              archive={archive}
-            />
-          </div>
-        </Sheet>
-      )}
+              <button
+                type="button"
+                aria-label={config.copy.friends.back}
+                onClick={() => setSelfCaseOpen(false)}
+                className="flex min-h-11 min-w-11 shrink-0 items-center justify-center text-text-muted touch-manipulation"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <p className="min-w-0 flex-1 truncate text-[20px] font-semibold leading-tight text-text-primary">
+                {config.copy.friends.selfRow}
+              </p>
+            </div>
+            <div className="mt-4 pb-16">
+              <RarestShowcase
+                heading={config.copy.friends.rarestOwn}
+                caughtSongIds={[...dex.perSong.values()]
+                  .filter((s) => s.sightings > 0)
+                  .map((s) => s.songId)}
+                rarity={rarity}
+                archive={archive}
+              />
+            </div>
+          </>
+        )}
+      </Sheet>
     </div>
   );
 }

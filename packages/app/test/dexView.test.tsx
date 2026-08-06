@@ -6,6 +6,7 @@ import {
   renderHook,
   screen,
   waitFor,
+  waitForElementToBeRemoved,
   within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -91,6 +92,23 @@ const { stubArchive, stubAlbums } = vi.hoisted(() => ({
 
 vi.mock("@archive", () => ({ default: stubArchive }));
 vi.mock("@dexAlbums", () => ({ default: stubAlbums }));
+
+/**
+ * The Friends segment body is stubbed down to its ONE relevant affordance: the
+ * `onOpenSelf` callback. `DexView` — not `FriendsList` — owns the trophy-case
+ * overlay, so the real list contributes nothing to the exit-window cases below
+ * while pulling in Supabase identity, the shared presence store and the friends
+ * pull. Every other case in this file renders the Albums or Shows segment and
+ * never reaches this component. `motion/react` is deliberately NOT mocked
+ * anywhere in this file — see the exit-window block at the bottom.
+ */
+vi.mock("../src/dex/FriendsList.tsx", () => ({
+  FriendsList: ({ onOpenSelf }: { onOpenSelf: () => void }) => (
+    <button type="button" data-testid="open-self-case" onClick={onOpenSelf}>
+      open trophy case
+    </button>
+  ),
+}));
 
 const { config } = await import("../src/config.ts");
 const { db } = await import("../src/db/db.ts");
@@ -314,5 +332,83 @@ describe("artifact loaders guard schemaVersion (T-06-12, never throw)", () => {
     const res = loadDexAlbums();
 
     expect(res.ok).toBe(false);
+  });
+});
+
+/**
+ * Phase-22 plan 04, Task 3 — the D-21 FULLSCREEN exemplar.
+ *
+ * `DexView`'s own trophy case is the one `fullscreen` `<Sheet>` converted from
+ * unmount-driven to prop-driven, because every fullscreen consumer was in the
+ * unmount-driven set and D-26's fullscreen exit fade therefore had no live
+ * consumer to device-verify. These two cases assert the property that conversion
+ * buys and nothing else: the sheet element is mounted even while closed (so
+ * `AnimatePresence` owns its lifecycle), and closing it RETAINS the node for the
+ * exit window instead of destroying it synchronously.
+ *
+ * ⚠ THE BLOCK NAME BELOW IS LOAD-BEARING. It is what plan 22-09's revert
+ * procedure 1 step (b) deletes if the sanctioned enter-only fallback is taken on
+ * device night: these assertions describe an exit window that would no longer
+ * exist, and because they live OUTSIDE the 22-02 exit commit, `git revert` cannot
+ * remove them. Do not rename it without updating that procedure.
+ *
+ * ⚠ `motion/react` is NOT mocked here, on purpose. The shipped pass-through
+ * double renders children immediately and never defers unmount, so it would pass
+ * whether or not the conversion worked — the real library is the only thing that
+ * can tell "prop-driven, exit-animated" apart from "parent stopped rendering it".
+ *
+ * ⚠ Removal is awaited on the CAPTURED NODE, never `queryByRole` (plan 22-02
+ * deviation 3). `*ByRole` ignores `aria-hidden` subtrees by default, and the D-19
+ * close-start contract puts `aria-hidden="true"` on the exiting card — so a role
+ * query returns `null` the instant the contract WORKS, and
+ * `waitForElementToBeRemoved(() => screen.queryByRole("dialog"))` is a SILENT
+ * false green that never observes removal at all.
+ */
+describe("fullscreen sheet exit window (reverts with the 22-02 exit commit)", () => {
+  beforeEach(clearTables);
+  afterEach(cleanup);
+
+  const trophyName = config.copy.friends.rarestOwn;
+
+  /** Render the dex, switch to Friends, and return once the shelf has settled. */
+  async function openDexOnFriends() {
+    render(<DexView />);
+    await waitFor(() => expect(screen.getAllByTestId("album-card").length).toBe(5));
+    fireEvent.click(screen.getByRole("button", { name: config.copy.friends.segment }));
+    return screen.getByTestId("open-self-case");
+  }
+
+  it("keeps the sheet element mounted while closed, rendering zero DOM nodes", async () => {
+    await openDexOnFriends();
+
+    // The element is now rendered unconditionally, but `open` is false — so
+    // `AnimatePresence` receives `false` as its child, `onlyElements` filters it,
+    // and NOTHING is appended to document.body. "Mounted component, zero nodes"
+    // is the only observable there is, and it is the right one: it pins that the
+    // conversion did not leave a permanently-painted overlay behind.
+    expect(screen.queryByRole("dialog", { name: trophyName })).toBeNull();
+    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it("retains the dialog node, aria-hidden, for the exit window after close", async () => {
+    const trigger = await openDexOnFriends();
+
+    fireEvent.click(trigger);
+    const dialog = await screen.findByRole("dialog", { name: trophyName });
+    expect(document.body.contains(dialog)).toBe(true);
+
+    // Close via the sheet's own 44px Back control.
+    fireEvent.click(screen.getByRole("button", { name: config.copy.friends.back }));
+
+    // SYNCHRONOUSLY, in the same tick the close was requested: the node is still
+    // painted (that is the exit window) and it has already left the accessibility
+    // tree (D-19 item 3). Containment is asserted FIRST — if the node had been
+    // destroyed, an aria-hidden assertion would be reading a detached element and
+    // the failure message would name the wrong defect.
+    expect(document.body.contains(dialog)).toBe(true);
+    expect(dialog.getAttribute("aria-hidden")).toBe("true");
+
+    // …and it does eventually leave. Waiting on the NODE, never a role query.
+    await waitForElementToBeRemoved(dialog, { timeout: 2000 });
   });
 });
