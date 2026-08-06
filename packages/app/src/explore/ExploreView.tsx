@@ -27,6 +27,7 @@ import { config } from "../config.ts";
 import { loadArchive } from "../dex/archive-loader.ts";
 import { useDexStats } from "../dex/useDexStats.ts";
 import { loadMatrix } from "../show/matrix.ts";
+import { ChromeToggle } from "./ChromeToggle.tsx";
 import { ConstellationCanvas } from "./ConstellationCanvas.tsx";
 import { ExploreFilterFab } from "./ExploreFilterFab.tsx";
 import { NodeSheet, type SheetBar } from "./NodeSheet.tsx";
@@ -142,6 +143,13 @@ export function ExploreView() {
 
   // Guarded-load failure → the calm error state (never a throw). Split from the
   // success path so the discriminated union narrows cleanly.
+  //
+  // PHASE-22 / CHROME-03: this early return DELIBERATELY renders no ChromeToggle,
+  // and that is not a hole in "always rendered". The toggle is the ONLY way into
+  // the chrome-hidden state, so on a path where it has never mounted the chrome
+  // cannot have been hidden — there is nothing to escape from. Mounting one here
+  // would instead reserve the header's toggle slot on a screen with no toggle.
+  // "Always rendered" means always rendered ALONGSIDE the mechanism it drives.
   if (!result.ok || !graphData) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
@@ -179,6 +187,15 @@ export function ExploreView() {
 
   return (
     <>
+      {/* CHROME-01/03 (D-01/D-02): FIRST child of the fragment, deliberately.
+          DOM order alone is what makes the toggle the first focusable element
+          inside <main>, and while the chrome is hidden the header is `inert`, so
+          it becomes the first focusable element in the DOCUMENT. That satisfies
+          CHROME-03's "always reachable" with NO positive `tabIndex` anywhere — a
+          `tabIndex > 0` jumps ahead of the whole document's natural order and
+          breaks the moment a modal opens. Do not reorder this below the canvas. */}
+      <ChromeToggle />
+
       <ConstellationCanvas
         graphData={graphData}
         focusId={focusId}
