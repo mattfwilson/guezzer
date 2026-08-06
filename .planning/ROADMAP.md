@@ -152,7 +152,32 @@ Plans:
   4. Chrome-hidden state is always escapable and never sticky: the exit control is always rendered, ≥44px, inside the safe area, and first in tab order; a cold boot never starts hidden; and the hidden chrome is removed from the accessibility tree rather than translated off-screen, so VoiceOver and keyboard users cannot tab into an invisible control (CHROME-03, CHROME-04).
   5. The add-to-home-screen instructions live at the bottom of Settings and hide once the app is installed, the top-right menu keeps a single neutral row that deep-links there, and installing from that relocated affordance is confirmed working on a real Android device (NAV-05, NAV-06).
 
-**Plans**: TBD
+**Plans**: 9 plans in 5 waves
+
+**Wave 1** — the sheet slice lands first and stays backable-out
+
+- [ ] 22-01-PLAN.md — Config/motion tokens + animated <Sheet> primitive (enter only)
+
+**Wave 2**
+
+- [ ] 22-02-PLAN.md — Sheet close-start contract + exit animation (one revertible commit)
+- [ ] 22-03-PLAN.md — beforeinstallprompt module singleton + shared isStandalone
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 22-04-PLAN.md — CR-02 SetlistView loading-vs-missing + the one fullscreen sheet conversion
+- [ ] 22-05-PLAN.md — Chrome-visibility store + --gz-tab-bar-box ladder + AppShell collapse
+- [ ] 22-06-PLAN.md — Settings install section + neutral menu row + focus-moving deep link
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 22-07-PLAN.md — ChromeToggle control + escapability + the one-resize assertion
+- [ ] 22-08-PLAN.md — CR-01 ordered bottom-overlay stacking + omission guard
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 22-09-PLAN.md — Capability meta tags (own commit) + 22-HUMAN-UAT.md device script
+
 **UI hint**: yes
 
 ### Phase 23: Immersive In-Show Experience
