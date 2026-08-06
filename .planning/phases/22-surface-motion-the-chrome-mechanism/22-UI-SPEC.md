@@ -1,10 +1,11 @@
 ---
 phase: 22
 slug: surface-motion-the-chrome-mechanism
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-08-05
+reviewed_at: 2026-08-05
 ---
 
 # Phase 22 — UI Design Contract
@@ -689,11 +690,16 @@ gate is not applicable.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS (with flag — see note)
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** APPROVED — 2026-08-05 (gsd-ui-checker)
+
+**Non-blocking flag (Dimension 4 — Typography):** the inherited app-wide scale is 5 steps
+across a 15px span (13 / 14 / 16 / 20 / 28); Caption (13) and Label (14) are the closest pair.
+This phase adds and changes no type — recorded as a **system-level** note for a future phase that
+revisits the scale, not a Phase 22 action.
