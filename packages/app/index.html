@@ -8,6 +8,30 @@
     />
     <meta name="theme-color" content="#0C0C10" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!--
+      Capability meta tags (phase 22, plan 22-09). Read this before "tidying" them.
+
+      1. `apple-mobile-web-app-capable` is formally DEPRECATED, and iOS 15.4+ honours the
+         manifest's `display: "standalone"` (set in vite.config.ts) for LAUNCH MODE. So the
+         tag's live effect here is NOT "makes the app launch standalone" — it is on the
+         STATUS-BAR STYLE.
+      2. The already-shipped `apple-mobile-web-app-status-bar-style="black-translucent"`
+         directly above has NO EFFECT until this tag is present, and Apple's reference states
+         that `black-translucent` displays web content on the entire screen, PARTIALLY
+         OBSCURED BY THE STATUS BAR. That is exactly the geometry CHROME-03 (the exit control
+         must be provably inside the safe area) and D-13 (the constellation stage starts below
+         the notch) depend on. This project has been bitten by top-inset math twice, so the
+         effect is verified on device before it is trusted: 22-HUMAN-UAT.md test 0 captures
+         `?layoutProbe=1` readings on a reinstalled instance both BEFORE and AFTER this change.
+      3. `mobile-web-app-capable` is added alongside purely to keep Chromium's deprecation
+         warning out of the console. It carries no behaviour of its own here.
+
+      These two lines are their own atomic commit so they can be reverted in isolation if the
+      device capture shows the status bar changing where app content begins. Reverting costs
+      only the iOS startup-image nicety — the manifest still drives standalone launch.
+    -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Gizz With Friends</title>
   </head>
