@@ -164,7 +164,7 @@ export function WaveToast() {
           initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
           animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: config.ui.motion.TOAST_DURATION_MS / 1000 }}
           className="pointer-events-none fixed inset-x-0 flex items-center gap-2 border-t border-hairline bg-elevated px-4 py-4"
           // D-09 / FOUND-02: the Tailwind bottom utility this replaces hard-coded
           // the tab bar's NOMINAL height from the viewport — one home-indicator

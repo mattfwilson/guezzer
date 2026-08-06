@@ -273,6 +273,22 @@ export const config = {
        */
       peek: 12,
       /**
+       * Phase-22 CHROME-01/03: the `AppShell` header and the `BottomTabBar`, in
+       * BOTH states. They carry `z: auto` today and paint by DOM order, which is
+       * fine while they are in flow — but the moment the hidden header goes out
+       * of flow to slide away it needs an EXPLICIT tier, or it paints over the
+       * `ChromeToggle` (`fab: 30`) and covers the user's only escape control for
+       * the whole 200ms hide (CHROME-03 regression guard: chrome < fab).
+       *
+       * Placed between `peek` (12) and `page` (15) to preserve both shipped
+       * relationships at once: the bingo peek panel must NOT cover the tab bar
+       * (peek < chrome), and a full-screen in-tree page such as RecapView must
+       * still cover the chrome (chrome < page). Nothing is renumbered — that is
+       * a standing ROADMAP constraint, and this tier was chosen to fit the
+       * existing ladder rather than to reshape it.
+       */
+      chrome: 14,
+      /**
        * Opaque full-screen PAGES rendered in-tree (e.g. RecapView) — above
        * content, but BELOW every modal/scrim tier. A full-screen opaque page
        * is NOT a scrim-backed modal, so it must never occupy the `sheet` tier:
@@ -358,6 +374,84 @@ export const config = {
        */
       SHEET_PAD_BOTTOM_PX: 32,
     },
+
+    /**
+     * Phase-22 (22-UI-SPEC §Motion Token Contract): THE surface-motion timings.
+     * Every animated chrome/sheet/toast surface reads its duration and easing
+     * from here — `WaveToast.tsx`'s hard-coded `transition={{ duration: 0.2 }}`
+     * was MOVED here rather than copied (D-25), and no consumer may re-introduce
+     * a numeric literal in a `transition`.
+     *
+     * Values are in MILLISECONDS — the unit every other timing constant in this
+     * file uses. `motion` takes SECONDS, so the `/ 1000` conversion happens at
+     * the consumer (`duration: config.ui.motion.SHEET_DURATION_MS / 1000`) and
+     * the config value stays in the file's one unit.
+     *
+     * 200ms is a CEILING, not a target to grow. D-24's reasoning is that the
+     * close-start window — the span in which a stray tap can land on a surface
+     * that is already on its way out — must stay short. Any future increase has
+     * to re-argue SHEET-02, not just edit a number.
+     *
+     * Named string easings (`"easeIn"` / `"easeOut"`) are chosen over
+     * cubic-bezier tuples deliberately: at 200ms the perceptual difference from
+     * a hand-tuned curve is nil, and a named easing states its intent here
+     * instead of requiring four magic numbers to be decoded.
+     */
+    motion: {
+      /** Sheet enter, sheet exit AND the scrim cross-fade — one duration, run in parallel (D-24). */
+      SHEET_DURATION_MS: 200,
+      /** Sheet enter + scrim fade-in — decelerates into place. */
+      SHEET_EASE_ENTER: "easeOut",
+      /** Sheet exit + scrim fade-out — accelerates away. */
+      SHEET_EASE_EXIT: "easeIn",
+      /** Header / tab-bar slide, both directions. */
+      CHROME_DURATION_MS: 200,
+      /** Chrome sliding out. */
+      CHROME_EASE_HIDE: "easeIn",
+      /** Chrome sliding in. */
+      CHROME_EASE_SHOW: "easeOut",
+      /** WaveToast's relocated `0.2` (D-25) — moved from the component, never copied. */
+      TOAST_DURATION_MS: 200,
+    },
+
+    /**
+     * Phase-22 CHROME-01: the `ChromeToggle` control's geometry. These exist so
+     * the toggle never inlines a bare number — it lives in `src/explore/`, the
+     * same directory as `ExploreFilterFab.tsx`, which is the SINGLE allowlisted
+     * bare-numeric mirror pinned by `test/bottomSpace.test.ts`'s
+     * `expect(sites).toEqual(["explore/ExploreFilterFab.tsx"])` case. A second
+     * bare numeric mirror in that directory fails that test — so the toggle's
+     * two numbers live here and travel to the call site as config reads.
+     */
+    chrome: {
+      /** Toggle diameter in px — the app's 44px one-thumb tap floor, exactly. */
+      CHROME_TOGGLE_SIZE_PX: 44,
+      /** Toggle slot in px = diameter + 8px breathing room (44 + 8). */
+      CHROME_TOGGLE_SLOT_PX: 52,
+    },
+
+    /**
+     * Phase-22 (folded todo CR-01): the DECLARED bottom-overlay stack order,
+     * BOTTOM-MOST FIRST. The Phase-21 store measures every registered overlay's
+     * height but has no ordering concept, so two visible overlays overlap while
+     * `<main>` over-reserves their sum. Each overlay offsets itself by the summed
+     * height of the visible overlays BELOW it in this list.
+     *
+     * `installBanner` is bottom-most because it is PERSISTENT rather than
+     * transient — it must not jump when a transient toast appears underneath it.
+     * `updateToast` sits directly above it as the safety surface that is never
+     * suppressed and never covered. The rest run most-persistent to
+     * most-transient. Consumed by the CR-01 offset work in plan 22-08; the
+     * registration ids here must match the `useBottomOverlayHeightRegistration`
+     * literals in `src/`, and an omission is a test failure, not a silent gap.
+     */
+    BOTTOM_OVERLAY_ORDER: [
+      "installBanner",
+      "updateToast",
+      "backupToast",
+      "bingoCelebration",
+      "waveToast",
+    ] as const,
 
     /**
      * Phase-16 (BINGO-05, D-16/D-17/D-18) Gizz-Bingo celebration timings —
@@ -949,6 +1043,28 @@ export const config = {
     installCta: "Install Gizz With Friends",
     installUnavailable:
       "Gizz With Friends can't auto-install here — add it from your browser menu instead.",
+    /**
+     * Phase-22 NAV-05 (22-UI-SPEC §Copywriting Contract) — the relocated install
+     * affordance: ONE Settings section owning ONE heading, plus the single
+     * neutral `AppMenu` row that deep-links to it (D-32/D-34). `androidCta` and
+     * `unavailable` are the shipped `installCta` / `installUnavailable` strings
+     * relocated verbatim; those two keys (and `iosInstall.heading`) still have
+     * live consumers and are retired together with them in plan 22-06, not here.
+     */
+    install: {
+      /** Settings section `<h2>` and the D-35 deep-link focus target. */
+      sectionHeading: "Add to Home Screen",
+      /** The two reasons that matter to this user: venue offline, and iOS IndexedDB eviction. */
+      sectionBody:
+        "Install Gizz With Friends on your home screen so it works offline at the show — and so your saved dex is safer.",
+      /** Android (beforeinstallprompt captured) — honest: this button really does install. */
+      androidCta: "Install Gizz With Friends",
+      /** Everything that is neither Android-promptable nor iOS Safari. */
+      unavailable:
+        "Gizz With Friends can't auto-install here — add it from your browser menu instead.",
+      /** The one neutral AppMenu row (D-34) — names the destination, not the action. */
+      menuRow: "Add to Home Screen",
+    },
     iosInstall: {
       heading: "Add Gizz With Friends to your Home Screen",
       steps: [
@@ -1173,6 +1289,18 @@ export const config = {
       showsEmptyBody: "Your tracked and marked shows land here.",
       /** Album-detail back control. */
       albumBack: "Back",
+      /**
+       * Phase-22 CR-02 — `SetlistView`'s two currently-conflated states.
+       * `useLiveQuery` returns `undefined` BOTH while resolving and when no row
+       * exists, so one branch served both and announced itself to VoiceOver as
+       * "Back" (`albumBack`) while offering no Back control. These split the two:
+       * a briefly-held loading frame with an honest name, and a labelled error
+       * state with a working Back control — the app's calm never-throw voice.
+       */
+      setlistLoading: "Loading show…",
+      setlistMissingHeading: "Couldn't open this show.",
+      setlistMissingBody:
+        "It isn't in the bundled archive or your offline cache. Go back and pick another show.",
       /**
        * Set-structure labels (SHOW-06 vocabulary "1"/"2"/"e"). Shared by the
        * retro-setlist history view (SetlistView, HIST-01) and the recap's
@@ -1753,6 +1881,16 @@ export const config = {
     explore: {
       /** Filter FAB accessible label (the FAB is deliberately not an accent CTA — D-09). */
       filterFabAria: "Explore filters",
+      /**
+       * Phase-22 CHROME-01 `ChromeToggle` accessible names (D-05). The label
+       * always names WHAT THE TAP WILL DO, never the current state — matching the
+       * app's shipped `aria-label="Menu"` / `"Close menu"` idiom. `aria-pressed`
+       * was deliberately rejected: the app has no existing `aria-pressed`
+       * control, and the one control that must never confuse anyone in the dark
+       * is the wrong place to introduce a new idiom.
+       */
+      chromeHide: "Hide bars",
+      chromeShow: "Show bars",
       /** Filter panel — segmented view toggle (Rotation default, D-03/D-12). */
       toggleRotation: "Rotation",
       toggleFull: "Full catalog",
