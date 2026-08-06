@@ -160,8 +160,8 @@ Plans:
 
 **Wave 2**
 
-- [ ] 22-02-PLAN.md — Sheet close-start contract + exit animation (one revertible commit)
-- [ ] 22-03-PLAN.md — beforeinstallprompt module singleton + shared isStandalone
+- [x] 22-02-PLAN.md — Sheet close-start contract + exit animation (one revertible commit)
+- [x] 22-03-PLAN.md — beforeinstallprompt module singleton + shared isStandalone
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -267,7 +267,7 @@ This is the research's own stated rationale followed through: validating the mec
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete | 2026-07-24 |
 | 20. Presence & Interactions | v2.0 | 5/5 | Complete | 2026-07-24 |
 | 21. Layout & Layering Foundations | v2.1 | 13/13 | Complete    | 2026-08-05 |
-| 22. Surface Motion & the Chrome Mechanism | v2.1 | 1/10 | In Progress|  |
+| 22. Surface Motion & the Chrome Mechanism | v2.1 | 3/10 | In Progress|  |
 | 23. Immersive In-Show Experience | v2.1 | 0/? | Not started | - |
 | 24. Reactions & Small Polish | v2.1 | 0/? | Not started | - |
 
