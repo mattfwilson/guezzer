@@ -35,6 +35,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 let reduced = false;
 vi.mock("motion/react", () => ({
   useReducedMotion: () => reduced,
+  // Always PRESENT. This file proves prop SHAPE, not timing: `exit` props are
+  // authored identically whether or not the surface is currently exiting, and the
+  // presence-derived close-start values (aria-hidden / pointer-events / the scrim
+  // handler) are deliberately out of scope here — `sheet.closeStart.test.tsx` owns
+  // them, against the real library, for the §Pitfall 14 reason in the header.
+  useIsPresent: () => true,
   AnimatePresence: ({ children }: { children: ReactNode }) => children,
   motion: new Proxy(
     {},
@@ -47,6 +53,12 @@ vi.mock("motion/react", () => ({
               animate,
               exit,
               transition,
+              // Stripped, not re-emitted: `onAnimationComplete` is a `motion`-only
+              // prop and React DOM would warn "Unknown event handler property" if it
+              // reached a plain <div>. Its D-27 behaviour is proven in
+              // `sheet.a11y.test.tsx` / `sheet.closeStart.test.tsx` against the real
+              // library, where the animation that completes actually exists.
+              onAnimationComplete: _onAnimationComplete,
               ...rest
             }: Record<string, unknown>,
             ref: unknown,

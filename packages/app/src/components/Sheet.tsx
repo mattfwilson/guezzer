@@ -71,10 +71,15 @@
  * The primitive deliberately owns NO scroll internals, drag geometry, or content
  * layout — those stay in each sheet so it never over-abstracts.
  */
-import { useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { ReactNode, RefObject } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useIsPresent,
+  useReducedMotion,
+} from "motion/react";
 import { config } from "../config.ts";
 import { useDialogDismiss } from "./a11y/useDialogDismiss.ts";
 import { useFocusTrap } from "./a11y/useFocusTrap.ts";
@@ -116,7 +121,10 @@ export function Sheet({
   // therefore fires in the same commit `open` flips, which is what plan 22-02's
   // close-start teardown (D-19 items 1 and 2) is built on. Do not move them down
   // into `SheetSurface`.
-  useFocusTrap(contentRef, { active: open && modal, initialFocusRef });
+  const { focusInitialTarget } = useFocusTrap(contentRef, {
+    active: open && modal,
+    initialFocusRef,
+  });
   useDialogDismiss(open, onClose);
 
   if (typeof document === "undefined") return null;
@@ -138,6 +146,7 @@ export function Sheet({
         <SheetSurface
           key="sheet"
           contentRef={contentRef}
+          focusInitialTarget={focusInitialTarget}
           onClose={onClose}
           ariaLabel={ariaLabel}
           variant={variant}
@@ -154,6 +163,8 @@ export function Sheet({
 
 interface SheetSurfaceProps {
   contentRef: RefObject<HTMLDivElement | null>;
+  /** D-27: focuses `initialFocusRef` at enter-END. Stable identity (see the hook). */
+  focusInitialTarget: () => void;
   onClose: () => void;
   ariaLabel: string;
   variant: "bottom-sheet" | "fullscreen";
@@ -182,6 +193,7 @@ interface SheetSurfaceProps {
  */
 function SheetSurface({
   contentRef,
+  focusInitialTarget,
   onClose,
   ariaLabel,
   variant,
@@ -189,8 +201,58 @@ function SheetSurface({
   backdrop,
   children,
 }: SheetSurfaceProps) {
+  // ⚠ §Pitfall 14 — THE reason this component exists. An exiting `AnimatePresence`
+  // child renders from a FROZEN React element: anything computed in `Sheet`'s render
+  // from `open` is baked in at `open === true` and stays that way for the entire exit
+  // window. `useIsPresent()` reads a CONTEXT value that `PresenceChild` re-creates
+  // when presence flips, so it is the one signal that actually changes on exit.
+  // EVERY presence-dependent value below must derive from this, never from `open`.
+  const isPresent = useIsPresent();
+
   // `useReducedMotion()` is typed `boolean | null` — normalise before branching.
   const reduce = useReducedMotion() ?? false;
+
+  // ── D-27: the `initialFocusRef` focus move, deferred to enter-END ───────────
+  //
+  // WHY it is deferred at all: `SettingsView`'s name input and `PinSheet`'s label
+  // input open the iOS keyboard, and focusing a TRANSLATING element races two layout
+  // changes on the platform where this app's viewport math has already misfired
+  // twice. Accepted cost: ~200ms before the user can type. `useFocusTrap` still moves
+  // focus to the first focusable at enter-START, so nobody is ever stranded outside
+  // the trap mid-animation.
+  //
+  // WHY a fallback timer and not `onAnimationComplete` alone (T-22-21): if the
+  // animation is interrupted, cancelled, or never scheduled — a backgrounded tab, a
+  // future `MotionConfig skipAnimations` — the completion callback may never fire and
+  // the input would never be focused, stranding the user in a text-entry sheet they
+  // cannot type into. Focusing an already-focused element is a no-op, so a
+  // double-fire is harmless; a never-fire is not. Whichever path wins clears the
+  // other.
+  const isPresentRef = useRef(isPresent);
+  isPresentRef.current = isPresent;
+  const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearFocusFallback = useCallback(() => {
+    if (fallbackRef.current !== null) {
+      clearTimeout(fallbackRef.current);
+      fallbackRef.current = null;
+    }
+  }, []);
+  useEffect(() => {
+    fallbackRef.current = setTimeout(() => {
+      fallbackRef.current = null;
+      if (isPresentRef.current) focusInitialTarget();
+    }, config.ui.motion.SHEET_DURATION_MS);
+    return clearFocusFallback;
+  }, [focusInitialTarget, clearFocusFallback]);
+
+  // Pitfall 12: `onAnimationComplete` fires for the EXIT too — `motion-dom` notifies
+  // "AnimationComplete" for any definition. The guard MUST be `isPresent`, never
+  // `open`: an `if (open)` guard is itself frozen on the exiting element (§Pitfall 14)
+  // and would yank focus back into a sheet that is already gone.
+  const onCardAnimationComplete = () => {
+    clearFocusFallback();
+    if (isPresent) focusInitialTarget();
+  };
 
   // D-25: the duration and easing are READ FROM CONFIG, never written as a literal.
   // `motion` takes seconds; the config value stays in ms (the unit every other
@@ -264,6 +326,7 @@ function SheetSurface({
         }}
         {...cardMotion}
         transition={transition}
+        onAnimationComplete={onCardAnimationComplete}
       >
         {/* The card no longer carries `pointer-events-auto` or an `onClick`
             stopPropagation. Both existed only because the scrim used to be this
