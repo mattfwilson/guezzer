@@ -44,8 +44,8 @@
  * `aria-hidden`, and card and scrim both stop being pointer targets. Only
  * `AnimatePresence`'s DOM removal waits for the ~200ms animation.
  *
- * **Backing it out (D-17/D-18).** The `exit` variants, the presence-derived `closing`
- * bundle, the scrim's presence-derived `onClick` and
+ * **Backing it out (D-17/D-18).** The `exit` variants, the presence-derived
+ * `closingAriaHidden` / `closingPointerEvents` values, the scrim's presence-derived `onClick` and
  * `packages/app/test/sheet.closeStart.test.tsx` all landed in ONE commit, so a single
  * `git revert` restores the sanctioned enter-only ship: close behaviour reverts to
  * immediate removal, and no orphaned test is left asserting an exit window that no
@@ -307,10 +307,22 @@ function SheetSurface({
   // swallowed by a ghost. `isPresent` is the only signal that actually flips, and it
   // SELF-CORRECTS on re-open (D-22 interrupt-and-reverse): there is no imperative
   // attribute left behind to undo, because nothing was ever imperatively set.
-  const closing = {
-    "aria-hidden": isPresent ? undefined : (true as const),
-    style: { pointerEvents: isPresent ? undefined : ("none" as const) },
-  };
+  //
+  // 22-REVIEW WR-08 — TWO NAMED VALUES, ONE CONSUMER EACH, rather than one
+  // two-key bundle consumed three different ways. The bundle was spread whole
+  // onto the card (`{...closing}`) AND had its `style` half re-spread inside the
+  // card's own explicit `style` prop, which overwrites the spread key — so only
+  // the `aria-hidden` half of the spread ever applied and the `style` half was
+  // dead. The scrim meanwhile took `...closing.style` alone and hard-coded
+  // `aria-hidden="true"`. Three consumptions of one object across three sites is
+  // what four separate plans editing this file (22-01, 22-02, 22-08, 22-10)
+  // accumulated, and the shape actively invited the wrong tidy-up: anyone
+  // removing the "duplicate" `...closing.style` from the explicit `style` object
+  // would reasonably assume `{...closing}` already covered it, silently dropping
+  // `pointer-events: none` from the exiting card. Naming the two halves makes
+  // that edit impossible to make by accident.
+  const closingAriaHidden = isPresent ? undefined : (true as const);
+  const closingPointerEvents = isPresent ? undefined : ("none" as const);
 
   const dialogProps = {
     ref: contentRef,
@@ -358,11 +370,14 @@ function SheetSurface({
         <motion.div
           key="sheet-scrim"
           className="fixed inset-0 bg-black/50"
-          style={{ zIndex: config.ui.z.sheetScrim, ...closing.style }}
+          style={{
+            zIndex: config.ui.z.sheetScrim,
+            pointerEvents: closingPointerEvents,
+          }}
           // Decorative dimmer with no name and no content. Safe to hide from AT
           // ONLY because it is now a SIBLING of the dialog — as the card's former
-          // parent it would have hidden the dialog with it. Already unconditionally
-          // hidden, so it takes only the `style` half of `closing`.
+          // parent it would have hidden the dialog with it. Already
+          // unconditionally hidden, so it takes only the pointer-events half.
           aria-hidden="true"
           // Pitfall 4b — TWO mechanisms, ONE contract. The inline
           // `pointer-events: none` above is what makes the exiting scrim
@@ -381,7 +396,7 @@ function SheetSurface({
       )}
       <motion.div
         {...dialogProps}
-        {...closing}
+        aria-hidden={closingAriaHidden}
         key="sheet-card"
         className={
           variant === "fullscreen"
@@ -401,7 +416,7 @@ function SheetSurface({
           // Pitfall 4c: `pointer-events: none` on an ancestor does NOT override a
           // descendant that sets `auto`, and these two are siblings anyway — the
           // card needs its own copy, not the scrim's.
-          ...closing.style,
+          pointerEvents: closingPointerEvents,
         }}
         {...cardMotion}
         transition={transition}
