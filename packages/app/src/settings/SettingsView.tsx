@@ -20,13 +20,19 @@ import {
   ShieldCheck,
   Upload,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { config } from "../config.ts";
 import { Sheet } from "../components/Sheet.tsx";
 import { CompareView } from "../dex/CompareView.tsx";
 import { getMeta, setMeta, todayIso } from "../db/db.ts";
 import type { PersistStatus } from "../pwa/persist.ts";
 import { exportBackup } from "./exportDownload.ts";
+import { InstallSection } from "./InstallSection.tsx";
+import {
+  getInstallSectionFocusServerSnapshot,
+  getInstallSectionFocusSnapshot,
+  subscribeInstallSectionFocus,
+} from "./installSectionFocus.ts";
 import {
   classifyImport,
   openBackupFilePicker,
@@ -56,6 +62,36 @@ export function SettingsView() {
   const [resetDone, setResetDone] = useState(false);
   // A11Y-01 (08-03): focus the name field on open via the <Sheet> initialFocusRef.
   const promptInputRef = useRef<HTMLInputElement>(null);
+
+  // D-35 deep link: AppMenu's "Add to Home Screen" row bumps a counter in
+  // ./installSectionFocus and navigates here; this view scrolls the install
+  // section into view and moves focus onto its heading. It is a COUNTER, not a
+  // one-shot boolean consumed at mount, because `navigate()` assigning the SAME
+  // hash fires no `hashchange` — a user already on #/settings would otherwise
+  // get nothing at all (Pitfall 10).
+  const installFocusRequest = useSyncExternalStore(
+    subscribeInstallSectionFocus,
+    getInstallSectionFocusSnapshot,
+    getInstallSectionFocusServerSnapshot,
+  );
+  const installHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  // PASSIVE useEffect, deliberately NOT useLayoutEffect. Closing AppMenu
+  // restores focus to the header Menu button at close-START, inside the CURRENT
+  // commit; this view mounts (or re-renders on the new counter) in a LATER
+  // commit, so a passive effect runs strictly after that restore and is not
+  // clobbered by it. A layout effect could interleave and lose the focus move.
+  useEffect(() => {
+    // 0 is "never requested" — do not steal focus on a plain visit to Settings.
+    if (installFocusRequest === 0) return;
+    // Both calls are optional: the section renders NOTHING once the app is
+    // installed (D-34's shared gate also hides the menu row, so this is
+    // unreachable in practice rather than a dangling target), and jsdom has no
+    // `scrollIntoView` at all. Never-throw house style — a missing target is a
+    // silent no-op, not an exception on a Settings render.
+    installHeadingRef.current?.scrollIntoView?.({ block: "start" });
+    installHeadingRef.current?.focus();
+  }, [installFocusRequest]);
 
   // Reactive read of the persistence status recorded by requestPersistenceOnce
   // (Plan 04). `undefined` while loading is treated as "not yet protected".
@@ -318,6 +354,12 @@ export function SettingsView() {
           )}
         </div>
       </section>
+
+      {/* NAV-05 / D-32: the relocated add-to-home-screen affordance is the LAST
+          section on this surface — below owner identity, data/export and the
+          rotation reset. Inherits the column's `gap-6` and `pb-16`; it adds no
+          spacing of its own. Renders nothing at all once installed (D-34). */}
+      <InstallSection headingRef={installHeadingRef} />
 
       {/* Import fork surfaces (D-17) — component state, no new routes, no writes. */}
 
