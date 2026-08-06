@@ -512,6 +512,17 @@ describe("FOUND-03: no modal sheet-tier surface may sit inside a stacking contex
     // This is the control that proves the diagnosis is nesting rather than tier
     // numbering (21-HUMAN-UAT §7's "negative cases"). <Sheet> uses the identical
     // sheetScrim/sheet values and passes the invariant, because it portals.
+    //
+    // Phase-22 SHEET-01 amended this case DELIBERATELY. <Sheet> no longer portals a
+    // scrim wrapper with the card nested inside it: the scrim and the card are now
+    // SIBLINGS (OQ2 — a scrim PARENT animating `opacity: 0 → 1` would drag the
+    // card's rendered opacity with it, and the UI-SPEC requires the card to
+    // translate with its opacity untouched). So `dialog.parentElement` is
+    // `document.body`, and the card IS its own surface root.
+    //
+    // The assertion below is strictly STRONGER than the nested form it replaces:
+    // <Sheet> now portals a PAIR of siblings that compete at body level, so BOTH
+    // must clear the invariant on their own rather than one riding on the other.
     const { container } = render(
       <WithBackground>
         <Sheet open onClose={vi.fn()} ariaLabel="Control sheet">
@@ -521,12 +532,21 @@ describe("FOUND-03: no modal sheet-tier surface may sit inside a stacking contex
     );
 
     const dialog = screen.getByRole("dialog");
-    // <Sheet>'s surface root is the scrim wrapper it portals, NOT the dialog card
-    // nested inside it — see the note on expectNoStackingAncestors.
-    const surfaceRoot = dialog.parentElement!;
-    expect(surfaceRoot.style.zIndex).toBe(String(config.ui.z.sheetScrim));
-    expectNoStackingAncestors(surfaceRoot, "<Sheet> primitive");
-    expectEscapesContentTree(surfaceRoot, container, "<Sheet> primitive");
+    const scrim = document.querySelector<HTMLElement>(".bg-black\\/50")!;
+
+    // Each sibling carries its own tier, inline, as the compositor sees it.
+    expect(dialog.style.zIndex).toBe(String(config.ui.z.sheet));
+    expect(scrim.style.zIndex).toBe(String(config.ui.z.sheetScrim));
+
+    // Both clear the invariant independently …
+    expectNoStackingAncestors(dialog, "<Sheet> card");
+    expectNoStackingAncestors(scrim, "<Sheet> scrim");
+    expectEscapesContentTree(dialog, container, "<Sheet> card");
+    expectEscapesContentTree(scrim, container, "<Sheet> scrim");
+
+    // … and both really did travel to body level, together.
+    expect(dialog.parentElement).toBe(document.body);
+    expect(scrim.parentElement).toBe(document.body);
   });
 
   it("holds for EVERY modal dialog in the DOM, discovered via aria-modal (D-26)", () => {
