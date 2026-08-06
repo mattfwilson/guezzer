@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: UX/UI Polish
 status: executing
-stopped_at: Phase 22 UI-SPEC approved
-last_updated: "2026-08-06T03:26:29.498Z"
-last_activity: 2026-08-06 -- Phase 22 planning complete
+stopped_at: Phase 22 planned — 10 plans, 5 waves
+last_updated: "2026-08-06T04:14:46.773Z"
+last_activity: 2026-08-06 -- Phase 22 execution started
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 13
+  total_plans: 23
   completed_plans: 13
   percent: 25
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24 after v2.0 milestone close)
 
 **Core value:** At a live show, with one thumb, in the dark, the user can see credible next-song predictions and log the setlist as it happens — fully offline once loaded.
-**Current focus:** Phase 22 — surface-motion-&-the-chrome-mechanism (not yet discussed)
+**Current focus:** Phase 22 — surface-motion-the-chrome-mechanism
 
 ## Current Position
 
-Phase: 22
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-08-06 -- Phase 22 planning complete
+Phase: 22 (surface-motion-the-chrome-mechanism) — EXECUTING
+Plan: 1 of 10
+Status: Executing Phase 22
+Last activity: 2026-08-06 -- Phase 22 execution started
 
 **Carried into Phase 22 — read before planning:**
 
@@ -342,9 +342,9 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-17 (owner-app
 
 ## Session Continuity
 
-Last session: 2026-08-06T00:29:45.157Z
-Stopped at: Phase 22 UI-SPEC approved
-Resume file: .planning/phases/22-surface-motion-the-chrome-mechanism/22-UI-SPEC.md
+Last session: 2026-08-06T03:26:51.375Z
+Stopped at: Phase 22 planned — 10 plans, 5 waves
+Resume file: .planning/phases/22-surface-motion-the-chrome-mechanism/22-01-PLAN.md
 
 ## Operator Next Steps
 
