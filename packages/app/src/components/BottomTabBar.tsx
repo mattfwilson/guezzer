@@ -29,8 +29,7 @@ export function BottomTabBar() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 flex items-stretch justify-around border-t border-hairline bg-elevated"
-      // FOUND-02: the bar's height IS the chrome reserve — this side and AppShell's
-      // <main> now read the SAME `--gz-chrome-reserve` from the one owner in
+      // FOUND-02: both this side and AppShell's <main> read the ONE owner in
       // layout/bottomSpace.ts, so they cannot drift. The home-indicator gutter is
       // subtracted back out as padding, leaving the button area at the bar's height
       // minus its own inset (border-box) — geometrically identical to what shipped.
@@ -38,8 +37,16 @@ export function BottomTabBar() {
       // bottom reservation ... no dead gap"; the plan-21-04 measurement proved otherwise
       // (FOUND-01, CONFIRMATION BRANCH: body's bottom inset was double-counted
       // against this bar, leaving a dead gap of exactly one safe-area inset).
+      //
+      // PHASE-22 SPLIT (CHROME-01, 22-RESEARCH Pitfall 6): through Phase 21 this read
+      // `--gz-chrome-reserve`, which was correct while that variable meant "how tall
+      // the bar is". It now means "how much bottom space the chrome OCCUPIES" and
+      // collapses to a bare safe-area strip when chrome hides. The bar's own box must
+      // NOT collapse with it — a squashed box's `translateY(100%)` no longer clears the
+      // viewport, leaving a visible sliver that still looks reachable. So the height
+      // reads `--gz-tab-bar-box`, which never collapses. Same arithmetic, own name.
       style={{
-        height: "var(--gz-chrome-reserve)",
+        height: "var(--gz-tab-bar-box)",
         paddingBottom: "var(--gz-safe-bottom)",
       }}
     >

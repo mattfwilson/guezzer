@@ -3,6 +3,7 @@ import { Menu } from "lucide-react";
 import { BottomTabBar } from "./BottomTabBar";
 import { IdentityAvatar } from "../auth/IdentityAvatar.tsx";
 import { useBottomSpaceVars } from "../layout/bottomSpace.ts";
+import { useChromeVisible } from "../layout/chromeVisibility.ts";
 
 export function AppShell({
   children,
@@ -28,7 +29,14 @@ export function AppShell({
   // underneath one of those overlays. See pwa/bottomOverlayInset.ts — that
   // module still does the measuring; useBottomSpaceVars() now consumes it in
   // this component's place.
-  useBottomSpaceVars();
+  //
+  // Phase-22 D-12/CHROME-01: the Phase-21 D-16 `chromeVisible` seam is now a REAL
+  // input, read from the shared store in layout/chromeVisibility.ts. ONE read, ONE
+  // commit — the `setProperty` calls below land in the same React commit as every
+  // other part of the collapse, which is what makes CHROME-05's "exactly one resize"
+  // true by construction rather than by debouncing.
+  const chromeVisible = useChromeVisible();
+  useBottomSpaceVars(chromeVisible);
 
   // Bug fix (debug session: start-show-not-clickable) — height is `h-full`
   // ONLY, never `min-h-screen`. The `html/body/#root { height:100% }` chain

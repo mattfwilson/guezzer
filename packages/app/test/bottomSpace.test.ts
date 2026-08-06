@@ -80,7 +80,7 @@ describe("bottomSpace composition reads config, never literals", () => {
     expect(vars(48)["--gz-overlay-inset"]).toBe("48px");
   });
 
-  it("emits exactly the six declared names, in composition order", () => {
+  it("emits exactly the seven declared names, in composition order", () => {
     expect(bottomSpaceVarEntries(0).map(([name]) => name)).toEqual([
       ...BOTTOM_SPACE_VAR_NAMES,
     ]);
@@ -93,10 +93,28 @@ describe("bottomSpace composition reads config, never literals", () => {
   });
 });
 
-describe("D-02: chrome reserve and content reserve are two different things", () => {
-  it("--gz-chrome-reserve is the tab bar alone, with no overlay term", () => {
+describe("D-02: the bar's box, the chrome reserve and the content reserve are three different things", () => {
+  it("--gz-tab-bar-box is the bar's own box — the arithmetic did not move, only its name", () => {
+    // Phase-22 CHROME-01 split (22-RESEARCH Pitfall 6). Through Phase 21 this exact
+    // string WAS `--gz-chrome-reserve`; the bar's height and the space the chrome
+    // occupies were the same number. They diverge the moment chrome can hide.
+    expect(vars(0)["--gz-tab-bar-box"]).toBe(
+      "calc(var(--gz-tab-bar-h) + var(--gz-safe-bottom))",
+    );
+  });
+
+  it("--gz-tab-bar-box NEVER collapses — it is identical in both chrome states", () => {
+    // The bar must keep its full height when the reserve collapses, or
+    // `translateY(100%)` of a squashed box no longer clears the viewport and leaves
+    // a visible sliver that still looks reachable.
+    expect(vars(0, false)["--gz-tab-bar-box"]).toBe(
+      vars(0, true)["--gz-tab-bar-box"],
+    );
+  });
+
+  it("--gz-chrome-reserve is the bar's box alone, with no overlay term", () => {
     const chrome = vars(0)["--gz-chrome-reserve"];
-    expect(chrome).toBe("calc(var(--gz-tab-bar-h) + var(--gz-safe-bottom))");
+    expect(chrome).toBe("var(--gz-tab-bar-box)");
     expect(chrome).not.toContain("--gz-overlay-inset");
   });
 
@@ -256,11 +274,14 @@ describe("the two converted surfaces read the owner's variables", () => {
     expect(style).not.toContain("var(--gz-content-reserve)");
   });
 
-  it("<nav> sizes itself from the chrome reserve and gutters with the safe-area inset", () => {
+  it("<nav> sizes itself from the never-collapsing bar box and gutters with the safe-area inset", () => {
     const { container } = render(createElement(BottomTabBar));
     const style = container.querySelector("nav")!.getAttribute("style")!;
-    expect(style).toContain("var(--gz-chrome-reserve)");
+    expect(style).toContain("var(--gz-tab-bar-box)");
     expect(style).toContain("var(--gz-safe-bottom)");
+    // Phase-22 CHROME-01: a future edit must not silently re-couple the bar's height
+    // to the COLLAPSING reserve — that squashes the bar instead of sliding it clear.
+    expect(style).not.toContain("var(--gz-chrome-reserve)");
   });
 });
 
