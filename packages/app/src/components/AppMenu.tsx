@@ -1,8 +1,8 @@
-import { Settings, X } from "lucide-react";
+import { Settings, Smartphone, X } from "lucide-react";
 import { config } from "../config";
 import { useInstallState } from "../pwa/install/useInstallState";
 import { navigate } from "../routing/useHashRoute";
-import { IosInstallInstructions } from "./IosInstallInstructions";
+import { requestInstallSectionFocus } from "../settings/installSectionFocus";
 import { Sheet } from "./Sheet";
 import { VersionStamp } from "./VersionStamp";
 
@@ -12,21 +12,37 @@ interface AppMenuProps {
 }
 
 /**
- * Menu/about sheet housing the permanent Install entry (D-03: the
- * always-available fallback after banner dismissal) and a version-stamp
- * slot (wired in Plan 03). Secondary surface, rows >= 44px per UI-SPEC.
+ * Menu/about sheet: a short list of neutral navigation rows plus a
+ * version-stamp slot (wired in Plan 03). Secondary surface, rows >= 44px per
+ * UI-SPEC.
+ *
+ * ## Phase-22 NAV-05: this surface no longer installs anything
+ *
+ * It used to hold THREE install affordances at once — a gold "Install Gizz
+ * With Friends" button, the inline illustrated iOS steps, and a fallback
+ * paragraph for everything else — which is most of a screen of install UI in a
+ * menu. All three moved into ONE platform-adaptive section at the bottom of
+ * Settings (`settings/InstallSection.tsx`, D-32); what remains here is a single
+ * neutral row that NAVIGATES there.
+ *
+ * Retiring the accent fill matters and is not incidental tidying: this app
+ * spends at most ONE accent CTA per surface, that CTA is Export over in
+ * Settings, and every other row in this menu is neutral. A gold button here was
+ * the loudest thing on a surface whose job is to get out of the way.
  */
 export function AppMenu({ open, onClose }: AppMenuProps) {
-  const { canInstall, promptInstall, isIos } = useInstallState();
+  // D-34: the SAME gate `InstallSection` uses, read from the same singleton
+  // store — the row and the section it links to can never disagree about
+  // whether the app is already installed.
+  const { isInstalled } = useInstallState();
 
+  // D-35: signal FIRST, then navigate. `navigate()` assigns `location.hash`,
+  // and assigning the same hash fires no `hashchange` — the counter store is
+  // what makes the row work for a user already sitting on #/settings.
   const handleInstallClick = () => {
-    if (canInstall) {
-      void promptInstall();
-      onClose();
-    }
-    // iOS: the illustrated steps are rendered inline below (D-04). For
-    // anything ambiguous (not installable, not iOS) the fallback copy below
-    // covers it — the row intentionally stays a no-op tap in that case.
+    requestInstallSectionFocus();
+    navigate("settings");
+    onClose();
   };
 
   // D-14: the always-available Settings entry point — no 4th bottom tab. The
@@ -52,13 +68,19 @@ export function AppMenu({ open, onClose }: AppMenuProps) {
         </button>
       </div>
 
-      <button
-        type="button"
-        onClick={handleInstallClick}
-        className="mt-3 flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-4 text-[14px] font-semibold text-surface"
-      >
-        {config.copy.installCta}
-      </button>
+      {/* NAV-05 / D-34: ONE row, and it names its DESTINATION rather than an
+          action — tapping it navigates, it does not install. Hidden entirely
+          once installed, by the same gate that hides the section it links to. */}
+      {!isInstalled && (
+        <button
+          type="button"
+          onClick={handleInstallClick}
+          className="mt-3 flex min-h-11 w-full items-center gap-3 rounded-md border border-hairline px-4 text-[14px] font-semibold text-text-primary"
+        >
+          <Smartphone size={20} />
+          {config.copy.install.menuRow}
+        </button>
+      )}
 
       {/* D-14: Settings entry (gear icon) → #/settings. Neutral row styling
           (min-h-11), never accent — the one gold CTA stays Export in-view. */}
@@ -70,18 +92,6 @@ export function AppMenu({ open, onClose }: AppMenuProps) {
         <Settings size={20} />
         {config.copy.settings.menuLabel}
       </button>
-
-      {isIos && (
-        <div className="mt-3 border-t border-hairline pt-3">
-          <IosInstallInstructions />
-        </div>
-      )}
-
-      {!canInstall && !isIos && (
-        <p className="mt-3 text-[14px] leading-normal text-text-muted">
-          {config.copy.installUnavailable}
-        </p>
-      )}
 
       <div className="mt-3 border-t border-hairline pt-3">
         <VersionStamp />

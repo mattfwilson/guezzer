@@ -1048,8 +1048,16 @@ export const config = {
      * affordance: ONE Settings section owning ONE heading, plus the single
      * neutral `AppMenu` row that deep-links to it (D-32/D-34). `androidCta` and
      * `unavailable` are the shipped `installCta` / `installUnavailable` strings
-     * relocated verbatim; those two keys (and `iosInstall.heading`) still have
-     * live consumers and are retired together with them in plan 22-06, not here.
+     * relocated verbatim.
+     *
+     * ⚠ The duplication with `installCta` / `installUnavailable` /
+     * `iosInstall.heading` is DELIBERATE and permanent, not migration debt.
+     * Plan 22-06 expected to retire all three once `AppMenu` stopped reading
+     * them — but `InstallBanner` reads `installCta` and `installUnavailable`
+     * directly, and renders `IosInstallInstructions` (which reads
+     * `iosInstall.heading`) as the whole body of its iOS branch. D-37 keeps that
+     * banner byte-unmodified, so all three keys keep a live consumer. Deleting
+     * any of them breaks the banner; edit BOTH copies if the wording changes.
      */
     install: {
       /** Settings section `<h2>` and the D-35 deep-link focus target. */
