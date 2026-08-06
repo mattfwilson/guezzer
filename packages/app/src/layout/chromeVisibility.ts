@@ -113,6 +113,26 @@ export function useChromeToggleMounted(): boolean {
  * Shows / hides the app chrome. Early-returns when unchanged — the same
  * notify-loop discipline as `setBottomOverlayHeight`'s
  * `if (heights.get(id) === rounded) return;`.
+ *
+ * ⚠ UNENFORCED PRECONDITION (22-REVIEW WR-04, deferred to Phase 23 by
+ * 22-VERIFICATION.md): calling this with `false` while `toggleCount === 0` would
+ * enter a state with no visible escape control, no Escape handler (both live in
+ * `ChromeToggle`) and no reset on route change (the unregister that forces
+ * `visible = true` only runs when a count that was >= 1 drops to 0). In an
+ * installed PWA that is force-quit territory — the T-22-12 failure this whole
+ * module is shaped around.
+ *
+ * It is NOT reachable today: `ChromeToggle` is the sole caller, it is the sole
+ * entry into the hidden state, and it registers on mount before any click can
+ * reach this setter. So escapability holds by CO-LOCATION, not by construction.
+ *
+ * A `if (next === false && toggleCount === 0) return;` guard is deliberately NOT
+ * added here, because it would contradict D-12 above: this module owns the state
+ * and knows about no view, and Phase 23's consumer is specified as "auto-hide
+ * while tracking, NO BUTTON (D-03)" — a guard would force that button-less
+ * consumer to register a control it does not have. Phase 23 owns the structural
+ * fix, together with the requirement that says what its escape route is. Whatever
+ * that turns out to be, this setter is where it belongs.
  */
 export function setChromeVisible(next: boolean): void {
   if (visible === next) return;
