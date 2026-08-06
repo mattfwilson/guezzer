@@ -249,6 +249,64 @@ describe("Sheet A11Y-01 contract", () => {
     expect(appContent()!.inert).toBe(false);
   });
 
+  it("Escape stays on the TOPMOST when only the lower surface re-renders (WR-02)", () => {
+    // 22-REVIEW WR-02. `useDialogDismiss` used to depend on `[active, onClose]`,
+    // and `pushDialog` appends to the TOP of a LIFO — so any render producing a
+    // new callback identity popped that consumer and re-pushed it above
+    // everything else, silently changing which surface Escape dismisses. Every
+    // <Sheet> call site passes an inline arrow, and `DexView` (which parents
+    // `SetlistView`) re-renders on every `useDexStats` live-query tick.
+    //
+    // The shipped stacked case above cannot catch this: its two sheets are
+    // SIBLINGS in one component, so a re-render re-pushes both in tree order and
+    // the original order is restored by coincidence. These two are separately
+    // parented, which is what lets the LOWER one re-render alone.
+    mountAppContent();
+    const onCloseLower = vi.fn();
+    const onCloseUpper = vi.fn();
+
+    function Lower({ tick }: { tick: number }) {
+      return (
+        <Sheet open onClose={() => onCloseLower(tick)} ariaLabel="Lower">
+          <button>lower</button>
+        </Sheet>
+      );
+    }
+    function Upper() {
+      return (
+        <Sheet open onClose={() => onCloseUpper()} ariaLabel="Upper">
+          <button>upper</button>
+        </Sheet>
+      );
+    }
+
+    const lower = render(<Lower tick={0} />);
+    const upper = render(<Upper />);
+
+    // Baseline: the upper surface mounted second, so it is topmost.
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onCloseUpper).toHaveBeenCalledTimes(1);
+    expect(onCloseLower).not.toHaveBeenCalled();
+
+    // Re-render ONLY the lower surface, with a fresh inline arrow. Nothing about
+    // which dialog is on top has changed from the user's point of view.
+    lower.rerender(<Lower tick={1} />);
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    // Against the shipped deps array this second Escape closed the LOWER sheet —
+    // the one the user cannot even see, underneath the upper one.
+    expect(onCloseUpper).toHaveBeenCalledTimes(2);
+    expect(onCloseLower).not.toHaveBeenCalled();
+
+    // The stable handler must still invoke the LATEST closure, not the one
+    // captured when the registration was first pushed — otherwise this fix would
+    // trade a stack-ordering bug for a stale-callback bug.
+    upper.unmount();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onCloseLower).toHaveBeenCalledTimes(1);
+    expect(onCloseLower).toHaveBeenCalledWith(1);
+  });
+
   it("closing the BOTTOM sheet of an open stack leaves the background inert (Pitfall 5)", () => {
     // T-22-03. The shipped stacked case above only ever closes a sheet that is
     // ALREADY at the top of the stack, so it cannot see the failure this guards:

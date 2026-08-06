@@ -107,8 +107,10 @@ export function ChromeToggle() {
     return unregister;
   }, []);
 
-  // Stable identity so the dismiss hook's effect does not tear down and re-push
-  // the callback on every render (`useDialogDismiss` deps on `[active, onClose]`).
+  // Stable identity, kept as belt-and-braces rather than as a requirement:
+  // `useDialogDismiss` now holds `onClose` in a ref and deps on `[active]` alone
+  // (22-REVIEW WR-02), so a fresh closure here would no longer pop and re-push
+  // this callback to the top of the shared LIFO on every render.
   const showChrome = useCallback(() => setChromeVisible(true), []);
   useDialogDismiss(!chromeVisible, showChrome);
 
