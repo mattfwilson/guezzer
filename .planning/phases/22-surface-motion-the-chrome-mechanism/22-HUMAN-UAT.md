@@ -286,6 +286,111 @@ blocking: tests 0, 1, 2, 4
 non-blocking: test 3
 optional: test 5
 
+## Revert procedures
+
+Two independent failures, two named answers. Every artifact below is named by path, SHA and
+`describe`-block title so that a failure on device night is a **two-minute mechanical decision
+rather than an investigation**. Both SHAs resolve under `git show`.
+
+### Procedure 1 — if test 1 or test 2 fails the accessibility bar: the enter-only fallback
+
+**It is THREE mechanical steps, not one.** Two later plans added exit-window assertions that live
+**outside** the exit commit, so `git revert` cannot remove them — left in place they would assert
+behaviour that no longer exists and the suite would go red for the wrong reason.
+
+**(a)** Revert the single 22-02 exit commit:
+
+```
+git revert --no-edit 53d6e59
+```
+
+That one commit carries `packages/app/src/components/Sheet.tsx`,
+`packages/app/test/sheet.motion.test.tsx` **and** `packages/app/test/sheet.closeStart.test.tsx`, so
+the exit behaviour and its own contract test leave together (the last is deleted outright).
+
+**(b)** Delete this block from `packages/app/test/dexView.test.tsx` (plan 22-04), together with its
+doc comment:
+
+```
+describe("fullscreen sheet exit window (reverts with the 22-02 exit commit)", …)
+```
+
+**(c)** Delete this identically-titled block from **both**
+`packages/app/test/trailNodeSheet.test.tsx` **and** `packages/app/test/songRow.test.tsx`
+(plan 22-10), together with their doc comments:
+
+```
+describe("bottom-sheet exit window (reverts with the 22-02 exit commit)", …)
+```
+
+All three blocks currently run to the end of their file, so each deletion is a truncation.
+
+**Leftover imports are harmless.** After (b) and (c), `waitForElementToBeRemoved` is unused in all
+three files and `within` is unused in `trailNodeSheet.test.tsx` only (`within` is still used in the
+other two). `noUnusedLocals` is set in no tsconfig in this repo and there is **no lint toolchain
+installed at all**, so leaving them costs nothing — removing them is optional tidiness, not a
+required step.
+
+#### What must NOT be reverted
+
+- **Plan 22-02 Task 1's commit `d976ca0`** (the `useFocusTrap` split plus the enter-END
+  `initialFocusRef` wiring). It is a **separate commit** and `sheet.a11y.test.tsx`'s `waitFor` case
+  depends on it. Verified in the dry-run: that file stays green (16 tests) after step (a).
+- **The three prop-driven source conversions** — `DexView` (22-04), `TrailNodeSheet` and
+  `WhyDetail` (22-10). A prop-driven `<Sheet open={payload != null}>` is **correct under the
+  enter-only ship too**: with the exit reverted it simply removes the node synchronously, exactly as
+  the pre-conversion shape did. Reverting them would be pure churn, would re-break `Sheet.tsx`'s
+  seam roster, and would additionally require unpicking `dexView.test.tsx`'s `FriendsList` stub.
+- **`DexView`'s `key={openShow.showId}`.** It belongs to **CR-02** (it is what makes the
+  pending/unresolvable split honest by construction), not to motion. Deleting it would reintroduce
+  a stale-pending window with a fully green suite.
+
+#### What the result is
+
+A clean **enter-only** build: sheets still animate in, nothing animates out, and the close-start
+window disappears **because there is no exit window to tap into**. That is the degraded ship
+**ROADMAP success criterion 2** and **SHEET-02** explicitly sanction — criterion 2 reads
+"Enter-only animation is an explicitly acceptable degraded ship if the exit cannot meet that bar."
+
+There is deliberately **NO runtime kill-switch and NO feature flag** (D-18). A flag ships both code
+paths, both need testing, and the un-animated path rots unexercised until the night it matters.
+`prefers-reduced-motion` remains a genuine user-controlled no-motion mode at zero cost.
+
+After the three steps, re-run `npx vitest run` and `npx tsc -b packages/core packages/app`, and
+**record the decision in the Result lines above rather than deleting the failed test.**
+
+#### Dry-run: this procedure was executed end to end before the device session
+
+Run on a scratch branch at `e2911a2`, then deleted. Not a claim — a measurement:
+
+```
+git checkout -b scratch-22-09-revert-dryrun
+git revert --no-edit 53d6e59        →  3 files changed, 15 insertions(+), 429 deletions(-)
+                                       delete mode packages/app/test/sheet.closeStart.test.tsx
+steps (b) + (c)                     →  3 files changed, 248 deletions(-)
+npx vitest run                      →  EXIT 0   (139 files / 1196 tests passed)
+npx tsc -b packages/core packages/app  →  EXIT 0   (no output)
+```
+
+`140 files / 1214 tests` → `139 / 1196` is **−1 file and −18 tests**, and the arithmetic closes
+exactly: `sheet.closeStart` 5 + `sheet.motion` exit 5 + `dexView` 2 + `trailNodeSheet` 3 +
+`songRow` 3 = 18. Step (a) auto-merged `Sheet.tsx` with no conflict despite plan 22-10's later
+module-doc edit to that same file.
+
+### Procedure 2 — if test 0's AFTER reading shows the status bar overlapping content
+
+Revert the single meta-tag commit:
+
+```
+git revert --no-edit 04b3bc1
+```
+
+`04b3bc1` is `feat(22-09): add apple/mobile-web-app-capable meta tags` and touches **exactly one
+file** (`packages/app/index.html`) precisely so this is possible. The manifest's
+`"display": "standalone"` (`vite.config.ts`) is what actually makes iOS launch standalone, so the
+cost of reverting is only the iOS startup-image nicety — **not** standalone launch, and **not**
+NAV-06.
+
 ## Gaps
 
 - **NAV-03's mixed-build presence check remains PHASE 21's recorded gap (D-38).** It is not closed
