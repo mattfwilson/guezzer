@@ -223,12 +223,23 @@ export function AppShell({
           // the stage runs under the status bar — invisible on a desktop, where the
           // inset is 0 (T-22-24).
           //
-          // This is a BARE `env()` READ, the app's shipped per-surface top-inset
-          // idiom (~10 such reads in src/), NOT a second `calc(env(...) + N)`
-          // expression — D-13's rule is about not inventing a second FORMULA that can
-          // drift from the shipped one. It is also out of scope of the Phase-21
+          // This is a BARE `env()` READ — the app's shipped per-surface top-inset
+          // idiom (~10 such reads in src/) — NOT a second `calc(env(...) + N)`
+          // expression. D-13's rule is about not inventing a second FORMULA that can
+          // drift from the shipped one; the single-term `calc()` below adds no term,
+          // so there is nothing to drift. It is also out of scope of the Phase-21
           // FOUND-02 source guard, which pattern-matches only on
           // `env(safe-area-inset-bottom)`; top/left/right are explicitly exempt.
+          //
+          // WHY THE `calc()` WRAPPER, which looks redundant and is not: jsdom's CSS
+          // parser DROPS a bare `env()` value outright — the declaration never
+          // reaches the style attribute, so `padding-top` is simply absent and the
+          // D-13 regression test would pass vacuously in BOTH states while the real
+          // defect (the stage running under the notch) shipped unnoticed. jsdom does
+          // preserve `calc(...)`, verbatim, including a single-term one. `calc(X)` is
+          // arithmetically identical to `X` in every real browser, so this costs
+          // nothing at runtime and buys a non-vacuous assertion. Do not "simplify"
+          // the wrapper away — that silently guts `chromeToggle.test.tsx` case 5.
           //
           // It lands in the SAME commit as the reserve collapse and the flow change,
           // so CHROME-05's one-resize claim still holds.
@@ -238,7 +249,9 @@ export function AppShell({
           // `--gz-safe-bottom`. Better long-term shape, but it touches ten surfaces
           // including five device-verified sheets and can change where the header's
           // `bg-elevated` starts painting.
-          paddingTop: chromeVisible ? undefined : "env(safe-area-inset-top)",
+          paddingTop: chromeVisible
+            ? undefined
+            : "calc(env(safe-area-inset-top))",
         }}
       >
         {children}
