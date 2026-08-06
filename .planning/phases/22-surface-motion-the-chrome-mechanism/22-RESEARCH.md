@@ -1652,72 +1652,22 @@ a reviewer's eye is CR-02's error state — confirm it renders config copy only.
 | A9 | Static-import evaluation of `installStore.ts` happens before `beforeinstallprompt` fires on Android | §Pattern 7 | MEDIUM — if wrong, NAV-06 stays broken in exactly the way D-33 is meant to fix. The Android device test is the proof; verify the static import chain from `main.tsx` while planning. |
 | A10 | Listening for `appinstalled` (to hide the section within the installing session) is compatible with D-36 | §Open Questions | LOW — raised as an open question, deliberately not assumed into the plan. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Does the phase convert the nine unmount-driven sheets, or record them as a seam?**
-   - What we know: enter animates for all 19; exit and close-start apply only to the ten
-     prop-driven ones. Conversion is ~9 small, individually revertible edits. **Every `fullscreen`
-     consumer is in the unmount-driven set**, so without a conversion D-26's fullscreen exit fade
-     has no live consumer and cannot be device-verified.
-   - What's unclear: whether the owner considers "half the sheets don't slide out" acceptable given
-     that D-16 already accepts `SearchSheet` not animating at all.
-   - Recommendation: **plan option (C)** — convert only the surfaces D-21's device sample needs
-     (`DexView` is the cheapest fullscreen conversion: one `{selfCaseOpen && rarity != null && …}`
-     guard; `TrailNodeSheet` or `WhyDetail` for a bottom-sheet example), and record the remainder as
-     a named seam in the same paragraph D-16 uses for `SearchSheet`. This keeps the blast radius
-     small and the verification honest. Escalate to the owner if the planner disagrees; this is a
-     scope decision, not a technical one.
+All six are settled. Each disposition below is restated in full, with its reasoning, in the
+**Planner decisions** section of the owning plan — that is the authoritative copy; this table is the
+index.
 
-2. **Sibling scrim/card vs nested (§Pattern 1)?**
-   - What we know: siblings preserve `dialog.parentElement === document.body` (asserted in two
-     shipped test files), give the parallel cross-fade genuinely independent timelines, and make
-     `pointer-events: none` structural rather than a two-place rule. Nesting preserves today's DOM
-     shape but changes the asserted parentage and lets the scrim's animated opacity fade the card.
-   - What's unclear: whether the card's current `flex justify-end` positioning has any subtlety
-     that `fixed inset-x-0 bottom-0` would lose (e.g. how it behaves when content exceeds the
-     viewport).
-   - Recommendation: siblings; check the tall-content case (`SwapSheet` and `CatchUpSheet` are the
-     tallest live consumers) in a browser before committing the slice.
-
-3. **Should the header's out-of-flow switch be `position: absolute` on the header itself, or a
-   collapsing wrapper (`height: 0; overflow: visible`)?**
-   - What we know: both produce one layout change in one commit and satisfy §Pattern 4. Either way
-     `<main>` must pick up the top safe-area reserve (Pattern 4's second trap).
-   - What's unclear: which reads better in `AppShell`'s flex column and which survives a future
-     `env(safe-area-inset-top)` change more gracefully (D-13 keeps the top inset).
-   - Recommendation: `position: absolute` on the header — one element, no new wrapper node, and the
-     `inert`/`aria-hidden` props live on the same element. Confirm A6 in a browser.
-
-4. **Does `config.ui` gain one motion block or two?**
-   - What we know: D-25 requires the sheet constants in `config.ui`, and notes `WaveToast`'s
-     hard-coded `duration: 0.2` is the same violation "if touched". `22-UI-SPEC.md` §Motion Token
-     Contract already specifies a single `config.ui.motion` group with seven named constants,
-     including `TOAST_DURATION_MS` for `WaveToast`'s relocated `0.2`.
-   - Recommendation: follow the UI-SPEC — one `config.ui.motion` block, and move `WaveToast`'s `0.2`
-     into it (the UI-SPEC treats that as in scope, which resolves D-25's "if touched" hedge).
-
-5. **Do the existing install tests survive a module-level singleton?**
-   - What we know: `installBannerVersion.test.tsx` and `platform.test.ts` exercise the current
-     hook. A module-load listener plus module-scope `isStandalone()`/`isIosSafari()` evaluation
-     makes those values fixed at import time.
-   - What's unclear: how many tests currently stub `navigator.userAgent` or `matchMedia` *after*
-     import and rely on per-render re-evaluation.
-   - Recommendation: audit both files in the planning pass; expect to need `vi.resetModules()` +
-     dynamic `await import()` (the pattern already used at the top of `sheet.a11y.test.tsx`) and a
-     `__resetInstallStoreForTests()` escape hatch.
-
-6. **Should the install store also listen for `appinstalled`?**
-   - What we know: D-36 settles that `isStandalone()` need not be re-evaluated, because the current
-     page never transitions into standalone mode. `appinstalled` is a *different* event that fires
-     in the current page after an in-page install, so listening for it does not contradict D-36.
-   - What's unclear: whether NAV-05's "hidden once the app is installed" is meant to take effect
-     within the session that performed the install.
-   - Recommendation: add the listener (three lines: clear `deferred`, `notify()` with
-     `isInstalled: true`). It makes the Android device test's outcome visible without a reload.
-     Flag it to the owner rather than assuming it.
+| # | Question | Disposition | Owning plan |
+|---|----------|-------------|-------------|
+| 1 | Convert the unmount-driven sheets, or record a seam? | **Convert three** — `DexView` (the `fullscreen` exemplar) plus `TrailNodeSheet` and `WhyDetail` (the bottom-sheet exemplars). Owner decision 2026-08-06 on escalation: shipping four bottom-sheet openings enter-only would miss ROADMAP criterion 1, and a module comment is documentation rather than delivery. `CompareView` ×2, `FriendDetail` ×2 and `PinSheet` ×2 stay a documented seam. | 22-04 (fullscreen), 22-10 (bottom sheets + the corrected seam list) |
+| 2 | Sibling scrim/card, or nested? | **Siblings**, inside a `SheetSurface` fragment. Nesting would drag the card's opacity along with the scrim's cross-fade, contradicting `22-UI-SPEC.md`'s "card translates, opacity unchanged". Cost: one assertion in `layerOrder.test.tsx` changes deliberately. | 22-01 |
+| 3 | Header out of flow via `position: absolute`, or a collapsing wrapper? | **`position: absolute` on the header itself** — one element, and `inert`/`aria-hidden` live on the element CHROME-04 asserts against. `22-UI-SPEC.md`'s "fixed" wording is superseded; `absolute` also avoids the Phase-21 D-28 transform-ancestor trap. The top-inset trap is handled by giving `<main>` a bare `env(safe-area-inset-top)` reserve while chrome is hidden; the `--gz-safe-top` hoist is a recorded follow-on, not this phase. | 22-05 |
+| 4 | One `config.ui.motion` block or two? | **One.** Seven named constants per `22-UI-SPEC.md`. `WaveToast`'s `0.2` moves in 22-01; `BingoCelebration`'s twin moves in 22-08 (the plan that touches that file). | 22-01, 22-08 |
+| 5 | Do the existing install tests survive a module-level singleton? | **Yes, both unmodified.** Audited: `platform.test.ts` calls the pure functions directly and `platform.ts` is untouched; `test/setup.ts` already installs `window.matchMedia` (`matches: false`) before any test-file import, so module-load `isStandalone()`/`isIosSafari()` resolve to the state `installBannerVersion.test.tsx` expects. New tests use `__resetInstallStoreForTests(overrides?)` instead of `vi.resetModules()`. | 22-03 |
+| 6 | Should the install store also listen for `appinstalled`? | **Yes, add it.** A different event from the one D-36 rules on, three lines, and it is what lets the NAV-06 device test observe both gated surfaces closing without a reload. | 22-03 |
 
 ## Sources
-
 ### Primary (HIGH confidence) — executed in this repository
 
 - **Live Vitest/jsdom probes P1–P7** (this session; temporary files created under

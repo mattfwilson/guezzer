@@ -152,7 +152,7 @@ Plans:
   4. Chrome-hidden state is always escapable and never sticky: the exit control is always rendered, ≥44px, inside the safe area, and first in tab order; a cold boot never starts hidden; and the hidden chrome is removed from the accessibility tree rather than translated off-screen, so VoiceOver and keyboard users cannot tab into an invisible control (CHROME-03, CHROME-04).
   5. The add-to-home-screen instructions live at the bottom of Settings and hide once the app is installed, the top-right menu keeps a single neutral row that deep-links there, and installing from that relocated affordance is confirmed working on a real Android device (NAV-05, NAV-06).
 
-**Plans**: 9 plans in 5 waves
+**Plans**: 10 plans in 5 waves
 
 **Wave 1** — the sheet slice lands first and stays backable-out
 
@@ -165,9 +165,10 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 22-04-PLAN.md — CR-02 SetlistView loading-vs-missing + the one fullscreen sheet conversion
+- [ ] 22-04-PLAN.md — CR-02 SetlistView loading-vs-missing + the fullscreen sheet conversion
 - [ ] 22-05-PLAN.md — Chrome-visibility store + --gz-tab-bar-box ladder + AppShell collapse
 - [ ] 22-06-PLAN.md — Settings install section + neutral menu row + focus-moving deep link
+- [ ] 22-10-PLAN.md — TrailNodeSheet + WhyDetail bottom-sheet conversions + corrected seam list
 
 **Wave 4** *(blocked on Wave 3)*
 

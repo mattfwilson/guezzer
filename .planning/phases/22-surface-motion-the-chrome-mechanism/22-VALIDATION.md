@@ -1,10 +1,11 @@
 ---
 phase: 22
 slug: surface-motion-the-chrome-mechanism
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-08-05
+planned: 2026-08-06
 ---
 
 # Phase 22 — Validation Strategy
@@ -174,11 +175,26 @@ Each needs a **positive assertion that the thing is present and correct** — a 
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all ❌ MISSING references above
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s per task
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies — every task across the 10 plans carries an `<automated>` command; the two device plans pair theirs with `<human-check>` per `workflow.human_verify_mode: end-of-phase`.
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify — no task anywhere in the set lacks one.
+- [x] Wave 0 covers all ❌ MISSING references above — each of the six new files has exactly one owning task: `sheet.motion.test.tsx` (22-01 T3, extended 22-02 T2), `sheet.closeStart.test.tsx` (22-02 T3), `chromeToggle.test.tsx` (22-05 T3, extended 22-07 T2), `chromeResize.test.tsx` (22-07 T3), `installSection.test.tsx` (22-06 T3), `installStore.test.tsx` (22-03 T3). The four amendments are owned by 22-05 T1 (`bottomSpace.test.ts`), 22-02 T1 (`sheet.a11y.test.tsx`), 22-08 T3 (`bottomOverlayInset.test.tsx`) and 22-04 T2 (`setlistView.test.tsx`).
+- [x] No watch-mode flags — every command is `npx vitest run`.
+- [x] Feedback latency < 5s per task — each task's gate runs only the files it touches.
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-08-06 (gsd-planner, after the plan-checker revision pass)
+
+### Planning-pass amendments to this document's assumptions
+
+- **`installStore.test.tsx` needs no `vi.resetModules()`.** The Wave 0 bullet above still says it does;
+  the planning audit (plan 22-03 §Planner decisions) found `test/setup.ts` already installs
+  `window.matchMedia` before any test-file import, so the module-load platform reads resolve correctly
+  and a `__resetInstallStoreForTests(overrides?)` escape hatch replaces module-graph resets entirely.
+- **`sheet.a11y.test.tsx`'s portal-parity assertion does not change.** The Wave 0 bullet lists it; the
+  sibling-scrim decision (plan 22-01 §Planner decisions) affects `layerOrder.test.tsx`'s `<Sheet>`
+  negative case instead — that file's amendment is owned by 22-01 T2. `sheet.a11y.test.tsx`'s own
+  amendments are the `waitFor` conversion of the `initialFocusRef` case, the stacked-release case and
+  the limits notes (22-02 T1).
+- **Three sheets are converted from unmount-driven to prop-driven** (owner decision, RESEARCH OQ1):
+  `DexView` (22-04 T3), `TrailNodeSheet` and `WhyDetail` (22-10). Their exit-window assertions live in
+  `describe` blocks named for the 22-02 revert so the sanctioned enter-only fallback stays green.
