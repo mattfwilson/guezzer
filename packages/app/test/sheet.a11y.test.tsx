@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { useRef } from "react";
 import type { ReactElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -31,6 +37,25 @@ import { config } from "../src/config.ts";
  *  3. **Real Tab wrapping** — the pre-existing limit above, unchanged.
  *
  * All three belong to device UAT test 8 (`21-HUMAN-UAT.md`), which owns them.
+ *
+ * Phase-22 SHEET-02 addendum — two more limits, both easy to misread:
+ *
+ *  4. **`expect(appContent()!.inert).toBe(true)` is an EXPANDO read, not an attribute
+ *     read.** jsdom 29.1.1 implements no `inert` (probe P8): `el.inert = true` sets a
+ *     plain JS property and reflects NO attribute, so `document.querySelector("[inert]")`
+ *     finds nothing here. `inertRoot.ts` writes that property, which is why these
+ *     assertions pass. React's JSX `inert` prop — used by the Phase-22 chrome —
+ *     *does* render a real `inert=""` attribute even in jsdom, so
+ *     `toHaveAttribute("inert")` and `.inert === true` are NOT equivalent
+ *     assertions. Do not "unify" them.
+ *  5. **After plan 22-02's `exit` variants, an exiting sheet stays in the DOM for
+ *     ~`config.ui.motion.SHEET_DURATION_MS`.** Every close case in this file asserts
+ *     SYNCHRONOUSLY after `rerender`, which is precisely the close-START moment
+ *     (D-19) and therefore stays correct — the teardown is driven by `useFocusTrap`'s
+ *     `active: open && modal`, which flips in that same commit, never by presence.
+ *     But any FUTURE case that queries the DOM *after* a close must
+ *     `await waitForElementToBeRemoved(...)` first, or it will find the exiting node.
+ *     The full close-start contract lives in `sheet.closeStart.test.tsx`.
  */
 
 // The two dex surfaces below read Dexie through `useLiveQuery`; stubbed to `undefined`
@@ -119,7 +144,7 @@ describe("Sheet A11Y-01 contract", () => {
     expect(document.activeElement).toBe(trigger);
   });
 
-  it("initialFocusRef receives focus on open instead of the first focusable", () => {
+  it("initialFocusRef receives focus AFTER the enter completes, not on open (D-27)", async () => {
     mountAppContent();
     function Harness() {
       const inputRef = useRef<HTMLInputElement>(null);
@@ -131,7 +156,23 @@ describe("Sheet A11Y-01 contract", () => {
       );
     }
     render(<Harness />);
-    expect(document.activeElement).toBe(screen.getByLabelText("target"));
+    const target = screen.getByLabelText("target");
+
+    // D-27 moved the MOMENT, not the TARGET. Synchronously on open the explicit
+    // target is deliberately NOT focused — focusing an input opens the iOS keyboard,
+    // and doing that on a TRANSLATING element races two layout changes on the one
+    // platform where this app's viewport math has already misfired. This assertion is
+    // what keeps the case discriminating rather than merely laxer: without it,
+    // `waitFor` alone would also pass against the old focus-at-open contract.
+    expect(document.activeElement).not.toBe(target);
+    // …but focus is still INSIDE the trap from frame 0 (the first focusable), so a
+    // keyboard/VoiceOver user is never parked on the now-inert trigger for ~200ms.
+    expect(screen.getByRole("dialog").contains(document.activeElement)).toBe(true);
+
+    // Enter-END. This file does NOT mock `motion/react`, so the real rAF fallback
+    // drives `onAnimationComplete`; the SHEET_DURATION_MS fallback timer in
+    // `SheetSurface` guarantees it even if the animation is skipped entirely.
+    await waitFor(() => expect(target).toHaveFocus());
   });
 
   it("non-modal sheet: Escape + restore work, but NO inert and NO scrim", () => {
@@ -205,6 +246,47 @@ describe("Sheet A11Y-01 contract", () => {
         </Sheet>
       </>,
     );
+    expect(appContent()!.inert).toBe(false);
+  });
+
+  it("closing the BOTTOM sheet of an open stack leaves the background inert (Pitfall 5)", () => {
+    // T-22-03. The shipped stacked case above only ever closes a sheet that is
+    // ALREADY at the top of the stack, so it cannot see the failure this guards:
+    // `setRootInert(false)` decrements a SHARED count and guards underflow only at
+    // zero. If one hook instance releases twice — once at close-START when `active`
+    // flips, once again from the same effect's destroy at unmount ~200ms later —
+    // the count drops 2 → 0 and `#app-content` becomes interactive UNDERNEATH a
+    // still-open modal. Invisible to any single-sheet test.
+    mountAppContent();
+
+    function Stack({
+      bottomOpen,
+      topOpen,
+    }: {
+      bottomOpen: boolean;
+      topOpen: boolean;
+    }) {
+      return (
+        <>
+          <Sheet open={bottomOpen} onClose={vi.fn()} ariaLabel="Bottom">
+            <button>a</button>
+          </Sheet>
+          <Sheet open={topOpen} onClose={vi.fn()} ariaLabel="Top">
+            <button>b</button>
+          </Sheet>
+        </>
+      );
+    }
+
+    const { rerender } = render(<Stack bottomOpen topOpen />);
+    expect(appContent()!.inert).toBe(true); // count 2
+
+    // Close the BOTTOM one while the top stays open → count 1, still inert.
+    rerender(<Stack bottomOpen={false} topOpen />);
+    expect(appContent()!.inert).toBe(true);
+
+    // Only when the top closes too does the count reach 0 and inert clear.
+    rerender(<Stack bottomOpen={false} topOpen={false} />);
     expect(appContent()!.inert).toBe(false);
   });
 

@@ -28,13 +28,28 @@ import { afterEach, describe, expect, it, vi } from "vitest";
  * every close-start assertion pass vacuously, and a hand-rolled "retaining" double
  * makes them pass even against the §Pitfall 14 defect, which is worse than no test.
  *
- * This plan (22-01) ships ENTER ONLY — there is no `exit` variant to assert yet.
+ * ## SHEET-02 addendum (plan 22-02)
+ *
+ * The `exit` PROP SHAPE is asserted here — it is the same kind of question as the
+ * enter shape ("does the bottom-sheet card animate `opacity` on the way out?") and
+ * the double answers it perfectly. The mocked `useIsPresent` returns `true`
+ * unconditionally: `exit` props are authored identically whether or not the surface
+ * is currently exiting, and nothing about presence-derived TIMING is in scope here.
+ *
+ * These four cases revert with the 22-02 exit commit, along with the whole of
+ * `sheet.closeStart.test.tsx` — see plan 22-09's revert procedure 1.
  */
 
 /** Controllable reduced-motion value + a plain-DOM motion double. */
 let reduced = false;
 vi.mock("motion/react", () => ({
   useReducedMotion: () => reduced,
+  // Always PRESENT. This file proves prop SHAPE, not timing: `exit` props are
+  // authored identically whether or not the surface is currently exiting, and the
+  // presence-derived close-start values (aria-hidden / pointer-events / the scrim
+  // handler) are deliberately out of scope here — `sheet.closeStart.test.tsx` owns
+  // them, against the real library, for the §Pitfall 14 reason in the header.
+  useIsPresent: () => true,
   AnimatePresence: ({ children }: { children: ReactNode }) => children,
   motion: new Proxy(
     {},
@@ -47,6 +62,12 @@ vi.mock("motion/react", () => ({
               animate,
               exit,
               transition,
+              // Stripped, not re-emitted: `onAnimationComplete` is a `motion`-only
+              // prop and React DOM would warn "Unknown event handler property" if it
+              // reached a plain <div>. Its D-27 behaviour is proven in
+              // `sheet.a11y.test.tsx` / `sheet.closeStart.test.tsx` against the real
+              // library, where the animation that completes actually exists.
+              onAnimationComplete: _onAnimationComplete,
               ...rest
             }: Record<string, unknown>,
             ref: unknown,
@@ -59,6 +80,7 @@ vi.mock("motion/react", () => ({
               ref,
               "data-initial": JSON.stringify(initial),
               "data-animate": JSON.stringify(animate),
+              "data-exit": JSON.stringify(exit),
               "data-transition": JSON.stringify(transition),
             }),
         ),
@@ -83,7 +105,10 @@ const card = () => screen.getByRole("dialog");
 const scrim = () => document.querySelector<HTMLElement>(".bg-black\\/50")!;
 
 /** Parse one of the double's re-emitted `data-*` prop snapshots. */
-function motionProps(el: HTMLElement, name: "initial" | "animate" | "transition") {
+function motionProps(
+  el: HTMLElement,
+  name: "initial" | "animate" | "exit" | "transition",
+) {
   return JSON.parse(el.getAttribute(`data-${name}`) ?? "null") as Record<
     string,
     unknown
@@ -179,6 +204,50 @@ describe("SHEET-01: the scrim cross-fades in parallel with the card (D-24)", () 
     expect(scrim().contains(card())).toBe(false);
     expect(card().parentElement).toBe(document.body);
     expect(scrim().parentElement).toBe(document.body);
+  });
+});
+
+describe("SHEET-02: the exit prop shape mirrors the enter", () => {
+  it("bottom-sheet card, motion allowed: exits by TRANSLATE only — no opacity key", () => {
+    openSheet();
+    const exit = motionProps(card(), "exit");
+
+    // The mirror of the enter, for the same reason: the scrim owns the opacity
+    // channel on the way out too. A card that faded as well would dim through its
+    // own backdrop for the whole ~200ms.
+    expect(exit.y).toBe("100%");
+    expect(exit).not.toHaveProperty("opacity");
+  });
+
+  it("bottom-sheet card, reduced motion: exits by opacity only — no translate", () => {
+    reduced = true;
+    openSheet();
+    const exit = motionProps(card(), "exit");
+
+    expect(exit.opacity).toBe(0);
+    expect(exit).not.toHaveProperty("y");
+  });
+
+  for (const reducedMotion of [false, true]) {
+    it(`fullscreen never translates on the way out either (D-26), reduced motion = ${reducedMotion}`, () => {
+      reduced = reducedMotion;
+      openSheet("fullscreen");
+      const exit = motionProps(card(), "exit");
+
+      expect(exit.opacity).toBe(0);
+      expect(exit).not.toHaveProperty("y");
+    });
+  }
+
+  it("the scrim fades OUT, on the card's duration — parallel, never staged", () => {
+    openSheet();
+
+    expect(motionProps(scrim(), "exit")).toEqual({ opacity: 0 });
+    // Same duration as the card. A scrim that outlived the card would leave a
+    // painted, invisible-to-AT full-viewport element over the real background.
+    expect(motionProps(scrim(), "transition").duration).toBe(
+      motionProps(card(), "transition").duration,
+    );
   });
 });
 
