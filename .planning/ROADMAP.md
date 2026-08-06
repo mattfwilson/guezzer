@@ -168,12 +168,12 @@ Plans:
 - [ ] 22-04-PLAN.md — CR-02 SetlistView loading-vs-missing + the fullscreen sheet conversion
 - [ ] 22-05-PLAN.md — Chrome-visibility store + --gz-tab-bar-box ladder + AppShell collapse
 - [ ] 22-06-PLAN.md — Settings install section + neutral menu row + focus-moving deep link
-- [ ] 22-10-PLAN.md — TrailNodeSheet + WhyDetail bottom-sheet conversions + corrected seam list
 
 **Wave 4** *(blocked on Wave 3)*
 
 - [ ] 22-07-PLAN.md — ChromeToggle control + escapability + the one-resize assertion
 - [ ] 22-08-PLAN.md — CR-01 ordered bottom-overlay stacking + omission guard
+- [ ] 22-10-PLAN.md — TrailNodeSheet + WhyDetail bottom-sheet conversions + corrected seam list
 
 **Wave 5** *(blocked on Wave 4)*
 
