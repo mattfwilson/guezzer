@@ -34,10 +34,26 @@
  * created, nothing is appended to `document.body`, and nothing throws. The
  * SSR/jsdom `typeof document === "undefined"` guard stays exactly where it was.
  *
- * This plan (22-01) ships ENTER ONLY. There is deliberately no `exit` variant, so
- * close behaviour is byte-identical to today's immediate removal — which is what
- * makes this commit safe to ship WITHOUT plan 22-02's close-start teardown (D-17:
- * the exit variants and the D-19 teardown land together, atomically, or not at all).
+ * ## Phase-22 SHEET-02: the close-START contract (D-19), and how to back it out
+ *
+ * ONE timing rule for the whole surface: **a sheet leaves the accessibility tree and
+ * stops being a pointer target at the START of its exit, and leaves the DOM only at
+ * the END.** In the same tick `onClose` is requested: the background `inert` is
+ * released and focus returns to the trigger (`useFocusTrap`'s teardown, which fires
+ * then because its `active` is a function of `open`), the exiting card gets
+ * `aria-hidden`, and card and scrim both stop being pointer targets. Only
+ * `AnimatePresence`'s DOM removal waits for the ~200ms animation.
+ *
+ * **Backing it out (D-17/D-18).** The `exit` variants, the presence-derived `closing`
+ * bundle, the scrim's presence-derived `onClick` and
+ * `packages/app/test/sheet.closeStart.test.tsx` all landed in ONE commit, so a single
+ * `git revert` restores the sanctioned enter-only ship: close behaviour reverts to
+ * immediate removal, and no orphaned test is left asserting an exit window that no
+ * longer exists. There is deliberately NO runtime kill-switch and NO feature flag —
+ * a flag ships both code paths, both need testing, and the un-animated path rots
+ * unexercised until the night it matters. The full revert procedure (including the
+ * three exit-window `describe` blocks that live in OTHER files) is plan 22-09's
+ * revert procedure 1.
  *
  * ## Four things recorded so the next reader finds the reason instead of a "fix"
  *
@@ -187,9 +203,9 @@ interface SheetSurfaceProps {
  *   3. It is the shape probed live in this repo (P1), so the whole close-start
  *      contract of plan 22-02 is already known to hold against it.
  *
- * `AnimatePresence` sees ONE child (this component) and, once plan 22-02 adds the
- * `exit` variants, will wait for BOTH inner motion components before unmounting:
- * one presence, two parallel timelines, one unmount.
+ * `AnimatePresence` sees ONE child (this component) and waits for BOTH inner motion
+ * components to finish their `exit` before unmounting: one presence, two parallel
+ * timelines, one unmount.
  */
 function SheetSurface({
   contentRef,
@@ -257,9 +273,30 @@ function SheetSurface({
   // D-25: the duration and easing are READ FROM CONFIG, never written as a literal.
   // `motion` takes seconds; the config value stays in ms (the unit every other
   // timing constant in config.ts uses), so the `/ 1000` happens here at the consumer.
+  //
+  // The EASE flips with presence — decelerate into place on the way in, accelerate
+  // away on the way out. The DURATION does not: card and scrim run in parallel on one
+  // duration, never staged. A scrim that lagged the card would leave a painted scrim
+  // after the sheet is gone, which would turn `pointer-events: none` on the first exit
+  // frame from a structural property into a subtle, easily-regressed rule.
   const transition = {
     duration: config.ui.motion.SHEET_DURATION_MS / 1000,
-    ease: config.ui.motion.SHEET_EASE_ENTER,
+    ease: isPresent
+      ? config.ui.motion.SHEET_EASE_ENTER
+      : config.ui.motion.SHEET_EASE_EXIT,
+  };
+
+  // ── D-19 items 3 and 4, the close-START teardown that is NOT `useFocusTrap`'s ──
+  //
+  // ⚠ NEVER derive these from `open`. On the exiting element that expression is
+  // frozen at `open === true` and both attributes silently never appear (§Pitfall 14)
+  // — VoiceOver reads a sheet that is on its way out and a tap in the exit window is
+  // swallowed by a ghost. `isPresent` is the only signal that actually flips, and it
+  // SELF-CORRECTS on re-open (D-22 interrupt-and-reverse): there is no imperative
+  // attribute left behind to undo, because nothing was ever imperatively set.
+  const closing = {
+    "aria-hidden": isPresent ? undefined : (true as const),
+    style: { pointerEvents: isPresent ? undefined : ("none" as const) },
   };
 
   const dialogProps = {
@@ -284,8 +321,22 @@ function SheetSurface({
   // `y` is the PERCENTAGE "100%", never a pixel value: sheet height is
   // content-driven and varies per surface, and a percentage transform resolves
   // against the element's own box, so the primitive never has to measure content.
-  const fade = { initial: { opacity: 0 }, animate: { opacity: 1 } };
-  const slide = { initial: { y: "100%" }, animate: { y: 0 } };
+  //
+  // The `exit` half is the mirror of the enter in every case, so the card leaves the
+  // way it arrived. Interruption needs NO special case (D-22): `AnimatePresence`
+  // reverses from the current position, and every close-start value above derives
+  // from `useIsPresent()`, so re-opening mid-exit restores a fully interactive sheet
+  // with no stale attribute to clean up.
+  const fade = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+  };
+  const slide = {
+    initial: { y: "100%" },
+    animate: { y: 0 },
+    exit: { y: "100%" },
+  };
   const cardMotion = variant === "fullscreen" || reduce ? fade : slide;
 
   return (
@@ -294,19 +345,30 @@ function SheetSurface({
         <motion.div
           key="sheet-scrim"
           className="fixed inset-0 bg-black/50"
-          style={{ zIndex: config.ui.z.sheetScrim }}
+          style={{ zIndex: config.ui.z.sheetScrim, ...closing.style }}
           // Decorative dimmer with no name and no content. Safe to hide from AT
           // ONLY because it is now a SIBLING of the dialog — as the card's former
-          // parent it would have hidden the dialog with it.
+          // parent it would have hidden the dialog with it. Already unconditionally
+          // hidden, so it takes only the `style` half of `closing`.
           aria-hidden="true"
-          onClick={onClose}
+          // Pitfall 4b — TWO mechanisms, ONE contract. The inline
+          // `pointer-events: none` above is what makes the exiting scrim
+          // untappable in a real browser. Dropping the handler is what makes that
+          // PROVABLE in jsdom: `fireEvent.click` in `@testing-library/dom`
+          // dispatches directly and IGNORES `pointer-events` (only `user-event`
+          // enforces it, and it is deliberately not installed). Without this line
+          // a tap during the ~200ms exit would re-enter `onClose` on a sheet that
+          // is already leaving.
+          onClick={isPresent ? onClose : undefined}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           transition={transition}
         />
       )}
       <motion.div
         {...dialogProps}
+        {...closing}
         key="sheet-card"
         className={
           variant === "fullscreen"
@@ -323,6 +385,10 @@ function SheetSurface({
           // `createPortal(…, document.body)` subtree.
           paddingBottom:
             variant === "fullscreen" ? undefined : "var(--gz-sheet-pad-bottom)",
+          // Pitfall 4c: `pointer-events: none` on an ancestor does NOT override a
+          // descendant that sets `auto`, and these two are siblings anyway — the
+          // card needs its own copy, not the scrim's.
+          ...closing.style,
         }}
         {...cardMotion}
         transition={transition}
