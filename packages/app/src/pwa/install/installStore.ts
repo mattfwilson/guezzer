@@ -199,17 +199,24 @@ if (typeof window !== "undefined") {
  * reads are frozen at module load (D-36), a test that needs `isIos: true` or
  * `isInstalled: true` has no other way to get there short of
  * `vi.resetModules()` gymnastics across two files.
+ *
+ * ⚠ 22-REVIEW WR-09 — DO NOT RE-ADD `listeners.clear()`. See the matching note on
+ * `layout/chromeVisibility.ts`'s hatch: clearing the set while components are
+ * still mounted leaves them permanently deaf to this store with no error and no
+ * warning. Resetting state and fanning out through `notify()` gives tests what
+ * they need and keeps any still-mounted subscriber reading the reset values —
+ * which matters most here, where several cases deliberately interleave
+ * `cleanup()` / `__reset…({ … })` / `render()` in one body.
  */
 export function __resetInstallStoreForTests(overrides?: {
   isIos?: boolean;
   isInstalled?: boolean;
 }): void {
   deferred = null;
-  listeners.clear();
   installed =
     overrides?.isInstalled ??
     (typeof window === "undefined" ? false : isStandalone());
   ios =
     overrides?.isIos ?? (typeof window === "undefined" ? false : isIosSafari());
-  snapshot = { canInstall: false, isIos: ios, isInstalled: installed };
+  notify();
 }

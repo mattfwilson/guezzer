@@ -64,6 +64,33 @@ describe("bottomOverlayInset store", () => {
     act(() => setBottomOverlayHeight("installBanner", 0));
     expect(screen.getByTestId("inset").textContent).toBe("0");
   });
+
+  it("WR-09: the test-reset hatch does not silently detach a mounted subscriber", () => {
+    // The hatch used to call `listeners.clear()`. `useSyncExternalStore` holds no
+    // reference to that set beyond the unsubscribe closure it was handed, so
+    // clearing it while components are still mounted left them PERMANENTLY DEAF —
+    // no error, no warning, and their later unsubscribe deleted from an
+    // already-empty set. Every shipped call site happened to run `cleanup()`
+    // first, so nothing broke; the ordering was load-bearing and undocumented,
+    // and the natural `beforeEach(__reset…)` placement would have produced tests
+    // that render, mutate the store and observe nothing.
+    render(<Probe />);
+    act(() => setBottomOverlayHeight("installBanner", 220));
+    expect(screen.getByTestId("inset").textContent).toBe("220");
+
+    // Reset WITH the subscriber still mounted — deliberately not the shipped
+    // cleanup()-first order.
+    act(() => __resetBottomOverlayInsetForTests());
+
+    // Half 1: the mounted subscriber sees the reset state rather than a stale
+    // snapshot it can never be notified out of.
+    expect(screen.getByTestId("inset").textContent).toBe("0");
+
+    // Half 2 — the one that actually catches the detach: a LATER mutation still
+    // reaches it. Against `listeners.clear()` this stayed at 0 forever.
+    act(() => setBottomOverlayHeight("updateToast", 48));
+    expect(screen.getByTestId("inset").textContent).toBe("48");
+  });
 });
 
 /**

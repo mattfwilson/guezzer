@@ -148,11 +148,27 @@ export function registerChromeToggle(): () => void {
   };
 }
 
-/** Test-only escape hatch to reset module state between test cases/files. */
+/**
+ * Test-only escape hatch to reset module state between test cases/files.
+ *
+ * ⚠ 22-REVIEW WR-09 — DO NOT RE-ADD `listeners.clear()`. React's
+ * `useSyncExternalStore` holds no reference to this set beyond the unsubscribe
+ * closure it was handed, so clearing it while components are still mounted left
+ * those components PERMANENTLY DEAF to the store, with no error and no warning
+ * (their later unsubscribe then deleted from an already-empty set — a silent
+ * no-op). Every shipped call site happened to run `cleanup()` first, so nothing
+ * was broken; but that ordering was load-bearing and undocumented, and the more
+ * natural `beforeEach(__resetChromeVisibilityForTests)` placement would have
+ * produced tests that render, mutate the store and observe nothing, failing for a
+ * reason with no connection to the assertion.
+ *
+ * The state reset is what tests actually need. Fanning out through `notify()`
+ * rather than assigning the cached snapshots directly means a subscriber that IS
+ * still mounted re-reads the reset values instead of holding a stale snapshot —
+ * so the hatch is now safe in any order, not merely in the shipped one.
+ */
 export function __resetChromeVisibilityForTests(): void {
-  listeners.clear();
   visible = true;
   toggleCount = 0;
-  visibleSnapshot = true;
-  toggleMountedSnapshot = false;
+  notify();
 }

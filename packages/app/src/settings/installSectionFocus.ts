@@ -98,9 +98,17 @@ export function getInstallSectionFocusServerSnapshot(): number {
   return 0;
 }
 
-/** Test-only escape hatch to reset module state between test cases/files. */
+/**
+ * Test-only escape hatch to reset module state between test cases/files.
+ *
+ * ⚠ 22-REVIEW WR-09 — DO NOT RE-ADD `listeners.clear()`. See the matching note on
+ * `layout/chromeVisibility.ts`'s hatch: clearing the set while components are
+ * still mounted leaves them permanently deaf to this store with no error and no
+ * warning. Resetting the counters and fanning out gives tests what they need and
+ * keeps any still-mounted subscriber reading the reset value.
+ */
 export function __resetInstallSectionFocusForTests(): void {
   requestCount = 0;
   handledCount = 0;
-  listeners.clear();
+  for (const listener of listeners) listener();
 }
