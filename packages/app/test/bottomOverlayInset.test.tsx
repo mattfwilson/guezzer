@@ -2,11 +2,12 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   __resetBottomOverlayInsetForTests,
   offsetBelow,
   setBottomOverlayHeight,
+  useBottomOverlayHeightRegistration,
   useBottomOverlayInset,
   useBottomOverlayOffset,
 } from "../src/pwa/bottomOverlayInset";
@@ -362,6 +363,108 @@ describe("CR-01: overlays stack in declared order instead of overlapping", () =>
     // plan-22-05 chrome collapse with no special case (D-15).
     expect(style).toContain("var(--gz-chrome-reserve)");
     expect(style).toContain("220px");
+  });
+});
+
+/**
+ * 22-REVIEW WR-06 — the registration must follow the ELEMENT, not only the flags.
+ *
+ * The hook used to hold a `useRef` and dep on `[id, visible]`, capturing
+ * `ref.current` once. `BingoCelebration` keys its toast on a monotonic counter and
+ * replaces it on a repeat emit WITHOUT passing through null, so the key changes,
+ * React mounts a new element, the old one begins its exit — and `visible`
+ * (`toast != null`) never changed, so the effect never re-ran. The registered
+ * height stayed whichever toast was measured FIRST, which for a short mark toast
+ * followed by a longer badge string means the content reserve UNDER-reserves for
+ * what is actually on screen.
+ *
+ * jsdom has no layout, so `offsetHeight` is stubbed off a `data-h` attribute for
+ * these two cases only — the hook's one real input, made observable.
+ */
+describe("WR-06: the registration re-measures when the element is swapped", () => {
+  let restoreOffsetHeight: (() => void) | undefined;
+
+  beforeEach(() => {
+    const original = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "offsetHeight",
+    );
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      get(this: HTMLElement): number {
+        return Number(this.dataset.h ?? "0");
+      },
+    });
+    restoreOffsetHeight = () => {
+      if (original) {
+        Object.defineProperty(HTMLElement.prototype, "offsetHeight", original);
+      } else {
+        delete (HTMLElement.prototype as unknown as Record<string, unknown>)
+          .offsetHeight;
+      }
+    };
+  });
+
+  afterEach(() => {
+    cleanup();
+    restoreOffsetHeight?.();
+    __resetBottomOverlayInsetForTests();
+  });
+
+  /**
+   * Models the `AnimatePresence` shape without pulling the motion library in:
+   * `ids` is the list of currently-MOUNTED toast elements, so `[1]` → `[1, 2]` is
+   * "a replacement mounted while the outgoing one is still on screen" and
+   * `[1, 2]` → `[2]` is "the outgoing one finally left". Every element shares the
+   * one callback ref, exactly as the real toasts do.
+   */
+  const HEIGHTS: Record<number, number> = { 1: 40, 2: 90 };
+  function Harness({ ids }: { ids: number[] }) {
+    const ref = useBottomOverlayHeightRegistration(
+      "bingoCelebration",
+      ids.length > 0,
+    );
+    return (
+      <>
+        {ids.map((id) => (
+          <div key={id} ref={ref} data-h={String(HEIGHTS[id])} />
+        ))}
+      </>
+    );
+  }
+
+  function registered(): number {
+    // `bingoCelebration` is the only registration, so the total IS its height.
+    return offsetBelow("waveToast");
+  }
+
+  it("re-measures a plain key swap (old node gone, new node in)", () => {
+    const { rerender } = render(<Harness ids={[1]} />);
+    expect(registered()).toBe(40);
+
+    rerender(<Harness ids={[2]} />);
+    expect(registered()).toBe(90);
+  });
+
+  it("re-measures while the OUTGOING node is still mounted, and its later detach does not clear the live one", () => {
+    const { rerender } = render(<Harness ids={[1]} />);
+    expect(registered()).toBe(40);
+
+    // The replacement mounts; the outgoing toast is still painted for its exit.
+    // Against the shipped `[id, visible]` deps this stayed at 40 — the taller
+    // toast on screen was under-reserved for its whole life.
+    rerender(<Harness ids={[1, 2]} />);
+    expect(registered()).toBe(90);
+
+    // The exit completes. That detach hands the shared callback ref a `null` for
+    // a node that is no longer the tracked one; honouring it would clear the
+    // reservation out from under the toast still on screen.
+    rerender(<Harness ids={[2]} />);
+    expect(registered()).toBe(90);
+
+    // And a genuine hide still unregisters — the ignored `null` is not a leak.
+    rerender(<Harness ids={[]} />);
+    expect(registered()).toBe(0);
   });
 });
 

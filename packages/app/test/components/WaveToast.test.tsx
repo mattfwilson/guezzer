@@ -13,27 +13,57 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /** Controllable reduced-motion value + a plain-DOM motion mock (fake-timer safe). */
 let reduced = false;
-vi.mock("motion/react", () => ({
-  useReducedMotion: () => reduced,
-  AnimatePresence: ({ children }: { children: ReactNode }) => children,
-  motion: new Proxy(
-    {},
-    {
-      get: (_target, tag: string) =>
-        forwardRef(
-          (
-            { initial, animate, exit, transition, ...rest }: Record<string, unknown>,
-            ref: unknown,
-          ) =>
-            createElement(tag, {
-              ...rest,
-              ref,
-              "data-initial": JSON.stringify(initial),
-            }),
-        ),
-    },
-  ),
-}));
+vi.mock("motion/react", () => {
+  /**
+   * CACHED PER TAG — the same correction `chromeToggle.test.tsx` already carries,
+   * and for the same reason, now that it matters here too. An UNCACHED Proxy
+   * hands back a BRAND-NEW `forwardRef` component type on every property read, so
+   * React treats `motion.div` as a different element type each render and
+   * unmounts/remounts the toast node on every single render. That is a pure
+   * artifact of the double: the real `motion.div` is a stable reference and the
+   * node it renders survives re-renders.
+   *
+   * It became load-bearing with 22-REVIEW WR-06, which makes the height
+   * registration track the ELEMENT (so an `AnimatePresence` key swap re-measures
+   * instead of keeping the first toast's height forever). Against the uncached
+   * double, a fresh node per render meant a fresh element per render, and the
+   * measure-on-attach cycle never settled — "Maximum update depth exceeded",
+   * describing the double's behaviour rather than the component's.
+   */
+  const cache = new Map<string, unknown>();
+  return {
+    useReducedMotion: () => reduced,
+    AnimatePresence: ({ children }: { children: ReactNode }) => children,
+    motion: new Proxy(
+      {},
+      {
+        get: (_target, tag: string) => {
+          const hit = cache.get(tag);
+          if (hit) return hit;
+          const component = forwardRef(
+            (
+              {
+                initial,
+                animate,
+                exit,
+                transition,
+                ...rest
+              }: Record<string, unknown>,
+              ref: unknown,
+            ) =>
+              createElement(tag, {
+                ...rest,
+                ref,
+                "data-initial": JSON.stringify(initial),
+              }),
+          );
+          cache.set(tag, component);
+          return component;
+        },
+      },
+    ),
+  };
+});
 
 /** The trusted friends store — the ONLY source of the sender display name (V5). */
 let mockFriends: Array<{ userId: string; displayName: string }> = [];

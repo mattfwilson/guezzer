@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { config } from "../config";
 
 /**
@@ -205,20 +205,46 @@ export function useBottomOverlayOffset(id: string): number {
  * stays correct across copy/layout changes) and registers it in the shared
  * store while `visible` is true; always unregisters on hide/unmount. Attach
  * the returned ref to the overlay's fixed-position root element.
+ *
+ * ## 22-REVIEW WR-06 — the effect TRACKS THE ELEMENT, not only the flags
+ *
+ * This used to hold a `useRef` and dep on `[id, visible]`, capturing
+ * `ref.current` once. `BingoCelebration` keys its toast on a monotonic counter
+ * and replaces it on a repeat emit WITHOUT passing through null
+ * (`setToast({ id, text })` overwrites directly), so the key changes, React
+ * mounts a new element, the old one begins its exit — and `visible`
+ * (`toast != null`) never changed, so the effect never re-ran. The
+ * `ResizeObserver` stayed attached to the outgoing, soon-detached node and the
+ * registered height stayed whichever toast was measured FIRST. A short mark
+ * toast followed immediately by a longer badge string kept the shorter
+ * reservation, so the content reserve under-reserved for the taller toast —
+ * exactly the "static estimate falls out of sync with copy" failure this module
+ * exists to prevent. `WaveToast` escaped it only because its drain loop passes
+ * through `setShown(null)` between items.
+ *
+ * A CALLBACK REF plus element state makes the element itself a dependency, so a
+ * key swap re-measures. Returning a callback ref (rather than a ref object) is
+ * safe: no consumer reads `.current`.
  */
 export function useBottomOverlayHeightRegistration(
   id: string,
   visible: boolean,
-): React.RefObject<HTMLDivElement | null> {
-  const ref = useRef<HTMLDivElement | null>(null);
+): (node: HTMLDivElement | null) => void {
+  const [el, setEl] = useState<HTMLDivElement | null>(null);
+
+  const ref = useCallback((node: HTMLDivElement | null) => {
+    // ⚠ DETACH (`null`) IS DELIBERATELY IGNORED. Under `AnimatePresence` an
+    // outgoing child stays mounted while its replacement is ALREADY attached,
+    // and both share this one callback identity — so honouring the outgoing
+    // node's detach would clear the tracked element out from under the toast
+    // currently on screen, ~200ms after it appeared. `visible` is what ends a
+    // registration (the effect below clears the height on `!visible`); the
+    // element only ever needs to point at the NEWEST node.
+    if (node !== null) setEl(node);
+  }, []);
 
   useEffect(() => {
-    if (!visible) {
-      setBottomOverlayHeight(id, 0);
-      return;
-    }
-    const el = ref.current;
-    if (!el) {
+    if (!visible || !el) {
       setBottomOverlayHeight(id, 0);
       return;
     }
@@ -238,7 +264,7 @@ export function useBottomOverlayHeightRegistration(
       observer?.disconnect();
       setBottomOverlayHeight(id, 0);
     };
-  }, [id, visible]);
+  }, [id, visible, el]);
 
   return ref;
 }
