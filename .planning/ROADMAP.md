@@ -156,7 +156,7 @@ Plans:
 
 **Wave 1** — the sheet slice lands first and stays backable-out
 
-- [ ] 22-01-PLAN.md — Config/motion tokens + animated <Sheet> primitive (enter only)
+- [x] 22-01-PLAN.md — Config/motion tokens + animated <Sheet> primitive (enter only)
 
 **Wave 2**
 
@@ -267,7 +267,7 @@ This is the research's own stated rationale followed through: validating the mec
 | 19. Shared Dex Progress | v2.0 | 4/4 | Complete | 2026-07-24 |
 | 20. Presence & Interactions | v2.0 | 5/5 | Complete | 2026-07-24 |
 | 21. Layout & Layering Foundations | v2.1 | 13/13 | Complete    | 2026-08-05 |
-| 22. Surface Motion & the Chrome Mechanism | v2.1 | 0/? | Not started | - |
+| 22. Surface Motion & the Chrome Mechanism | v2.1 | 1/10 | In Progress|  |
 | 23. Immersive In-Show Experience | v2.1 | 0/? | Not started | - |
 | 24. Reactions & Small Polish | v2.1 | 0/? | Not started | - |
 
