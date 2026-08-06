@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   __resetBottomOverlayInsetForTests,
   offsetBelow,
@@ -465,6 +465,94 @@ describe("WR-06: the registration re-measures when the element is swapped", () =
     // And a genuine hide still unregisters — the ignored `null` is not a leak.
     rerender(<Harness ids={[]} />);
     expect(registered()).toBe(0);
+  });
+
+  /**
+   * 22-REVIEW WR-05 — the exit-window hold.
+   *
+   * The two `AnimatePresence` toasts register visibility as `shown != null`, and
+   * that flag goes false in the SAME COMMIT the exit starts. The registration
+   * therefore dropped to 0 while the toast was still painted for the whole fade,
+   * so every overlay declared ABOVE it re-read its offset and painted on top of
+   * it, and `--gz-content-reserve` shrank so scrolling content slid up underneath
+   * a visible toast. The §Pitfall 14 notes at both call sites reason only about
+   * the EXITING toast keeping its own frozen offset — they do not cover the
+   * neighbours above it or the content reserve, both of which re-read live.
+   */
+  describe("WR-05: clearDelayMs holds the reservation for the exit window", () => {
+    const TAIL_MS = 200;
+
+    function Tailed({ visible }: { visible: boolean }) {
+      const ref = useBottomOverlayHeightRegistration(
+        "bingoCelebration",
+        visible,
+        TAIL_MS,
+      );
+      return visible ? <div ref={ref} data-h="90" /> : null;
+    }
+
+    it("keeps the height across the exit window, then clears", () => {
+      vi.useFakeTimers();
+      try {
+        const { rerender } = render(<Tailed visible />);
+        expect(registered()).toBe(90);
+
+        // Exit START — the flag flips while the toast is still on screen.
+        rerender(<Tailed visible={false} />);
+        expect(registered()).toBe(90);
+
+        // Still held part-way through the fade.
+        act(() => {
+          vi.advanceTimersByTime(TAIL_MS - 1);
+        });
+        expect(registered()).toBe(90);
+
+        // Exit COMPLETE — now the reservation is genuinely stale.
+        act(() => {
+          vi.advanceTimersByTime(1);
+        });
+        expect(registered()).toBe(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("a re-show inside the exit window cancels the pending clear", () => {
+      vi.useFakeTimers();
+      try {
+        const { rerender } = render(<Tailed visible />);
+        rerender(<Tailed visible={false} />);
+        act(() => {
+          vi.advanceTimersByTime(TAIL_MS - 50);
+        });
+
+        // Interrupt-and-reverse: the toast comes back before its fade finished.
+        rerender(<Tailed visible />);
+        expect(registered()).toBe(90);
+
+        // The OLD hide's timer must not fire against the new registration — if it
+        // did, the reservation would vanish under a toast that is fully visible.
+        act(() => {
+          vi.advanceTimersByTime(TAIL_MS * 2);
+        });
+        expect(registered()).toBe(90);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("a full UNMOUNT clears immediately — an unmounted tree plays no exit", () => {
+      vi.useFakeTimers();
+      try {
+        const view = render(<Tailed visible />);
+        expect(registered()).toBe(90);
+
+        view.unmount();
+        expect(registered()).toBe(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 });
 

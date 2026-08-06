@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { config } from "../config";
 
 /**
@@ -225,12 +231,35 @@ export function useBottomOverlayOffset(id: string): number {
  * A CALLBACK REF plus element state makes the element itself a dependency, so a
  * key swap re-measures. Returning a callback ref (rather than a ref object) is
  * safe: no consumer reads `.current`.
+ *
+ * ## 22-REVIEW WR-05 — `clearDelayMs`, the exit-window hold
+ *
+ * An `AnimatePresence` toast registers visibility as `shown != null`. When it
+ * starts its exit, that flag goes false IN THE SAME COMMIT, so the registration
+ * used to drop to 0 while the toast was still painted for the whole animation.
+ * Two things went wrong for that window, and neither is what the §Pitfall 14
+ * notes at the call sites reasoned about (they only cover the EXITING toast
+ * keeping its own frozen offset, which is indeed harmless):
+ *
+ *   1. Every overlay declared ABOVE the exiting one re-reads its offset LIVE and
+ *      dropped by the exiting toast's height, painting on top of it — the exact
+ *      overlap the folded CR-01 todo was written to eliminate.
+ *   2. `--gz-overlay-inset` shrank, so `--gz-content-reserve` shrank, so
+ *      scrolling `<main>` content slid up underneath a toast still on screen.
+ *
+ * Passing `clearDelayMs` holds the reservation for that window. It defaults to 0
+ * (clear immediately), which is correct for the three overlays that simply
+ * unmount — only the two `AnimatePresence` toasts declare a tail. A re-show
+ * inside the window CANCELS the pending clear, so the reservation never dips, and
+ * a full unmount clears immediately (an unmounted tree plays no exit animation).
  */
 export function useBottomOverlayHeightRegistration(
   id: string,
   visible: boolean,
+  clearDelayMs = 0,
 ): (node: HTMLDivElement | null) => void {
   const [el, setEl] = useState<HTMLDivElement | null>(null);
+  const pendingClear = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const ref = useCallback((node: HTMLDivElement | null) => {
     // ⚠ DETACH (`null`) IS DELIBERATELY IGNORED. Under `AnimatePresence` an
@@ -244,8 +273,23 @@ export function useBottomOverlayHeightRegistration(
   }, []);
 
   useEffect(() => {
+    // Any clear scheduled by a previous hide is stale: THIS run is authoritative.
+    // Cancelling first is what makes a re-show inside the exit window keep its
+    // reservation instead of losing it to the outgoing toast's timer.
+    if (pendingClear.current !== null) {
+      clearTimeout(pendingClear.current);
+      pendingClear.current = null;
+    }
+
     if (!visible || !el) {
-      setBottomOverlayHeight(id, 0);
+      if (clearDelayMs > 0) {
+        pendingClear.current = setTimeout(() => {
+          pendingClear.current = null;
+          setBottomOverlayHeight(id, 0);
+        }, clearDelayMs);
+      } else {
+        setBottomOverlayHeight(id, 0);
+      }
       return;
     }
 
@@ -260,11 +304,28 @@ export function useBottomOverlayHeightRegistration(
       observer.observe(el);
     }
 
+    // Deliberately does NOT clear the height. Clearing is owned by the NEXT run
+    // of this effect (the `!visible` branch above, which knows about the delay)
+    // or by the unmount effect below. Clearing here would defeat `clearDelayMs`
+    // entirely — the cleanup runs before the new body, so the immediate clear
+    // would land first — and it also removes the transient 0 that a key swap
+    // used to publish between unregister and re-measure.
+    return () => observer?.disconnect();
+  }, [id, visible, el, clearDelayMs]);
+
+  // Unmount (and `id` change) clears IMMEDIATELY, whatever the delay: a subtree
+  // React has removed plays no exit animation, so there is nothing left on screen
+  // to hold a reservation for. Declared after the effect above so its cleanup
+  // runs second on unmount, cancelling any tail that cleanup just scheduled.
+  useEffect(() => {
     return () => {
-      observer?.disconnect();
+      if (pendingClear.current !== null) {
+        clearTimeout(pendingClear.current);
+        pendingClear.current = null;
+      }
       setBottomOverlayHeight(id, 0);
     };
-  }, [id, visible, el]);
+  }, [id]);
 
   return ref;
 }

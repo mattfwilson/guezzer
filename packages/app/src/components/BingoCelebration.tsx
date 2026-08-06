@@ -152,9 +152,17 @@ export function BingoCelebration() {
 
   // Registered so AppShell reserves the toast's real height — it never covers or
   // intercepts taps on the page underneath (the log/predict path stays clear).
+  //
+  // 22-REVIEW WR-05 — the THIRD argument holds the registration alive for the
+  // exit window. `toast` goes null in the same commit the exit STARTS, so without
+  // it the store dropped this toast's height while the toast was still painted
+  // for the full fade: every overlay declared above it re-read its offset and
+  // painted on top of it, and `--gz-content-reserve` shrank so scrolling content
+  // slid up underneath a visible toast. The tail is the fade's own duration.
   const toastRef = useBottomOverlayHeightRegistration(
     "bingoCelebration",
     toast != null,
+    config.ui.motion.TOAST_DURATION_MS,
   );
 
   // CR-01: stack above whatever is already on screen below us rather than
@@ -168,6 +176,11 @@ export function BingoCelebration() {
   // out should not jump). It is NOT the same class of defect as the sheet
   // close-START contract, which had to be presence-derived precisely because
   // something still interactive was being read off frozen props.
+  //
+  // WR-05 correction to the scope of that note: it reasons only about the
+  // EXITING toast's own frozen offset. The overlays ABOVE this one, and the
+  // content reserve, both re-read LIVE — which is why the registration above
+  // needs an explicit exit-window tail rather than relying on the freeze.
   const bottomOffset = useBottomOverlayOffset("bingoCelebration");
 
   const idRef = useRef(0);
