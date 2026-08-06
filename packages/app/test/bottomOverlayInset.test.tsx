@@ -1,11 +1,18 @@
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   __resetBottomOverlayInsetForTests,
+  offsetBelow,
   setBottomOverlayHeight,
   useBottomOverlayInset,
+  useBottomOverlayOffset,
 } from "../src/pwa/bottomOverlayInset";
 import { AppShell } from "../src/components/AppShell";
+import { BackupToast, showBackupToast } from "../src/components/BackupToast";
+import { config } from "../src/config";
 import { bottomSpaceVarEntries } from "../src/layout/bottomSpace";
 
 /**
@@ -192,5 +199,248 @@ describe("D-03: the measured overlay height feeds the content reserve only", () 
     expect(varsFor(220)["--gz-overlay-inset"]).toBe("220px");
     expect(varsFor(220)["--gz-overlay-inset"]).not.toContain("safe");
     expect(varsFor(220)["--gz-overlay-inset"]).not.toContain("calc");
+  });
+});
+
+/**
+ * Phase-22 CR-01 — ORDERED STACKING.
+ *
+ * Everything above measures heights. Until this phase the store had no ORDERING
+ * concept: every registered overlay pinned itself to the same
+ * `bottom: var(--gz-chrome-reserve)`, so two simultaneously-visible overlays
+ * painted on top of each other while `--gz-content-reserve` reserved the SUM of
+ * both boxes — safe (nothing was covered) but wrong (over-reserved by the height
+ * of the shorter one).
+ *
+ * `config.ui.BOTTOM_OVERLAY_ORDER` (bottom-most first) now declares the order and
+ * `offsetBelow(id)` does the arithmetic. These cases assert the behaviour, not
+ * the wiring: distinct offsets in DECLARED order, a sum that is now the genuinely
+ * occupied height, a stack that re-flows on unregister, and an unknown id that
+ * ranks topmost instead of throwing.
+ */
+describe("CR-01: overlays stack in declared order instead of overlapping", () => {
+  afterEach(() => {
+    cleanup();
+    __resetBottomOverlayInsetForTests();
+  });
+
+  it("gives two simultaneously-visible overlays distinct offsets, in declared order", () => {
+    // Registered top-most FIRST — deliberately the reverse of the declared
+    // order. If `offsetBelow` were reading registration/insertion order rather
+    // than `config.ui.BOTTOM_OVERLAY_ORDER`, this case would invert.
+    act(() => {
+      setBottomOverlayHeight("waveToast", 60);
+      setBottomOverlayHeight("installBanner", 220);
+    });
+    expect(offsetBelow("installBanner")).toBe(0); // bottom-most: nothing below
+    expect(offsetBelow("waveToast")).toBe(220); // sits above the banner
+
+    // A third overlay lands BETWEEN them in the declared order even though it
+    // registered last.
+    act(() => setBottomOverlayHeight("updateToast", 48));
+    expect(offsetBelow("waveToast")).toBe(268); // 220 + 48
+    expect(offsetBelow("updateToast")).toBe(220); // banner only
+    expect(offsetBelow("installBanner")).toBe(0); // persistent: never jumps
+  });
+
+  it("<main>'s reserve equals the REAL occupied height once they stack", () => {
+    render(<Probe />);
+    act(() => {
+      setBottomOverlayHeight("installBanner", 220);
+      setBottomOverlayHeight("waveToast", 60);
+      setBottomOverlayHeight("updateToast", 48);
+    });
+    // This is the same sum the shipped "sums multiple simultaneously-registered
+    // overlays" case asserts, and that case is deliberately left untouched — but
+    // its MEANING changed. Before CR-01 the three boxes overlapped, so 328 was an
+    // over-reservation of the tallest box plus two it painted over. Now they
+    // genuinely stack, so 328 IS the occupied height. `layout/bottomSpace.ts`
+    // needed no change for that to become true.
+    expect(screen.getByTestId("inset").textContent).toBe("328");
+    // Stated as geometry rather than as a second copy of the sum: `waveToast` is
+    // top-most, so the top of the stack sits at (everything below it) + (its own
+    // height) — and that IS the reserve. The two agree because the boxes no
+    // longer overlap.
+    const topOfStack = offsetBelow("waveToast") + 60;
+    expect(topOfStack).toBe(328);
+  });
+
+  it("re-flows the stack when an overlay unregisters", () => {
+    act(() => {
+      setBottomOverlayHeight("installBanner", 220);
+      setBottomOverlayHeight("updateToast", 48);
+      setBottomOverlayHeight("waveToast", 60);
+    });
+    expect(offsetBelow("waveToast")).toBe(268);
+    act(() => setBottomOverlayHeight("installBanner", 0));
+    // The banner is gone; the wave drops by exactly its height. Nothing is
+    // stranded at an offset that no longer has anything under it.
+    expect(offsetBelow("waveToast")).toBe(48);
+    expect(offsetBelow("updateToast")).toBe(0);
+  });
+
+  it("ranks an UNDECLARED id topmost and never throws", () => {
+    act(() => {
+      setBottomOverlayHeight("installBanner", 220);
+      setBottomOverlayHeight("waveToast", 60);
+    });
+    // An overlay that forgot to declare its position must still render — above
+    // everything — rather than crash the app mid-show. The omission is caught by
+    // the source guard below, which is where it is supposed to hurt.
+    expect(() => offsetBelow("notDeclared")).not.toThrow();
+    expect(offsetBelow("notDeclared")).toBe(280);
+  });
+
+  it("returns a referentially-stable NUMBER between notifies (the React 19 footgun)", () => {
+    act(() => setBottomOverlayHeight("installBanner", 220));
+    const first = offsetBelow("waveToast");
+    const second = offsetBelow("waveToast");
+    // A fresh object here would make React 19 report "The result of getSnapshot
+    // should be cached to avoid an infinite loop" and re-render forever. A
+    // primitive compares by value under Object.is, so the loop is unreachable.
+    expect(typeof first).toBe("number");
+    expect(Object.is(first, second)).toBe(true);
+
+    // The hook itself: rendering it must settle, not loop.
+    let renders = 0;
+    function OffsetProbe() {
+      renders += 1;
+      const offset = useBottomOverlayOffset("waveToast");
+      return <div data-testid="offset">{offset}</div>;
+    }
+    render(<OffsetProbe />);
+    expect(screen.getByTestId("offset").textContent).toBe("220");
+    const settled = renders;
+    act(() => setBottomOverlayHeight("updateToast", 48));
+    expect(screen.getByTestId("offset").textContent).toBe("268");
+    // One notify, a bounded number of extra renders — not an unbounded loop.
+    expect(renders - settled).toBeLessThanOrEqual(2);
+  });
+
+  it("renders the composed offset on a real overlay — chrome reserve PLUS the px term", () => {
+    // A rendered-DOM check, not guard silence (22-VALIDATION §Carried Limitation).
+    // `backupToast` sits above `installBanner` in the declared order, so with a
+    // 220px banner registered its box must start 220px higher than the reserve.
+    act(() => setBottomOverlayHeight("installBanner", 220));
+    const { container } = render(<BackupToast />);
+    act(() => showBackupToast());
+
+    const toast = container.querySelector('[role="status"]');
+    expect(toast).not.toBeNull();
+    const style = toast!.getAttribute("style") ?? "";
+    // Both halves matter: the offset must be ADDITIVE to the reserve, never a
+    // replacement for it — that is what keeps every overlay following the
+    // plan-22-05 chrome collapse with no special case (D-15).
+    expect(style).toContain("var(--gz-chrome-reserve)");
+    expect(style).toContain("220px");
+  });
+});
+
+/**
+ * CR-01 OMISSION GUARD — the one guard shape Phase 21 lacked.
+ *
+ * `bottomSpace.test.ts` is pattern-matching over source text: it catches a surface
+ * that writes the WRONG inset, but it cannot catch a surface that omits the inset
+ * ENTIRELY. That gap shipped a real bug in `ArchiveBrowser`, fixed in `61e0b90`.
+ *
+ * This guard is the other shape. It extracts every registration id actually
+ * present in `src/` and asserts each one is declared in
+ * `config.ui.BOTTOM_OVERLAY_ORDER` — so it FAILS THE DAY a new overlay is written
+ * and not ordered, rather than silently letting it paint on top of whatever is
+ * already on screen.
+ */
+const testDir = dirname(fileURLToPath(import.meta.url));
+const SRC_DIR = join(testDir, "..", "src");
+const SCANNED_EXTENSIONS = [".ts", ".tsx"];
+
+/** Same strip-comments helper shape as `bottomSpace.test.ts`'s source guard. */
+function stripComments(source: string): string {
+  const withoutBlocks = source.replace(/\/\*[\s\S]*?\*\//g, (match) =>
+    match.replace(/[^\n]/g, " "),
+  );
+  return withoutBlocks.replace(
+    /(^|[^:])\/\/[^\n]*/g,
+    (_match, lead: string) => lead,
+  );
+}
+
+/** Same recursive `src` walk shape as `bottomSpace.test.ts`'s source guard. */
+function sourceFiles(dir: string, prefix = ""): string[] {
+  const found: string[] = [];
+  for (const entry of readdirSync(dir).sort()) {
+    const rel = prefix ? `${prefix}/${entry}` : entry;
+    const abs = join(dir, entry);
+    if (statSync(abs).isDirectory()) {
+      found.push(...sourceFiles(abs, rel));
+      continue;
+    }
+    if (!SCANNED_EXTENSIONS.some((ext) => entry.endsWith(ext))) continue;
+    found.push(rel);
+  }
+  return found;
+}
+
+/**
+ * Every string literal passed as the FIRST argument to
+ * `useBottomOverlayHeightRegistration(`. The quote is required immediately after
+ * the open paren (modulo whitespace/newlines — `BingoCelebration` wraps its call
+ * across lines), which is also what keeps the hook's own `(id: string, …)`
+ * DEFINITION in `bottomOverlayInset.ts` out of the results.
+ */
+const REGISTRATION_ID = /useBottomOverlayHeightRegistration\(\s*["']([^"']+)["']/g;
+
+function registeredIdsInSrc(): { ids: string[]; files: string[] } {
+  const files = sourceFiles(SRC_DIR);
+  const ids = new Set<string>();
+  for (const file of files) {
+    const code = stripComments(readFileSync(join(SRC_DIR, file), "utf8"));
+    for (const match of code.matchAll(REGISTRATION_ID)) ids.add(match[1]!);
+  }
+  return { ids: [...ids].sort(), files };
+}
+
+describe("CR-01 omission guard: every registered overlay declares its order", () => {
+  const KNOWN_IDS = [
+    "backupToast",
+    "bingoCelebration",
+    "installBanner",
+    "updateToast",
+    "waveToast",
+  ];
+
+  it("the extraction actually found the registrations — not a vacuous []", () => {
+    // WITHOUT this, a broken regex (or a swallowed walk) empties the set and
+    // turns the containment assertion below into `expect([]).toEqual([])` —
+    // permanently green and permanently meaningless. This is the anti-vacuity
+    // half, and it must run BEFORE the containment half means anything.
+    const { ids, files } = registeredIdsInSrc();
+    expect(files.length).toBeGreaterThan(100);
+    expect(ids.length).toBeGreaterThanOrEqual(5);
+    for (const known of KNOWN_IDS) expect(ids).toContain(known);
+  });
+
+  it("every useBottomOverlayHeightRegistration id in src/ is declared in BOTTOM_OVERLAY_ORDER", () => {
+    const { ids } = registeredIdsInSrc();
+    const declared = config.ui.BOTTOM_OVERLAY_ORDER as readonly string[];
+    const undeclared = ids.filter((id) => !declared.includes(id));
+    expect(
+      undeclared,
+      [
+        "CR-01 violation — a bottom overlay registers its height but declares no",
+        "stack position, so it will paint ON TOP OF whatever is already visible.",
+        "Add it to `config.ui.BOTTOM_OVERLAY_ORDER` (bottom-most first) and read",
+        "`useBottomOverlayOffset(\"<id>\")` at its call site:",
+        ...undeclared.map((id) => `  ${id}`),
+      ].join("\n"),
+    ).toEqual([]);
+  });
+
+  it("the declared order has no entry that no longer exists in src/", () => {
+    // The other direction: a stale declaration is not a rendering bug, but it
+    // makes the order table lie about what is on screen.
+    const { ids } = registeredIdsInSrc();
+    const declared = config.ui.BOTTOM_OVERLAY_ORDER as readonly string[];
+    expect([...declared].sort()).toEqual(KNOWN_IDS);
+    expect(declared.every((id) => ids.includes(id))).toBe(true);
   });
 });
