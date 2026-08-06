@@ -75,16 +75,39 @@ function recompute(): number {
 }
 
 /**
+ * Insertion-ordered ranks for ids that are NOT in the declared order (WR-07).
+ * Seeded on first `rankOf` miss and cleared by the test-reset hatch.
+ */
+const unknownRanks = new Map<string, number>();
+
+/**
  * Rank of `id` in the declared bottom-most-first order. An UNKNOWN id ranks
  * last (topmost) rather than throwing — an overlay that forgot to declare its
  * position must still render, above everything, rather than crash the app. The
  * omission is caught by the source guard in `test/bottomOverlayInset.test.tsx`,
  * which is where a missing declaration is supposed to hurt.
+ *
+ * 22-REVIEW WR-07 — undeclared ids get DISTINCT ranks, not one shared one.
+ * Returning a flat `order.length` for every unknown id collapsed them all onto
+ * the same rank, and `offsetBelow`'s sum uses a STRICT `<`: two simultaneously
+ * visible undeclared overlays therefore got IDENTICAL offsets and painted on top
+ * of each other while `--gz-content-reserve` reserved the sum of both boxes —
+ * verbatim the pre-CR-01 defect this whole feature removes. Handing each unknown
+ * id its own rank in first-seen order keeps the fallback deterministic and keeps
+ * the boxes stacking. The source guard is still the real mitigation; this only
+ * stops the fallback from re-introducing the bug when the guard is evaded (it
+ * matches string literals at the call site, so an id passed through a variable or
+ * built by template literal slips past it).
  */
 function rankOf(id: string): number {
   const order = config.ui.BOTTOM_OVERLAY_ORDER as readonly string[];
   const index = order.indexOf(id);
-  return index === -1 ? order.length : index;
+  if (index !== -1) return index;
+  const known = unknownRanks.get(id);
+  if (known !== undefined) return known;
+  const rank = order.length + unknownRanks.size;
+  unknownRanks.set(id, rank);
+  return rank;
 }
 
 /**
@@ -225,5 +248,6 @@ export function __resetBottomOverlayInsetForTests(): void {
   heights.clear();
   snapshot = 0;
   offsets.clear();
+  unknownRanks.clear();
   listeners.clear();
 }

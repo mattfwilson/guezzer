@@ -291,6 +291,35 @@ describe("CR-01: overlays stack in declared order instead of overlapping", () =>
     expect(offsetBelow("notDeclared")).toBe(280);
   });
 
+  it("gives TWO undeclared ids DISTINCT offsets rather than colliding them (WR-07)", () => {
+    // The shipped fallback returned a flat `order.length` for every unknown id,
+    // and `offsetBelow`'s sum uses a STRICT `<` — so two simultaneously-visible
+    // undeclared overlays got IDENTICAL offsets and painted on top of each other
+    // while the content reserve reserved BOTH boxes. That is verbatim the
+    // pre-CR-01 defect this feature exists to remove, reachable through the
+    // fallback the source guard is supposed to make unnecessary. The guard only
+    // matches string literals at the call site, so an id passed through a
+    // variable or built by template literal reaches here silently.
+    act(() => {
+      setBottomOverlayHeight("installBanner", 220);
+      setBottomOverlayHeight("undeclaredA", 40);
+      setBottomOverlayHeight("undeclaredB", 30);
+    });
+
+    // Both still rank ABOVE every declared overlay...
+    expect(offsetBelow("undeclaredA")).toBeGreaterThanOrEqual(220);
+    expect(offsetBelow("undeclaredB")).toBeGreaterThanOrEqual(220);
+    // ...but they no longer share a rank, so they stack instead of overlapping.
+    expect(offsetBelow("undeclaredA")).not.toBe(offsetBelow("undeclaredB"));
+    // First-seen order, deterministically: A is below B, so B clears A's height.
+    expect(offsetBelow("undeclaredA")).toBe(220);
+    expect(offsetBelow("undeclaredB")).toBe(260);
+
+    // The whole stack is genuinely occupied, not over-reserved: the top of the
+    // stack equals the sum every consumer of `useBottomOverlayInset` reserves.
+    expect(offsetBelow("undeclaredB") + 30).toBe(220 + 40 + 30);
+  });
+
   it("returns a referentially-stable NUMBER between notifies (the React 19 footgun)", () => {
     act(() => setBottomOverlayHeight("installBanner", 220));
     const first = offsetBelow("waveToast");
