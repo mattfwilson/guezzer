@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { config } from "../config";
 import { useInstallState } from "../pwa/install/useInstallState";
-import { useBottomOverlayHeightRegistration } from "../pwa/bottomOverlayInset";
+import {
+  useBottomOverlayHeightRegistration,
+  useBottomOverlayOffset,
+} from "../pwa/bottomOverlayInset";
 import { getMeta, setMeta } from "../db/db";
 import { IosInstallInstructions } from "./IosInstallInstructions";
 
@@ -64,6 +67,10 @@ export function InstallBanner() {
 
   const visible = !isInstalled && !dismissed && seenThisVersion === false;
   const ref = useBottomOverlayHeightRegistration("installBanner", visible);
+  // CR-01: this banner is BOTTOM-MOST in `config.ui.BOTTOM_OVERLAY_ORDER`, so
+  // this offset is 0 today — read from the store anyway rather than hard-coded,
+  // so re-ordering the config is the only edit a future change needs.
+  const bottomOffset = useBottomOverlayOffset("installBanner");
 
   // On first actual show for this build, persist the stamp so reloads on the
   // same build never re-show it (D-22). Never-throw (T-06-06).
@@ -104,7 +111,10 @@ export function InstallBanner() {
         // open ~34px of dead space INSIDE the banner on an installed instance, and
         // inflate the height this component registers with the overlay store by
         // that same inset.
-        bottom: "var(--gz-chrome-reserve)",
+        //
+        // CR-01: the offset is ADDITIVE to the chrome reserve, never a
+        // replacement — this banner still follows the chrome collapse for free.
+        bottom: `calc(var(--gz-chrome-reserve) + ${bottomOffset}px)`,
       }}
     >
       {isIos ? (

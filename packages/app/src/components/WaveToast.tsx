@@ -30,7 +30,10 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { config } from "../config.ts";
 import { IdentityGlyph } from "../dex/FriendRow.tsx";
-import { useBottomOverlayHeightRegistration } from "../pwa/bottomOverlayInset";
+import {
+  useBottomOverlayHeightRegistration,
+  useBottomOverlayOffset,
+} from "../pwa/bottomOverlayInset";
 import { getSyncState } from "../sync/progressSync.ts";
 
 const presence = config.copy.presence;
@@ -98,6 +101,20 @@ export function WaveToast() {
   // Registered so AppShell reserves the toast's real height — it never covers or
   // intercepts taps on the live logging loop underneath (the sacred D-17 rule).
   const toastRef = useBottomOverlayHeightRegistration("waveToast", shown != null);
+
+  // CR-01: `waveToast` is TOP-MOST in `config.ui.BOTTOM_OVERLAY_ORDER`, so this
+  // offset is the summed height of every other visible overlay — the wave pops
+  // above them rather than on top of them.
+  //
+  // §Pitfall 14 note, so a future reader does not mistake this for the
+  // frozen-props defect plan 22-02 exists to prevent: this toast renders inside
+  // `AnimatePresence`, so an EXITING toast keeps its last offset for the ~200ms
+  // fade rather than re-reading the store. That is harmless — it is leaving, not
+  // becoming interactive — and it is the behaviour we want (a toast on its way
+  // out should not jump). It is NOT the same class of defect as the sheet
+  // close-START contract, which had to be presence-derived precisely because
+  // something still interactive was being read off frozen props.
+  const bottomOffset = useBottomOverlayOffset("waveToast");
 
   // Bounded FIFO buffer (D-10): peek-don't-shift while showing, so the buffer's
   // length (incl. the item on screen) is the true cap for the over-cap DROP.
@@ -172,7 +189,13 @@ export function WaveToast() {
           // bar's buttons on an installed instance. The owner's
           // `--gz-chrome-reserve` already carries that inset, so no self-padding
           // is needed here (and never was one).
-          style={{ zIndex: config.ui.z.toast, bottom: "var(--gz-chrome-reserve)" }}
+          //
+          // CR-01: the offset is ADDITIVE to the chrome reserve, never a
+          // replacement — this toast still follows the chrome collapse for free.
+          style={{
+            zIndex: config.ui.z.toast,
+            bottom: `calc(var(--gz-chrome-reserve) + ${bottomOffset}px)`,
+          }}
         >
           {/* Sender glyph — deterministic identity color + escaped initials (D-09). */}
           <IdentityGlyph userId={shown.payload.from} displayName={name} />

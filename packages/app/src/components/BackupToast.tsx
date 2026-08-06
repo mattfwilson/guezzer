@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { config } from "../config";
-import { useBottomOverlayHeightRegistration } from "../pwa/bottomOverlayInset";
+import {
+  useBottomOverlayHeightRegistration,
+  useBottomOverlayOffset,
+} from "../pwa/bottomOverlayInset";
 
 /**
  * App-level, ephemeral "Backup saved" toast (SAFE-03, D-05). Renders nothing
@@ -47,6 +50,9 @@ const AUTO_DISMISS_MS = 4000;
 export function BackupToast() {
   const [visible, setVisible] = useState(false);
   const ref = useBottomOverlayHeightRegistration("backupToast", visible);
+  // CR-01: stacks above the InstallBanner and the update prompt rather than
+  // painting on top of either.
+  const bottomOffset = useBottomOverlayOffset("backupToast");
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -82,7 +88,10 @@ export function BackupToast() {
         // chrome reserve, which already includes the inset, keeping it would
         // double-count: ~34px of dead space inside the toast, and one inset of
         // over-reserve in the overlay store measuring this element.
-        bottom: "var(--gz-chrome-reserve)",
+        //
+        // CR-01: the offset is ADDITIVE to the chrome reserve, never a
+        // replacement — this toast still follows the chrome collapse for free.
+        bottom: `calc(var(--gz-chrome-reserve) + ${bottomOffset}px)`,
       }}
     >
       <p className="text-base leading-normal text-text-primary">

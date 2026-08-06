@@ -28,7 +28,10 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { config } from "../config";
 import { ExploreBackground } from "../explore/ExploreBackground.tsx";
-import { useBottomOverlayHeightRegistration } from "../pwa/bottomOverlayInset";
+import {
+  useBottomOverlayHeightRegistration,
+  useBottomOverlayOffset,
+} from "../pwa/bottomOverlayInset";
 
 const bingo = config.copy.games.bingo;
 const {
@@ -154,6 +157,19 @@ export function BingoCelebration() {
     toast != null,
   );
 
+  // CR-01: stack above whatever is already on screen below us rather than
+  // painting on top of it.
+  //
+  // §Pitfall 14 note, so a future reader does not mistake this for the
+  // frozen-props defect plan 22-02 exists to prevent: this toast renders inside
+  // `AnimatePresence`, so an EXITING toast keeps its last offset for the fade
+  // rather than re-reading the store. That is harmless — it is leaving, not
+  // becoming interactive — and it is the behaviour we want (a toast on its way
+  // out should not jump). It is NOT the same class of defect as the sheet
+  // close-START contract, which had to be presence-derived precisely because
+  // something still interactive was being read off frozen props.
+  const bottomOffset = useBottomOverlayOffset("bingoCelebration");
+
   const idRef = useRef(0);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const superTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -202,7 +218,9 @@ export function BingoCelebration() {
             initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
             animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            // D-25: the twin of the literal WaveToast gave up in plan 22-01.
+            // The number lives in config; only the seconds conversion is here.
+            transition={{ duration: config.ui.motion.TOAST_DURATION_MS / 1000 }}
             className="pointer-events-none fixed inset-x-0 flex items-center border-t border-hairline bg-elevated px-4 py-4"
             // No safe-area paddingBottom here, and none is needed (D-09 / FOUND-02).
             // The offset is the owner's `--gz-chrome-reserve`
@@ -216,7 +234,13 @@ export function BingoCelebration() {
             // `py-4`'s 16px with 0 and the text read as cut off. Installed, the
             // inset is ~34 > 16 and that reasoning inverts — which is why the
             // mechanism, not the observation, is what's recorded now.
-            style={{ zIndex: config.ui.z.toast, bottom: "var(--gz-chrome-reserve)" }}
+            //
+            // CR-01: the offset is ADDITIVE to the chrome reserve, never a
+            // replacement — this toast still follows the chrome collapse for free.
+            style={{
+              zIndex: config.ui.z.toast,
+              bottom: `calc(var(--gz-chrome-reserve) + ${bottomOffset}px)`,
+            }}
           >
             <p className="text-base font-semibold leading-normal tabular-nums text-text-primary">
               {toast.text}

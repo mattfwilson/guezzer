@@ -1,6 +1,9 @@
 import { config } from "../config";
 import { useRegisterSW } from "../pwa/useRegisterSW";
-import { useBottomOverlayHeightRegistration } from "../pwa/bottomOverlayInset";
+import {
+  useBottomOverlayHeightRegistration,
+  useBottomOverlayOffset,
+} from "../pwa/bottomOverlayInset";
 
 /**
  * Non-blocking, dismissible toast for a waiting service worker (D-06,
@@ -22,6 +25,9 @@ export function UpdateToast() {
     updateServiceWorker,
   } = useRegisterSW();
   const ref = useBottomOverlayHeightRegistration("updateToast", needRefresh);
+  // CR-01: sits directly above the persistent InstallBanner and beneath every
+  // transient toast, so the safety surface is never suppressed and never covered.
+  const bottomOffset = useBottomOverlayOffset("updateToast");
 
   if (!needRefresh) return null;
 
@@ -45,7 +51,10 @@ export function UpdateToast() {
         // of the bar. Against the chrome reserve it is double-counting — ~34px of
         // dead space inside the toast, plus one inset of over-reserve in the
         // overlay-height store that measures this element.
-        bottom: "var(--gz-chrome-reserve)",
+        //
+        // CR-01: the offset is ADDITIVE to the chrome reserve, never a
+        // replacement — this toast still follows the chrome collapse for free.
+        bottom: `calc(var(--gz-chrome-reserve) + ${bottomOffset}px)`,
       }}
     >
       <p className="text-base leading-normal text-text-primary">{text}</p>
