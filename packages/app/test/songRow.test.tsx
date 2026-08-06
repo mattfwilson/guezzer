@@ -1,4 +1,10 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitForElementToBeRemoved,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -128,5 +134,90 @@ describe("WhyDetail: STAT-01 corpus line + D-08 debut branch", () => {
     expect(screen.getByText("Debut candidate")).toBeInTheDocument();
     expect(screen.getByText("Never played live — no odds to fake.")).toBeInTheDocument();
     expect(screen.queryByText(/Played .* gap/)).toBeNull();
+  });
+});
+
+/**
+ * Plan 22-10 — the bottom-sheet exit window, `WhyDetail` half.
+ *
+ * ⚠ THE `describe` NAME BELOW IS LOAD-BEARING. Plan 22-09's revert procedure 1
+ * deletes this block BY NAME if the sanctioned enter-only fallback is taken. It
+ * asserts an exit window that would no longer exist, and it lives OUTSIDE the
+ * 22-02 exit commit, so `git revert` cannot remove it. Do not rename it.
+ *
+ * ⚠ NO `vi.mock("motion/react")` AND NO FAKE TIMERS in this file. A pass-through
+ * double unmounts the exiting child instantly and makes every assertion here
+ * vacuous; a hand-rolled "retaining" double would pass even against the
+ * §Pitfall 14 defect. Fake timers desynchronise motion's rAF fallback loop.
+ *
+ * `WhyDetail` is deliberately covered HERE rather than in a new
+ * `whyDetail.test.tsx` — the `candidate()` fixture factory and the `@archive`
+ * stub above are its harness, and a second file would fork them.
+ */
+describe("bottom-sheet exit window (reverts with the 22-02 exit commit)", () => {
+  const whyLabel = "Why Rattlesnake?";
+
+  it("renders zero DOM nodes while closed", () => {
+    render(<WhyDetail candidate={null} onClose={() => {}} />);
+
+    // Always mounted (that is the conversion), `open` false — `AnimatePresence`
+    // receives `false`, `onlyElements` filters it, nothing reaches document.body.
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it("retains the dialog node and carries the close-start contract on close", async () => {
+    const { rerender } = render(
+      <WhyDetail candidate={candidate({ songId: 101 })} onClose={() => {}} />,
+    );
+    const dialog = screen.getByRole("dialog", { name: whyLabel });
+    expect(document.body.contains(dialog)).toBe(true);
+
+    // Close the sheet the way ShowView does: the candidate prop goes null.
+    rerender(<WhyDetail candidate={null} onClose={() => {}} />);
+
+    // ── ANTI-VACUITY FIRST. Without this, a regression to the pre-conversion
+    //    `if (!candidate) return null` would destroy the node synchronously and
+    //    both assertions below would be reading a DETACHED element.
+    expect(document.body.contains(dialog)).toBe(true);
+    // D-19 #3 — VoiceOver must not read a sheet on its way out.
+    expect(dialog.getAttribute("aria-hidden")).toBe("true");
+    // D-19 #4 — the exiting card is its own interaction barrier (T-22-04).
+    expect(dialog.style.pointerEvents).toBe("none");
+
+    // Wait on the captured NODE, NEVER on `queryByRole("dialog")`: `*ByRole`
+    // ignores `aria-hidden` subtrees, so once the assertion above passes a role
+    // query returns null immediately and `waitForElementToBeRemoved` resolves
+    // without ever observing removal — a SILENT false green (22-02 deviation 3).
+    await waitForElementToBeRemoved(dialog, { timeout: 2000 });
+  });
+
+  it("shows no blank card during the exit, and the null-candidate render does not throw", async () => {
+    const { rerender } = render(
+      <WhyDetail candidate={candidate({ songId: 101 })} onClose={() => {}} />,
+    );
+    const dialog = screen.getByRole("dialog", { name: whyLabel });
+
+    // ⚠ HONEST LABELLING — the two halves are guarded by DIFFERENT mechanisms,
+    // and only the second is the `shown` derivation's doing:
+    //
+    //  (1) The name still being on screen is `AnimatePresence` retaining the
+    //      element it FROZE at the last present render. It would read
+    //      "Rattlesnake" even if the derivation were wrong, because that frozen
+    //      element never re-renders. So this asserts a real user-visible outcome
+    //      (no blank card slides away) — but NOT the derivation.
+    //  (2) The rerender not throwing IS the derivation's job: without the
+    //      last-non-null ref, the component's own `candidate === null` render
+    //      would dereference null (in `ariaLabel`, in `getRarityIndex()?.get`,
+    //      and throughout the body) while building children it is about to
+    //      discard (T-22-37). This is the half that discriminates.
+    expect(() =>
+      rerender(<WhyDetail candidate={null} onClose={() => {}} />),
+    ).not.toThrow();
+
+    expect(document.body.contains(dialog)).toBe(true); // anti-vacuity
+    expect(within(dialog).getByText("Rattlesnake")).toBeTruthy();
+
+    await waitForElementToBeRemoved(dialog, { timeout: 2000 });
   });
 });

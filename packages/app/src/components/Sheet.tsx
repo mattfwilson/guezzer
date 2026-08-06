@@ -63,12 +63,25 @@
  *     animate while everything else does. That is a named, accepted seam. Do not
  *     "fix" it by copying this animation into five more files.
  *
- * (b) Pitfall 1 — nine of the nineteen `<Sheet>` element openings hard-code
+ * (b) Pitfall 1 — SIX of the nineteen `<Sheet>` element openings still hard-code
  *     `open` and are removed by their PARENT, so they get an enter animation but
- *     no exit and no close-start window: `CompareView` (×2), `DexView`,
- *     `FriendDetail` (×2), `PinSheet` (×2), `TrailNodeSheet`, `WhyDetail`. Plan
- *     22-04 converts `DexView` only (the D-21 fullscreen exemplar); the rest are a
- *     documented seam, not an oversight.
+ *     no exit and no close-start window: `CompareView` (×2), `FriendDetail` (×2)
+ *     and `PinSheet` (×2) — six openings across three files. The other THIRTEEN
+ *     are `open`-prop-driven and animate both ways.
+ *
+ *     Three sites were converted from unmount-driven to prop-driven ON PURPOSE,
+ *     as the D-21 device sample's exit exemplars: `DexView`'s trophy case (plan
+ *     22-04 — the FULLSCREEN exemplar, D-26's fade) and `TrailNodeSheet` +
+ *     `WhyDetail` (plan 22-10 — the BOTTOM-SHEET exemplars, SHEET-01's slide
+ *     down). Without them the exit animation would have had no live consumer to
+ *     device-verify, and a module comment is documentation, not delivery.
+ *
+ *     The remaining six are a BOUNDED, DELIBERATE seam, not an oversight — the
+ *     blast radius on this milestone's riskiest primitive is capped on purpose.
+ *     Do NOT convert them opportunistically: revisit only after the animated
+ *     primitive is device-verified (22-HUMAN-UAT), alongside §Deferred Ideas'
+ *     hand-rolled-sheet migration in `22-CONTEXT.md` — a different but adjacent
+ *     seam, covered in (a) below.
  *
  * (c) D-28 / D-29 non-goals. Stacked-sheet scrims are left EXACTLY as they ship:
  *     two open sheets paint two scrims and the background reads darker, and
