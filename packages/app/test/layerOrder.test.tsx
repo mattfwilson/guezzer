@@ -786,6 +786,27 @@ describe("Numeric tier guards named in config.ts", () => {
     // every tap (CR-01 regression guard: fabScrim < fab)."
     expect(config.ui.z.fabScrim).toBeLessThan(config.ui.z.fab); // CR-01
   });
+
+  it("Phase-22: peek < chrome < page — the new tier's whole justification", () => {
+    // config.ts, `z.chrome`: "Placed between `peek` (12) and `page` (15) to
+    // preserve both shipped relationships at once: the bingo peek panel must NOT
+    // cover the tab bar (peek < chrome), and a full-screen in-tree page such as
+    // RecapView must still cover the chrome (chrome < page)."
+    //
+    // Move `chrome` out of that open interval and one of two shipped surfaces
+    // breaks silently: either the expanded bingo board paints under the tab bar,
+    // or RecapView stops covering the chrome it is supposed to replace.
+    expect(config.ui.z.peek).toBeLessThan(config.ui.z.chrome);
+    expect(config.ui.z.chrome).toBeLessThan(config.ui.z.page);
+  });
+
+  it("Phase-22 CHROME-03: chrome < fab — the escape control is never covered", () => {
+    // config.ts, `z.chrome`: "the moment the hidden header goes out of flow to
+    // slide away it needs an EXPLICIT tier, or it paints over the `ChromeToggle`
+    // (`fab: 30`) and covers the user's only escape control for the whole 200ms
+    // hide". A user who cannot reach the toggle cannot get the bars back.
+    expect(config.ui.z.chrome).toBeLessThan(config.ui.z.fab);
+  });
 });
 
 // ───────────────────────────────────────────────────────────────────────────────
