@@ -232,10 +232,14 @@ export function SetlistView({ showId, archive, rarity, onClose }: SetlistViewPro
             <ChevronLeft size={24} />
           </button>
         </div>
+        {/* `<h1>` + muted `<p>`, matching `ExploreView`'s matrix-load failure block
+            element-for-element — the named tone model. A real heading gives an AT
+            user something to navigate to inside a dialog whose only other content
+            is the Back control. */}
         <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
-          <p className="text-[20px] font-semibold leading-tight text-text-primary">
+          <h1 className="text-[20px] font-semibold leading-tight text-text-primary">
             {copy.setlistMissingHeading}
-          </p>
+          </h1>
           <p className="mt-2 text-base leading-normal text-text-muted">
             {copy.setlistMissingBody}
           </p>
