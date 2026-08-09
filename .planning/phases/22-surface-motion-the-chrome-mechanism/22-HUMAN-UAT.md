@@ -1,17 +1,108 @@
 ---
-status: pending
+status: partial
 phase: 22-surface-motion-the-chrome-mechanism
 source: [22-UI-SPEC.md §Device Verification, 22-RESEARCH.md §Validation Architecture]
 requirements: [SHEET-02, NAV-06]
-started:
-updated:
+started: 2026-08-07
+updated: 2026-08-09
 ---
 
 ## Current Test
 
-None yet — this script is authored and unrun. Execute tests 0–6 in order at the
-end-of-phase verification gate (`workflow.human_verify_mode: end-of-phase`) and write the
-outcomes into the **Result** lines below. Do not open a new document for the results.
+[testing paused — 1 item outstanding: test 4 (NAV-06), blocked on an Android device]
+
+6 of 7 executed and passed. Resume with `/gsd-verify-work 22` once an Android device is available;
+test 4 is the only remaining item and needs no iOS re-run.
+
+## Session log — 2026-08-07
+
+**Device availability: iPhone + external keyboard. NO Android device.**
+Consequence, stated up front: **test 4 (NAV-06) is BLOCKED**, not failed. It is one of the four
+blocking tests, so the best available outcome for this session is `status: partial`. Test 0's
+Android row is blocked for the same reason.
+
+**Harness deviation — two tunnels, not one.** The script assumes the BEFORE reading comes from
+the already-installed home-screen icon. That is not reachable: cloudflared URLs are ephemeral, so
+the existing icon points at a dead origin from a prior session. Rebuilding under one tunnel does
+not fix it either — both icons would share **one origin, one service worker and one precache**,
+and with `registerType: 'prompt'` the AFTER icon could be served the BEFORE icon's cached shell.
+
+So: **two builds, two ports, two tunnels, two origins**, fully isolated caches.
+
+| | BEFORE (pre-meta-tag shell) | AFTER (current HEAD) |
+|---|---|---|
+| Build | `04b3bc1` reverted in working tree only | `ae5e0d1`, tree clean |
+| Served from | `packages/app/dist-before` :4174 | `packages/app/dist` :4173 |
+| Tunnel (respun 2026-08-09) | `https://peers-vertical-tones-goto.trycloudflare.com` | `https://bob-metabolism-purchase-bin.trycloudflare.com` |
+
+### Script defect found on device — the probe cannot be reached in standalone as written
+
+**Symptom (2026-08-09):** the `?layoutProbe=1` readout renders in Safari but is **absent from the
+installed home-screen app**, so test 0 was unexecutable as scripted.
+
+**Cause.** `LayoutProbe` gates on the query string — `new URLSearchParams(location.search)`,
+`packages/app/src/dev/LayoutProbe.tsx:65` — but the app ships a manifest declaring
+`"start_url": "."` (`packages/app/vite.config.ts:99`). iOS 16.4+ honours the manifest for
+Add-to-Home-Screen, so the icon launches at **`start_url`** — the bare origin root — and the query
+is discarded. `isLayoutProbeEnabled()` returns false and the probe never mounts.
+
+**This falsifies an assumption written into this script**, which asserted that "an installed icon
+always relaunches at the URL it was added from, and hash routing preserves the query as the user
+navigates". That held before the app shipped a manifest; it does not hold now. Any future device
+script that reaches a query-gated dev flag from an installed instance hits the same wall.
+
+**Harness workaround (NOT committed).** `start_url` set to `"./?layoutProbe=1"` in the working tree
+and both shells rebuilt, so the launch URL itself carries the flag. Verified served: both origins
+report `start_url = ./?layoutProbe=1`. `vite.config.ts` **must be reverted** at teardown — the
+production manifest must not ship a dev flag. Because `start_url` affects only the launch URL and
+not status-bar geometry, and both shells carry it identically, the A/B remains clean.
+
+Fresh origins were issued deliberately: the previously installed `GZ-BEFORE` icon left an active
+service worker holding the old manifest, which a same-origin reinstall would have kept serving.
+
+**`vite.config.ts` was reverted to `start_url: "."` after test 0 passed** — the repo is clean of
+harness edits, and the probe was dropped from the build for tests 1+ (below).
+
+### Second script defect — the probe and top-bar interaction tests are mutually exclusive
+
+`LayoutProbe` renders `fixed left-0 right-0 top-0` at `zIndex: config.ui.z.sheet` with
+`pointerEvents: "auto"` and **no dismiss control** (`packages/app/src/dev/LayoutProbe.tsx:262-283`).
+It therefore sits directly on top of the top-right menu button and the Settings affordance and
+swallows their taps. Test 1b (`AppMenu`) and 1c (Settings name prompt) are **unreachable while the
+probe is mounted**, which this script did not anticipate when it directed the tester to install
+*from* the probe URL and then run every graded test from that instance.
+
+Resolution: test 0 is the only test that needs the probe, so once it passed the probe was removed
+and a probe-free build reinstalled. Any future script must either sequence the probe tests first
+(as happened here by luck) or give `LayoutProbe` a collapse control.
+
+### Harness gotcha — orphaned cloudflared processes silently break new tunnels
+
+Stopping a backgrounded tunnel kills the wrapper but **leaves `cloudflared.exe` running** (the same
+is true of `vite preview`). Four accumulated across sessions; new quick tunnels then registered
+successfully (`Registered tunnel connection`, precheck all PASS) but every request returned
+**curl 000** — the URL simply never became reachable, with nothing in the log indicating why.
+Killing the orphans fixed it instantly: the next tunnel served **200 on the first attempt**.
+Check `Get-Process cloudflared` before debugging an unreachable quick tunnel.
+| `apple-mobile-web-app-capable` present | no (0 matches) | yes (1 match) |
+
+All six smoke checks green: `/`, `/sw.js`, `/manifest.webmanifest` → **200** on both origins.
+
+**A/B cleanliness, verified rather than assumed.** The two builds' JS bundles are **byte-identical**
+(1,744,799 bytes both, `cmp` clean) — the differing asset hash is entry-graph-derived, since
+`index.html` is a bundle entry. `__GIT_SHA__` and `__BUILD_DATE__` resolve identically for both.
+
+**Incidental finding (minor, not phase-22 behaviour).** The CSS bundles are *not* identical:
+AFTER is **+908 bytes**. Tailwind v4 scans `index.html`, and the 24-line explanatory comment
+`04b3bc1` added contains the bare words *hidden*, *transform*, *drop-shadow*, *ease-in*,
+*ease-in-out*, *ease-out* — Tailwind harvested them as class candidates and emitted
+`.hidden\!`, `.transform\!`, `.drop-shadow`, `.ease-in`, `.ease-in-out`, `.ease-out` plus
+`--ease-in`/`--ease-in-out` theme vars into production CSS. Dead rules: no element carries those
+classes, so this is **layout-neutral and does not compromise the A/B**. Worth a follow-up
+(move the prose out of `index.html`, or scope Tailwind's `@source`), not worth blocking on.
+
+Execute tests 0–6 in order and write outcomes into the **Result** lines below. Do not open a new
+document for the results.
 
 ## Devices and build
 
@@ -106,11 +197,35 @@ Record both readings:
 
 | Reading | sab | sat | standalone (nav / mq) | innerH |
 |---|---|---|---|---|
-| BEFORE (pre-meta-tag shell) | | | | |
-| AFTER (reinstalled, incl. `04b3bc1`) | | | | |
-| Android (mq only) | — | — | | |
+| BEFORE (pre-meta-tag shell) | 34 | 62 | nav=true / mq=true | 812 |
+| AFTER (reinstalled, incl. `04b3bc1`) | 34 | 62 | nav=true / mq=true | 812 |
+| Android (mq only) | — | — | BLOCKED — no Android device this session | — |
 
-**Result: PASS / FAIL**
+**Result: PASS** (2026-08-09, iOS)
+
+Every decisive criterion is met:
+
+- `standalone` reads `nav=true mq=true` on **both** icons, so both are genuine standalone web apps.
+  The Phase-21 bookmark trap (`sab: 0`, `nav=false mq=false`) is cleared.
+- `sab: 34` is non-zero and **matches Phase 21's iPhone 16 Pro measurement exactly**.
+- **BEFORE and AFTER are identical on all four values.** `sat` (62) and `innerH` (812) do not move,
+  so the meta tags do **not** push content under the status bar. **Revert procedure 2 is NOT
+  triggered; `04b3bc1` stays.**
+
+**What the identity means, stated so it is not over-read later.** `apple-mobile-web-app-capable`
+produced **zero measurable geometry change** on this device. That is the documented expectation, not
+a null result: the manifest's `display: "standalone"` was already driving launch mode, so the tag's
+live contribution is the iOS startup-image nicety — precisely what `index.html`'s comment claims and
+what makes Revert procedure 2 cheap. It also means `black-translucent` is not, in practice,
+relocating where app content begins on this device.
+
+**Coverage caveat.** The GizzVerse chrome toggle was confirmed fully inside the safe area in
+`GZ-AFTER`, but **portrait only** — landscape was not separately confirmed. The both-orientations
+half of this check is therefore **deferred to test 5**, which exercises portrait and landscape
+directly. Do not read test 0 as having closed the landscape case.
+
+**Unrecorded:** exact iPhone model and iOS version were not captured. `sab: 34` is consistent with
+iPhone 16 Pro but that is inference, not a reading — fill the devices table before archiving.
 
 ### Test 1 — SHEET-02: VoiceOver + external keyboard (BLOCKING)
 
@@ -158,12 +273,37 @@ divergence between two of them is more interesting than a uniform failure.
 
 | Sub-test | Surface | VoiceOver | External keyboard |
 |---|---|---|---|
-| 1a | GizzDex trophy case (fullscreen) | | |
-| 1b | AppMenu (bottom sheet + backdrop) | | |
-| 1c | SettingsView name prompt (`initialFocusRef`) | | |
-| 1d | SwapSheet / ShareCardSheet (portaled stacking context) | | |
+| 1a | GizzDex trophy case (fullscreen) | PASS | PASS |
+| 1b | AppMenu (bottom sheet + backdrop) | PASS | PASS |
+| 1c | SettingsView name prompt (`initialFocusRef`) | PASS | PASS |
+| 1d | SwapSheet / ShareCardSheet (portaled stacking context) | PASS | PASS |
 
-**Result: PASS / FAIL**
+**Result: PASS — 8/8 (4 surfaces × VoiceOver + external keyboard), 2026-08-09.**
+
+Keyboard half: focus stayed trapped inside the sheet on all four, Escape closed each, and focus
+returned to the trigger every time. **SHEET-02's accessibility bar is met — Revert procedure 1
+(the enter-only fallback) is NOT triggered.** The 22-02 exit commit `53d6e59` and the three
+prop-driven source conversions stay.
+
+All four prop shapes behave identically under VoiceOver: focus returns to the trigger, the sheet is
+not read while leaving, and the background is reachable at close-**start** rather than after the
+animation. Since `<Sheet>` is shared, four identical results across four different prop combinations
+(`fullscreen` fade, backdrop slide, `initialFocusRef`, portaled stacking context) is evidence about
+the **primitive**, not four coincidences.
+
+1c additionally confirms **D-27** on device: the input takes focus only after the ~200ms enter
+animation completes, and the iOS keyboard opens without the sheet jumping — the keyboard-up viewport
+race that deferred focus exists to avoid.
+
+**Sequencing note:** 1a and 1d were graded on the probe-carrying build, 1b and 1c on the probe-free
+rebuild (see the probe-overlay defect above). Same commit (`ae5e0d1`), same shell; the only
+difference is the manifest `start_url`, which cannot affect sheet behaviour.
+
+Setup discovered for 1c, worth reusing: the "Whose dex is this?" prompt needs an **unowned**
+classification, and `classifyImport` returns `unowned` when the file's owner is empty **or the local
+owner name is unknown** (`packages/app/src/settings/importPicker.ts:69-79`). So the reachable path is
+Export → **clear the local owner-name field** → Import that same file. No specially-crafted fixture
+needed.
 
 ### Test 2 — SHEET-02: the close-start tap, on each of the four (BLOCKING)
 
@@ -185,12 +325,25 @@ anywhere in the exit window reaches the real background.
 
 | Sub-test | Surface | Background tap landed? |
 |---|---|---|
-| 2a | GizzDex trophy case | |
-| 2b | AppMenu | |
-| 2c | SettingsView name prompt | |
-| 2d | SwapSheet / ShareCardSheet | |
+| 2a | GizzDex trophy case | YES |
+| 2b | AppMenu | YES |
+| 2c | SettingsView name prompt | YES |
+| 2d | SwapSheet / ShareCardSheet | YES |
 
-**Result: PASS / FAIL**
+**Result: PASS (2026-08-09).** Background control fired on all four while the sheet was still
+visibly leaving. Method: tap dismiss, then tap a bottom tab within the exit window and confirm the
+tab actually switched — an unambiguous visible effect, and the tester confirmed the sheet was still
+on screen as the tap landed.
+
+**Both blocking SHEET-02 tests now pass (tests 1 and 2), on all four prop shapes.** This is the half
+the suite structurally cannot cover: `fireEvent` ignores `pointer-events` entirely, so jsdom can
+only assert the style string and the dropped scrim handler, never that a real touch reaches the real
+background inside a real 200ms window. **SHEET-02 is closed on device.**
+
+Reduced-motion note recorded while scoping this test: the exit window exists in **both** motion
+modes. Under `prefers-reduced-motion` the bottom-sheet card drops the translate but keeps an opacity
+cross-fade (`Sheet.tsx:339-341`), so it does not go instant, and the close-start window is present
+either way. This test is therefore valid regardless of the device's Reduce Motion setting.
 
 ### Test 3 — D-30 perf observation. NON-BLOCKING.
 
@@ -207,7 +360,17 @@ legible.** In particular the `ShareCardSheet` pre-build **must not** be deferred
 nobody has seen: Phase-6 Pitfall 7 requires the share tap to have **no async before
 `navigator.share`**, and moving the build later would break the share path to smooth an animation.
 
-**Result: PASS / FAIL (non-blocking — record the observation either way)**
+**Result: PASS — no visible hitch on either surface (2026-08-09).**
+
+Observed: `ShareCardSheet` (opened via the Games share action, which pre-builds the PNG `File` on
+open) and `CompareView` (opened via Settings → Import → answering "Whose dex is this?" with a name
+that is not the local owner, which routes the parsed envelope to a read-only compare and re-runs
+`deriveDex` over it). Neither stuttered.
+
+**No action follows from this result, which is the point of recording it.** Because nothing hitched,
+the `ShareCardSheet` pre-build stays exactly where it is — Phase-6 Pitfall 7 requires the share tap
+to have no async before `navigator.share`, so deferring the build to smooth an animation would trade
+a working share path for a cosmetic gain nobody needed.
 
 ### Test 4 — NAV-06: Android install from the relocated Settings affordance (BLOCKING)
 
@@ -236,7 +399,22 @@ Expected:
   disagree.
 - On relaunch, `matchMedia("(display-mode: standalone)").matches` is `true`.
 
-**Result: PASS / FAIL**
+**Result: BLOCKED — no Android device available this session (2026-08-09).**
+`blocked_by: physical-device`
+
+**Not a failure and must not be recorded as one.** NAV-06 is Android-only by construction: it exists
+to prove that plan 22-03's hoisted module-level `beforeinstallprompt` capture reaches a Settings
+section mounting long after the one-shot event fired, and `beforeinstallprompt` is a Chromium event
+that iOS Safari never fires. No amount of iOS testing can substitute.
+
+**This is the one blocking test left open, and it is why this session closes `partial` rather than
+`complete`.** Everything it would have exercised remains unverified on device: the install prompt
+actually appearing, the install completing, and the `appinstalled` listener making the Settings
+install section and the menu row disappear together without a reload.
+
+To close it later, an Android device in Chrome is required — and per the script, grade it on
+`matchMedia("(display-mode: standalone)")` plus the fact that `beforeinstallprompt` fired at all.
+**Never grade Android install-mode on `sab`; that is the iOS tell.**
 
 ### Test 5 — CHROME-03 on a real installed instance. OPTIONAL.
 
@@ -256,7 +434,13 @@ Expected:
   the `<main>` top-inset reserve that jsdom cannot observe, where `env(safe-area-inset-top)`
   resolves to `0` by construction.
 
-**Result: PASS / FAIL (optional)**
+**Result: PASS (2026-08-09).** Run despite being optional, and worth the minutes: it is the **only**
+test covering landscape, so it closes the both-orientations gap that test 0 deferred (test 0's
+chrome-toggle check was portrait-only). Confirmed on device: the toggle holds the same viewport
+pixel across both states and both orientations, stays inside the safe area with notch and home
+indicator present, the constellation gains the freed height, and the constellation still starts
+below the status bar — the `<main>` top-inset reserve (D-13) that jsdom cannot observe, because
+`env(safe-area-inset-top)` resolves to `0` there by construction.
 
 ### Test 6 — Riders. Cheap while the device is in hand.
 
@@ -274,17 +458,41 @@ Expected:
   event they did not cause — and one of those events is the update-available prompt, which must
   never surprise-swap the app mid-show.
 
-**Result: PASS / FAIL**
+**Result: PASS (2026-08-09).** With chrome hidden, `NodeSheet` settled down into the freed space —
+it is `fixed bottom-0` composing from `--gz-chrome-reserve`, so collapsing the reserve moves it for
+free (D-14), no special case. The toast rendered at the collapsed position and **the chrome did not
+come back** (D-15), confirming on device that an event the user did not cause cannot yank them out
+of a state they deliberately entered.
 
 ## Summary
 
 total: 7
-passed:
-failed:
-pending: 7
-blocking: tests 0, 1, 2, 4
-non-blocking: test 3
-optional: test 5
+passed: 6
+failed: 0
+blocked: 1
+pending: 0
+blocking: tests 0, 1, 2, 4 — **0, 1, 2 PASS; 4 BLOCKED (no Android device)**
+non-blocking: test 3 — PASS
+optional: test 5 — PASS (run anyway; it closes test 0's deferred landscape gap)
+
+**Session verdict: `partial`.** Every test executable on the available hardware passed, with zero
+failures and zero defects found in phase-22 behaviour. The single outstanding item is test 4
+(NAV-06), blocked on hardware rather than unresolved.
+
+**What this session closes:**
+
+- **SHEET-02 — CLOSED on device.** Tests 1 and 2, 4 prop shapes × (VoiceOver + external keyboard +
+  close-start touch) = 12/12. Revert procedure 1 not triggered; `53d6e59` stays.
+- **Test 0's install-mode gate — CLEAN.** Genuine standalone on both shells (`nav=true mq=true`),
+  `sab: 34`. The meta tags move no geometry, so Revert procedure 2 not triggered; `04b3bc1` stays.
+- **D-13, D-14, D-15, D-26, D-27, CHROME-03** — all observed directly on device.
+
+**What remains open after this session:**
+
+- **NAV-06 (test 4)** — blocked, Android required. The only blocking test not closed.
+- **NAV-03's mixed-build presence check** — still Phase 21's gap (D-38), untouched here, as designed.
+- **SC3 / CHROME-05** — `22-VERIFICATION.md` records the shipped reheat as inert-not-absent. This
+  session did **not** address it; it is a code/requirements reconciliation, not a device question.
 
 ## Revert procedures
 
