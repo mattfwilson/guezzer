@@ -14,6 +14,23 @@ updated: 2026-08-09
 6 of 7 executed and passed. Resume with `/gsd-verify-work 22` once an Android device is available;
 test 4 is the only remaining item and needs no iOS re-run.
 
+**Resume attempt 2026-08-09 (second): still no Android device — test 4 remains BLOCKED, held.**
+Harness was stood up and then torn down unused. Two things learned that are worth reusing:
+
+- **The build under test is still valid.** `dist/` from `ae5e0d1` matches current HEAD `4cb156d`
+  (docs-only commits since), verified probe-free: `start_url: "."`, `apple-mobile-web-app-capable`
+  present. **Do not rebuild on the next attempt** unless code lands after `4cb156d` — the
+  probe-overlay defect below makes a probe-carrying build actively wrong for test 4, whose step 1
+  is a top-right menu tap.
+- **The orphaned-cloudflared gotcha recurred**, exactly as documented below: one `cloudflared.exe`
+  from 2026-07-31 still pointed at a `:4173` nothing was listening on. Killed before opening the new
+  tunnel; the replacement then served **200 on `/`, `/sw.js` and `/manifest.webmanifest` first try**.
+  `Get-Process cloudflared` is now a confirmed-twice precondition, not a hunch.
+- **One tunnel is correct from here on.** The two-origin BEFORE/AFTER split existed only for test 0's
+  A/B, which passed. Test 4 grades current-build behaviour and needs a single origin — but it must be
+  a **fresh** one: Chromium does not fire `beforeinstallprompt` when the app is already installed, so
+  an origin carrying a prior install makes the whole test silently no-op instead of failing loudly.
+
 ## Session log — 2026-08-07
 
 **Device availability: iPhone + external keyboard. NO Android device.**
@@ -415,6 +432,11 @@ install section and the menu row disappear together without a reload.
 To close it later, an Android device in Chrome is required — and per the script, grade it on
 `matchMedia("(display-mode: standalone)")` plus the fact that `beforeinstallprompt` fired at all.
 **Never grade Android install-mode on `sab`; that is the iOS tell.**
+
+**Re-confirmed BLOCKED on the second 2026-08-09 resume attempt** — still no Android device. Held
+deliberately rather than substituted: there is no iOS stand-in for this test, and grading it on
+anything an iPhone can report would be a false pass. Setup cost to retry is now ~2 minutes (see the
+resume note under Current Test); the only missing input is the hardware.
 
 ### Test 5 — CHROME-03 on a real installed instance. OPTIONAL.
 
