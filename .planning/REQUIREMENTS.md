@@ -32,19 +32,60 @@ One mechanism, two consumers. The Fullscreen API **does not exist on iPhone Safa
 browser-compat data), and an installed PWA has no browser chrome to hide — so the "fullscreen toggle"
 is *necessarily* an in-app chrome-hide. Backlog items #9 and #4 are the same feature.
 
-- [ ] **CHROME-01**: In GizzVerse, a user can hide the top bar and bottom tabs with one tap for more constellation viewing area, and restore them with a control that stays visible in the same place
+- [x] **CHROME-01**: In GizzVerse, a user can hide the top bar and bottom tabs with one tap for more constellation viewing area, and restore them with a control that stays visible in the same place
 - [ ] **CHROME-02**: While tracking a show on the Live tab, the bottom tabs auto-hide for immersion and return the moment the user navigates to another tab
-- [ ] **CHROME-03**: A user can always escape chrome-hidden state — the exit control is always rendered, ≥44px, inside the safe area, and first in tab order; the hidden state never persists across a cold boot
-- [ ] **CHROME-04**: Hidden chrome is removed from the accessibility tree, not merely translated off-screen, so VoiceOver and keyboard users cannot tab into invisible controls
-- [ ] **CHROME-05**: Hiding or showing chrome never reheats the GizzVerse simulation or degrades battery — exactly one resize callback fires, asserted by test
+- [x] **CHROME-03**: A user can always escape chrome-hidden state — the exit control is always rendered, ≥44px, inside the safe area, and first in tab order; the hidden state never persists across a cold boot
+- [x] **CHROME-04**: Hidden chrome is removed from the accessibility tree, not merely translated off-screen, so VoiceOver and keyboard users cannot tab into invisible controls
+- [x] **CHROME-05**: Hiding or showing chrome fires exactly **one** resize callback, asserted by test, and that resize cannot move the GizzVerse layout or snap the camera — nodes are pinned via `fx`/`fy` at settle and `zoomToFit` is gated behind first settle
+
+> **Amended 2026-08-10 (Phase 22 close).** Original wording: *"never reheats the GizzVerse
+> simulation or degrades battery — exactly one resize callback fires, asserted by test"*.
+> The shipped code falsifies the literal "never reheats" clause:
+> `ConstellationCanvas.tsx:249` calls `fg.d3ReheatSimulation()` on every `size.height` change,
+> and a chrome toggle changes `size.height`. `chromeResize.test.tsx:192-207` documents this
+> honestly rather than asserting a passing fiction.
+>
+> The reheat is **inert, not absent** — pinned `fx`/`fy` mean it cannot move the layout, and the
+> first-settle gate means it cannot snap the camera. Both mitigations were independently confirmed
+> in `22-VERIFICATION.md`. The wording is amended to the property actually achieved and verified,
+> rather than leaving the codebase quietly disagreeing with the roadmap.
+>
+> **What this amendment does NOT claim:** the reheat still runs simulation ticks, so the original
+> text's "degrades battery" clause is *dropped, not proven false*. Measuring it was never in scope.
+> Making the reheat genuinely absent (a deps change on the spacing effect) remains open as
+> `.planning/todos/pending/2026-08-10-constellation-reheats-on-pure-box-change.md`.
 
 ### Sheet Motion
 
 The highest-regression-risk item in the milestone relative to its user value: one primitive backs 11+
 VoiceOver- and keyboard-verified surfaces.
 
-- [ ] **SHEET-01**: Every bottom sheet animates smoothly up on open and down on close with a scrim cross-fade, honoring `prefers-reduced-motion`
-- [ ] **SHEET-02**: Sheet accessibility behavior is unchanged by the animation — focus returns to the trigger and the background becomes interactive at close-*start*, never after the exit finishes (a tap during that window must never be swallowed), re-verified on-device with VoiceOver and an external keyboard
+- [x] **SHEET-01**: Every **`<Sheet>`-backed, prop-driven** sheet animates smoothly up on open and down on close with a scrim cross-fade, honoring `prefers-reduced-motion`
+
+> **Amended 2026-08-10 (Phase 22 close).** Original wording said "Every bottom sheet". Two
+> bounded, deliberate seams make the unqualified quantifier false, both documented at the top of
+> `Sheet.tsx` rather than hidden:
+>
+> 1. **Five hand-rolled bottom sheets never animate at all** — `SearchSheet`, `AlbumDetail`,
+>    `ArchiveBrowser`, `SetlistView`, `NodeSheet` (locked decision D-16, `22-CONTEXT.md`).
+> 2. **Six of nineteen `<Sheet>` openings are enter-only** because their parent unmounts them
+>    outright, so `AnimatePresence` never runs an exit: `CompareView` ×2, `FriendDetail` ×2,
+>    `PinSheet` ×2.
+>
+> **This amendment is narrower than it looks, and the cost is real.** `SearchSheet` is named in
+> `Sheet.tsx` as "the one-thumb in-the-dark surface used most at a show" — so the single sheet a
+> user touches most during the thing this app exists for is the one that visibly will not animate
+> while everything around it does. That is an accepted inconsistency, not a solved problem.
+> Migration is tracked at
+> `.planning/todos/pending/2026-08-10-migrate-hand-rolled-bottom-sheets-to-the-sheet-primitive.md`.
+- [x] **SHEET-02**: Sheet accessibility behavior is unchanged by the animation — focus returns to the trigger and the background becomes interactive at close-*start*, never after the exit finishes (a tap during that window must never be swallowed), re-verified on-device with VoiceOver and an external keyboard
+
+> **Closed on device 2026-08-09** (`22-HUMAN-UAT.md` tests 1 and 2): 4 prop shapes ×
+> (VoiceOver + external keyboard + close-start background tap) = **12/12**. The sample was chosen by
+> prop shape rather than surface count, since `<Sheet>` is shared — `fullscreen` fade, backdrop
+> slide, `initialFocusRef`, and a Phase-21-portaled stacking context. Revert Procedure 1 (the
+> sanctioned enter-only degraded ship) is **not** triggered; commit `53d6e59` stays, and the sheet
+> primitive Phase 23 builds against is now final.
 
 ### Immersive In-Show Experience
 
@@ -75,8 +116,23 @@ FIFO one-at-a-time drain) — recorded here so it is not later rediscovered as a
 - [x] **NAV-02**: The rename changes display labels only — routes, file paths, and saved data keys are untouched, so no saved dex is orphaned and no navigation breaks
 - [x] **NAV-03**: Friend presence activity keeps working across mixed app builds — a friend on an older build still shows a correct, readable activity label rather than a blank or a raw internal token
 - [ ] **NAV-04**: The Me tab icon shows a badge when friends are online, so the friends surface is discoverable without opening the tab
-- [ ] **NAV-05**: The add-to-home-screen instructions live at the bottom of Settings and are hidden once the app is installed; the top-right menu keeps a single neutral row that deep-links there
+- [x] **NAV-05**: The add-to-home-screen instructions live at the bottom of Settings and are hidden once the app is installed; the top-right menu keeps a single neutral row that deep-links there
 - [ ] **NAV-06**: Installing from the relocated Settings affordance works on Android, confirmed on-device
+
+> **NAV-06 is the one Phase-22 requirement left open, and it is blocked on hardware, not on code.**
+> The named engineering risk — "the relocated affordance is dead on Android unless that
+> `beforeinstallprompt` capture is hoisted" — is resolved and tested: the capture is a module-load
+> singleton (`installStore.ts:145-150`) feeding a `useSyncExternalStore` registry, so it reaches a
+> Settings section mounting long after the one-shot event fired.
+>
+> What remains genuinely unverified is only what a real Chromium install can show: the prompt
+> appearing, the install completing, and the `appinstalled` listener making the Settings section and
+> the menu row vanish together with no reload. `beforeinstallprompt` is Chromium-only and iOS Safari
+> never fires it, so **no amount of iOS testing substitutes** — see `22-HUMAN-UAT.md` test 4.
+>
+> **Deployment risk accepted as low.** If the hoist did fail on Android, users could still install
+> via Chrome's own overflow menu, so the worst case is a degraded discovery path on one platform —
+> post-deploy fixable, with no data or schema implication.
 
 ### Visual Polish
 
@@ -165,13 +221,13 @@ milestone, which ended at Phase 20 — v2.1 runs Phases 21–24.
 | FOUND-03 | Phase 21 | Complete |
 | FOUND-04 | Phase 21 | Complete |
 | FOUND-05 | Phase 21 | Complete |
-| CHROME-01 | Phase 22 | Pending |
+| CHROME-01 | Phase 22 | Complete |
 | CHROME-02 | Phase 23 | Pending |
-| CHROME-03 | Phase 22 | Pending |
-| CHROME-04 | Phase 22 | Pending |
-| CHROME-05 | Phase 22 | Pending |
-| SHEET-01 | Phase 22 | Pending |
-| SHEET-02 | Phase 22 | Pending |
+| CHROME-03 | Phase 22 | Complete |
+| CHROME-04 | Phase 22 | Complete |
+| CHROME-05 | Phase 22 | Complete (amended) |
+| SHEET-01 | Phase 22 | Complete (amended) |
+| SHEET-02 | Phase 22 | Complete |
 | INSHOW-01 | Phase 23 | Pending |
 | INSHOW-02 | Phase 23 | Pending |
 | INSHOW-03 | Phase 23 | Pending |
@@ -187,8 +243,8 @@ milestone, which ended at Phase 20 — v2.1 runs Phases 21–24.
 | NAV-02 | Phase 21 | Complete |
 | NAV-03 | Phase 21 | Complete |
 | NAV-04 | Phase 24 | Pending |
-| NAV-05 | Phase 22 | Pending |
-| NAV-06 | Phase 22 | Pending |
+| NAV-05 | Phase 22 | Complete |
+| NAV-06 | Phase 22 | Blocked — Android device |
 | POLISH-03 | Phase 24 | Pending |
 
 **Coverage:**

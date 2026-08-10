@@ -1,5 +1,7 @@
 ---
 status: partial
+closed_with_deferral: 2026-08-10
+deferred_items: [test 4 / NAV-06 — blocked on Android hardware]
 phase: 22-surface-motion-the-chrome-mechanism
 source: [22-UI-SPEC.md §Device Verification, 22-RESEARCH.md §Validation Architecture]
 requirements: [SHEET-02, NAV-06]

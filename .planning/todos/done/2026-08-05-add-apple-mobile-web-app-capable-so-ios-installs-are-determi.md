@@ -59,3 +59,11 @@ session lost to bookmark-mode ambiguity is a session not spent on polish before 
 Related: [[2026-07-20-fix-bottom-viewport-gap-in-installed-standalone-pwa]] is the FOUND-01
 gap itself (`resolves_phase: 21`) — a different subject; this todo is about the install
 context being trustworthy in the first place.
+
+## Resolution (Phase 22, 22-09)
+
+Delivered by plan 22-09, commit `04b3bc1`, which touches exactly `packages/app/index.html` so it
+stays independently revertible. Confirmed on device 2026-08-09 (`22-HUMAN-UAT.md` test 0): the tag
+moved **no** geometry — `sab`, `sat` and `innerH` are identical before and after — so it does not
+push content under the status bar. Its live contribution is the iOS startup-image nicety; the
+manifest's `display: "standalone"` is what actually drives launch mode.

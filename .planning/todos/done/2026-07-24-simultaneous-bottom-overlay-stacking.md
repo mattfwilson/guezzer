@@ -2,7 +2,9 @@
 created: 2026-07-24T00:00:00.000Z
 title: Simultaneous bottom overlays double the reserve and overlap each other
 area: ui
-resolves_phase:
+resolves_phase: 22
+resolved: 2026-08-10
+resolved_by: 22-08
 files:
   - packages/app/src/pwa/bottomOverlayInset.ts
   - packages/app/src/components/InstallBanner.tsx
@@ -68,3 +70,12 @@ a per-id cumulative offset) rather than a single summed scalar. Candidates:
 Either way it needs a decision on **priority** (which overlay sits closest to the tab
 bar) and on whether a cap is wanted — five stacked overlays would cover most of a
 phone viewport, and D-17 says the live logging loop must never be blocked.
+
+## Resolution (Phase 22, 22-08)
+
+Delivered by plan 22-08: `bottomOverlayInset.ts` gained `offsetBelow(id)` over a declared
+`config.ui.BOTTOM_OVERLAY_ORDER`, so each overlay composes `calc(var(--gz-chrome-reserve) + Npx)`
+from the heights of those below it instead of every overlay pinning to the same bottom. An omission
+guard greps registration ids out of `src/` so a new overlay cannot be added without joining the
+order. Verified in `22-VERIFICATION.md` (`bottomOverlayInset.test.tsx:320` renders a real overlay
+and asserts the composed value; 3 guard cases including an anti-vacuity check).

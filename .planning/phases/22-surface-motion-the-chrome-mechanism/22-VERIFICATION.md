@@ -1,10 +1,16 @@
 ---
 phase: 22-surface-motion-the-chrome-mechanism
 verified: 2026-08-06T06:02:29Z
-status: gaps_found
-score: 1/5 roadmap success criteria fully verified (3 partial, 1 code-verified/device-pending)
-overrides_applied: 0
-re_verification: null
+status: closed_with_deferral
+score: 4/5 roadmap success criteria fully verified; SC5 partial (NAV-06 blocked on Android hardware)
+overrides_applied: 2
+re_verification: 2026-08-10T00:00:00Z
+re_verification_note: >-
+  The body of this report reflects the 2026-08-06 audit and is left INTACT — it is the
+  record of what was true then, and its escapability and a11y audits still stand. Three of
+  its four gaps closed afterwards, by events it could not see: the device UAT session
+  (2026-08-09) and the code-review fix pass (2026-08-06T09:05, commit 80c2895). Read the
+  "Re-verification" section at the top of the body before acting on any gap below.
 gaps:
   - truth: "SC3 / CHROME-05 — hiding or showing chrome never reheats the GizzVerse simulation"
     status: partial
@@ -120,6 +126,69 @@ human_verification:
 ---
 
 # Phase 22: Surface Motion & the Chrome Mechanism — Verification Report
+
+## ⚠ Re-verification 2026-08-10 — READ THIS FIRST
+
+**Everything below this section was written on 2026-08-06 and is now partly superseded.** It is
+deliberately preserved rather than rewritten: its escapability audit, its a11y audit and its
+artifact table all still hold, and its judgement calls were correct at the time. What it could not
+see is that **three of its four gaps closed within days**, by two events that happened after it ran.
+
+| Gap in the 08-06 report | State on 2026-08-10 | Closed by |
+|---|---|---|
+| SC2 / SHEET-02 device half unrun | ✅ **CLOSED** | Device UAT 2026-08-09 — tests 1 and 2, **12/12** across 4 prop shapes |
+| SC5 / NAV-05 focus-steal defect (CR-01) | ✅ **FIXED** | Code-review fix pass, commit `80c2895` — `requestCount`/`handledCount` pair, acknowledged after the focus move |
+| Three delivered todos never moved | ✅ **CLOSED** | Moved to `.planning/todos/done/` 2026-08-10, each stamped with the plan that delivered it |
+| SC3 / CHROME-05 reheat contradiction | ⚖️ **RESOLVED BY AMENDMENT** | REQUIREMENTS.md CHROME-05 + ROADMAP SC3 amended 2026-08-10 to the inert-reheat property actually shipped |
+| SC1 / SHEET-01 quantifier narrowed silently | ⚖️ **RESOLVED BY AMENDMENT** | REQUIREMENTS.md SHEET-01 + ROADMAP SC1 amended to "every `<Sheet>`-backed, prop-driven sheet" |
+
+**Score moves 1/5 → 4/5.** The one criterion still short is **SC5, and only its NAV-06 half.**
+
+### The two amendments are overrides, and should be read as such
+
+Neither amendment was a discovery that the original requirement was wrong. Both are decisions to
+make the written contract match shipped behaviour, taken under a deployment deadline. Recording the
+cost honestly:
+
+- **CHROME-05.** The reheat is real; the mitigations (pinned `fx`/`fy`, first-settle camera gate)
+  make it unable to move the layout or snap the camera, both independently confirmed below. But it
+  still runs simulation ticks, so the original clause's **"or degrades battery" was dropped rather
+  than disproven** — that was never measured. Tracked at
+  `todos/pending/2026-08-10-constellation-reheats-on-pure-box-change.md`. The fix is a deps change
+  on the constellation's spacing effect, i.e. the highest-regression edit in the phase — which is
+  exactly why it was not attempted on deploy day.
+- **SHEET-01.** The narrowing is a locked owner decision (D-16) honestly documented in `Sheet.tsx`.
+  Its real cost is that `SearchSheet` — named there as "the one-thumb in-the-dark surface used most
+  at a show" — is the sheet that visibly will not animate while everything around it does. Tracked
+  at `todos/pending/2026-08-10-migrate-hand-rolled-bottom-sheets-to-the-sheet-primitive.md`.
+
+### The report's central worry is resolved
+
+The 08-06 audit's sharpest structural finding was that the phase goal's second sentence was not yet
+satisfiable — *"the overlays of Phase 23 must be built against the final sheet primitive"* — because
+the primitive stayed provisional while Revert Procedure 1 (the enter-only fallback) was live.
+
+**Device tests 1 and 2 passing retires that procedure.** Commit `53d6e59` stays, the exit animation
+stays, and the primitive Phase 23 depends on is now final. Phase 23 is unblocked on its stated
+precondition.
+
+### What is genuinely still open
+
+**NAV-06 only, and it is blocked on hardware rather than on code.** The named engineering risk — the
+one-shot `beforeinstallprompt` needing a module-level hoist to reach a late-mounting Settings
+section — is resolved and tested (`installStore.ts:145-150`). Unverified is what only a real
+Chromium install shows: the prompt appearing, the install completing, and `appinstalled` making the
+Settings section and the menu row vanish together with no reload. iOS Safari never fires the event,
+so no iOS session can substitute. Deployment risk is accepted as low: the worst case is a degraded
+install-discovery path on one platform, with Chrome's own overflow menu still offering the install,
+and no data or schema implication.
+
+Also unchanged and still carried: **NAV-03's mixed-build presence check remains Phase 21's recorded
+gap (D-38)** — not closed here, and it must not be read as closed by this phase.
+
+---
+
+## Original audit — 2026-08-06
 
 **Phase Goal:** The one shared `<Sheet>` primitive animates without losing a single accessibility guarantee, and the chrome-hide mechanism debuts on GizzVerse — proven escapable, accessible, and cheap on the surface where a stranded user costs the least — before the live-show path depends on it. The overlays of Phase 23 must be built against the *final* sheet primitive, not retrofitted onto it afterwards.
 
