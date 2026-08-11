@@ -8,7 +8,31 @@
  */
 import type { BingoEvent } from "./bingo/types.ts";
 
+/**
+ * The single owner of the product name in CORE's user-facing copy
+ * (todo 2026-08-10 / NAV-02).
+ *
+ * Core carries its own copy of this literal ON PURPOSE. `packages/app/src/
+ * config.ts` declares an identical one and is pinned by D-39 to stay a LEAF
+ * module — type-only imports, no runtime dependency on anything. Importing a
+ * value across the core/app seam to collapse these two into one owner would
+ * break that decision, so the boundary is the price of the leaf rule. Two
+ * files may hold this literal and exactly two; `packages/app/test/
+ * rebrand.test.ts` asserts that pair over BOTH source trees.
+ *
+ * This is DISPLAY copy. `userAgent` below also names the product but is an
+ * HTTP identity for the volunteer-run kglw.net API (API etiquette), not UI —
+ * it is pinned verbatim by `test/fetch.test.ts` and must NOT follow this.
+ */
+const APP_NAME = "Gizz With Friends";
+
 export const config = {
+  /**
+   * Product name for the handful of core strings that surface to a user
+   * (`data-safety/merge.ts` import rejections, rendered by SettingsView).
+   */
+  appName: APP_NAME,
+
   /** kglw.net API v2 base URL. No auth. Source: PROJECT.md Context / ARCHITECTURE.md Part 1. */
   apiBase: "https://kglw.net/api/v2",
 
