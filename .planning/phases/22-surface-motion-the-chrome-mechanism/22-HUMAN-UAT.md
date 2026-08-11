@@ -435,6 +435,38 @@ To close it later, an Android device in Chrome is required — and per the scrip
 `matchMedia("(display-mode: standalone)")` plus the fact that `beforeinstallprompt` fired at all.
 **Never grade Android install-mode on `sab`; that is the iOS tell.**
 
+### Desktop Chrome was tried as a substitute on 2026-08-10 and is NOT worth repeating
+
+`InstallSection` branches on `canInstall`, not on platform (`InstallSection.tsx:61`), so desktop
+Chrome nominally exercises the same code path as Android. It was attempted. **It did not produce a
+usable reading, and the next person should not spend the time.**
+
+What was observed on a clean origin (`localhost:4180`, fresh build, no prior install,
+`standalone: false`): the section renders in the right place with the right heading and body, but
+`sectionButtons` is empty and the copy falls through to *"Gizz With Friends can't auto-install
+here"* — i.e. `canInstall === false` and `isIos === false`. Chrome simply never fired
+`beforeinstallprompt`, most likely because the service worker was not yet controlling the page.
+
+**Why this is a dead end rather than a bug.** The check is one-directional. A button appearing would
+be strong evidence the module-level capture works; a button *not* appearing is inconclusive, because
+at least three causes are unrelated to our code — already-installed for that origin, Chrome's own
+installability verdict, or enterprise policy. Only one configuration falsifies anything: Chrome
+reporting the app installable (DevTools → Application → Manifest) **while** the section still shows
+the fallback. Anything else is noise.
+
+**Two traps that cost time on 2026-08-10, both worth knowing:**
+
+- **A long-lived localhost port carries a stale service worker.** `:4173` had been reused across
+  many sessions and, with `registerType: 'prompt'`, kept serving a **pre-Phase-22 shell** — no Map or
+  Sched tabs, and the old gold "Install Gizz With Friends" menu CTA that NAV-05 removed. Every
+  reading taken against it was void. Serve verification builds on a **fresh port** (a new origin has
+  no SW history and no prior install), and confirm the tab strip shows **Map** and **Sched** before
+  grading anything.
+- **A closed `<Sheet>` renders zero DOM nodes** (an A11Y-01 guarantee). So any DOM probe for the
+  AppMenu install row reports "absent" identically whether the row is missing or the menu is merely
+  closed. Probe `[aria-label="Close menu"]` first to prove the sheet is open, or the reading means
+  nothing.
+
 **Re-confirmed BLOCKED on the second 2026-08-09 resume attempt** — still no Android device. Held
 deliberately rather than substituted: there is no iOS stand-in for this test, and grading it on
 anything an iPhone can report would be a false pass. Setup cost to retry is now ~2 minutes (see the
