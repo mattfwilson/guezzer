@@ -3,9 +3,14 @@ created: 2026-08-10T00:00:00.000Z
 title: App name still reads "Guezzer" on user-facing surfaces after the rename
 area: copy
 resolves_phase:
+resolved: 2026-08-11
+resolved_by: 260811-pxg
 files:
   - packages/app/src/components/AppMenu.tsx
   - packages/app/src/config.ts
+  - packages/app/src/components/AppShell.tsx
+  - packages/app/src/auth/SignInScreen.tsx
+  - packages/app/test/rebrand.test.ts
 ---
 
 ## Problem
@@ -55,3 +60,29 @@ change plus a test that the literal `"Guezzer"` appears nowhere under `src/` exc
 
 Severity is **cosmetic** — it was deliberately not fixed during the 2026-08-10 deploy prep, since
 it is copy-only and the deploy was time-boxed.
+
+## Resolution (quick task 260811-pxg)
+
+Delivered by quick task `260811-pxg` in three commits: `4781203` (the constant + fifteen config
+strings), `afc493c` (the three component literals), `94897c0` (the guard).
+
+The fix took the **root cause**, not just the seven strings. `packages/app/src/config.ts` now
+declares one module-private `APP_NAME` const above the config literal, surfaced as
+`config.copy.appName`. All fifteen name-bearing copy strings interpolate it — the six that said the
+old name **and** the nine that already said the right one, because a "single owner" claim is false
+while any correct copy is still an independent literal. `AppMenu.tsx` (the headline defect),
+`AppShell.tsx` and `SignInScreen.tsx` render `{config.copy.appName}`.
+
+One wording change beyond a token swap: `settings.storageNotProtected` became "Your device may
+clear your Gizz With Friends data." A mechanical swap would have produced a possessive on a
+three-word name.
+
+`test/rebrand.test.ts` gained a third `describe` block that walks comment-stripped `src/` and
+asserts the brand literal appears in **exactly one** file, exactly once — so re-introducing a
+hard-coded app name anywhere under `src/` is unmergeable — plus that the three surfaces still read
+`config.copy.appName` (deleting the text node cannot satisfy the count assertion alone). Its
+anti-vacuity half was proven discriminating by two temporary probes, not assumed green.
+
+`config.DB_NAME` is still `"guezzer"` and `GuezzerDB` is unrenamed — the "Do NOT change" list above
+was honoured, and the guard now allow-lists `db/db.ts` as the sole permitted site so removing that
+exemption fails loudly instead of silently orphaning saved dexes.
