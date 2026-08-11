@@ -17,6 +17,20 @@ import type { RarityTier } from "@guezzer/core";
 import type { Route } from "./routing/useHashRoute.ts";
 import type { Tab } from "./sync/presenceActivity.ts";
 
+/**
+ * The single owner of the product name in UI copy (todo 2026-08-10 / NAV-02).
+ *
+ * Deliberately NOT exported: components read `config.copy.appName`, matching
+ * every other copy consumer. Before this existed the name lived as scattered
+ * literals, which is exactly how the manifest and the menu heading diverged —
+ * the manifest said one thing while seven user-facing strings said another.
+ * One owner, one read path. Locked by `test/rebrand.test.ts`.
+ *
+ * This is a DISPLAY string only. `DB_NAME` below and the Dexie class in
+ * `db/db.ts` are persisted identity and must never follow it (NAV-02).
+ */
+const APP_NAME = "Gizz With Friends";
+
 export const config = {
   /** D-08: Dexie/IndexedDB database name. */
   DB_NAME: "guezzer",
@@ -989,6 +1003,9 @@ export const config = {
 
   /** UI-SPEC §Copywriting Contract. */
   copy: {
+    /** Every component that needs to render the product name reads `config.copy.appName`. */
+    appName: APP_NAME,
+
     /**
      * Bottom-tab DISPLAY labels (NAV-01/NAV-02, D-43), keyed by the frozen
      * `Route` strings. The short names exist so five tabs fit under one thumb —
@@ -1029,20 +1046,18 @@ export const config = {
       invalidCredentials: "Invalid login credentials",
       forgotOwner: "Forgot? Ask Matt to reset it.",
       connectOnceHeading: "Connect once to sign in",
-      connectOnceBody:
-        "You're offline. Connect to Wi-Fi or data once to sign in — after that, Gizz With Friends works fully offline.",
+      connectOnceBody: `You're offline. Connect to Wi-Fi or data once to sign in — after that, ${APP_NAME} works fully offline.`,
       reconnecting: "Reconnecting…",
       signOut: "Sign out",
       signOutSubline: "Hand this phone to another Gizz friend.",
     },
     installBanner: {
-      headline: "Install Gizz With Friends",
+      headline: `Install ${APP_NAME}`,
       body: "Add it to your home screen so it works offline at the show.",
       dismiss: "Not now",
     },
-    installCta: "Install Gizz With Friends",
-    installUnavailable:
-      "Gizz With Friends can't auto-install here — add it from your browser menu instead.",
+    installCta: `Install ${APP_NAME}`,
+    installUnavailable: `${APP_NAME} can't auto-install here — add it from your browser menu instead.`,
     /**
      * Phase-22 NAV-05 (22-UI-SPEC §Copywriting Contract) — the relocated install
      * affordance: ONE Settings section owning ONE heading, plus the single
@@ -1063,18 +1078,16 @@ export const config = {
       /** Settings section `<h2>` and the D-35 deep-link focus target. */
       sectionHeading: "Add to Home Screen",
       /** The two reasons that matter to this user: venue offline, and iOS IndexedDB eviction. */
-      sectionBody:
-        "Install Gizz With Friends on your home screen so it works offline at the show — and so your saved dex is safer.",
+      sectionBody: `Install ${APP_NAME} on your home screen so it works offline at the show — and so your saved dex is safer.`,
       /** Android (beforeinstallprompt captured) — honest: this button really does install. */
-      androidCta: "Install Gizz With Friends",
+      androidCta: `Install ${APP_NAME}`,
       /** Everything that is neither Android-promptable nor iOS Safari. */
-      unavailable:
-        "Gizz With Friends can't auto-install here — add it from your browser menu instead.",
+      unavailable: `${APP_NAME} can't auto-install here — add it from your browser menu instead.`,
       /** The one neutral AppMenu row (D-34) — names the destination, not the action. */
       menuRow: "Add to Home Screen",
     },
     iosInstall: {
-      heading: "Add Gizz With Friends to your Home Screen",
+      heading: `Add ${APP_NAME} to your Home Screen`,
       steps: [
         "Tap the Share button",
         "Choose Add to Home Screen",
@@ -1175,7 +1188,7 @@ export const config = {
         "Keep your screen on manually — auto screen-wake isn't supported on this device.",
       /** Matrix artifact load failure (full-stage state). */
       modelLoadFailureHeading: "Couldn't load the prediction model.",
-      modelLoadFailureBody: "Reopen Guezzer to try again.",
+      modelLoadFailureBody: `Reopen ${APP_NAME} to try again.`,
     },
 
     /**
@@ -1233,12 +1246,12 @@ export const config = {
       importSuccessBody: (shows: number, songs: number): string =>
         `${shows} shows and ${songs} songs added. Nothing was removed.`,
       /** Import error — corrupt/unrecognized file rejected before any DB write (D-12). */
-      importErrorHeading: "That's not a Guezzer backup.",
+      importErrorHeading: `That's not a ${APP_NAME} backup.`,
       importErrorBody:
         "Nothing changed. Pick a valid export file and try again.",
       /** Storage-protection readout (D-13). */
       storageProtected: "Storage is protected on this device.",
-      storageNotProtected: "Your device may clear Guezzer's data.",
+      storageNotProtected: `Your device may clear your ${APP_NAME} data.`,
       storageNotProtectedBody:
         "Export a backup now and again to keep your dex safe.",
       /** End-Show auto-backup confirmation (D-13) — a single confirmation, not a per-show nag. */
@@ -1785,7 +1798,7 @@ export const config = {
        * colors only). Tier WORDS reuse config.copy.dex.tierLabels — no duplication.
        */
       card: {
-        wordmark: "Gizz With Friends",
+        wordmark: APP_NAME,
         caught: (caught: number, total: number): string => `${caught}/${total} caught`,
         shows: (n: number): string => (n === 1 ? "1 show" : `${n} shows`),
         rarestLabel: "Rarest catch",
@@ -1851,7 +1864,7 @@ export const config = {
       pinDelete: "Remove pin",
       /** Map-artifact load failure (mirrors the model-load-failure pattern). */
       loadFailureHeading: "Couldn't load the festival map.",
-      loadFailureBody: "Reopen Guezzer to try again.",
+      loadFailureBody: `Reopen ${APP_NAME} to try again.`,
     },
 
     /**
@@ -1872,7 +1885,7 @@ export const config = {
       youLabel: "You",
       /** Artifact load failure (mirrors the model/map-load-failure pattern). */
       loadFailureHeading: "Couldn't load the schedule.",
-      loadFailureBody: "Reopen Guezzer to try again.",
+      loadFailureBody: `Reopen ${APP_NAME} to try again.`,
     },
 
     /**
@@ -1932,7 +1945,7 @@ export const config = {
       rotationEmptyBody: "No shows in the archive yet — switch to Full catalog.",
       /** Error state — matrix load failure (mirrors the Phase-4 model-load pattern; blocks only this view). */
       errorHeading: "Couldn't load the constellation.",
-      errorBody: "Reopen Guezzer to try again.",
+      errorBody: `Reopen ${APP_NAME} to try again.`,
     },
   },
 } as const;
