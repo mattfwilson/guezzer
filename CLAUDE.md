@@ -161,7 +161,47 @@ A mobile-friendly PWA that predicts the next song King Gizzard and the Lizard Wi
 
 ## Conventions
 
-Conventions not yet established. Will populate as patterns emerge during development.
+### Local verification: always a fresh build on a fresh port
+
+**Whenever the user is going to test or verify anything in the running app, rebuild first and serve
+it on a port not used before in this session. Do this unprompted.** Never hand over a URL for an
+already-running server, and never assume the existing `packages/app/dist/` is current — not even if
+it was built minutes ago, and not even if `git status` is clean.
+
+```bash
+rm -rf packages/app/dist
+npm run build -w @guezzer/app
+npm run preview -w @guezzer/app -- --port <NEW_PORT> --strictPort   # run in background
+```
+
+**Then prove which build is being served, before the user grades anything:**
+
+1. `curl -s http://localhost:<PORT>/ | grep -o 'assets/index-[A-Za-z0-9_-]*\.js'` and confirm it
+   matches `ls packages/app/dist/assets/`.
+2. Have the user confirm one visible current-build feature. The tab strip is fastest — it must read
+   **Live · GizzVerse · Map · Sched · Me · Games** (six tabs, `BottomTabBar.tsx`, unconditional).
+
+**Why this is a hard rule, not a nicety.** The app ships `registerType: 'prompt'`, so the service
+worker deliberately **never** auto-updates — a SW must not swap the app mid-show. A reused localhost
+port therefore keeps serving whatever shell it cached, forever, while the new build waits behind an
+update prompt. On 2026-08-10 this consumed most of a session: `localhost:4173` served a
+**pre-Phase-22 shell** (no Map or Sched tabs, and an install CTA that had been removed), and every
+observation taken against it was void — including source-reading for a bug that did not exist.
+
+A new port is a new origin: no SW history, no precache, and no prior PWA install (which also matters
+for `beforeinstallprompt`, since Chromium will not fire it for an already-installed origin).
+
+**Corollaries:**
+
+- **Treat "the app doesn't match the code" as a staleness hypothesis first**, before reading source.
+  It is far more often the cache than the code.
+- **Tear down by port, not by task.** Killing a backgrounded task leaves the real process alive:
+  `Get-NetTCPConnection -LocalPort <PORT>` → `Stop-Process`. Also check `Get-Process cloudflared`;
+  orphans make new tunnels register successfully but return curl 000.
+- **A closed `<Sheet>` renders zero DOM nodes** (an A11Y-01 guarantee). Any DOM probe for sheet
+  contents reports "absent" identically whether the element is missing or the sheet is just closed.
+  Assert the sheet is open first (`[aria-label="Close menu"]` for `AppMenu`) or the reading is
+  meaningless.
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
