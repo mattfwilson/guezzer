@@ -159,7 +159,7 @@ export function AppShell({
         transition={chromeTransition}
       >
         <span className="text-[20px] font-semibold leading-tight">
-          Gizz With Friends
+          {config.copy.appName}
         </span>
         {/* Identity + menu chrome. IdentityAvatar self-sources the current
             identity (renders nothing signed out) — no prop threading.

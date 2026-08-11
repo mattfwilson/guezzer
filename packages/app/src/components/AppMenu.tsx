@@ -56,7 +56,7 @@ export function AppMenu({ open, onClose }: AppMenuProps) {
     <Sheet open={open} onClose={onClose} modal variant="bottom-sheet" ariaLabel="Menu">
       <div className="flex items-center justify-between">
         <span className="text-[20px] font-semibold leading-tight text-text-primary">
-          Guezzer
+          {config.copy.appName}
         </span>
         <button
           type="button"

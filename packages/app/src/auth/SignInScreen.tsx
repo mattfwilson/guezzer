@@ -125,7 +125,7 @@ export function SignInScreen({ online }: { online: boolean }) {
     <main className="flex min-h-dvh flex-col items-center bg-surface px-4 pb-16 pt-8">
       <div className="flex w-full max-w-sm flex-1 flex-col gap-6">
         <h1 className="text-center text-[28px] font-semibold leading-tight text-text-primary">
-          Gizz With Friends
+          {config.copy.appName}
         </h1>
 
         <h2 className="text-[20px] font-semibold leading-tight text-text-primary">
