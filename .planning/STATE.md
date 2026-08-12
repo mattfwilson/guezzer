@@ -3,15 +3,20 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: UX/UI Polish
 status: executing
-stopped_at: Phase 22 planned — 10 plans, 5 waves
-last_updated: "2026-08-06T04:14:46.773Z"
-last_activity: 2026-08-06 -- Phase 22 execution started
+stopped_at: Phase 22 CLOSED (7/8 requirements; NAV-06 deferred on Android hardware) — DEPLOYED TO PRODUCTION 2026-08-11
+last_updated: "2026-08-11T23:30:00.000Z"
+last_activity: 2026-08-11 -- Deployed to https://gizz-with-friends.vercel.app
+deployed:
+  url: https://gizz-with-friends.vercel.app
+  first_deployed: 2026-08-11
+  commit: ae8079b
+  method: prebuilt dist uploaded from OUTSIDE the repo (see memory vercel-prebuilt-deploy)
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 23
-  completed_plans: 13
-  percent: 25
+  completed_plans: 23
+  percent: 50
 ---
 
 # Project State
@@ -25,10 +30,30 @@ See: .planning/PROJECT.md (updated 2026-07-24 after v2.0 milestone close)
 
 ## Current Position
 
-Phase: 22 (surface-motion-the-chrome-mechanism) — EXECUTING
-Plan: 1 of 10
-Status: Executing Phase 22
-Last activity: 2026-08-11 -- Completed quick task 260811-pxg: app-name single owner per package
+Phase: 22 (surface-motion-the-chrome-mechanism) — **CLOSED WITH DEFERRAL** (2026-08-10)
+Plan: 10 of 10 complete
+Status: **SHIPPED TO PRODUCTION** — https://gizz-with-friends.vercel.app (2026-08-11)
+Last activity: 2026-08-11 -- Deployed; quick task 260811-pxg (app-name single owner) shipped in it
+
+### 🚀 Production
+
+**Live at https://gizz-with-friends.vercel.app** since 2026-08-11, first deployed at commit `ae8079b`.
+
+- **Deploy method: upload the prebuilt `dist` from a directory OUTSIDE the git repo.** Running the
+  Vercel CLI anywhere inside the working tree makes it detect git, **ignore the local `.vercel`
+  link**, auto-create a different project, upload all of `packages/app`, and fail with
+  `npm error 404 @guezzer/core` — a workspace package that does not exist on npm. Full procedure in
+  memory `vercel-prebuilt-deploy`.
+- **Never build on the host without setting the env vars first.** `db/supabase.ts` throws at
+  module-import time when `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` are missing, so the result is
+  a white screen on boot with no error UI.
+- **The origin is effectively permanent.** The dex lives in origin-scoped IndexedDB; the PWA install
+  and SW precache are origin-bound. A domain change strands every friend's caught-songs history with
+  no migration path but JSON export/import. Point any custom domain BEFORE anyone installs.
+- **Outstanding on-device smoke test** (nothing below is verifiable by curl): sign in on the real
+  origin, install to home screen, airplane-mode relaunch to prove the precache took.
+- Housekeeping: a stray Vercel project named `app` from the first failed attempt can be deleted in
+  the dashboard.
 
 **Carried into Phase 22 — read before planning:**
 
