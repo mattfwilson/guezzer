@@ -52,8 +52,9 @@ Last activity: 2026-08-11 -- Deployed; quick task 260811-pxg (app-name single ow
   no migration path but JSON export/import. Point any custom domain BEFORE anyone installs.
 - **Outstanding on-device smoke test** (nothing below is verifiable by curl): sign in on the real
   origin, install to home screen, airplane-mode relaunch to prove the precache took.
-- Housekeeping: a stray Vercel project named `app` from the first failed attempt can be deleted in
-  the dashboard.
+- Housekeeping DONE: the stray Vercel project `app` (3 deployments, all Error, from the first failed
+  attempt) was deleted 2026-08-11. The org now holds `gizz-with-friends` plus three unrelated
+  pre-existing projects (`fret`, `glass`, `vizdank`) — do not touch those.
 
 **Carried into Phase 22 — read before planning:**
 
