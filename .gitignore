@@ -5,3 +5,6 @@ dist/
 .env
 .env.*
 !.env.example
+# Vercel CLI link + the OIDC token it writes alongside it. No leading slash, so
+# this covers packages/app/.vercel and any other depth the CLI picks.
+.vercel
