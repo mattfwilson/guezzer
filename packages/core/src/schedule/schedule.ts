@@ -5,7 +5,7 @@
  * read boundary, and the pure who's-going grouping the Sched tab renders.
  *
  * Times are MINUTES from the festival day's midnight; late-night sets keep
- * their poster column by exceeding 1440 (Moktar "Friday 1:30AM" → 1530), so
+ * their poster column by exceeding 1440 (Nikki Nair "Friday 1:30AM" → 1530), so
  * chronological sort within a day never interleaves the previous evening.
  * `endMin: null` = open-ended ("11:30AM start" hikes).
  */
